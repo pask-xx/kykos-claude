@@ -1,10 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 
-export const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+// In production (Vercel), don't cache to avoid connection issues
+const isProduction = process.env.NODE_ENV === 'production';
+
+export const prisma = isProduction
+  ? new PrismaClient({
+      log: ['error'],
+    })
+  : (globalForPrisma.prisma ?? new PrismaClient({
+      log: ['error', 'warn'],
+    }));
+
+if (!isProduction && process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
