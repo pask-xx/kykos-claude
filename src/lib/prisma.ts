@@ -1,6 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 
-// Don't use global caching in development to avoid stale connections
 export const prisma = new PrismaClient({
-  log: ['error', 'warn'],
+  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 });
