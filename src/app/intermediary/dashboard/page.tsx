@@ -27,6 +27,20 @@ export default async function IntermediaryDashboard() {
     },
   });
 
+  // Fetch stats
+  const pendingRequests = await prisma.request.count({
+    where: { intermediaryId: org?.id, status: 'PENDING' },
+  });
+
+  const totalFunds = await prisma.payment.aggregate({
+    where: { intermediaryId: org?.id, status: 'COMPLETED' },
+    _sum: { amount: true },
+  }).then(res => res._sum.amount ? Number(res._sum.amount) : 0);
+
+  const authorizedRecipients = await prisma.user.count({
+    where: { referenceEntityId: org?.id, authorized: true },
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -73,6 +87,35 @@ export default async function IntermediaryDashboard() {
           </span>
         </div>
 
+        {/* Organization Data Card */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>🏢</span> Dati organizzazione
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Nome</p>
+              <p className="font-medium text-gray-900">{org?.name || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Tipo</p>
+              <p className="font-medium text-gray-900">{org?.type || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
+              <p className="font-medium text-gray-900">{org?.address || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Email</p>
+              <p className="font-medium text-gray-900">{org?.email || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Riceventi autorizzati</p>
+              <p className="font-medium text-gray-900">{authorizedRecipients}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border">
@@ -104,7 +147,7 @@ export default async function IntermediaryDashboard() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">In attesa</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
               </div>
             </div>
           </div>
@@ -115,7 +158,7 @@ export default async function IntermediaryDashboard() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Fondi raccolti</p>
-                <p className="text-2xl font-bold text-gray-900">€0.00</p>
+                <p className="text-2xl font-bold text-gray-900">€{totalFunds.toFixed(2)}</p>
               </div>
             </div>
           </div>

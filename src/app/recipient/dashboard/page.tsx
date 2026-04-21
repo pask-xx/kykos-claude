@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export default async function RecipientDashboard() {
   const session = await getSession();
@@ -12,6 +13,31 @@ export default async function RecipientDashboard() {
   if (session.role !== 'RECIPIENT') {
     redirect(`/${session.role.toLowerCase()}/dashboard`);
   }
+
+  // Fetch full user data with reference entity
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    include: {
+      referenceEntity: true,
+    },
+  });
+
+  // Fetch stats
+  const pendingRequests = await prisma.request.count({
+    where: { recipientId: session.id, status: 'PENDING' },
+  });
+
+  const receivedDonations = await prisma.donation.count({
+    where: { recipientId: session.id },
+  });
+
+  const totalContributions = await prisma.donation.aggregate({
+    where: { recipientId: session.id },
+    _sum: { amount: true },
+  });
+
+  const authorizationStatus = user?.authorized ? 'Autorizzato' : 'In attesa di autorizzazione';
+  const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,15 +73,70 @@ export default async function RecipientDashboard() {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Ricevente</h1>
 
+        {/* Personal Data Card */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>👤</span> Dati anagrafici
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Nome completo</p>
+              <p className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Email</p>
+              <p className="font-medium text-gray-900">{user?.email}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Codice Fiscale</p>
+              <p className="font-medium text-gray-900 uppercase">{user?.fiscalCode || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Data di nascita</p>
+              <p className="font-medium text-gray-900">
+                {user?.birthDate ? new Date(user.birthDate).toLocaleDateString('it-IT') : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
+              <p className="font-medium text-gray-900">
+                {user?.address ? `${user.address}, ${user.houseNumber || ''}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">CAP / Città</p>
+              <p className="font-medium text-gray-900">
+                {user?.cap ? `${user.cap} ${user.city || ''}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
+              <p className="font-medium text-gray-900">
+                {user?.isee ? `€${Number(user.isee).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
+              <p className="font-medium text-gray-900">{user?.referenceEntity?.name || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Stato autorizzazione</p>
+              <p className={`font-medium ${statusColor}`}>{authorizationStatus}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Status Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">✅</span>
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+              user?.authorized ? 'bg-green-100' : 'bg-yellow-100'
+            }`}>
+              <span className="text-2xl">{user?.authorized ? '✅' : '⏳'}</span>
             </div>
             <div>
               <p className="font-semibold text-gray-900">Stato autorizzazione</p>
-              <p className="text-sm text-green-600">Autorizzato</p>
+              <p className={`text-sm ${statusColor}`}>{authorizationStatus}</p>
             </div>
           </div>
         </div>
@@ -69,7 +150,7 @@ export default async function RecipientDashboard() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Richieste pendenti</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
               </div>
             </div>
           </div>
@@ -80,7 +161,7 @@ export default async function RecipientDashboard() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Oggetti ricevuti</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{receivedDonations}</p>
               </div>
             </div>
           </div>
@@ -91,7 +172,9 @@ export default async function RecipientDashboard() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Contributi versati</p>
-                <p className="text-2xl font-bold text-gray-900">€0.00</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  €{totalContributions._sum.amount ? Number(totalContributions._sum.amount).toFixed(2) : '0.00'}
+                </p>
               </div>
             </div>
           </div>
