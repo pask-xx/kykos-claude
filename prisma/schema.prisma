@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================== ENUMS ==================
+
+enum Role {
+  DONOR
+  RECIPIENT
+  INTERMEDIARY
+  ADMIN
+}
+
+enum OrgType {
+  CHARITY
+  CHURCH
+  ASSOCIATION
+}
+
+enum Category {
+  FURNITURE
+  ELECTRONICS
+  CLOTHING
+  BOOKS
+  KITCHEN
+  SPORTS
+  TOYS
+  OTHER
+}
+
+enum Condition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ObjectStatus {
+  AVAILABLE
+  RESERVED
+  DONATED
+  WITHDRAWN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum DonorLevel {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+// ================== MODELS ==================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String    // Keep for backward compat
+  passwordHash  String
+  role          Role      @default(DONOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Common optional fields
+  firstName     String?
+  lastName      String?
+  birthDate     DateTime?
+  fiscalCode    String?
+  address       String?
+  cap           String?
+  city          String?
+  houseNumber   String?
+
+  // Recipient fields
+  referenceEntityId String?
+  referenceEntity   Organization? @relation("RecipientReference", fields: [referenceEntityId], references: [id])
+  isee              Decimal?
+  authorized         Boolean   @default(false)
+  authorizedAt       DateTime?
+
+  // Donor relations
+  donatedObjects Object[]     @relation("DonorObjects")
+  donorProfile   DonorProfile?
+
+  // Recipient relations
+  requests        Request[] @relation("RecipientRequests")
+  receivedDonations Donation[] @relation("ReceivedDonations")
+
+  // Intermediary relation
+  intermediaryOrg   Organization?
+
+  // Donation history
+  donations        Donation[] @relation("DonationDonor")
+
+  @@map("users")
+}
+
+model Organization {
+  id            String    @id @default(cuid())
+  name          String
+  type          OrgType
+  address       String?
+  phone         String?
+  email         String?
+  verified      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  objects       Object[]
+  requests      Request[]
+  payments      Payment[]
+  authorizedRecipients User[] @relation("RecipientReference")
+
+  @@map("organizations")
+}
+
+model Object {
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  category      Category
+  condition     Condition
+  status        ObjectStatus @default(AVAILABLE)
+  imageUrl      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  donorId       String
+  donor         User         @relation("DonorObjects", fields: [donorId], references: [id], onDelete: Cascade)
+
+  intermediaryId String
+  intermediary   Organization @relation(fields: [intermediaryId], references: [id])
+
+  requests      Request[]
+  donation      Donation?
+
+  @@map("objects")
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  status        RequestStatus @default(PENDING)
+  message       String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  objectId      String
+  object        Object        @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  recipientId   String
+  recipient     User          @relation("RecipientRequests", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  intermediaryId String
+  intermediary   Organization @relation(fields: [intermediaryId], references: [id])
+
+  donation      Donation?
+
+  @@map("requests")
+}
+
+model Donation {
+  id            String   @id @default(cuid())
+  amount        Decimal  @default(1.00)
+  currency      String   @default("EUR")
+  createdAt     DateTime @default(now())
+
+  objectId      String   @unique
+  object        Object   @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  donorId       String
+  donor         User     @relation("DonationDonor", fields: [donorId], references: [id], onDelete: Cascade)
+
+  recipientId   String
+  recipient     User     @relation("ReceivedDonations", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  requestId     String   @unique
+  request       Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  paymentId     String?  @unique
+  payment       Payment? @relation(fields: [paymentId], references: [id])
+
+  @@map("donations")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  amount          Decimal
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  intermediaryId  String
+  intermediary    Organization  @relation(fields: [intermediaryId], references: [id])
+
+  donationId      String?       @unique
+  donation        Donation?
+
+  @@map("payments")
+}
+
+model DonorProfile {
+  id             String     @id @default(cuid())
+  totalDonations Int        @default(0)
+  totalObjects   Int        @default(0)
+  level          DonorLevel @default(BRONZE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  userId         String     @unique
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("donor_profiles")
+}

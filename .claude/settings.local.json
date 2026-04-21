@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -v http://localhost:3000)",
+      "Bash(pkill -f \"next\")",
+      "Bash(npm start *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(npx tsc *)",
+      "Bash(node .next/standalone/server.js)",
+      "Bash(npm run *)",
+      "Bash(npx next *)",
+      "Bash(npx eslint *)",
+      "Bash(curl *)",
+      "Bash(taskkill /F /PID 34140 /F)",
+      "Bash(taskkill /F /PID 28904 /F)",
+      "Bash(taskkill /F /IM node.exe /F)",
+      "Bash(npx prisma *)",
+      "Bash(NEXT_DISABLE_TURBOPACK=1 npm run dev)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 28904 //F)",
+      "mcp__ide__getDiagnostics",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(taskkill /F /PID 41368 /PID 23752)",
+      "Bash(taskkill /PID 23752 /F)",
+      "Bash(taskkill /PID 41368 /F)",
+      "Bash(cmd.exe /c \"taskkill /F /PID 23752\")",
+      "Bash(cmd.exe /c \"taskkill /F /PID 41368\")",
+      "Bash(cmd.exe /c \"taskkill /F /IM node.exe\")",
+      "Bash(npm ls *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
