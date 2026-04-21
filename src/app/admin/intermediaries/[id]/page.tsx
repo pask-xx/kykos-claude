@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 
 interface Intermediary {
   id: string;
@@ -22,6 +21,7 @@ interface Intermediary {
   _count: {
     objects: number;
     requests: number;
+    authorizedRecipients: number;
   };
 }
 
@@ -184,7 +184,7 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
             {/* Stats */}
             <div className="bg-white p-6 rounded-xl shadow-sm border">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Statistiche</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-3xl font-bold text-gray-900">{intermediary._count.objects}</p>
                   <p className="text-sm text-gray-500">Oggetti</p>
@@ -192,6 +192,10 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-3xl font-bold text-gray-900">{intermediary._count.requests}</p>
                   <p className="text-sm text-gray-500">Richieste</p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className="text-3xl font-bold text-gray-900">{intermediary._count.authorizedRecipients}</p>
+                  <p className="text-sm text-gray-500">Riceventi</p>
                 </div>
               </div>
             </div>
