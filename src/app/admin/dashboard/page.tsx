@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 interface Organization {
   id: string;
@@ -25,7 +25,7 @@ const ORG_TYPE_LABELS: Record<string, string> = {
   ASSOCIATION: 'Associazione',
 };
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const searchParams = useSearchParams();
   const [intermediaries, setIntermediaries] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
       setShowSuccess(true);
-      // Hide success message after 5 seconds
       setTimeout(() => setShowSuccess(false), 5000);
     }
   }, [searchParams]);
@@ -184,5 +183,21 @@ export default function AdminDashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-gray-500">Caricamento...</p>
+    </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }
