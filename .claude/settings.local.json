@@ -32,7 +32,8 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git branch *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git commit -m 'fix: run prisma generate during build for Vercel *)"
     ]
   }
 }
