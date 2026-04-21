@@ -9,6 +9,12 @@ export default function Home() {
           <div className="text-2xl font-bold text-primary-600">KYKOS</div>
           <div className="flex gap-4">
             <Link
+              href="/manifesto"
+              className="px-4 py-2 text-gray-600 hover:text-primary-600 font-medium"
+            >
+              Manifesto
+            </Link>
+            <Link
               href="/auth/login"
               className="px-4 py-2 text-primary-600 hover:text-primary-700 font-medium"
             >
