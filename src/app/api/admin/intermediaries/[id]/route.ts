@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 
-export async function POST(
+export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -20,16 +19,28 @@ export async function POST(
 
     const { id } = await params;
 
-    // Update organization to verified
-    await prisma.organization.update({
+    const intermediary = await prisma.organization.findUnique({
       where: { id },
-      data: { verified: true },
+      include: {
+        user: {
+          select: { email: true, createdAt: true },
+        },
+        _count: {
+          select: {
+            objects: true,
+            requests: true,
+          },
+        },
+      },
     });
 
-    // Redirect back to admin dashboard with success message
-    return NextResponse.redirect(new URL('/admin/dashboard?verified=true', request.url));
+    if (!intermediary) {
+      return NextResponse.json({ error: 'Ente non trovato' }, { status: 404 });
+    }
+
+    return NextResponse.json({ intermediary });
   } catch (error) {
-    console.error('Error verifying intermediary:', error);
+    console.error('Error fetching intermediary:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }

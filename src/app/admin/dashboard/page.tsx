@@ -1,35 +1,56 @@
+'use client';
+
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { ORG_TYPE_LABELS } from '@/types';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-export default async function AdminDashboard() {
-  const session = await getSession();
+interface Organization {
+  id: string;
+  name: string;
+  type: string;
+  verified: boolean;
+  user: {
+    email: string;
+    createdAt: string;
+  };
+  _count: {
+    objects: number;
+    requests: number;
+  };
+}
 
-  if (!session) {
-    redirect('/auth/login');
-  }
+const ORG_TYPE_LABELS: Record<string, string> = {
+  CHARITY: 'Centro Caritas',
+  CHURCH: 'Parrocchia',
+  ASSOCIATION: 'Associazione',
+};
 
-  if (session.role !== 'ADMIN') {
-    redirect('/');
-  }
+export default function AdminDashboard() {
+  const searchParams = useSearchParams();
+  const [intermediaries, setIntermediaries] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Fetch intermediaries with pending verification
-  const intermediaries = await prisma.organization.findMany({
-    include: {
-      user: {
-        select: { email: true, createdAt: true },
-      },
-      _count: {
-        select: {
-          objects: true,
-          requests: true,
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      setShowSuccess(true);
+      // Hide success message after 5 seconds
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetch('/api/admin/intermediaries')
+      .then(res => res.json())
+      .then(data => {
+        setIntermediaries(data.intermediaries || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        setLoading(false);
+      });
+  }, []);
 
   const verifiedCount = intermediaries.filter(i => i.verified).length;
   const pendingCount = intermediaries.filter(i => !i.verified).length;
@@ -46,7 +67,6 @@ export default async function AdminDashboard() {
                 Admin
               </Link>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">Ciao, {session.name}</span>
                 <form action="/api/auth/logout" method="POST">
                   <button type="submit" className="text-sm text-red-600 hover:text-red-700">
                     Esci
@@ -61,6 +81,14 @@ export default async function AdminDashboard() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Pannello Amministratore</h1>
+
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-3">
+            <span className="text-xl">✅</span>
+            <p><strong>Ente approvato con successo!</strong> L&apos;ente ora può accedere alla piattaforma.</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -103,12 +131,18 @@ export default async function AdminDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Gestione Enti</h2>
 
-          {intermediaries.length === 0 ? (
+          {loading ? (
+            <p className="text-gray-500 text-center py-8">Caricamento...</p>
+          ) : intermediaries.length === 0 ? (
             <p className="text-gray-500 text-center py-8">Nessun ente registrato</p>
           ) : (
             <div className="space-y-4">
               {intermediaries.map((org) => (
-                <div key={org.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <Link
+                  key={org.id}
+                  href={`/admin/intermediaries/${org.id}`}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-semibold text-gray-900">{org.name}</h3>
@@ -119,7 +153,7 @@ export default async function AdminDashboard() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">
-                      {ORG_TYPE_LABELS[org.type]} • {org.user.email}
+                      {ORG_TYPE_LABELS[org.type] || org.type} • {org.user.email}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       Registrato il {new Date(org.user.createdAt).toLocaleDateString('it-IT')}
@@ -130,7 +164,11 @@ export default async function AdminDashboard() {
                     </div>
                   </div>
                   {!org.verified && (
-                    <form action={`/api/admin/intermediaries/${org.id}/verify`} method="POST">
+                    <form
+                      action={`/api/admin/intermediaries/${org.id}/verify`}
+                      method="POST"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         type="submit"
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
@@ -139,7 +177,7 @@ export default async function AdminDashboard() {
                       </button>
                     </form>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           )}
