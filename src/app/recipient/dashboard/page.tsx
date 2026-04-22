@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 export default async function RecipientDashboard() {
   const session = await getSession();
@@ -14,7 +15,6 @@ export default async function RecipientDashboard() {
     redirect(`/${session.role.toLowerCase()}/dashboard`);
   }
 
-  // Fetch full user data with reference entity
   const user = await prisma.user.findUnique({
     where: { id: session.id },
     include: {
@@ -22,7 +22,6 @@ export default async function RecipientDashboard() {
     },
   });
 
-  // Fetch stats
   const pendingRequests = await prisma.request.count({
     where: { recipientId: session.id, status: 'PENDING' },
   });
@@ -40,91 +39,9 @@ export default async function RecipientDashboard() {
   const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/recipient/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/recipient/browse" className="text-gray-600 hover:text-primary-600 font-medium">
-                Sfoglia
-              </Link>
-              <Link href="/recipient/requests" className="text-gray-600 hover:text-primary-600 font-medium">
-                Richieste
-              </Link>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">Ciao, {session.name}</span>
-                <form action="/api/auth/logout" method="POST">
-                  <button type="submit" className="text-sm text-red-600 hover:text-red-700">
-                    Esci
-                  </button>
-                </form>
-              </div>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+    <DashboardLayout role={session.role} userName={session.name}>
+      <div className="max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Ricevente</h1>
-
-        {/* Personal Data Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>👤</span> Dati anagrafici
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Nome completo</p>
-              <p className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Email</p>
-              <p className="font-medium text-gray-900">{user?.email}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Codice Fiscale</p>
-              <p className="font-medium text-gray-900 uppercase">{user?.fiscalCode || '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Data di nascita</p>
-              <p className="font-medium text-gray-900">
-                {user?.birthDate ? new Date(user.birthDate).toLocaleDateString('it-IT') : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
-              <p className="font-medium text-gray-900">
-                {user?.address ? `${user.address}, ${user.houseNumber || ''}` : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">CAP / Città</p>
-              <p className="font-medium text-gray-900">
-                {user?.cap ? `${user.cap} ${user.city || ''}` : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
-              <p className="font-medium text-gray-900">
-                {user?.isee ? `€${Number(user.isee).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
-              <p className="font-medium text-gray-900">{user?.referenceEntity?.name || '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Stato autorizzazione</p>
-              <p className={`font-medium ${statusColor}`}>{authorizationStatus}</p>
-            </div>
-          </div>
-        </div>
 
         {/* Status Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
@@ -180,6 +97,55 @@ export default async function RecipientDashboard() {
           </div>
         </div>
 
+        {/* Personal Data Card */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>👤</span> Dati anagrafici
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Nome completo</p>
+              <p className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Email</p>
+              <p className="font-medium text-gray-900">{user?.email}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Codice Fiscale</p>
+              <p className="font-medium text-gray-900 uppercase">{user?.fiscalCode || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Data di nascita</p>
+              <p className="font-medium text-gray-900">
+                {user?.birthDate ? new Date(user.birthDate).toLocaleDateString('it-IT') : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
+              <p className="font-medium text-gray-900">
+                {user?.address ? `${user.address}, ${user.houseNumber || ''}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">CAP / Città</p>
+              <p className="font-medium text-gray-900">
+                {user?.cap ? `${user.cap} ${user.city || ''}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
+              <p className="font-medium text-gray-900">
+                {user?.isee ? `€${Number(user.isee).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
+              <p className="font-medium text-gray-900">{user?.referenceEntity?.name || '—'}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Azioni rapide</h2>
@@ -229,7 +195,7 @@ export default async function RecipientDashboard() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
