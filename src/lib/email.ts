@@ -1,10 +1,10 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_EMAIL = 'KYKOS <noreply@kykos.it>';
 const APP_NAME = 'KYKOS';
 const APP_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface EmailOptions {
   to: string;
@@ -13,7 +13,7 @@ interface EmailOptions {
 }
 
 async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> {
-  if (!process.env.RESEND_API_KEY) {
+  if (!resend) {
     console.warn('RESEND_API_KEY not configured, skipping email');
     return false;
   }
