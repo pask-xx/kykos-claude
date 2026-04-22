@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import DashboardLayoutClient from '@/components/dashboard/DashboardLayoutClient';
 
 export default async function RecipientDashboard() {
   const session = await getSession();
@@ -39,7 +39,7 @@ export default async function RecipientDashboard() {
   const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
 
   return (
-    <DashboardLayout role={session.role} userName={session.name}>
+    <DashboardLayoutClient>
       <div className="max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Ricevente</h1>
 
@@ -196,6 +196,6 @@ export default async function RecipientDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutClient>
   );
 }

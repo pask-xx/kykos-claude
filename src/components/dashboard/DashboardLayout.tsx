@@ -1,43 +1,71 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
-import { Role } from '@prisma/client';
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  role: Role;
-  userName: string;
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY' | 'ADMIN';
 }
 
-export default function DashboardLayout({ children, role, userName }: DashboardLayoutProps) {
-  const pathname = usePathname();
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
+        <p className="text-gray-500">Caricamento...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
+        <p className="text-gray-500">
+          Sessione non trovata.{' '}
+          <Link href="/auth/login" className="text-primary-600 hover:underline">
+            Accedi
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  // Only render sidebar for valid roles
+  if (!['RECIPIENT', 'DONOR', 'INTERMEDIARY'].includes(user.role)) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
+        <p className="text-gray-500">Ruolo non valido</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar role={role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN'} />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">Ciao, {userName}</span>
-              <form action="/api/auth/logout" method="POST">
-                <button type="submit" className="text-sm text-red-600 hover:text-red-700">
-                  Esci
-                </button>
-              </form>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY'}
+        userName={user.name}
+        userEmail={user.email}
+      />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>
