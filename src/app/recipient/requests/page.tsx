@@ -11,7 +11,7 @@ interface Request {
   createdAt: string;
   object: {
     title: string;
-    imageUrl: string | null;
+    imageUrls: string[] | null;
     donor: { name: string };
   };
 }
@@ -90,9 +90,9 @@ export default function RecipientRequestsPage() {
           <div className="space-y-4">
             {requests.map((req) => (
               <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border flex gap-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
-                  {req.object.imageUrl ? (
-                    <img src={req.object.imageUrl} alt={req.object.title} className="w-full h-full object-cover rounded-lg" />
+                <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  {req.object.imageUrls && req.object.imageUrls[0] ? (
+                    <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-3xl">📦</span>
                   )}
