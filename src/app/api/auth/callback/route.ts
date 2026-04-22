@@ -23,6 +23,8 @@ export async function GET(request: Request) {
 
   if (!code) {
     console.log('No code present in callback URL');
+    console.log('Full URL was:', request.url);
+    console.log('All search params:', Array.from(new URL(request.url).searchParams.entries()));
     return NextResponse.redirect(new URL('/auth/login?error=no_code', process.env.NEXT_PUBLIC_BASE_URL));
   }
 
