@@ -6,7 +6,10 @@ export default function Home() {
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-primary-600">KYKOS</div>
+          <Link href="/" className="flex items-center gap-3">
+            <img src="/albero.svg" alt="KYKOS" className="w-12 h-12" />
+            <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+          </Link>
           <div className="flex gap-4">
             <Link
               href="/manifesto"
@@ -32,15 +35,18 @@ export default function Home() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 text-center">
+        <div className="flex items-center justify-center gap-6 mb-6">
+          <img src="/albero.svg" alt="KYKOS" className="w-24 h-24" />
+        </div>
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
           Dona con dignità,
           <br />
           <span className="text-primary-600">ricevi con gratitudine</span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-          KYKOS连接需要帮助的人。不需要知道对方是谁，
-          只需要知道你在改变生活。
           Anonimato totale per donatori e riceventi.
+          Chi dona non sa chi riceve. Chi riceve non sa chi dona.
+          La dignità è preservata.
         </p>
         <div className="flex gap-4 justify-center">
           <Link
