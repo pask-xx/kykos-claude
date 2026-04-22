@@ -11,10 +11,13 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
 
-  // Debug logging for Vercel
+  // Debug - log all cookies
+  const cookieHeader = request.headers.get('cookie');
   console.log('=== OAUTH CALLBACK DEBUG ===');
   console.log('Full URL:', request.url);
   console.log('NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL);
+  console.log('All search params:', Array.from(new URL(request.url).searchParams.entries()));
+  console.log('Cookie header:', cookieHeader);
 
   if (error) {
     console.log('Redirecting due to error:', error);
@@ -22,9 +25,7 @@ export async function GET(request: Request) {
   }
 
   if (!code) {
-    console.log('No code present in callback URL');
-    console.log('Full URL was:', request.url);
-    console.log('All search params:', Array.from(new URL(request.url).searchParams.entries()));
+    console.log('No code in URL, checking cookies...');
     return NextResponse.redirect(new URL('/auth/login?error=no_code', process.env.NEXT_PUBLIC_BASE_URL));
   }
 
