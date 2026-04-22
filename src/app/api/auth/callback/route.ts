@@ -11,17 +11,29 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
 
+  // Debug logging for Vercel
+  console.log('=== OAUTH CALLBACK DEBUG ===');
+  console.log('Full URL:', requestUrl.toString());
+  console.log('Code present:', !!code);
+  console.log('Error param:', error);
+  console.log('Supabase URL configured:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+
   if (error) {
-    return NextResponse.redirect(new URL('/auth/login?error=oauth_error', process.env.NEXT_PUBLIC_BASE_URL));
+    console.log('Redirecting due to error:', error);
+    return NextResponse.redirect(new URL('/auth/login?error=' + error, process.env.NEXT_PUBLIC_BASE_URL));
   }
 
   if (!code) {
+    console.log('No code present in callback URL');
     return NextResponse.redirect(new URL('/auth/login?error=no_code', process.env.NEXT_PUBLIC_BASE_URL));
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    console.log('Exchanging code for session...');
     const { data: { user: supabaseUser }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+    console.log('Exchange result - user:', !!supabaseUser, 'error:', exchangeError);
 
     if (exchangeError || !supabaseUser) {
       console.error('OAuth exchange error:', exchangeError);

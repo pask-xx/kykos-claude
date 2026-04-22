@@ -37,7 +37,8 @@
       "Bash(git commit -m 'fix: prisma datasource config *)",
       "Bash(git commit -m 'fix: prisma production client config *)",
       "Bash(git commit -m 'fix: wrap admin dashboard in Suspense for Next.js build *)",
-      "Bash(git commit -m 'fix: redirect to home page after logout *)"
+      "Bash(git commit -m 'fix: redirect to home page after logout *)",
+      "Bash(git commit *)"
     ]
   }
 }
