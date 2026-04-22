@@ -7,6 +7,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function GET() {
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+  console.log('Starting Google OAuth, redirectTo will be:', `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`);
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -17,6 +19,8 @@ export async function GET() {
       },
     },
   });
+
+  console.log('OAuth result - url:', data?.url, 'error:', error);
 
   if (error) {
     return NextResponse.redirect(new URL('/auth/login?error=oauth_error', process.env.NEXT_PUBLIC_BASE_URL));

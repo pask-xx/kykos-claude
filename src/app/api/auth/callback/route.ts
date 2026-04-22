@@ -13,10 +13,8 @@ export async function GET(request: Request) {
 
   // Debug logging for Vercel
   console.log('=== OAUTH CALLBACK DEBUG ===');
-  console.log('Full URL:', requestUrl.toString());
-  console.log('Code present:', !!code);
-  console.log('Error param:', error);
-  console.log('Supabase URL configured:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('Full URL:', request.url);
+  console.log('NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL);
 
   if (error) {
     console.log('Redirecting due to error:', error);
