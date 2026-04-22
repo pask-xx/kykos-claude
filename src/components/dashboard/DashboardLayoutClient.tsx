@@ -44,6 +44,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -80,46 +81,71 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
+      {/* Collapsible Sidebar */}
+      <aside
+        className={`bg-white border-r border-gray-200 flex-shrink-0 flex flex-col transition-all duration-200 ease-in-out ${
+          collapsed ? 'w-16' : 'w-64'
+        }`}
+        onMouseEnter={() => setCollapsed(false)}
+        onMouseLeave={() => setCollapsed(true)}
+      >
+        {/* Logo */}
+        <div className={`p-4 border-b border-gray-200 transition-all duration-200 ${collapsed ? 'text-center' : ''}`}>
+          <Link href="/" className={`text-2xl font-bold text-primary-600 ${collapsed ? 'text-center' : ''}`}>
+            {collapsed ? 'K' : 'KYKOS'}
+          </Link>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+
+        {/* Navigation */}
+        <nav className="flex-1 p-2 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group relative ${
+                className={`flex items-center gap-3 px-2 py-3 rounded-lg transition-colors relative ${
                   isActive
                     ? 'bg-primary-50 text-primary-700'
                     : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                } ${collapsed ? 'justify-center' : ''}`}
               >
                 <span className="text-xl flex-shrink-0">{item.icon}</span>
-                <span className="font-medium truncate">{item.label}</span>
-                {/* Tooltip on hover - desktop only */}
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity hidden lg:block">
-                  {item.label}
-                </div>
+                {!collapsed && (
+                  <span className="font-medium truncate">{item.label}</span>
+                )}
+                {/* Tooltip when collapsed */}
+                {collapsed && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                    {item.label}
+                  </div>
+                )}
               </Link>
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="truncate">
-              <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+
+        {/* User info */}
+        <div className={`p-2 border-t border-gray-200 transition-all duration-200 ${collapsed ? 'text-center' : ''}`}>
+          {!collapsed ? (
+            <div className="flex items-center justify-between">
+              <div className="truncate">
+                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              </div>
+              <form action="/api/auth/logout" method="POST">
+                <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
+                  Esci
+                </button>
+              </form>
             </div>
+          ) : (
             <form action="/api/auth/logout" method="POST">
-              <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
-                Esci
+              <button type="submit" className="text-xl text-red-600 hover:text-red-700 mx-auto">
+                🚪
               </button>
             </form>
-          </div>
+          )}
         </div>
       </aside>
 
