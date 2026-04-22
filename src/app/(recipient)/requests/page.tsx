@@ -59,7 +59,7 @@ export default function RecipientRequestsPage() {
               <Link href="/recipient/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
                 Dashboard
               </Link>
-              <Link href="/recipient/browse" className="text-gray-600 hover:text-primary-600 font-medium">
+              <Link href="/recipient/objects" className="text-gray-600 hover:text-primary-600 font-medium">
                 Sfoglia
               </Link>
               <Link href="/recipient/requests" className="text-primary-600 font-medium">
@@ -82,7 +82,7 @@ export default function RecipientRequestsPage() {
             <span className="text-5xl mb-4 block">📋</span>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
             <p className="text-gray-500 mb-6">Non hai ancora richiesto oggetti.</p>
-            <Link href="/recipient/browse" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link href="/recipient/objects" className="text-primary-600 hover:text-primary-700 font-medium">
               Sfoglia gli oggetti disponibili →
             </Link>
           </div>

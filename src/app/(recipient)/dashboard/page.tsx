@@ -140,7 +140,7 @@ export default async function RecipientDashboard() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Azioni rapide</h2>
           <div className="flex gap-4">
             <Link
-              href="/recipient/browse"
+              href="/recipient/objects"
               className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
             >
               Sfoglia oggetti

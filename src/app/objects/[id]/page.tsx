@@ -65,7 +65,7 @@ export default function ObjectDetailPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Oggetto non trovato</h2>
-          <Link href="/browse" className="text-primary-600 hover:text-primary-700">
+          <Link href="/objects" className="text-primary-600 hover:text-primary-700">
             Torna agli oggetti
           </Link>
         </div>
@@ -81,7 +81,7 @@ export default function ObjectDetailPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
             <nav className="flex items-center gap-6">
-              <Link href="/browse" className="text-primary-600 font-medium">
+              <Link href="/objects" className="text-primary-600 font-medium">
                 Sfoglia
               </Link>
               <Link href="/auth/login" className="text-gray-600 hover:text-primary-600 font-medium">
@@ -94,7 +94,7 @@ export default function ObjectDetailPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <Link href="/browse" className="text-gray-600 hover:text-primary-600 mb-6 inline-block">
+        <Link href="/objects" className="text-gray-600 hover:text-primary-600 mb-6 inline-block">
           ← Torna agli oggetti
         </Link>
 

@@ -103,7 +103,7 @@ export default function BrowsePage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
             <nav className="flex items-center gap-6">
-              <Link href="/browse" className="text-primary-600 font-medium">
+              <Link href="/objects" className="text-primary-600 font-medium">
                 Sfoglia
               </Link>
               <Link href="/auth/login" className="text-gray-600 hover:text-primary-600 font-medium">

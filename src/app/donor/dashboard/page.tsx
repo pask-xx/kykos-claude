@@ -162,7 +162,7 @@ export default async function DonorDashboard() {
               + Nuovo oggetto
             </Link>
             <Link
-              href="/browse"
+              href="/objects"
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
             >
               Sfoglia oggetti

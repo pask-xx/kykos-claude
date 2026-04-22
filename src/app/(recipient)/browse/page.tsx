@@ -102,7 +102,7 @@ export default function RecipientBrowsePage() {
               <Link href="/recipient/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
                 Dashboard
               </Link>
-              <Link href="/recipient/browse" className="text-primary-600 font-medium">
+              <Link href="/recipient/objects" className="text-primary-600 font-medium">
                 Sfoglia
               </Link>
               <Link href="/recipient/requests" className="text-gray-600 hover:text-primary-600 font-medium">
