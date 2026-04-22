@@ -35,6 +35,10 @@ interface SidebarProps {
   userEmail: string;
 }
 
+function getDashboardHref(role: string): string {
+  return `/${role.toLowerCase()}/dashboard`;
+}
+
 export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
@@ -77,7 +81,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
       >
         {/* Logo */}
         <div className={`p-3 border-b border-gray-200 flex items-center ${expanded ? 'justify-start' : 'justify-center'}`}>
-          <Link href="/" className="flex items-center gap-2">
+          <Link href={getDashboardHref(role)} className="flex items-center gap-2">
             <img src="/albero.svg" alt="KYKOS" className="w-8 h-8 flex-shrink-0" />
             {expanded && (
               <span className="text-xl font-bold text-primary-600 whitespace-nowrap">KYKOS</span>
