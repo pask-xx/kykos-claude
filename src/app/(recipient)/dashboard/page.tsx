@@ -1,37 +1,27 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import DashboardLayoutClient from '@/components/dashboard/DashboardLayoutClient';
 
 export default async function RecipientDashboard() {
   const session = await getSession();
 
-  if (!session) {
-    redirect('/auth/login');
-  }
-
-  if (session.role !== 'RECIPIENT') {
-    redirect(`/${session.role.toLowerCase()}/dashboard`);
-  }
-
   const user = await prisma.user.findUnique({
-    where: { id: session.id },
+    where: { id: session!.id },
     include: {
       referenceEntity: true,
     },
   });
 
   const pendingRequests = await prisma.request.count({
-    where: { recipientId: session.id, status: 'PENDING' },
+    where: { recipientId: session!.id, status: 'PENDING' },
   });
 
   const receivedDonations = await prisma.donation.count({
-    where: { recipientId: session.id },
+    where: { recipientId: session!.id },
   });
 
   const totalContributions = await prisma.donation.aggregate({
-    where: { recipientId: session.id },
+    where: { recipientId: session!.id },
     _sum: { amount: true },
   });
 
@@ -39,8 +29,7 @@ export default async function RecipientDashboard() {
   const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
 
   return (
-    <DashboardLayoutClient>
-      <div className="max-w-6xl">
+    <div className="max-w-6xl p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Ricevente</h1>
 
         {/* Status Card */}
@@ -196,6 +185,5 @@ export default async function RecipientDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayoutClient>
   );
 }

@@ -58,69 +58,80 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
   }, []);
 
   return (
-    <aside
-      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-200 ease-out ${
-        expanded ? 'w-64' : 'w-16'
-      }`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Logo */}
-      <div className={`p-3 border-b border-gray-200 flex items-center ${expanded ? 'justify-start' : 'justify-center'}`}>
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/albero.svg" alt="KYKOS" className="w-8 h-8 flex-shrink-0" />
-          {expanded && (
-            <span className="text-xl font-bold text-primary-600 whitespace-nowrap">KYKOS</span>
-          )}
-        </Link>
-      </div>
+    <>
+      {/* Overlay backdrop - only visible when sidebar is expanded */}
+      {expanded && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 lg:block"
+          onClick={() => setExpanded(false)}
+        />
+      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-2 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-              } ${expanded ? 'justify-start' : 'justify-center'}`}
-              title={!expanded ? item.label : undefined}
-            >
-              <span className="text-xl flex-shrink-0">{item.icon}</span>
-              {expanded && (
-                <span className="font-medium truncate">{item.label}</span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Floating Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 flex flex-col z-50 transition-all duration-200 ease-out ${
+          expanded ? 'w-64' : 'w-16'
+        }`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Logo */}
+        <div className={`p-3 border-b border-gray-200 flex items-center ${expanded ? 'justify-start' : 'justify-center'}`}>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8 flex-shrink-0" />
+            {expanded && (
+              <span className="text-xl font-bold text-primary-600 whitespace-nowrap">KYKOS</span>
+            )}
+          </Link>
+        </div>
 
-      {/* User info */}
-      <div className={`p-3 border-t border-gray-200 ${expanded ? 'justify-start' : 'justify-center'}`}>
-        {expanded ? (
-          <div className="flex items-center justify-between">
-            <div className="truncate min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-              <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+        {/* Navigation */}
+        <nav className="flex-1 p-2 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-2 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50'
+                } ${expanded ? 'justify-start' : 'justify-center'}`}
+                title={!expanded ? item.label : undefined}
+              >
+                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                {expanded && (
+                  <span className="font-medium truncate">{item.label}</span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User info */}
+        <div className={`p-3 border-t border-gray-200 ${expanded ? 'justify-start' : 'justify-center'}`}>
+          {expanded ? (
+            <div className="flex items-center justify-between">
+              <div className="truncate min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+                <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+              </div>
+              <form action="/api/auth/logout" method="POST" className="flex-shrink-0">
+                <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
+                  🚪
+                </button>
+              </form>
             </div>
-            <form action="/api/auth/logout" method="POST" className="flex-shrink-0">
-              <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
+          ) : (
+            <form action="/api/auth/logout" method="POST">
+              <button type="submit" className="text-xl text-red-600 hover:text-red-700">
                 🚪
               </button>
             </form>
-          </div>
-        ) : (
-          <form action="/api/auth/logout" method="POST">
-            <button type="submit" className="text-xl text-red-600 hover:text-red-700">
-              🚪
-            </button>
-          </form>
-        )}
-      </div>
-    </aside>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }

@@ -38,7 +38,14 @@
       "Bash(git commit -m 'fix: prisma production client config *)",
       "Bash(git commit -m 'fix: wrap admin dashboard in Suspense for Next.js build *)",
       "Bash(git commit -m 'fix: redirect to home page after logout *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npm install *)",
+      "Bash(touch README.md)",
+      "Bash(mkdir -p \"\\(recipient\\)\")",
+      "Bash(mv \"recipient/dashboard\" \"\\(recipient\\)/\")",
+      "Bash(mv \"recipient/browse\" \"\\(recipient\\)/\")",
+      "Bash(mv \"recipient/requests\" \"\\(recipient\\)/\")",
+      "Bash(rmdir \"recipient\")"
     ]
   }
 }
