@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { sendQrCodeNotification, sendDonationConfirmedNotification } from '@/lib/email';
 
 export async function GET() {
   try {
@@ -69,7 +70,14 @@ export async function PATCH(request: Request) {
     // Verify request belongs to this intermediary
     const req = await prisma.request.findUnique({
       where: { id: requestId },
-      include: { object: true },
+      include: {
+        object: {
+          include: {
+            donor: { select: { name: true, email: true } },
+          },
+        },
+        recipient: { select: { name: true, email: true } },
+      },
     });
 
     if (!req) {
@@ -107,6 +115,23 @@ export async function PATCH(request: Request) {
           },
         });
       });
+
+      // Send QR code notification to recipient
+      const qrCodeData = `kykos:pickup:${requestId}:${req.recipientId}`;
+      await sendQrCodeNotification(
+        req.recipient.email,
+        req.recipient.name,
+        req.object.title,
+        qrCodeData
+      );
+
+      // Notify donor of completed donation
+      await sendDonationConfirmedNotification(
+        req.object.donor.email,
+        req.object.donor.name,
+        req.recipient.name,
+        req.object.title
+      );
 
       return NextResponse.json({ success: true, message: 'Richiesta approvata' });
     } else if (action === 'reject') {

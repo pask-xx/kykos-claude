@@ -181,9 +181,9 @@ export default async function DonorDashboard() {
             <div className="space-y-4">
               {recentObjects.map((obj) => (
                 <div key={obj.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                    {obj.imageUrl ? (
-                      <img src={obj.imageUrl} alt={obj.title} className="w-full h-full object-cover rounded-lg" />
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                    {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                      <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
                     ) : (
                       <span>📦</span>
                     )}

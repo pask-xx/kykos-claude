@@ -82,6 +82,8 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Common optional fields
+  latitude     Float?
+  longitude    Float?
   firstName     String?
   lastName      String?
   birthDate     DateTime?
@@ -119,6 +121,8 @@ model Organization {
   id            String    @id @default(cuid())
   name          String
   type          OrgType
+  latitude      Float?
+  longitude     Float?
   address       String?
   phone         String?
   email         String?
@@ -144,7 +148,7 @@ model Object {
   category      Category
   condition     Condition
   status        ObjectStatus @default(AVAILABLE)
-  imageUrl      String?
+  imageUrls     String[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

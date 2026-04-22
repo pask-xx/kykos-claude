@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { sendRequestNotification } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -51,7 +52,19 @@ export async function POST(request: Request) {
         message,
         status: 'PENDING',
       },
+      include: {
+        object: {
+          include: {
+            donor: { select: { name: true, email: true } },
+          },
+        },
+      },
     });
+
+    // Notify donor via email
+    const donorEmail = req.object.donor.email;
+    const donorName = req.object.donor.name;
+    await sendRequestNotification(donorEmail, donorName, object.title, object.id);
 
     return NextResponse.json({ request: req });
   } catch (error) {

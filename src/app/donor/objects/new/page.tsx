@@ -12,6 +12,8 @@ interface Intermediary {
   address: string | null;
 }
 
+const MAX_IMAGES = 5;
+
 export default function NewObjectPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,9 +26,9 @@ export default function NewObjectPage() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('OTHER');
   const [condition, setCondition] = useState<Condition>('GOOD');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [intermediaryId, setIntermediaryId] = useState('');
-  const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
     fetchIntermediaries();
@@ -43,46 +45,80 @@ export default function NewObjectPage() {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
+    const remainingSlots = MAX_IMAGES - imageUrls.length;
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
 
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    if (filesToUpload.length === 0) {
+      setError(`Puoi caricare al massimo ${MAX_IMAGES} foto`);
+      return;
+    }
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+    // Show local previews immediately
+    const newPreviews: string[] = [];
+    for (const file of filesToUpload) {
+      const reader = new FileReader();
+      await new Promise<void>((resolve) => {
+        reader.onload = () => {
+          newPreviews.push(reader.result as string);
+          resolve();
+        };
+        reader.readAsDataURL(file);
       });
+    }
+    setPreviews((prev) => [...prev, ...newPreviews]);
 
-      const data = await res.json();
+    // Upload files
+    setUploading(true);
+    const uploadedUrls: string[] = [];
 
-      if (!res.ok) {
-        setError(data.error || 'Errore upload');
-        setPreview(null);
+    for (const file of filesToUpload) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || 'Errore upload');
+          // Remove failed previews
+          setPreviews((prev) => prev.slice(0, prev.length - newPreviews.length));
+          return;
+        }
+
+        uploadedUrls.push(data.url);
+      } catch {
+        setError('Errore di connessione');
+        setPreviews((prev) => prev.slice(0, prev.length - newPreviews.length));
+        setUploading(false);
         return;
       }
-
-      setImageUrl(data.url);
-    } catch {
-      setError('Errore di connessione');
-      setPreview(null);
-    } finally {
-      setUploading(false);
     }
+
+    setImageUrls((prev) => [...prev, ...uploadedUrls]);
+    setUploading(false);
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!imageUrl) {
-      setError('Carica una foto prima di pubblicare');
+    if (imageUrls.length === 0) {
+      setError('Carica almeno una foto prima di pubblicare');
       return;
     }
 
@@ -102,7 +138,7 @@ export default function NewObjectPage() {
           description,
           category,
           condition,
-          imageUrl,
+          imageUrls,
           intermediaryId,
         }),
       });
@@ -159,48 +195,55 @@ export default function NewObjectPage() {
           {/* Photo Section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Foto oggetto *
+              Foto oggetto * ({imageUrls.length}/{MAX_IMAGES})
             </label>
 
-            <div className="flex flex-col items-center gap-4">
-              {preview ? (
-                <div className="relative w-full max-w-md">
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreview(null);
-                      setImageUrl('');
-                      if (fileInputRef.current) fileInputRef.current.value = '';
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
-                  >
-                    ✕
-                  </button>
-                  {uploading && (
-                    <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                      <span className="text-white">Caricamento...</span>
+            <div className="space-y-3">
+              {/* Image Previews Grid */}
+              {previews.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {previews.map((preview, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-xs"
+                      >
+                        ✕
+                      </button>
+                      {uploading && index >= imageUrls.length && (
+                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xs">...</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ) : (
-                <label className="w-full max-w-md border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary-400 hover:bg-gray-50 transition">
+              )}
+
+              {/* Add Photo Button */}
+              {previews.length < MAX_IMAGES && (
+                <label className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary-400 hover:bg-gray-50 transition">
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     capture="environment"
                     onChange={handleFileChange}
+                    multiple
                     className="hidden"
                   />
                   <div className="flex flex-col items-center gap-2">
-                    <span className="text-4xl">📷</span>
-                    <span className="text-gray-600">Tocca per scattare una foto</span>
-                    <span className="text-xs text-gray-400">o seleziona dalla galleria</span>
+                    <span className="text-3xl">📷</span>
+                    <span className="text-gray-600">Aggiungi foto</span>
+                    <span className="text-xs text-gray-400">
+                      {MAX_IMAGES - previews.length} foto ancora disponibili
+                    </span>
                   </div>
                 </label>
               )}
@@ -296,7 +339,7 @@ export default function NewObjectPage() {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={loading || uploading || !imageUrl}
+              disabled={loading || uploading || imageUrls.length === 0}
               className="w-full py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Pubblicazione...' : 'Pubblica oggetto'}

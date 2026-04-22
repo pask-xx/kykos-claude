@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSession, setSessionCookie, hashPassword } from '@/lib/auth';
+import { geocodeAddress } from '@/lib/geocode';
 import { Role, OrgType } from '@prisma/client';
 
 export async function POST(request: Request) {
@@ -150,6 +151,20 @@ export async function POST(request: Request) {
         donorProfile: true,
       },
     });
+
+    // Geocode address if provided
+    if (address && city) {
+      const geoResult = await geocodeAddress(address, city, cap || '');
+      if (geoResult) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            latitude: geoResult.latitude,
+            longitude: geoResult.longitude,
+          },
+        });
+      }
+    }
 
     // Create session
     const token = await createSession({

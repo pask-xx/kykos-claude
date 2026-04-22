@@ -34,7 +34,7 @@ export interface Object {
   category: Category;
   condition: Condition;
   status: ObjectStatus;
-  imageUrl?: string;
+  imageUrls?: string[];
   donorId: string;
   intermediaryId: string;
   createdAt: Date;
