@@ -66,7 +66,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
       />
 
       {/* Main content - takes full width, sidebar overlays */}
-      <main className="min-h-screen pl-20">
+      <main className="min-h-screen lg:pl-16">
         {children}
       </main>
     </div>
