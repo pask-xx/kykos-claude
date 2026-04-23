@@ -161,6 +161,7 @@ model Object {
   requests      Request[]
   donation      Donation?
 
+  @@index([donorId])
   @@map("objects")
 }
 
@@ -182,6 +183,8 @@ model Request {
 
   donation      Donation?
 
+  @@index([recipientId])
+  @@index([recipientId, status])
   @@map("requests")
 }
 
@@ -206,6 +209,7 @@ model Donation {
   paymentId     String?  @unique
   payment       Payment? @relation(fields: [paymentId], references: [id])
 
+  @@index([recipientId])
   @@map("donations")
 }
 
