@@ -1,15 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-
-export const dynamic = 'force-dynamic';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export default function AuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'donor';
@@ -18,7 +16,6 @@ export default function AuthCallbackPage() {
     async function handleCallback() {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-      // Get session from Supabase - this automatically reads the code from URL and exchanges it
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
@@ -36,7 +33,6 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      // Check if user exists in our DB via API
       try {
         const res = await fetch('/api/auth/oauth-check', {
           method: 'POST',
@@ -47,7 +43,6 @@ export default function AuthCallbackPage() {
         const data = await res.json();
 
         if (data.exists && data.user) {
-          // User exists - redirect to dashboard
           const redirectMap: Record<string, string> = {
             DONOR: '/donor/dashboard',
             RECIPIENT: '/recipient/dashboard',
@@ -56,7 +51,6 @@ export default function AuthCallbackPage() {
           };
           router.push(redirectMap[data.user.role] || '/');
         } else {
-          // User doesn't exist - go to register with OAuth data
           const registerUrl = new URL('/auth/register', window.location.origin);
           registerUrl.searchParams.set('oauth', '1');
           registerUrl.searchParams.set('email', email);
@@ -77,5 +71,17 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center">
       <p className="text-gray-600">Accesso in corso...</p>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Caricamento...</p>
+      </div>
+    }>
+      <CallbackContent />
+    </Suspense>
   );
 }
