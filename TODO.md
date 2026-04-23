@@ -46,6 +46,7 @@
 
 - [ ] Setup CI/CD
 - [ ] Testing
+- [ ] **Regression tests per autenticazione (login, register, logout, OAuth flow)**
 - [ ] Documentazione API
 - [ ] Configurare DNS Vercel per www.kykos.it
 - [ ] Configurare ambiente di test/staging su Vercel (preview deployment)
