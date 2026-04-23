@@ -58,7 +58,7 @@ export default function RecipientProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-6xl p-6">
       <h1 className="text-3xl font-medium text-gray-900 mb-8 text-center">Il mio profilo</h1>
 
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
