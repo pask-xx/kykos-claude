@@ -30,8 +30,7 @@ export default function RecipientBrowsePage() {
   const [category, setCategory] = useState('ALL');
 
   useEffect(() => {
-    // Fetch user requests first, then objects
-    fetchUserRequests().then(() => fetchObjects());
+    Promise.all([fetchUserRequests(), fetchObjects()]);
   }, [category]);
 
   const fetchUserRequests = async () => {

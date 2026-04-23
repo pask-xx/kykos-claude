@@ -19,7 +19,16 @@ export default async function DonorDashboard() {
   const [user, donatedObjects, totalDonations, recentObjects] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.id },
-      include: {
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+        fiscalCode: true,
+        address: true,
+        houseNumber: true,
+        cap: true,
+        city: true,
+        createdAt: true,
         donorProfile: true,
       },
     }),

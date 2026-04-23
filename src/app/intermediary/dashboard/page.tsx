@@ -27,19 +27,19 @@ export default async function IntermediaryDashboard() {
     },
   });
 
-  // Fetch stats
-  const pendingRequests = await prisma.request.count({
-    where: { intermediaryId: org?.id, status: 'PENDING' },
-  });
-
-  const totalFunds = await prisma.payment.aggregate({
-    where: { intermediaryId: org?.id, status: 'COMPLETED' },
-    _sum: { amount: true },
-  }).then(res => res._sum.amount ? Number(res._sum.amount) : 0);
-
-  const authorizedRecipients = await prisma.user.count({
-    where: { referenceEntityId: org?.id, authorized: true },
-  });
+  // Fetch stats in parallel
+  const [pendingRequests, totalFunds, authorizedRecipients] = await Promise.all([
+    prisma.request.count({
+      where: { intermediaryId: org?.id, status: 'PENDING' },
+    }),
+    prisma.payment.aggregate({
+      where: { intermediaryId: org?.id, status: 'COMPLETED' },
+      _sum: { amount: true },
+    }).then(res => res._sum.amount ? Number(res._sum.amount) : 0),
+    prisma.user.count({
+      where: { referenceEntityId: org?.id, authorized: true },
+    }),
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50">

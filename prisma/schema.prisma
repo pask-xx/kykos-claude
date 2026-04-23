@@ -162,6 +162,7 @@ model Object {
   donation      Donation?
 
   @@index([donorId])
+  @@index([status])
   @@map("objects")
 }
 

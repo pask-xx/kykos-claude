@@ -22,54 +22,42 @@ export async function GET(request: Request) {
     const objects = await prisma.object.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        condition: true,
+        imageUrls: true,
+        status: true,
+        createdAt: true,
         donor: {
           select: { name: true, latitude: true, longitude: true },
         },
         intermediary: {
-          select: { name: true, latitude: true, longitude: true },
+          select: { id: true, name: true, latitude: true, longitude: true },
         },
       },
     });
 
-    // Filter by distance if location provided
-    let filteredObjects = objects;
-    if (lat && lon) {
-      const centerLat = parseFloat(lat);
-      const centerLon = parseFloat(lon);
-      const radiusKm = radius ? parseFloat(radius) : 10;
+    // Filter by distance and add distance to response if location provided
+    const centerLat = lat ? parseFloat(lat) : null;
+    const centerLon = lon ? parseFloat(lon) : null;
+    const radiusKm = radius ? parseFloat(radius) : 10;
 
-      filteredObjects = objects.filter((obj) => {
+    const objectsWithDistance = objects
+      .map((obj) => {
         const objLat = obj.intermediary.latitude || obj.donor.latitude;
         const objLon = obj.intermediary.longitude || obj.donor.longitude;
+        let distance: number | null = null;
 
-        if (!objLat || !objLon) return true; // Include if no coordinates
-
-        const distance = calculateDistance(centerLat, centerLon, objLat, objLon);
-        return distance <= radiusKm;
-      });
-    }
-
-    // Add distance to response if location provided
-    const objectsWithDistance = filteredObjects.map((obj) => {
-      let distance: number | null = null;
-
-      if (lat && lon) {
-        const centerLat = parseFloat(lat);
-        const centerLon = parseFloat(lon);
-        const objLat = obj.intermediary.latitude || obj.donor.latitude;
-        const objLon = obj.intermediary.longitude || obj.donor.longitude;
-
-        if (objLat && objLon) {
+        if (centerLat !== null && centerLon !== null && objLat && objLon) {
           distance = calculateDistance(centerLat, centerLon, objLat, objLon);
+          if (distance > radiusKm) return null; // Filter out
         }
-      }
 
-      return {
-        ...obj,
-        distance,
-      };
-    });
+        return { ...obj, distance };
+      })
+      .filter((obj): obj is NonNullable<typeof obj> => obj !== null);
 
     return NextResponse.json({ objects: objectsWithDistance });
   } catch (error) {

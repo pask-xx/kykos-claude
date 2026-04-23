@@ -14,12 +14,10 @@ export async function GET() {
     }
 
     // Get objects available through the recipient's intermediary
-    const recipient = await prisma.user.findUnique({
-      where: { id: session.id },
-      select: { requests: { select: { objectId: true } } },
-    });
-
-    const requestedObjectIds = recipient?.requests.map(r => r.objectId) || [];
+    const requestedObjectIds = await prisma.request.findMany({
+      where: { recipientId: session.id },
+      select: { objectId: true },
+    }).then(rows => rows.map(r => r.objectId));
 
     const objects = await prisma.object.findMany({
       where: {
