@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,18 +9,18 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function handleCallback() {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      const role = searchParams.get('role') || 'donor';
 
-      // Get the session from Supabase (this handles the code exchange automatically)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
         console.error('Supabase session error:', sessionError);
-        setError('session_error');
         router.push('/auth/login?error=no_session');
         return;
       }
@@ -34,12 +34,11 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      // Create our own session by calling our API
       try {
         const res = await fetch('/api/auth/oauth-create-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, name }),
+          body: JSON.stringify({ email, name, role }),
         });
 
         if (!res.ok) {
@@ -48,23 +47,8 @@ export default function AuthCallbackPage() {
 
         const data = await res.json();
 
-        // Redirect based on role
-        switch (data.user.role) {
-          case 'DONOR':
-            router.push('/donor/dashboard');
-            break;
-          case 'RECIPIENT':
-            router.push('/recipient/dashboard');
-            break;
-          case 'INTERMEDIARY':
-            router.push('/intermediary/dashboard');
-            break;
-          case 'ADMIN':
-            router.push('/admin/dashboard');
-            break;
-          default:
-            router.push('/');
-        }
+        // Redirect to profile completion page
+        router.push('/profile/complete');
       } catch (err) {
         console.error('Session creation error:', err);
         router.push('/auth/login?error=session_creation_failed');
@@ -72,7 +56,7 @@ export default function AuthCallbackPage() {
     }
 
     handleCallback();
-  }, [router]);
+  }, [router, searchParams]);
 
   if (error) {
     return (
