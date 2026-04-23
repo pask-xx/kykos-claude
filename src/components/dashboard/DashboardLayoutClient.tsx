@@ -65,11 +65,11 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
         userEmail={user.email}
       />
 
-      {/* Mobile header with logo */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
-          <span className="text-xl font-bold text-primary-600">KYKOS</span>
+      {/* Mobile header with logo - centered */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40">
+        <Link href="/" className="flex items-center gap-3">
+          <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
+          <span className="text-2xl font-bold text-primary-600">KYKOS</span>
         </Link>
       </header>
 
