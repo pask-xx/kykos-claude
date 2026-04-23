@@ -119,7 +119,7 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
                 ← Torna agli enti
               </Link>
               <div className="flex items-center gap-3">
-                <form action="/auth/logout" method="POST">
+                <form action="/api/auth/logout" method="POST">
                   <button type="submit" className="text-sm text-red-600 hover:text-red-700">
                     Esci
                   </button>
