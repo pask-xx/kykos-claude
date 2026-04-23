@@ -5,24 +5,30 @@ import { prisma } from '@/lib/prisma';
 export default async function RecipientDashboard() {
   const session = await getSession();
 
+  // Debug: measure query times
+  const measure = async (label: string, fn: () => Promise<unknown>) => {
+    const start = Date.now();
+    const result = await fn();
+    console.log(`[PERF] ${label}: ${Date.now() - start}ms`);
+    return result;
+  };
+
   // Parallel queries for better performance
   const [user, pendingRequests, receivedDonations, totalContributions] = await Promise.all([
-    prisma.user.findUnique({
+    measure('user.findUnique', () => prisma.user.findUnique({
       where: { id: session!.id },
-      include: {
-        referenceEntity: true,
-      },
-    }),
-    prisma.request.count({
+      include: { referenceEntity: true },
+    })),
+    measure('request.count (pending)', () => prisma.request.count({
       where: { recipientId: session!.id, status: 'PENDING' },
-    }),
-    prisma.donation.count({
+    })),
+    measure('donation.count', () => prisma.donation.count({
       where: { recipientId: session!.id },
-    }),
-    prisma.donation.aggregate({
+    })),
+    measure('donation.aggregate', () => prisma.donation.aggregate({
       where: { recipientId: session!.id },
       _sum: { amount: true },
-    }),
+    })),
   ]);
 
   const authorizationStatus = user?.authorized ? 'Autorizzato' : 'In attesa di autorizzazione';
