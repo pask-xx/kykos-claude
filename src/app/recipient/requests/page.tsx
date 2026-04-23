@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 
 interface Request {
@@ -51,25 +50,6 @@ export default function RecipientRequestsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/recipient/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/recipient/objects" className="text-gray-600 hover:text-primary-600 font-medium">
-                Sfoglia
-              </Link>
-              <Link href="/recipient/requests" className="text-primary-600 font-medium">
-                Richieste
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Le mie richieste</h1>
 
