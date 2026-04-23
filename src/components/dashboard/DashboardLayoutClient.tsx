@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 
@@ -11,30 +10,12 @@ interface User {
   role: 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY' | 'ADMIN';
 }
 
-export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+interface DashboardLayoutClientProps {
+  children: React.ReactNode;
+  user: User | null;
+}
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setUser(data.user);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Caricamento...</p>
-      </div>
-    );
-  }
-
+export default function DashboardLayoutClient({ children, user }: DashboardLayoutClientProps) {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
