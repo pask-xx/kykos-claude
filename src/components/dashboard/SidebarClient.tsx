@@ -73,7 +73,7 @@ export default function SidebarClient({ role, userName }: SidebarProps) {
         <div className="p-4 border-t border-gray-200 mt-auto">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 truncate">{userName}</span>
-            <form action="/api/auth/logout" method="POST">
+            <form action="/auth/logout" method="POST">
               <button type="submit" className="text-sm text-red-600 hover:text-red-700">
                 Esci
               </button>

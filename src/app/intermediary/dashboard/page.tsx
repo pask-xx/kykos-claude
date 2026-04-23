@@ -60,7 +60,7 @@ export default async function IntermediaryDashboard() {
               </Link>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">{session.name}</span>
-                <form action="/api/auth/logout" method="POST">
+                <form action="/auth/logout" method="POST">
                   <button type="submit" className="text-sm text-red-600 hover:text-red-700">
                     Esci
                   </button>

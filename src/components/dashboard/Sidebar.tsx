@@ -129,7 +129,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
               <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
               <p className="text-xs text-gray-500 truncate">{userEmail}</p>
             </div>
-            <form action="/api/auth/logout" method="POST">
+            <form action="/auth/logout" method="POST">
               <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
                 🚪
               </button>
@@ -188,14 +188,14 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
                 <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
                 <p className="text-xs text-gray-500 truncate">{userEmail}</p>
               </div>
-              <form action="/api/auth/logout" method="POST" className="flex-shrink-0">
+              <form action="/auth/logout" method="POST" className="flex-shrink-0">
                 <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
                   🚪
                 </button>
               </form>
             </div>
           ) : (
-            <form action="/api/auth/logout" method="POST">
+            <form action="/auth/logout" method="POST">
               <button type="submit" className="text-xl text-red-600 hover:text-red-700">
                 🚪
               </button>

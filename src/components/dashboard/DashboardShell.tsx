@@ -79,7 +79,7 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
               <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
               <p className="text-xs text-gray-500 truncate">{userEmail}</p>
             </div>
-            <form action="/api/auth/logout" method="POST">
+            <form action="/auth/logout" method="POST">
               <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
                 Esci
               </button>
