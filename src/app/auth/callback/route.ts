@@ -13,19 +13,28 @@ export async function GET(request: Request) {
   const error = searchParams.get('error');
   const role = searchParams.get('role') || 'donor';
 
+  console.log('=== OAuth Callback ===');
+  console.log('Has code:', !!code);
+  console.log('Has error:', !!error);
+  console.log('Role:', role);
+
   if (error) {
+    console.log('OAuth error:', error);
     return NextResponse.redirect(new URL('/auth/login?error=' + error, process.env.NEXT_PUBLIC_BASE_URL));
   }
 
   if (!code) {
+    console.log('No code in URL');
     return NextResponse.redirect(new URL('/auth/login?error=no_code', process.env.NEXT_PUBLIC_BASE_URL));
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Exchange code for session
+    console.log('Exchanging code for session...');
     const { data: { user: supabaseUser }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+    console.log('Exchange result - user:', !!supabaseUser, 'error:', exchangeError);
 
     if (exchangeError || !supabaseUser) {
       console.error('OAuth exchange error:', exchangeError);
@@ -35,7 +44,10 @@ export async function GET(request: Request) {
     const email = supabaseUser.email;
     const name = (supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || email?.split('@')[0] || 'User') as string;
 
+    console.log('OAuth user email:', email);
+
     if (!email) {
+      console.log('No email in OAuth user');
       return NextResponse.redirect(new URL('/auth/login?error=no_email', process.env.NEXT_PUBLIC_BASE_URL));
     }
 
@@ -43,6 +55,8 @@ export async function GET(request: Request) {
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
+
+    console.log('Existing user in DB:', !!existingUser, existingUser?.role);
 
     if (existingUser) {
       // User exists - create session and redirect to dashboard
@@ -54,6 +68,8 @@ export async function GET(request: Request) {
       });
 
       await setSessionCookie(token);
+
+      console.log('Session created, redirecting...');
 
       // Redirect based on role
       const redirectMap: Record<string, string> = {
@@ -69,7 +85,7 @@ export async function GET(request: Request) {
     }
 
     // User doesn't exist - redirect to register page with OAuth data
-    // Encode user data in URL params
+    console.log('User new, redirecting to register...');
     const registerUrl = new URL('/auth/register', process.env.NEXT_PUBLIC_BASE_URL);
     registerUrl.searchParams.set('oauth', '1');
     registerUrl.searchParams.set('email', email);
