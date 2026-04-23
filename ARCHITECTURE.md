@@ -346,5 +346,15 @@ SUPABASE_SERVICE_KEY=eyJ... (service_role)
 - [x] Donor profiles
 - [x] Recipient authorization (authorized field)
 - [x] Reference entity relationship
+- [x] Index on Object.status (for browse performance)
 - [ ] Geolocation fields (lat/lng for future)
 - [ ] Family size for ISEE calculations (future)
+
+## 13. Performance Optimizations
+
+- [x] Vercel region: fra1 (EU, closest to Supabase eu-west-1)
+- [x] Index on Object.status for browse queries
+- [x] Index on foreign keys (existing)
+- [x] Promise.all for parallel data fetching
+- [x] Explicit select for needed fields only
+- [x] Single-pass distance calculation in browse
