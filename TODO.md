@@ -6,7 +6,8 @@
 
 - [x] Login con email/password
 - [x] Gestione ruoli utente (donors, recipients, intermediaries)
-- [ ] Login con Google OAuth (messo da parte per ora)
+- [ ] Login con Google OAuth
+- [ ] Verifica email con OTP (per registrazione email/password, non Google)
 - [ ] Ogni utente deve essere geolocalizzato;
 - [ ] Prevedere una lista di oggetti sotto osservazione (lista desideri), per poterla poi recuperare e richiedere;
 - [ ] La lista dei desideri dovrà dare evidenza se gli articoli sono ancora disponibili oppure no;
