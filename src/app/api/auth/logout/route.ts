@@ -1,14 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { clearSessionCookie } from '@/lib/auth';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   await clearSessionCookie();
-  const url = new URL(request.url);
-  return NextResponse.redirect(new URL('/', url.origin));
+  return NextResponse.redirect(new URL('/', request.url));
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   await clearSessionCookie();
-  const url = new URL(request.url);
-  return NextResponse.redirect(new URL('/', url.origin));
+  return NextResponse.redirect(new URL('/', request.url));
 }
