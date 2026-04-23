@@ -7,7 +7,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function GET() {
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`;
+  // Redirect to the client-side callback page
+  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
