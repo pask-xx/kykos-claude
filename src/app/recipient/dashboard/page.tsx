@@ -6,7 +6,7 @@ export default async function RecipientDashboard() {
   const session = await getSession();
 
   // Debug: measure query times
-  const measure = async (label: string, fn: () => Promise<unknown>) => {
+  const measure = async <T,>(label: string, fn: () => Promise<T>): Promise<T> => {
     const start = Date.now();
     const result = await fn();
     console.log(`[PERF] ${label}: ${Date.now() - start}ms`);
