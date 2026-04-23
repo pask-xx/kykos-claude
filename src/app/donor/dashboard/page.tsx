@@ -15,29 +15,27 @@ export default async function DonorDashboard() {
     redirect(`/${session.role.toLowerCase()}/dashboard`);
   }
 
-  // Fetch full user data
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    include: {
-      donorProfile: true,
-    },
-  });
-
-  // Fetch stats
-  const donatedObjects = await prisma.object.count({
-    where: { donorId: session.id },
-  });
-
-  const totalDonations = await prisma.donation.aggregate({
-    where: { donorId: session.id },
-    _sum: { amount: true },
-  });
-
-  const recentObjects = await prisma.object.findMany({
-    where: { donorId: session.id },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  });
+  // Parallel queries for better performance
+  const [user, donatedObjects, totalDonations, recentObjects] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.id },
+      include: {
+        donorProfile: true,
+      },
+    }),
+    prisma.object.count({
+      where: { donorId: session.id },
+    }),
+    prisma.donation.aggregate({
+      where: { donorId: session.id },
+      _sum: { amount: true },
+    }),
+    prisma.object.findMany({
+      where: { donorId: session.id },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    }),
+  ]);
 
   const level = user?.donorProfile?.level || 'BRONZE';
   const levelLabel = DONOR_LEVEL_LABELS[level] || 'Bronzo';

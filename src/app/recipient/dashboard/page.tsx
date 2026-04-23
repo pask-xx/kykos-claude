@@ -5,25 +5,25 @@ import { prisma } from '@/lib/prisma';
 export default async function RecipientDashboard() {
   const session = await getSession();
 
-  const user = await prisma.user.findUnique({
-    where: { id: session!.id },
-    include: {
-      referenceEntity: true,
-    },
-  });
-
-  const pendingRequests = await prisma.request.count({
-    where: { recipientId: session!.id, status: 'PENDING' },
-  });
-
-  const receivedDonations = await prisma.donation.count({
-    where: { recipientId: session!.id },
-  });
-
-  const totalContributions = await prisma.donation.aggregate({
-    where: { recipientId: session!.id },
-    _sum: { amount: true },
-  });
+  // Parallel queries for better performance
+  const [user, pendingRequests, receivedDonations, totalContributions] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session!.id },
+      include: {
+        referenceEntity: true,
+      },
+    }),
+    prisma.request.count({
+      where: { recipientId: session!.id, status: 'PENDING' },
+    }),
+    prisma.donation.count({
+      where: { recipientId: session!.id },
+    }),
+    prisma.donation.aggregate({
+      where: { recipientId: session!.id },
+      _sum: { amount: true },
+    }),
+  ]);
 
   const authorizationStatus = user?.authorized ? 'Autorizzato' : 'In attesa di autorizzazione';
   const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
