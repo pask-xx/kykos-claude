@@ -15,17 +15,20 @@ interface Intermediary {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultRole = searchParams.get('role')?.toUpperCase() as Role | null;
+  const isOAuth = searchParams.get('oauth') === '1';
+  const oauthEmail = searchParams.get('email') || '';
+  const oauthName = searchParams.get('name') || '';
+  const defaultRole = (searchParams.get('role')?.toUpperCase() || 'DONOR') as Role;
 
   const [intermediaries, setIntermediaries] = useState<Intermediary[]>([]);
 
   // Common fields
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(oauthEmail);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Role-specific fields
-  const [role, setRole] = useState<Role>(defaultRole || 'DONOR');
+  const [role, setRole] = useState<Role>(defaultRole);
 
   // Personal info
   const [firstName, setFirstName] = useState('');
@@ -48,7 +51,13 @@ function RegisterForm() {
     if (role === 'RECIPIENT') {
       fetchIntermediaries();
     }
-  }, [role]);
+    // Pre-fill name from OAuth
+    if (isOAuth && oauthName) {
+      const parts = oauthName.split(' ');
+      setFirstName(parts[0] || '');
+      setLastName(parts.slice(1).join(' ') || '');
+    }
+  }, [role, isOAuth, oauthName]);
 
   const fetchIntermediaries = async () => {
     try {
@@ -64,14 +73,17 @@ function RegisterForm() {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Le password non coincidono');
-      return;
-    }
+    // Skip password validation for OAuth users
+    if (!isOAuth) {
+      if (password !== confirmPassword) {
+        setError('Le password non coincidono');
+        return;
+      }
 
-    if (password.length < 6) {
-      setError('La password deve essere almeno 6 caratteri');
-      return;
+      if (password.length < 6) {
+        setError('La password deve essere almeno 6 caratteri');
+        return;
+      }
     }
 
     // Validation based on role
@@ -95,7 +107,6 @@ function RegisterForm() {
     try {
       const payload: Record<string, string> = {
         email,
-        password,
         role,
         firstName,
         lastName,
@@ -105,6 +116,13 @@ function RegisterForm() {
         city,
         houseNumber,
       };
+
+      // Only include password for non-OAuth registrations
+      if (!isOAuth) {
+        payload.password = password;
+      } else {
+        payload.oauthProvider = 'google';
+      }
 
       if (birthDate) payload.birthDate = birthDate;
 
@@ -366,40 +384,51 @@ function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+              disabled={isOAuth}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition disabled:bg-gray-100"
               placeholder="mario@email.com"
             />
           </div>
 
-          {/* Password */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-              placeholder="Minimo 6 caratteri"
-            />
-          </div>
+          {/* Password - only for non-OAuth */}
+          {!isOAuth && (
+            <>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+                  placeholder="Minimo 6 caratteri"
+                />
+              </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Conferma Password *
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-              placeholder="••••••••"
-            />
-          </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  Conferma Password *
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+                  placeholder="••••••••"
+                />
+              </div>
+            </>
+          )}
+
+          {isOAuth && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+              Account Google - password non richiesta
+            </div>
+          )}
 
           <button
             type="submit"

@@ -22,11 +22,21 @@ export async function POST(request: Request) {
       orgType,
       referenceEntityId,
       isee,
+      oauthProvider,
     } = await request.json();
 
-    if (!email || !password || !role) {
+    const isOAuth = oauthProvider === 'google';
+
+    if (!email || !role) {
       return NextResponse.json(
-        { error: 'Email e password sono obbligatorie' },
+        { error: 'Email e ruolo sono obbligatori' },
+        { status: 400 }
+      );
+    }
+
+    if (!isOAuth && !password) {
+      return NextResponse.json(
+        { error: 'Password obbligatoria per registrazione email' },
         { status: 400 }
       );
     }
@@ -102,8 +112,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Hash password
-    const passwordHash = await hashPassword(password);
+    // Hash password (skip for OAuth users)
+    const passwordHash = isOAuth ? '' : await hashPassword(password);
 
     // Build name from firstName and lastName
     const fullName = firstName && lastName ? `${firstName} ${lastName}` : (firstName || lastName || email);

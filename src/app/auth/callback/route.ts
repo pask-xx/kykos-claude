@@ -39,45 +39,44 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/auth/login?error=no_email', process.env.NEXT_PUBLIC_BASE_URL));
     }
 
-    // Map role string to Role enum
-    const userRole: Role = role === 'recipient' ? 'RECIPIENT' : 'DONOR';
-
-    // Check if user exists in our DB
-    let user = await prisma.user.findUnique({
+    // Check if user already exists in our DB
+    const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
-    // If user doesn't exist, create them
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email,
-          name,
-          passwordHash: '',
-          role: userRole,
-          donorProfile: userRole === 'DONOR' ? {
-            create: {
-              level: 'BRONZE',
-              totalDonations: 0,
-              totalObjects: 0,
-            },
-          } : undefined,
-        },
+    if (existingUser) {
+      // User exists - create session and redirect to dashboard
+      const token = await createSession({
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+        role: existingUser.role,
       });
+
+      await setSessionCookie(token);
+
+      // Redirect based on role
+      const redirectMap: Record<string, string> = {
+        DONOR: '/donor/dashboard',
+        RECIPIENT: '/recipient/dashboard',
+        INTERMEDIARY: '/intermediary/dashboard',
+        ADMIN: '/admin/dashboard',
+      };
+
+      return NextResponse.redirect(
+        new URL(redirectMap[existingUser.role] || '/', process.env.NEXT_PUBLIC_BASE_URL)
+      );
     }
 
-    // Create our app session
-    const token = await createSession({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    });
+    // User doesn't exist - redirect to register page with OAuth data
+    // Encode user data in URL params
+    const registerUrl = new URL('/auth/register', process.env.NEXT_PUBLIC_BASE_URL);
+    registerUrl.searchParams.set('oauth', '1');
+    registerUrl.searchParams.set('email', email);
+    registerUrl.searchParams.set('name', name);
+    registerUrl.searchParams.set('role', role);
 
-    await setSessionCookie(token);
-
-    // Redirect to profile completion
-    return NextResponse.redirect(new URL('/profile/complete', process.env.NEXT_PUBLIC_BASE_URL));
+    return NextResponse.redirect(registerUrl);
   } catch (err) {
     console.error('OAuth callback error:', err);
     return NextResponse.redirect(new URL('/auth/login?error=server_error', process.env.NEXT_PUBLIC_BASE_URL));
