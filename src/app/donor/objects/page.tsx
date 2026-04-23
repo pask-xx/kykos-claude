@@ -69,7 +69,7 @@ export default function DonorObjectsPage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">I miei oggetti</h1>
+          <h1 className="text-3xl font-medium text-gray-900">I miei oggetti</h1>
           <Link
             href="/donor/objects/new"
             className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"

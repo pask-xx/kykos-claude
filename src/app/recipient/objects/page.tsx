@@ -94,7 +94,7 @@ export default function RecipientBrowsePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Oggetti disponibili</h1>
+        <h1 className="text-3xl font-medium text-gray-900 mb-6 text-center">Oggetti disponibili</h1>
 
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${message.includes('successo') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>

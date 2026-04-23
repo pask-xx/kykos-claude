@@ -97,7 +97,7 @@ export default function IntermediaryRequestsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Gestione richieste</h1>
+        <h1 className="text-3xl font-medium text-gray-900 mb-6 text-center">Gestione richieste</h1>
 
         {loading ? (
           <div className="text-center py-12">

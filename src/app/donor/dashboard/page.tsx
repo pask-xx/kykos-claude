@@ -69,7 +69,7 @@ export default async function DonorDashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Donatore</h1>
+        <h1 className="text-3xl font-medium text-gray-900 mb-8 text-center">Dashboard Donatore</h1>
 
         {/* Personal Data Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">

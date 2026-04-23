@@ -30,7 +30,7 @@ export default async function RecipientDashboard() {
 
   return (
     <div className="max-w-6xl p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Ricevente</h1>
+        <h1 className="text-3xl font-medium text-gray-900 mb-8 text-center">Dashboard Ricevente</h1>
 
         {/* Status Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
