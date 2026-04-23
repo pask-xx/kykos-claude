@@ -1,12 +1,5 @@
 import { redirect } from 'next/navigation';
-import { clearSessionCookie } from '@/lib/auth';
 
-export async function GET() {
-  await clearSessionCookie();
-  redirect('/');
-}
-
-export async function POST() {
-  await clearSessionCookie();
-  redirect('/');
+export default function LogoutPage() {
+  redirect('/api/auth/logout');
 }
