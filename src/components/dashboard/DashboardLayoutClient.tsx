@@ -65,8 +65,16 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
         userEmail={user.email}
       />
 
-      {/* Main content - takes full width, sidebar overlays */}
-      <main className="min-h-screen lg:pl-16">
+      {/* Mobile header with logo */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40">
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
+          <span className="text-xl font-bold text-primary-600">KYKOS</span>
+        </Link>
+      </header>
+
+      {/* Main content */}
+      <main className="min-h-screen lg:pl-16 pt-14 lg:pt-0">
         {children}
       </main>
     </div>
