@@ -8,96 +8,121 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
+  const code = requestUrl.searchParams.get('code');
+  const hash = requestUrl.hash;
 
-  // Debug - log all cookies
-  const cookieHeader = request.headers.get('cookie');
-  console.log('=== OAUTH CALLBACK DEBUG ===');
-  console.log('Full URL:', request.url);
-  console.log('NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL);
-  console.log('All search params:', Array.from(new URL(request.url).searchParams.entries()));
-  console.log('Cookie header:', cookieHeader);
+  console.log('=== OAUTH CALLBACK ===');
+  console.log('URL:', requestUrl.toString());
+  console.log('Has code:', !!code);
+  console.log('Has hash:', !!hash);
 
   if (error) {
-    console.log('Redirecting due to error:', error);
+    console.log('OAuth error:', error);
     return NextResponse.redirect(new URL('/auth/login?error=' + error, process.env.NEXT_PUBLIC_BASE_URL));
   }
 
-  if (!code) {
-    console.log('No code in URL, checking cookies...');
-    return NextResponse.redirect(new URL('/auth/login?error=no_code', process.env.NEXT_PUBLIC_BASE_URL));
-  }
-
-  try {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Handle authorization code flow (standard)
+  if (code) {
     console.log('Exchanging code for session...');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
     const { data: { user: supabaseUser }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
-    console.log('Exchange result - user:', !!supabaseUser, 'error:', exchangeError);
 
     if (exchangeError || !supabaseUser) {
       console.error('OAuth exchange error:', exchangeError);
       return NextResponse.redirect(new URL('/auth/login?error=exchange_failed', process.env.NEXT_PUBLIC_BASE_URL));
     }
 
-    // Get user metadata from Google
-    const email = supabaseUser.email;
-    const name = supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || email?.split('@')[0] || 'User';
-    const avatarUrl = supabaseUser.user_metadata?.avatar_url || null;
+    return await handleUserSession(supabaseUser);
+  }
 
-    if (!email) {
-      return NextResponse.redirect(new URL('/auth/login?error=no_email', process.env.NEXT_PUBLIC_BASE_URL));
+  // Handle implicit flow (access_token in hash) - fallback
+  if (hash && hash.includes('access_token=')) {
+    console.log('Implicit flow detected, parsing hash...');
+    try {
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+
+      if (accessToken) {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const { data: { user }, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
+        });
+
+        if (sessionError || !user) {
+          console.error('Session set error:', sessionError);
+          return NextResponse.redirect(new URL('/auth/login?error=session_failed', process.env.NEXT_PUBLIC_BASE_URL));
+        }
+
+        return await handleUserSession(user);
+      }
+    } catch (err) {
+      console.error('Implicit flow error:', err);
     }
+  }
 
-    // Check if user already exists in our DB
-    let user = await prisma.user.findUnique({
-      where: { email },
-    });
+  console.log('No code or hash found');
+  return NextResponse.redirect(new URL('/auth/login?error=no_code', process.env.NEXT_PUBLIC_BASE_URL));
+}
 
-    // If user doesn't exist, create them as DONOR by default
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email,
-          name,
-          passwordHash: '', // No password for OAuth users
-          role: 'DONOR',
-          // Create donor profile
-          donorProfile: {
-            create: {
-              level: 'BRONZE',
-              totalDonations: 0,
-              totalObjects: 0,
-            },
+async function handleUserSession(supabaseUser: { id: string; email?: string; user_metadata?: Record<string, unknown> }): Promise<NextResponse> {
+  const email = supabaseUser.email;
+  const name = (supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || email?.split('@')[0] || 'User') as string;
+
+  if (!email) {
+    return NextResponse.redirect(new URL('/auth/login?error=no_email', process.env.NEXT_PUBLIC_BASE_URL));
+  }
+
+  console.log('Processing user:', email);
+
+  // Check if user exists in our DB
+  let user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  // If user doesn't exist, create them as DONOR by default
+  if (!user) {
+    console.log('Creating new user for:', email);
+    user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash: '', // No password for OAuth users
+        role: 'DONOR',
+        donorProfile: {
+          create: {
+            level: 'BRONZE',
+            totalDonations: 0,
+            totalObjects: 0,
           },
         },
-      });
-    }
-
-    // Create our app session
-    const token = await createSession({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
+      },
     });
-
-    await setSessionCookie(token);
-
-    // Redirect based on role
-    const redirectMap: Record<string, string> = {
-      DONOR: '/donor/dashboard',
-      RECIPIENT: '/recipient/dashboard',
-      INTERMEDIARY: '/intermediary/dashboard',
-      ADMIN: '/admin/dashboard',
-    };
-
-    const redirectTo = redirectMap[user.role] || '/';
-
-    return NextResponse.redirect(new URL(redirectTo, process.env.NEXT_PUBLIC_BASE_URL));
-  } catch (error) {
-    console.error('OAuth callback error:', error);
-    return NextResponse.redirect(new URL('/auth/login?error=server_error', process.env.NEXT_PUBLIC_BASE_URL));
   }
+
+  // Create our app session
+  const token = await createSession({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  });
+
+  await setSessionCookie(token);
+
+  console.log('User session created, redirecting based on role:', user.role);
+
+  // Redirect based on role
+  const redirectMap: Record<string, string> = {
+    DONOR: '/donor/dashboard',
+    RECIPIENT: '/recipient/dashboard',
+    INTERMEDIARY: '/intermediary/dashboard',
+    ADMIN: '/admin/dashboard',
+  };
+
+  const redirectTo = redirectMap[user.role] || '/';
+
+  return NextResponse.redirect(new URL(redirectTo, process.env.NEXT_PUBLIC_BASE_URL));
 }
