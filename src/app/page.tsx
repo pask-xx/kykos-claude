@@ -20,7 +20,7 @@ export default function Home() {
                 <span>Manifesto</span>
               </Link>
               <Link
-                href="/operator/login"
+                href="/login/operator"
                 className="flex items-center gap-2 px-4 py-2 text-secondary-600 hover:text-secondary-700 font-medium transition"
                 title="Accesso operatori ente"
               >
