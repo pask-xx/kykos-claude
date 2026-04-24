@@ -47,8 +47,7 @@ export default async function IntermediaryDashboard() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="text-center flex-1">
-            <h1 className="text-3xl font-medium text-gray-900">Dashboard Intermediario</h1>
-            <p className="text-gray-600 mt-1">{org?.name || 'Organizzazione'}</p>
+            <p className="text-gray-600">{org?.name || 'Organizzazione'}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
             org?.verified
