@@ -90,6 +90,93 @@
 - [ ] GESTIONE BANCO ALIMENTARE
 - [ ] GESTIONE CONDIVISIONE TRA ENTI
 
+---
+
+## Sistema Operatori Ente
+
+Gli enti possono creare utenti operatori che gestiscono le attività per conto dell'organizzazione. Ogni operatore appartiene a un solo ente e ha credenziali di accesso separate.
+
+### Codice Ente
+
+Ogni ente ha un **codice univoco** (`Organization.code`) usato dagli operatori per effettuare il login. Esempi: `CARITAS-CENTRO-ROMA`, `PARROCCHIA-SGIOVANNI`.
+
+### Login Operatore
+
+Gli operatori accedono da `/operator/login` con:
+- **Codice Ente** (es: CARITAS-CENTRO-ROMA)
+- **Username** (univoco all'interno dell'ente, es: mario.rossi)
+- **Password**
+
+### Ruoli Operatore
+
+| Ruolo | Descrizione |
+|-------|-------------|
+| `ADMIN` | Amministratore - accesso completo a tutte le funzionalità dell'ente |
+| `GESTORE_RICHIESTE` | Gestisce le richieste degli utenti e può autorizzare i riceventi |
+| `GESTORE_OGGETTI` | Gestisce l'entrata e la consegna degli oggetti |
+| `GESTORE_VOLONTARI` | Gestisce i volontari dell'ente |
+| `OPERATORE` | Ruolo base, nessun permesso predefinito |
+
+### Permessi Granulari
+
+Oltre ai ruoli, ogni operatore può avere **permessi specifici** aggiuntivi:
+
+| Permesso | Descrizione |
+|----------|-------------|
+| `RECIPIENT_AUTHORIZE` | Abilitare utenti Riceventi |
+| `OBJECT_RECEIVE` | Gestione entrata oggetti |
+| `OBJECT_DELIVER` | Consegna oggetti al destinatario |
+| `VOLUNTEER_MANAGE` | Organizzazione volontari |
+| `REQUEST_PROXY` | Fare richieste per conto di utenti impossibilitati |
+| `ORGANIZATION_ADMIN` | Amministrazione Ente (gestione operatori) |
+
+### Permessi per Ruolo (default)
+
+| Ruolo | Permessi inclusi |
+|-------|------------------|
+| ADMIN | Tutti i permessi |
+| GESTORE_RICHIESTE | RECIPIENT_AUTHORIZE, REQUEST_PROXY |
+| GESTORE_OGGETTI | OBJECT_RECEIVE, OBJECT_DELIVER |
+| GESTORE_VOLONTARI | VOLUNTEER_MANAGE |
+| OPERATORE | Nessuno (solo permessi granulari aggiuntivi) |
+
+### API Operatori
+
+| Metodo | Endpoint | Descrizione |
+|--------|----------|-------------|
+| POST | `/api/operator/login` | Login operatore |
+| POST | `/api/operator/logout` | Logout operatore |
+| GET | `/api/operator/me` | Profilo operatore loggato |
+| GET | `/api/operator` | Lista operatori ente (solo ADMIN) |
+| POST | `/api/operator/register` | Crea nuovo operatore (solo ADMIN) |
+| PATCH | `/api/operator/[id]` | Modifica operatore (solo ADMIN) |
+| DELETE | `/api/operator/[id]` | Elimina operatore (solo ADMIN) |
+
+### Creazione Operatore
+
+Solo un ADMIN dell'ente può creare operatori. L'username deve essere univoco all'interno dell'ente (non globalmente).
+
+### Esempio JSON operatore
+
+```json
+{
+  "id": "op_xxx",
+  "username": "mario.rossi",
+  "email": "mario.rossi@caritas.it",
+  "phone": "+39 333 1234567",
+  "firstName": "Mario",
+  "lastName": "Rossi",
+  "role": "GESTORE_RICHIESTE",
+  "permissions": ["RECIPIENT_AUTHORIZE", "REQUEST_PROXY"],
+  "active": true,
+  "organization": {
+    "id": "org_xxx",
+    "name": "Caritas Diocesana Roma",
+    "code": "CARITAS-CENTRO-ROMA"
+  }
+}
+```
+
 ## Trello: GESTIONALE VOLONTARI
 
 - [ ] GESTIONE TRANSAZIONI
