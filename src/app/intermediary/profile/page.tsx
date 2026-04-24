@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ProfileForm from '@/components/profile/ProfileForm';
 import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
 import dynamic from 'next/dynamic';
 
@@ -13,6 +12,7 @@ const LocationMap = dynamic(() => import('@/components/map/LocationMap'), {
 
 interface Organization {
   id: string;
+  code: string;
   name: string;
   type: string;
   vatNumber: string | null;
@@ -28,54 +28,116 @@ interface Organization {
   longitude: number | null;
 }
 
-interface User {
-  id: string;
-  email: string;
+interface FormData {
   name: string;
-  firstName: string;
-  lastName: string;
-  fiscalCode: string;
-  birthDate: string;
+  vatNumber: string;
   address: string;
   houseNumber: string;
-  city: string;
   cap: string;
+  city: string;
   province: string;
-  intermediaryOrg: Organization;
+  phone: string;
+  email: string;
+  latitude: string;
+  longitude: string;
 }
 
 export default function IntermediaryProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [org, setOrg] = useState<Organization | null>(null);
-  const [orgLat, setOrgLat] = useState('');
-  const [orgLng, setOrgLng] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [orgSuccess, setOrgSuccess] = useState(false);
-  const [orgLoading, setOrgLoading] = useState(false);
+  const [form, setForm] = useState<FormData>({
+    name: '',
+    vatNumber: '',
+    address: '',
+    houseNumber: '',
+    cap: '',
+    city: '',
+    province: '',
+    phone: '',
+    email: '',
+    latitude: '',
+    longitude: '',
+  });
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then((res) => res.json())
-      .then(async (data) => {
-        if (data.user) {
-          setUser(data.user);
-          // Fetch organization data
-          const orgData = data.user.intermediaryOrg;
-          setOrg(orgData);
-          setOrgLat(orgData.latitude?.toString() || '');
-          setOrgLng(orgData.longitude?.toString() || '');
+      .then((data) => {
+        if (data.user?.intermediaryOrg) {
+          const o = data.user.intermediaryOrg;
+          setOrg(o);
+          setForm({
+            name: o.name || '',
+            vatNumber: o.vatNumber || '',
+            address: o.address || '',
+            houseNumber: o.houseNumber || '',
+            cap: o.cap || '',
+            city: o.city || '',
+            province: o.province || '',
+            phone: o.phone || '',
+            email: o.email || '',
+            latitude: o.latitude?.toString() || '',
+            longitude: o.longitude?.toString() || '',
+          });
         }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const detectOrgLocation = () => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const res = await fetch('/api/organization/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          vatNumber: form.vatNumber || null,
+          address: form.address || null,
+          houseNumber: form.houseNumber || null,
+          cap: form.cap || null,
+          city: form.city || null,
+          province: form.province || null,
+          phone: form.phone || null,
+          email: form.email || null,
+          latitude: form.latitude || null,
+          longitude: form.longitude || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Errore durante il salvataggio');
+      }
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const detectLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocalizzazione non supportata dal browser');
+      setLocationError('Geolocalizzazione non supportata');
       return;
     }
 
@@ -84,22 +146,29 @@ export default function IntermediaryProfilePage() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setOrgLat(position.coords.latitude.toString());
-        setOrgLng(position.coords.longitude.toString());
+        setForm(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
         setLocating(false);
-        setOrgSuccess(false);
+        setSuccess(false);
       },
-      (err) => {
-        setLocationError('Impossibile ottenere la posizione. Verifica i permessi.');
+      () => {
+        setLocationError('Impossibile ottenere la posizione');
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
-  const geocodeOrgAddress = async () => {
-    if (!org?.address) {
-      setLocationError('Indirizzo organizzazione non disponibile');
+  const geocodeAddress = async () => {
+    const fullAddress = [form.address, form.houseNumber, form.cap, form.city]
+      .filter(Boolean)
+      .join(', ');
+
+    if (!fullAddress) {
+      setLocationError('Completa l\'indirizzo per calcolare la posizione');
       return;
     }
 
@@ -110,53 +179,25 @@ export default function IntermediaryProfilePage() {
       const res = await fetch('/api/geocode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: org.address }),
+        body: JSON.stringify({ address: fullAddress }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setLocationError(data.error || 'Errore nel calcolo della posizione');
-        return;
+        throw new Error(data.error || 'Errore nel calcolo della posizione');
       }
 
-      setOrgLat(data.latitude.toString());
-      setOrgLng(data.longitude.toString());
-      setOrgSuccess(false);
-    } catch {
-      setLocationError('Errore di connessione');
+      setForm(prev => ({
+        ...prev,
+        latitude: data.latitude.toString(),
+        longitude: data.longitude.toString(),
+      }));
+      setSuccess(false);
+    } catch (err) {
+      setLocationError(err instanceof Error ? err.message : 'Errore');
     } finally {
       setGeocoding(false);
-    }
-  };
-
-  const saveOrgLocation = async () => {
-    setOrgLoading(true);
-    setLocationError(null);
-
-    try {
-      const res = await fetch('/api/organization/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          latitude: orgLat,
-          longitude: orgLng,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setLocationError(data.error || 'Errore durante il salvataggio');
-        return;
-      }
-
-      setOrgSuccess(true);
-      setTimeout(() => setOrgSuccess(false), 3000);
-    } catch {
-      setLocationError('Errore di connessione');
-    } finally {
-      setOrgLoading(false);
     }
   };
 
@@ -168,138 +209,187 @@ export default function IntermediaryProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!org) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">
-          Sessione non trovata.{' '}
-          <Link href="/auth/login" className="text-primary-600 hover:underline">
-            Accedi
-          </Link>
-        </p>
+        <p className="text-gray-500">Dati organizzazione non trovati.</p>
       </div>
     );
   }
 
-  const hasOrgLocation = orgLat && orgLng;
+  const hasLocation = form.latitude && form.longitude;
 
   return (
-    <div className="max-w-4xl p-6">
-      <h1 className="text-3xl font-medium text-gray-900 mb-8 text-center">Il mio profilo</h1>
-
-      {/* Editable Form */}
-      <div className="mb-8">
-        <ProfileForm user={user} role="INTERMEDIARY" />
+    <div className="max-w-full">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-medium text-gray-900">Profilo Ente</h1>
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+          org.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+        }`}>
+          {org.verified ? 'Verificato' : 'In verifica'}
+        </span>
       </div>
 
-      {/* Organization Data */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span>🏢</span> Dati organizzazione
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Ragione sociale</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.name || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Tipo</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.type || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Partita IVA</p>
-            <p className="font-medium text-gray-900 uppercase">{user.intermediaryOrg?.vatNumber || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Stato verifica</p>
-            <p className={`font-medium ${user.intermediaryOrg?.verified ? 'text-green-600' : 'text-yellow-600'}`}>
-              {user.intermediaryOrg?.verified ? 'Verificato' : 'In verifica'}
-            </p>
-          </div>
-          <div className="md:col-span-2">
-            <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
-            <p className="font-medium text-gray-900">
-              {user.intermediaryOrg?.address
-                ? `${user.intermediaryOrg.address}${user.intermediaryOrg.houseNumber ? `, ${user.intermediaryOrg.houseNumber}` : ''}`
-                : '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">CAP</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.cap || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Città</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.city || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Provincia</p>
-            <p className="font-medium text-gray-900 uppercase">{user.intermediaryOrg?.province || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Email</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.email || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Telefono</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.phone || '—'}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Organization Geolocation */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <span>📍</span> Posizione organizzazione
+      {/* Organization Form */}
+      <form onSubmit={handleSubmit}>
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+            <span>🏢</span> Dati organizzazione
           </h2>
-          {orgSuccess && (
-            <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-              ✓ Salvato con successo
-            </span>
+
+          {success && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+              ✓ Dati salvati con successo
+            </div>
           )}
+
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ragione sociale *</label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Partita IVA</label>
+              <input
+                type="text"
+                name="vatNumber"
+                value={form.vatNumber}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Numero civico</label>
+              <input
+                type="text"
+                name="houseNumber"
+                value={form.houseNumber}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+              <input
+                type="text"
+                name="cap"
+                value={form.cap}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Città *</label>
+              <input
+                type="text"
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+              <input
+                type="text"
+                name="province"
+                value={form.province}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+            >
+              {saving ? 'Salvataggio...' : 'Salva dati organizzazione'}
+            </button>
+          </div>
         </div>
+      </form>
+
+      {/* Geolocation */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>📍</span> Posizione geografica
+        </h2>
         <p className="text-sm text-gray-500 mb-4">
-          {hasOrgLocation
-            ? `Posizione registrata: ${parseFloat(orgLat).toFixed(4)}, ${parseFloat(orgLng).toFixed(4)}`
+          {hasLocation
+            ? `Posizione: ${parseFloat(form.latitude).toFixed(5)}, ${parseFloat(form.longitude).toFixed(5)}`
             : 'Nessuna posizione registrata'}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <button
             type="button"
-            onClick={detectOrgLocation}
+            onClick={detectLocation}
             disabled={locating}
             className="flex-1 px-4 py-2.5 bg-secondary-600 text-white text-sm font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
           >
             {locating ? (
-              <>
-                <span className="animate-spin">🔄</span>
-                <span>Rilevamento...</span>
-              </>
+              <><span className="animate-spin">🔄</span> Rilevamento...</>
             ) : (
-              <>
-                <span>📡</span>
-                <span>{hasOrgLocation ? 'Aggiorna con GPS' : 'Rileva con GPS'}</span>
-              </>
+              <><span>📡</span> {hasLocation ? 'Aggiorna con GPS' : 'Rileva con GPS'}</>
             )}
           </button>
           <button
             type="button"
-            onClick={geocodeOrgAddress}
-            disabled={geocoding || !org?.address}
+            onClick={geocodeAddress}
+            disabled={geocoding || !form.address || !form.city}
             className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
           >
             {geocoding ? (
-              <>
-                <span className="animate-spin">🔄</span>
-                <span>Calcolo...</span>
-              </>
+              <><span className="animate-spin">🔄</span> Calcolo...</>
             ) : (
-              <>
-                <span>🏠</span>
-                <span>Calcola da indirizzo</span>
-              </>
+              <><span>🏠</span> Calcola da indirizzo</>
             )}
           </button>
         </div>
@@ -308,49 +398,15 @@ export default function IntermediaryProfilePage() {
           <p className="text-sm text-red-600 mb-4">{locationError}</p>
         )}
 
-        <button
-          type="button"
-          onClick={saveOrgLocation}
-          disabled={orgLoading || !hasOrgLocation}
-          className="px-6 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center gap-2"
-        >
-          {orgLoading ? (
-            <>
-              <span className="animate-spin">⏳</span>
-              <span>Salvataggio...</span>
-            </>
-          ) : (
-            <>
-              <span>💾</span>
-              <span>Salva posizione</span>
-            </>
-          )}
-        </button>
-
-        {/* Map Display */}
-        {hasOrgLocation && (
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <span>🗺️</span> Anteprima posizione
-            </h3>
+        {hasLocation && (
+          <div>
             <LocationMap
-              latitude={parseFloat(orgLat)}
-              longitude={parseFloat(orgLng)}
+              latitude={parseFloat(form.latitude)}
+              longitude={parseFloat(form.longitude)}
               height="250px"
             />
           </div>
         )}
-      </div>
-
-      {/* Account info */}
-      <div className="bg-gray-50 p-6 rounded-xl border mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Informazioni account</h2>
-        <div className="space-y-3 text-sm">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">ID Utente</p>
-            <p className="font-medium text-gray-900 font-mono">{user.id}</p>
-          </div>
-        </div>
       </div>
 
       {/* Password Change */}
