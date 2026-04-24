@@ -35,7 +35,7 @@ export default async function RecipientDashboard() {
   const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
 
   return (
-    <div className="max-w-6xl p-6">
+    <div className="max-w-full">
         {/* Status Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
           <div className="flex items-center gap-4">

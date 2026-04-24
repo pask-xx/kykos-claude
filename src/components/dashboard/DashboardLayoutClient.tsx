@@ -56,7 +56,9 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
 
       {/* Main content */}
       <main className="min-h-screen lg:pl-16 pt-14 lg:pt-0">
-        {children}
+        <div className="px-6 py-6">
+          {children}
+        </div>
       </main>
     </div>
   );
