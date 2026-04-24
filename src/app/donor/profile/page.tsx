@@ -16,12 +16,14 @@ interface User {
   houseNumber: string;
   city: string;
   cap: string;
-  isee: string;
-  authorized: boolean;
-  referenceEntity: { name: string } | null;
+  donorProfile: {
+    level: string;
+    totalDonations: number;
+    totalObjects: number;
+  };
 }
 
-export default function RecipientProfilePage() {
+export default function DonorProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,34 +66,28 @@ export default function RecipientProfilePage() {
 
       {/* Editable Form */}
       <div className="mb-8">
-        <ProfileForm user={user} role="RECIPIENT" />
+        <ProfileForm user={user} role="DONOR" />
       </div>
 
-      {/* Read-only fields */}
+      {/* Donor Stats (read-only) */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span>📋</span> Dati non modificabili
+          <span>🏆</span> Statistiche donatore
         </h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Email</p>
-            <p className="font-medium text-gray-900">{user.email}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
-            <p className="font-medium text-gray-900">
-              {user.isee ? `€${Number(user.isee).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+            <p className="text-sm text-gray-500 mb-1">Livello attuale</p>
+            <p className="font-bold text-amber-600 text-lg">
+              {user.donorProfile?.level || 'BRONZE'}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
-            <p className="font-medium text-gray-900">{user.referenceEntity?.name || '—'}</p>
+            <p className="text-sm text-gray-500 mb-1">Oggetti donati</p>
+            <p className="font-medium text-gray-900">{user.donorProfile?.totalObjects || 0}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Stato autorizzazione</p>
-            <p className={`font-medium ${user.authorized ? 'text-green-600' : 'text-yellow-600'}`}>
-              {user.authorized ? 'Autorizzato' : 'In attesa di autorizzazione'}
-            </p>
+            <p className="text-sm text-gray-500 mb-1">Donazioni totali</p>
+            <p className="font-medium text-gray-900">{user.donorProfile?.totalDonations || 0}</p>
           </div>
         </div>
       </div>
