@@ -14,18 +14,21 @@ const recipientNav: NavItem[] = [
   { href: '/recipient/dashboard', label: 'Dashboard', icon: '🏠' },
   { href: '/recipient/objects', label: 'Sfoglia oggetti', icon: '📦' },
   { href: '/recipient/requests', label: 'Le mie richieste', icon: '📝' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
 const donorNav: NavItem[] = [
   { href: '/donor/dashboard', label: 'Dashboard', icon: '🏠' },
   { href: '/donor/objects', label: 'I miei oggetti', icon: '📦' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
 const intermediaryNav: NavItem[] = [
   { href: '/intermediary/dashboard', label: 'Dashboard', icon: '🏠' },
   { href: '/intermediary/requests', label: 'Richieste', icon: '📝' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/intermediary/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
