@@ -122,9 +122,14 @@ model Organization {
   id            String    @id @default(cuid())
   name          String
   type          OrgType
+  vatNumber     String?
   latitude      Float?
   longitude     Float?
   address       String?
+  houseNumber   String?
+  cap           String?
+  city          String?
+  province      String?
   phone         String?
   email         String?
   verified      Boolean   @default(false)

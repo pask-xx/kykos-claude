@@ -13,7 +13,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Solo gli intermediari possono aggiornare i dati dell\'organizzazione' }, { status: 403 });
     }
 
-    const { latitude, longitude } = await request.json();
+    const {
+      address,
+      houseNumber,
+      cap,
+      city,
+      province,
+      vatNumber,
+      phone,
+      email,
+      latitude,
+      longitude,
+    } = await request.json();
 
     // Get organization by userId
     const org = await prisma.organization.findUnique({
@@ -28,6 +39,14 @@ export async function POST(request: Request) {
     const updated = await prisma.organization.update({
       where: { id: org.id },
       data: {
+        address: address || null,
+        houseNumber: houseNumber || null,
+        cap: cap || null,
+        city: city || null,
+        province: province || null,
+        vatNumber: vatNumber || null,
+        phone: phone || null,
+        email: email || null,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
       },

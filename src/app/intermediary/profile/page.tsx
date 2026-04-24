@@ -14,8 +14,15 @@ interface Organization {
   id: string;
   name: string;
   type: string;
+  vatNumber: string | null;
   verified: boolean;
   address: string | null;
+  houseNumber: string | null;
+  cap: string | null;
+  city: string | null;
+  province: string | null;
+  phone: string | null;
+  email: string | null;
   latitude: number | null;
   longitude: number | null;
 }
@@ -32,6 +39,7 @@ interface User {
   houseNumber: string;
   city: string;
   cap: string;
+  province: string;
   intermediaryOrg: Organization;
 }
 
@@ -190,7 +198,7 @@ export default function IntermediaryProfilePage() {
         </h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Nome organizzazione</p>
+            <p className="text-sm text-gray-500 mb-1">Ragione sociale</p>
             <p className="font-medium text-gray-900">{user.intermediaryOrg?.name || '—'}</p>
           </div>
           <div>
@@ -198,14 +206,42 @@ export default function IntermediaryProfilePage() {
             <p className="font-medium text-gray-900">{user.intermediaryOrg?.type || '—'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
-            <p className="font-medium text-gray-900">{user.intermediaryOrg?.address || '—'}</p>
+            <p className="text-sm text-gray-500 mb-1">Partita IVA</p>
+            <p className="font-medium text-gray-900 uppercase">{user.intermediaryOrg?.vatNumber || '—'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-1">Stato verifica</p>
             <p className={`font-medium ${user.intermediaryOrg?.verified ? 'text-green-600' : 'text-yellow-600'}`}>
               {user.intermediaryOrg?.verified ? 'Verificato' : 'In verifica'}
             </p>
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
+            <p className="font-medium text-gray-900">
+              {user.intermediaryOrg?.address
+                ? `${user.intermediaryOrg.address}${user.intermediaryOrg.houseNumber ? `, ${user.intermediaryOrg.houseNumber}` : ''}`
+                : '—'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 mb-1">CAP</p>
+            <p className="font-medium text-gray-900">{user.intermediaryOrg?.cap || '—'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Città</p>
+            <p className="font-medium text-gray-900">{user.intermediaryOrg?.city || '—'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Provincia</p>
+            <p className="font-medium text-gray-900 uppercase">{user.intermediaryOrg?.province || '—'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Email</p>
+            <p className="font-medium text-gray-900">{user.intermediaryOrg?.email || '—'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Telefono</p>
+            <p className="font-medium text-gray-900">{user.intermediaryOrg?.phone || '—'}</p>
           </div>
         </div>
       </div>
