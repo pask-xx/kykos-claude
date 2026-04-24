@@ -365,7 +365,7 @@ function RegisterForm() {
             </div>
 
             <div className="grid grid-cols-10 gap-4 mt-3">
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <label htmlFor="cap" className="block text-xs text-gray-500 mb-1">CAP *</label>
                 <input
                   id="cap"
@@ -390,10 +390,7 @@ function RegisterForm() {
                   placeholder="Roma"
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-10 gap-4 mt-3">
-              <div className="col-span-3">
+              <div className="col-span-1">
                 <label htmlFor="province" className="block text-xs text-gray-500 mb-1">Prov *</label>
                 <input
                   id="province"
