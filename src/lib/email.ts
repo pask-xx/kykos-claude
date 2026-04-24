@@ -226,7 +226,7 @@ export async function sendWelcomeEmail(
 
   const roleData = roleLabels[role] || roleLabels.DONOR;
 
-  const subject = `Benvenuto in KYKOS - ${roleData.title}`;
+  const subject = roleData.title;
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
       <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
@@ -259,8 +259,10 @@ export async function sendWelcomeEmail(
           <div style="display: grid; gap: 16px;">
             <!-- Principle 1 -->
             <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <span style="font-size: 18px;">🔒</span>
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
+                  <span style="font-size: 18px;">🔒</span>
+                </div>
               </div>
               <div>
                 <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Anonimato totale</h3>
@@ -270,8 +272,10 @@ export async function sendWelcomeEmail(
 
             <!-- Principle 2 -->
             <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <span style="font-size: 18px;">🏢</span>
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
+                  <span style="font-size: 18px;">🏢</span>
+                </div>
               </div>
               <div>
                 <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Enti fidati</h3>
@@ -281,8 +285,10 @@ export async function sendWelcomeEmail(
 
             <!-- Principle 3 -->
             <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <span style="font-size: 18px;">🌱</span>
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
+                  <span style="font-size: 18px;">🌱</span>
+                </div>
               </div>
               <div>
                 <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Sostenibilità</h3>
@@ -292,8 +298,10 @@ export async function sendWelcomeEmail(
 
             <!-- Principle 4 -->
             <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <span style="font-size: 18px;">💚</span>
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
+                  <span style="font-size: 18px;">💚</span>
+                </div>
               </div>
               <div>
                 <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Comunità</h3>
