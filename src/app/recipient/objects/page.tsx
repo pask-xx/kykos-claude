@@ -21,6 +21,10 @@ interface UserRequest {
   status: RequestStatus;
 }
 
+interface User {
+  authorized: boolean;
+}
+
 export default function RecipientBrowsePage() {
   const [objects, setObjects] = useState<Object[]>([]);
   const [userRequests, setUserRequests] = useState<Map<string, UserRequest>>(new Map());
@@ -28,10 +32,21 @@ export default function RecipientBrowsePage() {
   const [requesting, setRequesting] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState('ALL');
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchUserRequests(), fetchObjects()]);
+    Promise.all([fetchUserRequests(), fetchObjects(), fetchUser()]);
   }, [category]);
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      setUser(data.user || null);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
 
   const fetchUserRequests = async () => {
     try {
@@ -80,7 +95,6 @@ export default function RecipientBrowsePage() {
       }
 
       setMessage('Richiesta inviata con successo!');
-      // Refresh list and user requests
       fetchObjects();
       fetchUserRequests();
     } catch {
@@ -90,13 +104,46 @@ export default function RecipientBrowsePage() {
     }
   };
 
+  const handleCancelRequest = async (objectId: string) => {
+    const request = userRequests.get(objectId);
+    if (!request) return;
+
+    setMessage('');
+    try {
+      const res = await fetch(`/api/requests?id=${request.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || 'Errore annullamento richiesta');
+        return;
+      }
+
+      setMessage('Richiesta annullata');
+      fetchObjects();
+      fetchUserRequests();
+    } catch {
+      setMessage('Errore di connessione');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-medium text-gray-900 mb-6 text-center">Oggetti disponibili</h1>
 
+        {/* Authorization warning */}
+        {user && !user.authorized && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700">
+            <p className="font-medium">⚠️ Account non ancora autorizzato</p>
+            <p className="text-sm">Per poter richiedere oggetti, il tuo account deve essere approvato da un operatore.</p>
+          </div>
+        )}
+
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.includes('successo') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <div className={`mb-6 p-4 rounded-lg ${message.includes('annullata') ? 'bg-amber-50 text-amber-700' : message.includes('successo') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
             {message}
           </div>
         )}
@@ -174,24 +221,32 @@ export default function RecipientBrowsePage() {
                     Ente: {obj.intermediary.name}
                   </p>
                   {userRequests.has(obj.id) ? (
-                    <button
-                      disabled
-                      className={`w-full py-2 rounded-lg font-medium text-sm disabled:opacity-75 ${
-                        userRequests.get(obj.id)?.status === 'APPROVED' ? 'bg-green-600 text-white' :
-                        userRequests.get(obj.id)?.status === 'PENDING' ? 'bg-yellow-500 text-white' :
-                        userRequests.get(obj.id)?.status === 'REJECTED' ? 'bg-red-500 text-white' :
-                        'bg-gray-400 text-white'
-                      }`}
-                    >
-                      {userRequests.get(obj.id)?.status === 'PENDING' ? 'In attesa...' :
-                       userRequests.get(obj.id)?.status === 'APPROVED' ? 'Approvata!' :
-                       userRequests.get(obj.id)?.status === 'REJECTED' ? 'Rifiutata' : 'Già richiesto'}
-                    </button>
+                    userRequests.get(obj.id)?.status === 'PENDING' ? (
+                      <button
+                        onClick={() => handleCancelRequest(obj.id)}
+                        className="w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm"
+                      >
+                        Annulla richiesta
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className={`w-full py-2 rounded-lg font-medium text-sm disabled:opacity-75 ${
+                          userRequests.get(obj.id)?.status === 'APPROVED' ? 'bg-green-600 text-white' :
+                          userRequests.get(obj.id)?.status === 'REJECTED' ? 'bg-red-500 text-white' :
+                          'bg-gray-400 text-white'
+                        }`}
+                      >
+                        {userRequests.get(obj.id)?.status === 'APPROVED' ? 'Approvata!' :
+                         userRequests.get(obj.id)?.status === 'REJECTED' ? 'Rifiutata' : 'Già richiesto'}
+                      </button>
+                    )
                   ) : (
                     <button
                       onClick={() => handleRequest(obj.id)}
-                      disabled={requesting === obj.id}
-                      className="w-full py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm disabled:opacity-50"
+                      disabled={requesting === obj.id || !user?.authorized}
+                      className="w-full py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={!user?.authorized ? 'Devi essere autorizzato per richiedere oggetti' : undefined}
                     >
                       {requesting === obj.id ? 'Invio...' : 'Richiedi'}
                     </button>

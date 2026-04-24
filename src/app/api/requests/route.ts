@@ -14,6 +14,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Solo i riceventi possono fare richieste' }, { status: 403 });
     }
 
+    // Check if recipient is authorized
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { authorized: true },
+    });
+
+    if (!user?.authorized) {
+      return NextResponse.json({ error: 'Devi essere autorizzato per poter richiedere oggetti' }, { status: 403 });
+    }
+
     const { objectId, message } = await request.json();
 
     if (!objectId) {
@@ -69,6 +79,55 @@ export async function POST(request: Request) {
     return NextResponse.json({ request: req });
   } catch (error) {
     console.error('Error creating request:', error);
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    if (session.role !== 'RECIPIENT') {
+      return NextResponse.json({ error: 'Solo i riceventi possono annullare richieste' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const requestId = searchParams.get('id');
+
+    if (!requestId) {
+      return NextResponse.json({ error: 'ID richiesta mancante' }, { status: 400 });
+    }
+
+    // Find the request
+    const req = await prisma.request.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!req) {
+      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+    }
+
+    // Check ownership
+    if (req.recipientId !== session.id) {
+      return NextResponse.json({ error: 'Non puoi annullare questa richiesta' }, { status: 403 });
+    }
+
+    // Check status - can only cancel PENDING requests
+    if (req.status !== 'PENDING') {
+      return NextResponse.json({ error: 'Solo le richieste in attesa possono essere annullate' }, { status: 400 });
+    }
+
+    // Delete the request
+    await prisma.request.delete({
+      where: { id: requestId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error canceling request:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
