@@ -1,6 +1,7 @@
 export type Role = 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY' | 'ADMIN';
 export type OrgType = 'CHARITY' | 'CHURCH' | 'ASSOCIATION';
 export type OperatorRole = 'ADMIN' | 'GESTORE_RICHIESTE' | 'GESTORE_OGGETTI' | 'GESTORE_VOLONTARI' | 'OPERATORE';
+export type OperatorPermission = 'RECIPIENT_AUTHORIZE' | 'OBJECT_RECEIVE' | 'OBJECT_DELIVER' | 'VOLUNTEER_MANAGE' | 'REQUEST_PROXY' | 'ORGANIZATION_ADMIN';
 export type Category = 'FURNITURE' | 'ELECTRONICS' | 'CLOTHING' | 'BOOKS' | 'KITCHEN' | 'SPORTS' | 'TOYS' | 'OTHER';
 export type Condition = 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR' | 'POOR';
 export type ObjectStatus = 'AVAILABLE' | 'RESERVED' | 'DONATED' | 'WITHDRAWN';
@@ -112,6 +113,15 @@ export const OPERATOR_ROLE_LABELS: Record<OperatorRole, string> = {
   GESTORE_OGGETTI: 'Gestore Oggetti',
   GESTORE_VOLONTARI: 'Gestore Volontari',
   OPERATORE: 'Operatore',
+};
+
+export const OPERATOR_PERMISSION_LABELS: Record<OperatorPermission, string> = {
+  RECIPIENT_AUTHORIZE: 'Abilitare utenti Riceventi',
+  OBJECT_RECEIVE: 'Gestione entrata oggetti',
+  OBJECT_DELIVER: 'Consegna oggetti al destinatario',
+  VOLUNTEER_MANAGE: 'Organizzazione volontari',
+  REQUEST_PROXY: 'Fare richieste per conto di utenti',
+  ORGANIZATION_ADMIN: 'Amministrazione Ente',
 };
 
 export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {

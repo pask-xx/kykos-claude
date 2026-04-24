@@ -24,6 +24,15 @@ enum OperatorRole {
   OPERATORE
 }
 
+enum OperatorPermission {
+  RECIPIENT_AUTHORIZE
+  OBJECT_RECEIVE
+  OBJECT_DELIVER
+  VOLUNTEER_MANAGE
+  REQUEST_PROXY
+  ORGANIZATION_ADMIN
+}
+
 enum OrgType {
   CHARITY
   CHURCH
@@ -271,6 +280,7 @@ model Operator {
   lastName       String
   passwordHash   String
   role           OperatorRole @default(OPERATORE)
+  permissions    String[]     @default([])  // additional granular permissions
   active         Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
