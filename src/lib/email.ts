@@ -147,3 +147,43 @@ export async function sendDonationConfirmedNotification(
 
   return sendEmail({ to: toEmail, subject, html });
 }
+
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  resetUrl: string
+): Promise<boolean> {
+  const subject = 'Reimposta la tua password - KYKOS';
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">KYKOS</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 16px;">Reimposta la tua password</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao! Abbiamo ricevuto una richiesta di reimpostazione della password per il tuo account KYKOS.
+          </p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Clicca sul pulsante qui sotto per reimpostare la tua password. Il link sarà valido per <strong>1 ora</strong>.
+          </p>
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${resetUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Reimposta password
+            </a>
+          </div>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">
+            Se non hai richiesto tu questa reimpostazione, puoi ignorare questa email. La tua password rimarrà invariata.
+          </p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({ to: toEmail, subject, html });
+}

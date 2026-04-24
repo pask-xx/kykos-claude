@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SignJWT } from 'jose';
+import { sendPasswordResetEmail } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
 );
+
+function getBaseUrl(request: Request): string {
+  const host = request.headers.get('host') || 'localhost:3000';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  return `${protocol}://${host}`;
+}
 
 export async function POST(request: Request) {
   try {
@@ -38,19 +45,18 @@ export async function POST(request: Request) {
       .setExpirationTime('1h')
       .sign(JWT_SECRET);
 
-    // In production, send email:
-    // const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`;
-    // await sendEmail({ to: user.email, subject: 'Reset password KYKOS', html: `Click <a href="${resetUrl}">here</a> to reset your password` });
+    const baseUrl = getBaseUrl(request);
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
 
-    // DEV MODE - return token directly so you can test
-    const isDev = process.env.NODE_ENV !== 'production';
-    const resetUrl = isDev
-      ? `/auth/reset-password?token=${resetToken}`
-      : null;
+    // Send email via Resend
+    const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
+
+    if (!emailSent) {
+      console.error('Failed to send password reset email to:', user.email);
+    }
 
     return NextResponse.json({
-      message: 'Se l\'email esiste, riceverai le istruzioni per reimpostare la password.',
-      ...(isDev && { resetUrl, token: resetToken }),
+      message: 'Se l\'email esiste, riceverai le istruzioni per reimpostare la password.'
     });
   } catch (error) {
     console.error('Password reset request error:', error);
