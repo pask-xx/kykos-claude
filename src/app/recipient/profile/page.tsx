@@ -60,8 +60,8 @@ export default function RecipientProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl p-6">
-      <h1 className="text-3xl font-medium text-gray-900 mb-8 text-center">Il mio profilo</h1>
+    <div className="max-w-full">
+      <h1 className="text-3xl font-medium text-gray-900 mb-8">Il mio profilo</h1>
 
       {/* Editable Form */}
       <div className="mb-8">

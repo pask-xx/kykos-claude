@@ -15,6 +15,7 @@ export async function GET() {
     include: {
       donorProfile: true,
       intermediaryOrg: true,
+      referenceEntity: true,
     },
   });
 
@@ -41,6 +42,9 @@ export async function GET() {
       longitude: user.longitude,
       donorProfile: user.donorProfile,
       intermediaryOrg: user.intermediaryOrg,
+      referenceEntity: user.referenceEntity,
+      authorized: user.authorized,
+      isee: user.isee,
     },
   });
 }
