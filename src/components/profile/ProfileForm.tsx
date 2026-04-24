@@ -33,6 +33,7 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -80,6 +81,46 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const geocodeFromAddress = async () => {
+    if (!formData.address || !formData.city) {
+      setLocationError('Inserisci indirizzo e città per calcolare la posizione');
+      return;
+    }
+
+    setGeocoding(true);
+    setLocationError(null);
+
+    try {
+      const res = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: formData.address,
+          city: formData.city,
+          cap: formData.cap,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLocationError(data.error || 'Errore nel calcolo della posizione');
+        return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        latitude: data.latitude.toString(),
+        longitude: data.longitude.toString(),
+      }));
+      setSuccess(false);
+    } catch {
+      setLocationError('Errore di connessione');
+    } finally {
+      setGeocoding(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -242,22 +283,21 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
 
         {/* Geolocation Section */}
         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                <span>📍</span> Geolocalizzazione
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {hasLocation
-                  ? `Posizione registrata: ${parseFloat(formData.latitude!).toFixed(4)}, ${parseFloat(formData.longitude!).toFixed(4)}`
-                  : 'Nessuna posizione registrata'}
-              </p>
-            </div>
+          <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-3">
+            <span>📍</span> Geolocalizzazione
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            {hasLocation
+              ? `Posizione registrata: ${parseFloat(formData.latitude!).toFixed(4)}, ${parseFloat(formData.longitude!).toFixed(4)}`
+              : 'Nessuna posizione registrata'}
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
               onClick={detectLocation}
               disabled={locating}
-              className="px-4 py-2 bg-secondary-600 text-white text-sm font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center gap-2"
+              className="flex-1 px-4 py-2.5 bg-secondary-600 text-white text-sm font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
             >
               {locating ? (
                 <>
@@ -267,16 +307,35 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
               ) : (
                 <>
                   <span>📡</span>
-                  <span>{hasLocation ? 'Aggiorna posizione' : 'Rileva posizione'}</span>
+                  <span>{hasLocation ? 'Aggiorna con GPS' : 'Rileva con GPS'}</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={geocodeFromAddress}
+              disabled={geocoding || !formData.address || !formData.city}
+              className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+            >
+              {geocoding ? (
+                <>
+                  <span className="animate-spin">🔄</span>
+                  <span>Calcolo...</span>
+                </>
+              ) : (
+                <>
+                  <span>🏠</span>
+                  <span>Calcola da indirizzo</span>
                 </>
               )}
             </button>
           </div>
+
           {locationError && (
-            <p className="text-sm text-red-600">{locationError}</p>
+            <p className="text-sm text-red-600 mt-2">{locationError}</p>
           )}
-          <p className="text-xs text-gray-400 mt-2">
-            La geolocalizzazione permette di mostrarti gli oggetti disponibili vicino a te.
+          <p className="text-xs text-gray-400 mt-3">
+            Usa il GPS per rilevamento automatico, oppure inserisci il tuo indirizzo e clicca "Calcola da indirizzo".
           </p>
         </div>
 
