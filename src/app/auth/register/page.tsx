@@ -335,8 +335,8 @@ function RegisterForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-20 gap-4 mt-3">
-              <div className="col-span-17">
+            <div className="flex gap-4 mt-3">
+              <div className="flex-[17]">
                 <label htmlFor="address" className="block text-xs text-gray-500 mb-1">
                   Indirizzo *
                 </label>
@@ -350,7 +350,7 @@ function RegisterForm() {
                   placeholder="Via Roma"
                 />
               </div>
-              <div className="col-span-3">
+              <div className="flex-[3]">
                 <label htmlFor="houseNumber" className="block text-xs text-gray-500 mb-1">N. Civico *</label>
                 <input
                   id="houseNumber"
@@ -364,8 +364,8 @@ function RegisterForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-20 gap-4 mt-3">
-              <div className="col-span-4">
+            <div className="flex gap-4 mt-3">
+              <div className="flex-[4]">
                 <label htmlFor="cap" className="block text-xs text-gray-500 mb-1">CAP *</label>
                 <input
                   id="cap"
@@ -378,7 +378,7 @@ function RegisterForm() {
                   placeholder="00100"
                 />
               </div>
-              <div className="col-span-13">
+              <div className="flex-[13]">
                 <label htmlFor="city" className="block text-xs text-gray-500 mb-1">Città *</label>
                 <input
                   id="city"
@@ -390,7 +390,7 @@ function RegisterForm() {
                   placeholder="Roma"
                 />
               </div>
-              <div className="col-span-3">
+              <div className="flex-[3]">
                 <label htmlFor="province" className="block text-xs text-gray-500 mb-1">Prov *</label>
                 <input
                   id="province"
