@@ -48,6 +48,7 @@ function RegisterForm() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [locating, setLocating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState('');
 
   const [error, setError] = useState('');
@@ -83,6 +84,33 @@ function RegisterForm() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const geocodeFromAddress = async () => {
+    if (!address || !city) {
+      setLocationError('Inserisci indirizzo e città');
+      return;
+    }
+    setGeocoding(true);
+    setLocationError('');
+    try {
+      const res = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, city, cap, province: '' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLocationError(data.error || 'Errore nel calcolo della posizione');
+        return;
+      }
+      setLatitude(data.latitude.toString());
+      setLongitude(data.longitude.toString());
+    } catch {
+      setLocationError('Errore di connessione');
+    } finally {
+      setGeocoding(false);
+    }
   };
 
   const fetchIntermediaries = async () => {
@@ -401,39 +429,47 @@ function RegisterForm() {
               </div>
             </div>
 
-            {/* Geolocation for RECIPIENT */}
-            {isRecipient && (
-              <div className="mt-4 p-4 bg-secondary-50 rounded-xl border border-secondary-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm">
-                      <span>📍</span> Geolocalizzazione *
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {latitude && longitude
-                        ? `${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}`
-                        : 'Rileva la tua posizione'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={detectLocation}
-                    disabled={locating}
-                    className="px-3 py-1.5 bg-secondary-600 text-white text-xs font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center gap-1"
-                  >
-                    {locating ? '⏳...' : '📡 Rileva'}
-                  </button>
-                </div>
-                {locationError && (
-                  <p className="text-xs text-red-600 mt-1">{locationError}</p>
-                )}
-                {!latitude && (
-                  <p className="text-xs text-secondary-600 mt-2">
-                    Obbligatoria per i riceventi
-                  </p>
-                )}
+            {/* Geolocation Section - Required for RECIPIENT, Optional for DONOR */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
+                <span>📍</span> Geolocalizzazione
+                {isRecipient && <span className="text-red-500">*</span>}
+                {!isRecipient && <span className="text-gray-400 text-xs">(facoltativa)</span>}
+              </h3>
+              <p className="text-xs text-gray-500 mb-3">
+                {latitude && longitude
+                  ? `Posizione: ${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}`
+                  : 'Non rilevata'}
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={detectLocation}
+                  disabled={locating}
+                  className="flex-1 px-3 py-2 bg-secondary-600 text-white text-xs font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
+                >
+                  {locating ? '⏳ Rilevamento...' : '📡 GPS'}
+                </button>
+                <button
+                  type="button"
+                  onClick={geocodeFromAddress}
+                  disabled={geocoding || !address || !city}
+                  className="flex-1 px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
+                >
+                  {geocoding ? '⏳ Calcolo...' : '🏠 Da indirizzo'}
+                </button>
               </div>
-            )}
+
+              {locationError && (
+                <p className="text-xs text-red-600 mt-2">{locationError}</p>
+              )}
+              {isRecipient && !latitude && (
+                <p className="text-xs text-secondary-600 mt-2">
+                  Obbligatoria per completare la registrazione
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Email */}
