@@ -69,9 +69,17 @@ model User {
 ```prisma
 model Organization {
   id            String    @id @default(cuid())
-  name          String
+  code         String    @unique  // Used for operator login
+  name         String
   type          OrgType  // CHARITY, CHURCH, ASSOCIATION
+  vatNumber     String?
   address       String?
+  houseNumber   String?
+  cap           String?
+  city          String?
+  province      String?
+  latitude      Float?
+  longitude     Float?
   phone         String?
   email         String?
   verified      Boolean   @default(false)
@@ -81,6 +89,7 @@ model Organization {
   userId        String    @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  operators     Operator[]
   objects       Object[]
   requests      Request[]
   payments      Payment[]
@@ -88,7 +97,30 @@ model Organization {
 }
 ```
 
-### 3.3 Object (Donation Item)
+### 3.3 Operator (Organization Staff)
+```prisma
+model Operator {
+  id             String       @id @default(cuid())
+  username       String       // Unique within organization
+  email          String?
+  phone          String?
+  firstName      String
+  lastName       String
+  passwordHash   String
+  role           OperatorRole @default(OPERATORE)
+  permissions    String[]    @default([])  // Additional granular permissions
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, username])
+}
+```
+
+### 3.4 Object (Donation Item)
 ```prisma
 model Object {
   id            String       @id @default(cuid())
@@ -112,7 +144,7 @@ model Object {
 }
 ```
 
-### 3.4 Request
+### 3.5 Request
 ```prisma
 model Request {
   id            String        @id @default(cuid())
@@ -134,7 +166,7 @@ model Request {
 }
 ```
 
-### 3.5 Donation
+### 3.6 Donation
 ```prisma
 model Donation {
   id            String   @id @default(cuid())
@@ -159,7 +191,7 @@ model Donation {
 }
 ```
 
-### 3.6 DonorProfile
+### 3.7 DonorProfile
 ```prisma
 model DonorProfile {
   id             String     @id @default(cuid())
@@ -180,6 +212,8 @@ model DonorProfile {
 
 ```prisma
 enum Role { DONOR, RECIPIENT, INTERMEDIARY, ADMIN }
+enum OperatorRole { ADMIN, GESTORE_RICHIESTE, GESTORE_OGGETTI, GESTORE_VOLONTARI, OPERATORE }
+enum OperatorPermission { RECIPIENT_AUTHORIZE, OBJECT_RECEIVE, OBJECT_DELIVER, VOLUNTEER_MANAGE, REQUEST_PROXY, ORGANIZATION_ADMIN }
 enum OrgType { CHARITY, CHURCH, ASSOCIATION }
 enum Category { FURNITURE, ELECTRONICS, CLOTHING, BOOKS, KITCHEN, SPORTS, TOYS, OTHER }
 enum Condition { NEW, LIKE_NEW, GOOD, FAIR, POOR }
@@ -187,6 +221,27 @@ enum ObjectStatus { AVAILABLE, RESERVED, DONATED, WITHDRAWN }
 enum RequestStatus { PENDING, APPROVED, REJECTED, EXPIRED }
 enum DonorLevel { BRONZE, SILVER, GOLD, PLATINUM, DIAMOND }
 ```
+
+### 4.1 Operator Role Permissions (default)
+
+| Ruolo | Permessi |
+|-------|----------|
+| ADMIN | Tutti i permessi |
+| GESTORE_RICHIESTE | RECIPIENT_AUTHORIZE, REQUEST_PROXY |
+| GESTORE_OGGETTI | OBJECT_RECEIVE, OBJECT_DELIVER |
+| GESTORE_VOLONTARI | VOLUNTEER_MANAGE |
+| OPERATORE | Nessuno (solo permessi granulari) |
+
+### 4.2 Operator Permission Descriptions
+
+| Permesso | Descrizione |
+|----------|-------------|
+| RECIPIENT_AUTHORIZE | Abilitare utenti Riceventi |
+| OBJECT_RECEIVE | Gestione entrata oggetti |
+| OBJECT_DELIVER | Consegna oggetti al destinatario |
+| VOLUNTEER_MANAGE | Organizzazione volontari |
+| REQUEST_PROXY | Fare richieste per conto di utenti impossibilitati |
+| ORGANIZATION_ADMIN | Amministrazione Ente |
 
 ---
 
@@ -223,6 +278,18 @@ enum DonorLevel { BRONZE, SILVER, GOLD, PLATINUM, DIAMOND }
 ### Recipient
 - `GET /api/recipient/requests` - Recipient's requests
 
+### Operator (login: /operator/login)
+- `POST /api/operator/login` - Login (org_code + username + password)
+- `POST /api/operator/logout` - Logout
+- `GET /api/operator/me` - Current operator profile
+- `GET /api/operator` - List operators (ADMIN only)
+- `POST /api/operator/register` - Create operator (ADMIN only)
+- `PATCH /api/operator/[id]` - Update operator (ADMIN only)
+- `DELETE /api/operator/[id]` - Delete operator (ADMIN only)
+
+### Organization
+- `GET /api/organization/update` - Update organization data (intermediary only)
+
 ---
 
 ## 6. Anonymity Model
@@ -244,8 +311,9 @@ enum DonorLevel { BRONZE, SILVER, GOLD, PLATINUM, DIAMOND }
 
 ```
 /                           - Landing page
-/auth/login                 - Login
-/auth/register               - Register (role selection)
+/auth/login                 - User login
+/auth/register              - User register (role selection)
+/operator/login            - Operator login (org_code + username + password)
 
 /donor/
   /dashboard                - Donor dashboard
@@ -299,20 +367,21 @@ enum DonorLevel { BRONZE, SILVER, GOLD, PLATINUM, DIAMOND }
 
 ## 9. Test Accounts (Seed)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@kykos.it | admin123 |
-| Intermediary | caritas.roma@kykos.it | ente123 |
-| Intermediary | parrocchia.sangiovanni@kykos.it | ente123 |
-| Intermediary | associazione.arcobaleno@kykos.it | ente123 |
-| Donor | donatore@test.it | donatore123 |
-| Recipient | ricevente@test.it | ricevente123 |
+| Role | Email | Password | Org Code |
+|------|-------|----------|----------|
+| Admin | admin@kykos.it | admin123 | - |
+| Intermediary | caritas.roma@kykos.it | ente123 | CARITAS-ROMA |
+| Intermediary | parrocchia.sangiovanni@kykos.it | ente123 | PARROCCHIA-SGIOVANNI |
+| Intermediary | associazione.arcobaleno@kykos.it | ente123 | ASSOC-ARCOBALENO |
+| Donor | donatore@test.it | donatore123 | - |
+| Recipient | ricevente@test.it | ricevente123 | - |
 
 ---
 
 ## 10. Future Features (Not Implemented)
 
-- [ ] Geolocation for finding nearby intermediaries
+- [x] Geolocation for finding nearby intermediaries
+- [x] Operator system for intermediary staff
 - [ ] Max 3 nearby intermediaries for recipients
 - [ ] Donor entity selection (which intermediaries can receive)
 - [ ] ISEE document upload and validation
