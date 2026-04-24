@@ -43,34 +43,6 @@ export default async function IntermediaryDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/intermediary/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/intermediary/requests" className="text-gray-600 hover:text-primary-600 font-medium">
-                Richieste
-              </Link>
-              <Link href="/intermediary/recipients" className="text-gray-600 hover:text-primary-600 font-medium">
-                Riceventi
-              </Link>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">{session.name}</span>
-                <form action="/api/auth/logout" method="POST">
-                  <button type="submit" className="text-sm text-red-600 hover:text-red-700">
-                    Esci
-                  </button>
-                </form>
-              </div>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
