@@ -38,6 +38,7 @@ function RegisterForm() {
   const [address, setAddress] = useState('');
   const [cap, setCap] = useState('');
   const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
   const [houseNumber, setHouseNumber] = useState('');
 
   // Recipient fields
@@ -97,7 +98,7 @@ function RegisterForm() {
       const res = await fetch('/api/geocode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, city, cap, province: '' }),
+        body: JSON.stringify({ address, city, cap, province }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -389,7 +390,7 @@ function RegisterForm() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mt-3">
+            <div className="grid grid-cols-4 gap-4 mt-3">
               <div>
                 <label htmlFor="cap" className="block text-xs text-gray-500 mb-1">CAP *</label>
                 <input
@@ -413,6 +414,19 @@ function RegisterForm() {
                   required={isRecipient}
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
                   placeholder="Roma"
+                />
+              </div>
+              <div>
+                <label htmlFor="province" className="block text-xs text-gray-500 mb-1">Prov *</label>
+                <input
+                  id="province"
+                  type="text"
+                  value={province}
+                  onChange={(e) => setProvince(e.target.value.toUpperCase())}
+                  required={isRecipient}
+                  maxLength={2}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm uppercase"
+                  placeholder="RM"
                 />
               </div>
               <div>

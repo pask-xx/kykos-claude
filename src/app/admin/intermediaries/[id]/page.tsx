@@ -66,7 +66,6 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
     scriptEl.onload = () => {
       if (!mapRef.current || mapInstanceRef.current) return;
 
-      // @ts-expect-error - Leaflet is loaded dynamically
       const L = window.L;
 
       const map = L.map(mapRef.current).setView([intermediary.lat!, intermediary.lng!], 15);
