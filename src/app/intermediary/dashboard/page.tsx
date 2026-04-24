@@ -149,7 +149,7 @@ export default async function IntermediaryDashboard() {
               href="/intermediary/recipients"
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
             >
-              Autorizza ricevente
+              Gestisci beneficiari
             </Link>
             <Link
               href="/intermediary/objects"

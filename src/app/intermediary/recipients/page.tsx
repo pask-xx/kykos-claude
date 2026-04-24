@@ -75,7 +75,7 @@ export default function IntermediaryRecipientsPage() {
 
   return (
     <div className="max-w-full">
-      <h1 className="text-3xl font-medium text-gray-900 mb-2">Gestione Riceventi</h1>
+      <h1 className="text-3xl font-medium text-gray-900 mb-2">Gestione Beneficiari</h1>
       <p className="text-gray-500 mb-8">{organizationName}</p>
 
       {message && (
