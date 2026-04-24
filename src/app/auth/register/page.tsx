@@ -44,6 +44,12 @@ function RegisterForm() {
   const [referenceEntityId, setReferenceEntityId] = useState('');
   const [isee, setIsee] = useState('');
 
+  // Geolocation
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +64,27 @@ function RegisterForm() {
       setLastName(parts.slice(1).join(' ') || '');
     }
   }, [role, isOAuth, oauthName]);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocalizzazione non supportata');
+      return;
+    }
+    setLocating(true);
+    setLocationError('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(pos.coords.latitude.toString());
+        setLongitude(pos.coords.longitude.toString());
+        setLocating(false);
+      },
+      (err) => {
+        setLocationError('Permessi negati o posizione non disponibile');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const fetchIntermediaries = async () => {
     try {
@@ -100,6 +127,10 @@ function RegisterForm() {
         setError('Inserisci il valore ISEE');
         return;
       }
+      if (!latitude || !longitude) {
+        setError('La geolocalizzazione è obbligatoria per i riceventi');
+        return;
+      }
     }
 
     setLoading(true);
@@ -129,6 +160,11 @@ function RegisterForm() {
       if (role === 'RECIPIENT') {
         payload.referenceEntityId = referenceEntityId;
         payload.isee = isee;
+      }
+
+      if (latitude && longitude) {
+        payload.latitude = latitude;
+        payload.longitude = longitude;
       }
 
       const res = await fetch('/api/auth/register', {
@@ -373,6 +409,40 @@ function RegisterForm() {
                 />
               </div>
             </div>
+
+            {/* Geolocation for RECIPIENT */}
+            {isRecipient && (
+              <div className="mt-4 p-4 bg-secondary-50 rounded-lg border border-secondary-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm">
+                      <span>📍</span> Geolocalizzazione *
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {latitude && longitude
+                        ? `${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}`
+                        : 'Rileva la tua posizione per trovare oggetti vicini'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={locating}
+                    className="px-3 py-1.5 bg-secondary-600 text-white text-xs font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center gap-1"
+                  >
+                    {locating ? '⏳...' : '📡 Rileva'}
+                  </button>
+                </div>
+                {locationError && (
+                  <p className="text-xs text-red-600 mt-1">{locationError}</p>
+                )}
+                {!latitude && (
+                  <p className="text-xs text-secondary-600 mt-2">
+                    La geolocalizzazione è obbligatoria per i riceventi
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Email */}

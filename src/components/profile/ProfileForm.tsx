@@ -2,6 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const LocationMap = dynamic(() => import('@/components/map/LocationMap'), {
+  ssr: false,
+  loading: () => <div className="h-48 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-400">Caricamento mappa...</span></div>,
+});
 
 interface ProfileFormProps {
   user: {
@@ -273,6 +279,20 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
             La geolocalizzazione permette di mostrarti gli oggetti disponibili vicino a te.
           </p>
         </div>
+
+        {/* Map Display */}
+        {hasLocation && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <span>🗺️</span> Anteprima posizione
+            </h3>
+            <LocationMap
+              latitude={parseFloat(formData.latitude!)}
+              longitude={parseFloat(formData.longitude!)}
+              height="250px"
+            />
+          </div>
+        )}
 
         <div className="pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between">

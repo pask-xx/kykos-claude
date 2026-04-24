@@ -23,6 +23,8 @@ export async function POST(request: Request) {
       referenceEntityId,
       isee,
       oauthProvider,
+      latitude,
+      longitude,
     } = await request.json();
 
     const isOAuth = oauthProvider === 'google';
@@ -133,6 +135,8 @@ export async function POST(request: Request) {
         cap: cap || null,
         city: city || null,
         houseNumber: houseNumber || null,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         ...(role === 'INTERMEDIARY' && {
           intermediaryOrg: {
             create: {
@@ -162,8 +166,8 @@ export async function POST(request: Request) {
       },
     });
 
-    // Geocode address if provided
-    if (address && city) {
+    // Geocode address if coordinates not provided
+    if (!latitude && !longitude && address && city) {
       const geoResult = await geocodeAddress(address, city, cap || '');
       if (geoResult) {
         await prisma.user.update({
