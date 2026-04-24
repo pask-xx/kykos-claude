@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProfileForm from '@/components/profile/ProfileForm';
+import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
 
 interface User {
   id: string;
@@ -97,7 +98,7 @@ export default function RecipientProfilePage() {
       </div>
 
       {/* Account info */}
-      <div className="bg-gray-50 p-6 rounded-xl border">
+      <div className="bg-gray-50 p-6 rounded-xl border mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Informazioni account</h2>
         <div className="space-y-3 text-sm">
           <div>
@@ -106,6 +107,9 @@ export default function RecipientProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Password Change */}
+      <PasswordChangeForm />
     </div>
   );
 }

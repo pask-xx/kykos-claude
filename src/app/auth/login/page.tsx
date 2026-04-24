@@ -199,7 +199,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <p className="mt-6 text-center text-gray-600 text-sm">
+            <p className="mt-6 text-center">
+              <Link href="/auth/forgot-password" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                Password dimenticata?
+              </Link>
+            </p>
+
+            <p className="mt-4 text-center text-gray-600 text-sm">
               Non hai un account?{' '}
               <Link href="/auth/register" className="text-primary-600 hover:text-primary-700 font-medium">
                 Registrati

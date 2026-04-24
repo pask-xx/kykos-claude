@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { OPERATOR_ROLE_LABELS } from '@/types';
+import OperatorPasswordChangeForm from '@/components/operator/OperatorPasswordChangeForm';
 
 interface OperatorData {
   id: string;
@@ -118,6 +119,9 @@ export default function OperatorProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Password Change */}
+      <OperatorPasswordChangeForm />
     </div>
   );
 }
