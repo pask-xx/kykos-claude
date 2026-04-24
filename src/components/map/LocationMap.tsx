@@ -112,7 +112,7 @@ export default function LocationMap({
   return (
     <div
       ref={containerRef}
-      style={{ height, borderRadius: '0.75rem', overflow: 'hidden' }}
+      style={{ height, borderRadius: '0.75rem', overflow: 'hidden', isolation: 'isolate', position: 'relative', zIndex: 0 }}
       className="border border-gray-200"
     />
   );
