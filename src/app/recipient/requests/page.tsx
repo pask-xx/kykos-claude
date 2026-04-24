@@ -82,6 +82,7 @@ export default function RecipientRequestsPage() {
         </div>
       )}
 
+      <div>
         {loading ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Caricamento...</p>
