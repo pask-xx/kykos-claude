@@ -15,6 +15,8 @@ interface ProfileFormProps {
     houseNumber?: string | null;
     city?: string | null;
     cap?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   };
   role: 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY';
 }
@@ -24,6 +26,8 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: user.firstName || '',
@@ -34,6 +38,8 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
     houseNumber: user.houseNumber || '',
     city: user.city || '',
     cap: user.cap || '',
+    latitude: user.latitude?.toString() || '',
+    longitude: user.longitude?.toString() || '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,6 +47,33 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
     setSuccess(false);
     setError(null);
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocalizzazione non supportata dal browser');
+      return;
+    }
+
+    setLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
+        setLocating(false);
+        setSuccess(false);
+      },
+      (err) => {
+        setLocationError('Impossibile ottenere la posizione. Verifica i permessi.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +108,8 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
 
   const inputClass = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
-  const errorInputClass = "border-red-500 focus:ring-red-500 focus:border-red-500";
+
+  const hasLocation = formData.latitude && formData.longitude;
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border">
@@ -198,6 +232,46 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
               placeholder="Roma"
             />
           </div>
+        </div>
+
+        {/* Geolocation Section */}
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                <span>📍</span> Geolocalizzazione
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {hasLocation
+                  ? `Posizione registrata: ${parseFloat(formData.latitude!).toFixed(4)}, ${parseFloat(formData.longitude!).toFixed(4)}`
+                  : 'Nessuna posizione registrata'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={detectLocation}
+              disabled={locating}
+              className="px-4 py-2 bg-secondary-600 text-white text-sm font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center gap-2"
+            >
+              {locating ? (
+                <>
+                  <span className="animate-spin">🔄</span>
+                  <span>Rilevamento...</span>
+                </>
+              ) : (
+                <>
+                  <span>📡</span>
+                  <span>{hasLocation ? 'Aggiorna posizione' : 'Rileva posizione'}</span>
+                </>
+              )}
+            </button>
+          </div>
+          {locationError && (
+            <p className="text-sm text-red-600">{locationError}</p>
+          )}
+          <p className="text-xs text-gray-400 mt-2">
+            La geolocalizzazione permette di mostrarti gli oggetti disponibili vicino a te.
+          </p>
         </div>
 
         <div className="pt-4 border-t border-gray-200">

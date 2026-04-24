@@ -36,6 +36,8 @@ export async function GET() {
       houseNumber: user.houseNumber,
       city: user.city,
       cap: user.cap,
+      latitude: user.latitude,
+      longitude: user.longitude,
       donorProfile: user.donorProfile,
       intermediaryOrg: user.intermediaryOrg,
     },

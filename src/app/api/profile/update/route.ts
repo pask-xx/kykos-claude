@@ -18,6 +18,8 @@ export async function POST(request: Request) {
       houseNumber,
       city,
       cap,
+      latitude,
+      longitude,
     } = await request.json();
 
     // Validate required fields
@@ -48,6 +50,8 @@ export async function POST(request: Request) {
         houseNumber,
         city,
         cap,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         name: `${firstName} ${lastName}`, // Update display name
       },
     });
