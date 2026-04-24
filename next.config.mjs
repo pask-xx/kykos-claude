@@ -3,7 +3,6 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com'],
   },
-  transpilePackages: ['leaflet'],
 };
 
 export default nextConfig;

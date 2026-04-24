@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import { useEffect, useRef, useState } from 'react';
 
 interface LocationMapProps {
   latitude: number;
@@ -18,73 +17,89 @@ export default function LocationMap({
   height = '200px',
   readonly = true,
 }: LocationMapProps) {
-  const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const markerRef = useRef<L.Marker | null>(null);
-  const cssLoadedRef = useRef(false);
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load Leaflet CSS from CDN if not already loaded
-    if (!cssLoadedRef.current && typeof window !== 'undefined') {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-      link.crossOrigin = '';
-      document.head.appendChild(link);
-      cssLoadedRef.current = true;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !containerRef.current) return;
-
-    // Wait for CSS to load before initializing map
-    const initMap = () => {
-      if (!mapRef.current) {
-        mapRef.current = L.map(containerRef.current).setView([latitude, longitude], 14);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 19,
-        }).addTo(mapRef.current);
-
-        // Add marker
-        const icon = L.icon({
-          iconUrl: '/albero.svg',
-          iconSize: [40, 40],
-          iconAnchor: [20, 40],
-          popupAnchor: [0, -40],
-        });
-
-        markerRef.current = L.marker([latitude, longitude], { icon })
-          .addTo(mapRef.current)
-          .bindPopup('La tua posizione');
-
-        // Handle click if not readonly
-        if (!readonly && onLocationChange) {
-          mapRef.current.on('click', (e) => {
-            const { lat, lng } = e.latlng;
-            if (markerRef.current) {
-              markerRef.current.setLatLng([lat, lng]);
-            } else {
-              markerRef.current = L.marker([lat, lng]).addTo(mapRef.current!);
-            }
-            onLocationChange(lat, lng);
-          });
-        }
+    // Load Leaflet from CDN if not already loaded
+    const loadLeaflet = () => {
+      if ((window as any).L) {
+        setIsLoaded(true);
+        return true;
       }
+
+      // Load CSS
+      if (!document.querySelector('link[href*="leaflet"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+      }
+
+      // Load JS
+      if (!document.querySelector('script[src*="leaflet"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => setIsLoaded(true);
+        document.body.appendChild(script);
+      } else {
+        setIsLoaded(true);
+      }
+
+      return false;
     };
 
-    // Check if Leaflet CSS is loaded
-    if (document.querySelector('link[href*="leaflet"]')) {
-      initMap();
-    } else {
-      // Wait a bit for CSS to load
-      const timeout = setTimeout(initMap, 100);
-      return () => clearTimeout(timeout);
-    }
+    loadLeaflet();
   }, []);
+
+  useEffect(() => {
+    if (!isLoaded || typeof window === 'undefined' || !containerRef.current) return;
+
+    const L = (window as any).L;
+
+    // Initialize map only once
+    if (!mapRef.current) {
+      mapRef.current = L.map(containerRef.current).setView([latitude, longitude], 14);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(mapRef.current);
+
+      // Add marker with custom icon
+      const icon = L.icon({
+        iconUrl: '/albero.svg',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40],
+      });
+
+      markerRef.current = L.marker([latitude, longitude], { icon })
+        .addTo(mapRef.current)
+        .bindPopup('La tua posizione');
+
+      // Handle click if not readonly
+      if (!readonly && onLocationChange) {
+        mapRef.current.on('click', (e: any) => {
+          const { lat, lng } = e.latlng;
+          if (markerRef.current) {
+            markerRef.current.setLatLng([lat, lng]);
+          }
+          onLocationChange(lat, lng);
+        });
+      }
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, [isLoaded]);
 
   // Update marker position when coords change
   useEffect(() => {
