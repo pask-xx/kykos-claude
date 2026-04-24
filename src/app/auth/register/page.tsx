@@ -267,46 +267,6 @@ function RegisterForm() {
             </div>
           </div>
 
-          {/* recipient specific fields */}
-          {role === 'RECIPIENT' && (
-            <>
-              <div>
-                <label htmlFor="referenceEntity" className="block text-sm font-medium text-gray-700 mb-2">
-                  Ente di riferimento *
-                </label>
-                <select
-                  id="referenceEntity"
-                  value={referenceEntityId}
-                  onChange={(e) => setReferenceEntityId(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
-                >
-                  <option value="">Seleziona un ente</option>
-                  {intermediaries.map((int) => (
-                    <option key={int.id} value={int.id}>
-                      {int.name} - {int.address || int.type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="isee" className="block text-sm font-medium text-gray-700 mb-2">
-                  Valore ISEE *
-                </label>
-                <input
-                  id="isee"
-                  type="number"
-                  step="0.01"
-                  value={isee}
-                  onChange={(e) => setIsee(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
-                  placeholder="Es: 5000.00"
-                />
-              </div>
-            </>
-          )}
-
           {/* Personal Info */}
           <div className="border-t pt-5">
             <p className="text-sm font-medium text-gray-700 mb-3">
@@ -375,23 +335,37 @@ function RegisterForm() {
               </div>
             </div>
 
-            <div className="mt-3">
-              <label htmlFor="address" className="block text-xs text-gray-500 mb-1">
-                Indirizzo *
-              </label>
-              <input
-                id="address"
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required={isRecipient}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
-                placeholder="Via Roma"
-              />
+            <div className="grid grid-cols-20 gap-4 mt-3">
+              <div className="col-span-17">
+                <label htmlFor="address" className="block text-xs text-gray-500 mb-1">
+                  Indirizzo *
+                </label>
+                <input
+                  id="address"
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required={isRecipient}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
+                  placeholder="Via Roma"
+                />
+              </div>
+              <div className="col-span-3">
+                <label htmlFor="houseNumber" className="block text-xs text-gray-500 mb-1">N. Civico *</label>
+                <input
+                  id="houseNumber"
+                  type="text"
+                  value={houseNumber}
+                  onChange={(e) => setHouseNumber(e.target.value)}
+                  required={isRecipient}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
+                  placeholder="15"
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mt-3">
-              <div>
+            <div className="grid grid-cols-10 gap-4 mt-3">
+              <div className="col-span-3">
                 <label htmlFor="cap" className="block text-xs text-gray-500 mb-1">CAP *</label>
                 <input
                   id="cap"
@@ -404,7 +378,7 @@ function RegisterForm() {
                   placeholder="00100"
                 />
               </div>
-              <div>
+              <div className="col-span-7">
                 <label htmlFor="city" className="block text-xs text-gray-500 mb-1">Città *</label>
                 <input
                   id="city"
@@ -416,7 +390,10 @@ function RegisterForm() {
                   placeholder="Roma"
                 />
               </div>
-              <div>
+            </div>
+
+            <div className="grid grid-cols-10 gap-4 mt-3">
+              <div className="col-span-3">
                 <label htmlFor="province" className="block text-xs text-gray-500 mb-1">Prov *</label>
                 <input
                   id="province"
@@ -427,18 +404,6 @@ function RegisterForm() {
                   maxLength={2}
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm uppercase"
                   placeholder="RM"
-                />
-              </div>
-              <div>
-                <label htmlFor="houseNumber" className="block text-xs text-gray-500 mb-1">N. Civico *</label>
-                <input
-                  id="houseNumber"
-                  type="text"
-                  value={houseNumber}
-                  onChange={(e) => setHouseNumber(e.target.value)}
-                  required={isRecipient}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
-                  placeholder="15"
                 />
               </div>
             </div>
@@ -485,6 +450,47 @@ function RegisterForm() {
               )}
             </div>
           </div>
+
+          {/* Recipient specific fields - at the end */}
+          {role === 'RECIPIENT' && (
+            <div className="border-t pt-5">
+              <p className="text-sm font-medium text-gray-700 mb-3">Dati ricevente *</p>
+              <div>
+                <label htmlFor="referenceEntity" className="block text-sm font-medium text-gray-700 mb-2">
+                  Ente di riferimento *
+                </label>
+                <select
+                  id="referenceEntity"
+                  value={referenceEntityId}
+                  onChange={(e) => setReferenceEntityId(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
+                >
+                  <option value="">Seleziona un ente</option>
+                  {intermediaries.map((int) => (
+                    <option key={int.id} value={int.id}>
+                      {int.name} - {int.address || int.type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mt-3">
+                <label htmlFor="isee" className="block text-sm font-medium text-gray-700 mb-2">
+                  Valore ISEE *
+                </label>
+                <input
+                  id="isee"
+                  type="number"
+                  step="0.01"
+                  value={isee}
+                  onChange={(e) => setIsee(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
+                  placeholder="Es: 5000.00"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Email */}
           <div>
