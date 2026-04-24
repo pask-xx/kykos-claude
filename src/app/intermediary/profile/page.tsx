@@ -179,7 +179,12 @@ export default function IntermediaryProfilePage() {
       const res = await fetch('/api/geocode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: fullAddress }),
+        body: JSON.stringify({
+          address: [form.address, form.houseNumber].filter(Boolean).join(', '),
+          city: form.city,
+          cap: form.cap || undefined,
+          province: form.province || undefined,
+        }),
       });
 
       const data = await res.json();
