@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSession, setSessionCookie, hashPassword } from '@/lib/auth';
 import { geocodeAddress } from '@/lib/geocode';
+import { sendWelcomeEmail } from '@/lib/email';
 import { Role, OrgType } from '@prisma/client';
 
 export async function POST(request: Request) {
@@ -190,6 +191,12 @@ export async function POST(request: Request) {
     });
 
     await setSessionCookie(token);
+
+    // Send welcome email (async, don't wait)
+    const userRole = user.role as 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY';
+    sendWelcomeEmail(user.email, fullName, userRole).catch(err => {
+      console.error('Failed to send welcome email:', err);
+    });
 
     return NextResponse.json({
       user: {

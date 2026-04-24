@@ -201,6 +201,136 @@ export async function sendDonationConfirmedNotification(
   return sendEmail({ to: toEmail, subject, html });
 }
 
+export async function sendWelcomeEmail(
+  toEmail: string,
+  userName: string,
+  role: 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY'
+): Promise<boolean> {
+  const roleLabels: Record<string, { title: string; subtitle: string; description: string }> = {
+    DONOR: {
+      title: 'Benvenuto, Donatore!',
+      subtitle: 'I tuoi oggetti possono fare la differenza',
+      description: 'Con KYKOS puoi donare oggetti che non usi più a persone che ne hanno davvero bisogno. La donazione è anonima e gestita tramite enti fidati.',
+    },
+    RECIPIENT: {
+      title: 'Benvenuto in KYKOS!',
+      subtitle: 'Siamo qui per aiutarti',
+      description: 'Attraverso KYKOS puoi richiedere oggetti donati da persone generose. Il tuo ente di riferimento ti supporterà in ogni passaggio.',
+    },
+    INTERMEDIARY: {
+      title: 'Benvenuto, Ente!',
+      subtitle: 'Il ponte tra donatori e riceventi',
+      description: 'KYKOS ti permette di coordinare le donazioni nella tua comunità, verificando i riceventi e gestendo lo scambio in sicurezza.',
+    },
+  };
+
+  const roleData = roleLabels[role] || roleLabels.DONOR;
+
+  const subject = `Benvenuto in KYKOS - ${roleData.title}`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 32px; text-align: center;">
+          <img src="${LOGO_URL}" alt="KYKOS" style="height: 72px; margin-bottom: 20px;">
+          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">${roleData.title}</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 12px 0 0; font-size: 16px;">${roleData.subtitle}</p>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 32px;">
+          <!-- Greeting -->
+          <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 24px;">
+            Ciao <strong>${userName}</strong>, benvenuto in KYKOS! Siamo felici di averti con noi.
+          </p>
+
+          <!-- Role Description -->
+          <div style="background: #f0fdf4; border-left: 4px solid #059669; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
+            <p style="color: #374151; font-size: 15px; line-height: 1.7; margin: 0;">
+              ${roleData.description}
+            </p>
+          </div>
+
+          <!-- Manifesto -->
+          <h2 style="color: #059669; font-size: 20px; margin: 0 0 20px; display: flex; align-items: center; gap: 8px;">
+            <span>📜</span> Il Manifesto KYKOS
+          </h2>
+
+          <div style="display: grid; gap: 16px;">
+            <!-- Principle 1 -->
+            <div style="display: flex; gap: 16px; align-items: flex-start;">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 18px;">🔒</span>
+              </div>
+              <div>
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Anonimato totale</h3>
+                <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">Chi dona non sa chi riceve. Chi riceve non sa chi dona. La dignità è preservata attraverso l'anonimato reciproco.</p>
+              </div>
+            </div>
+
+            <!-- Principle 2 -->
+            <div style="display: flex; gap: 16px; align-items: flex-start;">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 18px;">🏢</span>
+              </div>
+              <div>
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Enti fidati</h3>
+                <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">Caritas, parrocchie e associazioni verificano i riceventi e coordinano lo scambio in sicurezza.</p>
+              </div>
+            </div>
+
+            <!-- Principle 3 -->
+            <div style="display: flex; gap: 16px; align-items: flex-start;">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 18px;">🌱</span>
+              </div>
+              <div>
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Sostenibilità</h3>
+                <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">Dai nuova vita alle cose che non usi più. Ogni donazione contribuisce a un mondo più sostenibile.</p>
+              </div>
+            </div>
+
+            <!-- Principle 4 -->
+            <div style="display: flex; gap: 16px; align-items: flex-start;">
+              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 18px;">💚</span>
+              </div>
+              <div>
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Comunità</h3>
+                <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">KYKOS costruisce ponti nella comunità, creando relazioni di fiducia e solidarietà tra persone.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quote -->
+          <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 24px; border-radius: 12px; margin: 32px 0; text-align: center;">
+            <p style="color: #059669; font-size: 18px; font-style: italic; margin: 0; line-height: 1.6;">
+              "Dona con dignità, ricevi con gratitudine"
+            </p>
+          </div>
+
+          <!-- CTA -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${APP_URL}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 600; font-size: 16px;">
+              Inizia ora →
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #f9fafb; padding: 24px 32px; border-top: 1px solid #e5e7eb;">
+          <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;">
+            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            <a href="${APP_URL}/manifesto" style="color: #059669; text-decoration: none;">Leggi il manifesto completo</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({ to: toEmail, subject, html });
+}
+
 export async function sendPasswordResetEmail(
   toEmail: string,
   resetUrl: string
