@@ -45,7 +45,7 @@ export async function GET(request: Request) {
             ? haversineDistance(userLat, userLng, org.latitude, org.longitude)
             : null,
         }))
-        .filter(org => org.distance === null || org.distance <= radius)
+        .filter(org => org.distance !== null && org.distance <= radius)
         .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
       return NextResponse.json({ intermediaries: filtered });
