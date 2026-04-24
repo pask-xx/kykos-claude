@@ -129,7 +129,7 @@ export default async function RecipientDashboard() {
             <div>
               <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
               <p className="font-medium text-gray-900">
-                {user?.isee ? `€${Number(user.isee).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+                {user?.isee ? `€${parseFloat(user.isee.toString()).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
               </p>
             </div>
             <div>

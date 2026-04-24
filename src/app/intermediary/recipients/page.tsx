@@ -116,7 +116,7 @@ export default function IntermediaryRecipientsPage() {
                     {recipient.fiscalCode || '—'}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {recipient.isee ? `€${Number(recipient.isee).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+                    {recipient.isee ? `€${parseFloat(recipient.isee.toString()).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full font-medium ${
