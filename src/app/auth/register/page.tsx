@@ -480,7 +480,7 @@ function RegisterForm() {
                     {intermediaries.map((int) => (
                       <option key={int.id} value={int.id}>
                         {int.name} - {int.address || int.type}
-                        {(int as any).distance !== undefined ? ` (${(int as any).distance.toFixed(1)} km)` : ''}
+                        {typeof (int as any).distance === 'number' ? ` (${(int as any).distance.toFixed(1)} km)` : ''}
                       </option>
                     ))}
                   </select>
