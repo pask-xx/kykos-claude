@@ -344,7 +344,7 @@ function RegisterForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
               <div>
                 <label htmlFor="birthDate" className="block text-xs text-gray-500 mb-1">
                   Data di nascita *
