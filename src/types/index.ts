@@ -1,5 +1,6 @@
 export type Role = 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY' | 'ADMIN';
 export type OrgType = 'CHARITY' | 'CHURCH' | 'ASSOCIATION';
+export type OperatorRole = 'ADMIN' | 'GESTORE_RICHIESTE' | 'GESTORE_OGGETTI' | 'GESTORE_VOLONTARI' | 'OPERATORE';
 export type Category = 'FURNITURE' | 'ELECTRONICS' | 'CLOTHING' | 'BOOKS' | 'KITCHEN' | 'SPORTS' | 'TOYS' | 'OTHER';
 export type Condition = 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR' | 'POOR';
 export type ObjectStatus = 'AVAILABLE' | 'RESERVED' | 'DONATED' | 'WITHDRAWN';
@@ -103,6 +104,14 @@ export const ORG_TYPE_LABELS: Record<OrgType, string> = {
   CHARITY: 'Centro Caritas',
   CHURCH: 'Parrocchia',
   ASSOCIATION: 'Associazione',
+};
+
+export const OPERATOR_ROLE_LABELS: Record<OperatorRole, string> = {
+  ADMIN: 'Amministratore',
+  GESTORE_RICHIESTE: 'Gestore Richieste',
+  GESTORE_OGGETTI: 'Gestore Oggetti',
+  GESTORE_VOLONTARI: 'Gestore Volontari',
+  OPERATORE: 'Operatore',
 };
 
 export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {

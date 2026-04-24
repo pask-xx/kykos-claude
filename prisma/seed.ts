@@ -29,6 +29,7 @@ async function main() {
       address: 'Roma, RM',
       lat: 41.9028,
       lng: 12.4964,
+      code: 'CARITAS-ROM A',
     },
     {
       email: 'parrocchia.sangiovanni@kykos.it',
@@ -37,6 +38,7 @@ async function main() {
       address: 'Roma, RM',
       lat: 41.8894,
       lng: 12.5065,
+      code: 'PARROCCHIA-SGIOVANNI',
     },
     {
       email: 'associazione.arcobaleno@kykos.it',
@@ -45,6 +47,7 @@ async function main() {
       address: 'Roma, RM',
       lat: 41.9100,
       lng: 12.4800,
+      code: 'ASSOC-ARCOBALENO',
     },
   ];
 
@@ -64,6 +67,7 @@ async function main() {
             type: data.type,
             address: data.address,
             verified: true,
+            code: data.code,
           },
         },
       },

@@ -16,6 +16,14 @@ enum Role {
   ADMIN
 }
 
+enum OperatorRole {
+  ADMIN
+  GESTORE_RICHIESTE
+  GESTORE_OGGETTI
+  GESTORE_VOLONTARI
+  OPERATORE
+}
+
 enum OrgType {
   CHARITY
   CHURCH
@@ -120,7 +128,8 @@ model User {
 
 model Organization {
   id            String    @id @default(cuid())
-  name          String
+  code         String    @unique
+  name         String
   type          OrgType
   vatNumber     String?
   latitude      Float?
@@ -138,6 +147,8 @@ model Organization {
 
   userId        String    @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  operators     Operator[]
 
   objects       Object[]
   requests      Request[]
@@ -249,4 +260,24 @@ model DonorProfile {
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("donor_profiles")
+}
+
+model Operator {
+  id             String       @id @default(cuid())
+  username       String       // unique within organization
+  email          String?
+  phone          String?
+  firstName      String
+  lastName       String
+  passwordHash   String
+  role           OperatorRole @default(OPERATORE)
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, username])
+  @@map("operators")
 }

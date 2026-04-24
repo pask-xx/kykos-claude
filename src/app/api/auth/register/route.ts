@@ -142,6 +142,7 @@ export async function POST(request: Request) {
             create: {
               name: orgName,
               type: orgType as OrgType,
+              code: orgName.toUpperCase().replace(/[^A-Z0-9]/g, '-').substring(0, 30),
             },
           },
         }),
