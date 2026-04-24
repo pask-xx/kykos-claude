@@ -56,15 +56,19 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (role === 'RECIPIENT') {
-      fetchIntermediaries();
-    }
     if (isOAuth && oauthName) {
       const parts = oauthName.split(' ');
       setFirstName(parts[0] || '');
       setLastName(parts.slice(1).join(' ') || '');
     }
-  }, [role, isOAuth, oauthName]);
+  }, [isOAuth, oauthName]);
+
+  // Fetch intermediaries when location is detected
+  useEffect(() => {
+    if (role === 'RECIPIENT' && latitude && longitude) {
+      fetchIntermediaries();
+    }
+  }, [role, latitude, longitude]);
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -78,6 +82,8 @@ function RegisterForm() {
         setLatitude(pos.coords.latitude.toString());
         setLongitude(pos.coords.longitude.toString());
         setLocating(false);
+        // Reset entity selection when location changes
+        setReferenceEntityId('');
       },
       (err) => {
         setLocationError('Permessi negati o posizione non disponibile');
@@ -107,6 +113,8 @@ function RegisterForm() {
       }
       setLatitude(data.latitude.toString());
       setLongitude(data.longitude.toString());
+      // Reset entity selection when location changes
+      setReferenceEntityId('');
     } catch {
       setLocationError('Errore di connessione');
     } finally {
@@ -116,7 +124,7 @@ function RegisterForm() {
 
   const fetchIntermediaries = async () => {
     try {
-      const res = await fetch('/api/intermediaries');
+      const res = await fetch(`/api/intermediaries?lat=${latitude}&lng=${longitude}&radius=30`);
       const data = await res.json();
       setIntermediaries(data.intermediaries || []);
     } catch (err) {
@@ -456,20 +464,27 @@ function RegisterForm() {
                 <label htmlFor="referenceEntity" className="block text-sm font-medium text-gray-700 mb-2">
                   Ente di riferimento *
                 </label>
-                <select
-                  id="referenceEntity"
-                  value={referenceEntityId}
-                  onChange={(e) => setReferenceEntityId(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
-                >
-                  <option value="">Seleziona un ente</option>
-                  {intermediaries.map((int) => (
-                    <option key={int.id} value={int.id}>
-                      {int.name} - {int.address || int.type}
-                    </option>
-                  ))}
-                </select>
+                {!latitude || !longitude ? (
+                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                    Rileva prima la posizione per vedere gli enti disponibili
+                  </div>
+                ) : (
+                  <select
+                    id="referenceEntity"
+                    value={referenceEntityId}
+                    onChange={(e) => setReferenceEntityId(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
+                  >
+                    <option value="">Seleziona un ente ({intermediaries.length} disponibili)</option>
+                    {intermediaries.map((int) => (
+                      <option key={int.id} value={int.id}>
+                        {int.name} - {int.address || int.type}
+                        {(int as any).distance !== undefined ? ` (${(int as any).distance.toFixed(1)} km)` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div className="mt-3">
                 <label htmlFor="isee" className="block text-sm font-medium text-gray-700 mb-2">
