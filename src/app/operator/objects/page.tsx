@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 
@@ -13,11 +14,15 @@ interface Object {
   status: string;
   imageUrls: string[];
   createdAt: string;
+  donor: { name: string };
 }
 
 export default function OperatorObjectsPage() {
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
     fetchObjects();
@@ -35,6 +40,14 @@ export default function OperatorObjectsPage() {
     }
   };
 
+  const filteredObjects = objects.filter(obj => {
+    const matchesSearch = obj.title.toLowerCase().includes(search.toLowerCase()) ||
+      (obj.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
+    const matchesCategory = !filterCategory || obj.category === filterCategory;
+    const matchesStatus = !filterStatus || obj.status === filterStatus;
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AVAILABLE':
@@ -50,51 +63,101 @@ export default function OperatorObjectsPage() {
     }
   };
 
+  const categories = [...new Set(objects.map(o => o.category))];
+  const statuses = [...new Set(objects.map(o => o.status))];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Gestione oggetti</h1>
-        <p className="text-gray-500">Visualizza e gestisci gli oggetti in entrata</p>
+        <p className="text-gray-500">{filteredObjects.length} oggetti</p>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap gap-4">
+        <div className="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Cerca per titolo o descrizione..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          />
+        </div>
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+        >
+          <option value="">Tutte le categorie</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>
+              {CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+        >
+          <option value="">Tutti gli stati</option>
+          {statuses.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
           <p className="text-gray-500">Caricamento...</p>
         </div>
-      ) : objects.length === 0 ? (
+      ) : filteredObjects.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
           <span className="text-5xl mb-4 block">📦</span>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun oggetto</h2>
-          <p className="text-gray-500">Non ci sono oggetti per questo ente.</p>
+          <p className="text-gray-500">Non ci sono oggetti che corrispondono ai filtri.</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {objects.map((obj) => (
-            <div key={obj.id} className="bg-white p-4 rounded-xl shadow-sm border">
-              <div className="w-full h-40 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden mb-4">
-                {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                  <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-4xl">📦</span>
-                )}
-              </div>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
-                  <p className="text-sm text-gray-500">
+        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20"></th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titolo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stato</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredObjects.map((obj) => (
+                <tr key={obj.id} className="hover:bg-gray-50 cursor-pointer transition" onClick={() => window.location.href = `/operator/objects/${obj.id}`}>
+                  <td className="px-4 py-3">
+                    <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                        <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl">📦</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900">{obj.title}</div>
+                    <div className="text-sm text-gray-500 truncate max-w-xs">{obj.description || '—'}</div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
                     {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition}
-                  </p>
-                </div>
-                {getStatusBadge(obj.status)}
-              </div>
-              <p className="text-xs text-gray-400 mt-2">
-                Aggiunto il {formatDate(obj.createdAt)}
-              </p>
-            </div>
-          ))}
+                    <span className="text-gray-400 ml-1">
+                      ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">{getStatusBadge(obj.status)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{formatDate(obj.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
