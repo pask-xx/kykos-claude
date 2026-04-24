@@ -351,7 +351,7 @@ function RegisterForm() {
                 />
               </div>
               <div className="flex-[3]">
-                <label htmlFor="houseNumber" className="block text-xs text-gray-500 mb-1">N. Civico *</label>
+                <label htmlFor="houseNumber" className="block text-xs text-gray-500 mb-1">N.</label>
                 <input
                   id="houseNumber"
                   type="text"
