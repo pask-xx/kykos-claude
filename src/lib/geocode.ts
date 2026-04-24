@@ -9,7 +9,8 @@ interface GeocodeResult {
 export async function geocodeAddress(
   address: string,
   city: string,
-  cap: string
+  cap: string,
+  province: string = ''
 ): Promise<GeocodeResult | null> {
   const apiKey = process.env.GOOGLE_GEOCODING_API_KEY;
 
@@ -18,7 +19,9 @@ export async function geocodeAddress(
     return null;
   }
 
-  const fullAddress = `${address}, ${cap} ${city}, Italy`;
+  // Build address with province if provided for more accurate results
+  const provincePart = province ? `, ${province}` : '';
+  const fullAddress = `${address}, ${cap} ${city}${provincePart}, Italy`;
   const encodedAddress = encodeURIComponent(fullAddress);
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${apiKey}&region=it`;
 

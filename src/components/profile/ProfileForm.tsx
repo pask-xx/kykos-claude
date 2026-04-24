@@ -45,6 +45,7 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
     houseNumber: user.houseNumber || '',
     city: user.city || '',
     cap: user.cap || '',
+    province: '',
     latitude: user.latitude?.toString() || '',
     longitude: user.longitude?.toString() || '',
   });
@@ -99,6 +100,7 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
         body: JSON.stringify({
           address: formData.address,
           city: formData.city,
+          province: formData.province,
           cap: formData.cap,
         }),
       });
@@ -277,6 +279,19 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
               onChange={handleChange}
               className={inputClass}
               placeholder="Roma"
+            />
+          </div>
+          <div>
+            <label htmlFor="province" className={labelClass}>Provincia</label>
+            <input
+              type="text"
+              id="province"
+              name="province"
+              value={formData.province}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="RM"
+              maxLength={2}
             />
           </div>
         </div>

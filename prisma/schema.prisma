@@ -89,9 +89,10 @@ model User {
   birthDate     DateTime?
   fiscalCode    String?
   address       String?
+  houseNumber   String?
   cap           String?
   city          String?
-  houseNumber   String?
+  province      String?
 
   // Recipient fields
   referenceEntityId String?

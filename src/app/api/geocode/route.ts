@@ -3,7 +3,7 @@ import { geocodeAddress } from '@/lib/geocode';
 
 export async function POST(request: Request) {
   try {
-    const { address, city, cap } = await request.json();
+    const { address, city, province, cap } = await request.json();
 
     if (!address || !city) {
       return NextResponse.json(
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await geocodeAddress(address, city, cap || '');
+    const result = await geocodeAddress(address, city, cap || '', province || '');
 
     if (!result) {
       return NextResponse.json(

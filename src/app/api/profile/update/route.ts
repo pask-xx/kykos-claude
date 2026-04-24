@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       houseNumber,
       city,
       cap,
+      province,
       latitude,
       longitude,
     } = await request.json();
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
         houseNumber,
         city,
         cap,
+        province,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         name: `${firstName} ${lastName}`, // Update display name
