@@ -1,0 +1,109 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { OperatorPermission } from '@/types';
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  permission?: OperatorPermission;
+}
+
+const allNavItems: NavItem[] = [
+  { href: '/operator/dashboard', label: 'Dashboard', icon: '🏠' },
+  { href: '/operator/requests', label: 'Richieste', icon: '📝', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/recipients', label: 'Riceventi', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/objects', label: 'Oggetti', icon: '📦', permission: 'OBJECT_RECEIVE' },
+  { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
+];
+
+interface OperatorSidebarProps {
+  operatorRole: string;
+  operatorPermissions: string[];
+  operatorName: string;
+  organizationName: string;
+  children: React.ReactNode;
+}
+
+export default function OperatorSidebar({
+  operatorRole,
+  operatorPermissions,
+  operatorName,
+  organizationName,
+  children,
+}: OperatorSidebarProps) {
+  const pathname = usePathname();
+
+  const hasPermission = (permission: OperatorPermission): boolean => {
+    if (operatorRole === 'ADMIN') return true;
+    const rolePerms: Record<string, OperatorPermission[]> = {
+      GESTORE_RICHIESTE: ['RECIPIENT_AUTHORIZE', 'REQUEST_PROXY'],
+      GESTORE_OGGETTI: ['OBJECT_RECEIVE', 'OBJECT_DELIVER'],
+      GESTORE_VOLONTARI: ['VOLUNTEER_MANAGE'],
+      OPERATORE: [],
+    };
+    const defaultPerms = rolePerms[operatorRole] || [];
+    return defaultPerms.includes(permission) || operatorPermissions.includes(permission);
+  };
+
+  const navItems = allNavItems.filter(item => {
+    if (!item.permission) return true;
+    return hasPermission(item.permission);
+  });
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <Link href="/operator/dashboard" className="flex items-center gap-2">
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
+            <span className="text-xl font-bold text-primary-600">KYKOS</span>
+          </Link>
+          <p className="text-xs text-gray-500 mt-1 truncate">{organizationName}</p>
+        </div>
+        <nav className="flex-1 p-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                <span className="font-medium truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="truncate">
+              <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
+              <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
+            </div>
+            <form action="/api/operator/logout" method="POST">
+              <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
+                Esci
+              </button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}

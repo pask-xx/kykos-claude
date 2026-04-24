@@ -329,6 +329,13 @@ enum DonorLevel { BRONZE, SILVER, GOLD, PLATINUM, DIAMOND }
   /dashboard                - Intermediary dashboard
   /requests                 - Manage requests (approve/reject)
 
+/operator/                  - Operator dashboard (separate login)
+  /dashboard                - Operator dashboard (stats, quick actions)
+  /requests                 - Manage requests (approve/reject)
+  /recipients               - Authorize/revoke recipients
+  /objects                  - Manage objects
+  /profile                  - My profile
+
 /admin/ (future)
   /dashboard                - Admin dashboard
   /intermediaries          - Manage intermediary applications
