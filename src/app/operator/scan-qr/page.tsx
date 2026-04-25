@@ -20,6 +20,7 @@ interface ScanResult {
 
 export default function ScanQrPage() {
   const [scanning, setScanning] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
@@ -29,7 +30,7 @@ export default function ScanQrPage() {
   const [pendingQrData, setPendingQrData] = useState<string | null>(null);
   const [depositLocation, setDepositLocation] = useState('');
   const scannerRef = useRef<QrScanner | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     async function getCameras() {
@@ -70,8 +71,7 @@ export default function ScanQrPage() {
   }, []);
 
   const startScanning = async () => {
-    if (!videoRef.current) return;
-
+    setShowCamera(true);
     setCameraLoading(true);
     setError(null);
     setResult(null);
@@ -82,11 +82,19 @@ export default function ScanQrPage() {
         scannerRef.current = null;
       }
 
+      // Wait for video element to be available
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (!videoRef.current) {
+        throw new Error('Video element not available');
+      }
+
       const scanner = new QrScanner(videoRef.current, (scanResult) => {
         const qrData = typeof scanResult === 'string' ? scanResult : scanResult.data;
 
         scanner.stop();
         setScanning(false);
+        setShowCamera(false);
 
         if (qrData.includes('"type":"deliver"') || qrData.includes('"type":"pickup"')) {
           const parsed = JSON.parse(qrData);
@@ -115,6 +123,7 @@ export default function ScanQrPage() {
       setScanning(true);
     } catch (err) {
       setError('Errore nell\'avvio della fotocamera');
+      setShowCamera(false);
     } finally {
       setCameraLoading(false);
     }
@@ -126,6 +135,7 @@ export default function ScanQrPage() {
       scannerRef.current = null;
     }
     setScanning(false);
+    setShowCamera(false);
   };
 
   const processScan = (qrData: string, depositLoc?: string) => {
@@ -188,47 +198,32 @@ export default function ScanQrPage() {
         </select>
       </div>
 
-      {/* Scanner */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div
-          className="relative overflow-hidden rounded-lg bg-black"
-          style={{ minHeight: '300px' }}
-        >
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
+      {/* Scanner - only visible when actively scanning */}
+      {showCamera && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border">
+          <div
+            className="relative overflow-hidden rounded-lg bg-black"
             style={{ minHeight: '300px' }}
-            playsInline
-            muted
-          />
-        </div>
+          >
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              style={{ minHeight: '300px' }}
+              playsInline
+              muted
+            />
+          </div>
 
-        <div className="mt-4 flex justify-center gap-4">
-          {!scanning ? (
-            <button
-              onClick={startScanning}
-              disabled={cameraLoading || cameras.length === 0}
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 flex items-center gap-2"
-            >
-              {cameraLoading ? (
-                <>
-                  <span className="animate-spin">⏳</span>
-                  Avvio...
-                </>
-              ) : (
-                'Avvia scansione'
-              )}
-            </button>
-          ) : (
+          <div className="mt-4 flex justify-center gap-4">
             <button
               onClick={stopScanning}
               className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
             >
               Ferma scansione
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Result */}
       {result && (
