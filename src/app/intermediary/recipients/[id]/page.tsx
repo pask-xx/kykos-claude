@@ -4,6 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+const LocationMap = dynamic(() => import('@/components/map/LocationMap'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-400">Caricamento mappa...</span></div>,
+});
 
 interface Beneficiary {
   id: string;
@@ -19,6 +25,8 @@ interface Beneficiary {
   city: string | null;
   province: string | null;
   phone: string | null;
+  latitude: number | null;
+  longitude: number | null;
   authorized: boolean;
   authorizedAt: string | null;
   createdAt: string;
@@ -180,7 +188,7 @@ export default function BeneficiaryDetailPage() {
           <div>
             <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
             <p className="font-medium text-gray-900">
-              {beneficiary.isee ? `€${parseFloat(beneficiary.isee.toString()).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+              {beneficiary.isee ? `€${parseFloat(beneficiary.isee.toString()).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
             </p>
           </div>
           <div className="md:col-span-2 lg:col-span-3">
@@ -210,6 +218,23 @@ export default function BeneficiaryDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Geolocation */}
+      {beneficiary.latitude && beneficiary.longitude && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>📍</span> Posizione geografica
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            {beneficiary.latitude.toFixed(5)}, {beneficiary.longitude.toFixed(5)}
+          </p>
+          <LocationMap
+            latitude={beneficiary.latitude}
+            longitude={beneficiary.longitude}
+            height="300px"
+          />
+        </div>
+      )}
     </div>
   );
 }

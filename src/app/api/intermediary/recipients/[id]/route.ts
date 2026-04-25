@@ -43,6 +43,8 @@ export async function GET(
         cap: true,
         city: true,
         province: true,
+        latitude: true,
+        longitude: true,
         authorized: true,
         authorizedAt: true,
         createdAt: true,
