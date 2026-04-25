@@ -3,6 +3,31 @@
 import { useState, useEffect } from 'react';
 import { OPERATOR_ROLE_LABELS } from '@/types';
 import OperatorPasswordChangeForm from '@/components/operator/OperatorPasswordChangeForm';
+import dynamic from 'next/dynamic';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import LinkExtension from '@tiptap/extension-link';
+
+const LocationMap = dynamic(() => import('@/components/map/LocationMap'), {
+  ssr: false,
+  loading: () => <div className="h-48 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-400">Caricamento mappa...</span></div>,
+});
+
+interface OrganizationData {
+  id: string;
+  name: string;
+  type: string;
+  address: string | null;
+  houseNumber: string | null;
+  cap: string | null;
+  city: string | null;
+  province: string | null;
+  phone: string | null;
+  email: string | null;
+  verified: boolean;
+  autoApproveRequests: boolean;
+  hoursInfo: string | null;
+}
 
 interface OperatorData {
   id: string;
@@ -12,6 +37,7 @@ interface OperatorData {
   firstName: string;
   lastName: string;
   role: string;
+  permissions: string[];
   organization: {
     id: string;
     name: string;
@@ -20,9 +46,87 @@ interface OperatorData {
   };
 }
 
+function RichTextEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      LinkExtension.configure({
+        openOnClick: false,
+      }),
+    ],
+    content: value || '',
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] px-4 py-3 border border-gray-300 rounded-lg',
+      },
+    },
+  });
+
+  if (!editor) return null;
+
+  return (
+    <div className="border border-gray-300 rounded-lg overflow-hidden">
+      <div className="bg-gray-50 border-b border-gray-200 p-2 flex flex-wrap gap-1">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className={`px-3 py-1 text-sm font-medium rounded ${editor.isActive('bold') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className={`px-3 py-1 text-sm font-medium rounded italic ${editor.isActive('italic') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          I
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={`px-3 py-1 text-sm rounded ${editor.isActive('bulletList') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          •
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className={`px-3 py-1 text-sm rounded ${editor.isActive('orderedList') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          1.
+        </button>
+      </div>
+      <EditorContent editor={editor} />
+    </div>
+  );
+}
+
 export default function OperatorProfilePage() {
   const [operator, setOperator] = useState<OperatorData | null>(null);
+  const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [hoursInfo, setHoursInfo] = useState('');
+  const [autoApproveRequests, setAutoApproveRequests] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    address: '',
+    houseNumber: '',
+    cap: '',
+    city: '',
+    province: '',
+    latitude: '',
+    longitude: '',
+  });
+
+  const isAdmin = operator?.role === 'ADMIN' || operator?.permissions.includes('ORGANIZATION_ADMIN');
 
   useEffect(() => {
     fetchProfile();
@@ -30,15 +134,160 @@ export default function OperatorProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch('/api/operator/me');
-      const data = await res.json();
-      if (data.operator) {
-        setOperator(data.operator);
+      const opRes = await fetch('/api/operator/me');
+      const opData = await opRes.json();
+
+      if (opData.operator) {
+        const op = opData.operator;
+        setOperator(op);
+
+        // If admin, also fetch organization data
+        const isOpAdmin = op.role === 'ADMIN' || op.permissions.includes('ORGANIZATION_ADMIN');
+        if (isOpAdmin) {
+          const orgRes = await fetch('/api/operator/organization');
+          if (orgRes.ok) {
+            const orgData = await orgRes.json();
+            if (orgData.organization) {
+              setOrganization(orgData.organization);
+              setHoursInfo(orgData.organization.hoursInfo || '');
+              setAutoApproveRequests(orgData.organization.autoApproveRequests || false);
+              setForm({
+                address: orgData.organization.address || '',
+                houseNumber: orgData.organization.houseNumber || '',
+                cap: orgData.organization.cap || '',
+                city: orgData.organization.city || '',
+                province: orgData.organization.province || '',
+                latitude: orgData.organization.latitude?.toString() || '',
+                longitude: orgData.organization.longitude?.toString() || '',
+              });
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const res = await fetch('/api/operator/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hoursInfo,
+          autoApproveRequests,
+        }),
+      });
+
+      if (res.ok) {
+        setSuccess('Impostazioni salvate con successo');
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore');
+      }
+    } catch (err) {
+      setError('Errore di rete');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setGeocodeError('Geolocalizzazione non supportata');
+      return;
+    }
+
+    setLocating(true);
+    setGeocodeError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setForm(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
+        setLocating(false);
+      },
+      () => {
+        setGeocodeError('Impossibile ottenere la posizione');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const geocodeAddress = async () => {
+    const fullAddress = [form.address, form.houseNumber, form.cap, form.city]
+      .filter(Boolean)
+      .join(', ');
+
+    if (!fullAddress) {
+      setGeocodeError('Completa l\'indirizzo per calcolare la posizione');
+      return;
+    }
+
+    setGeocoding(true);
+    setGeocodeError(null);
+
+    try {
+      const res = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: [form.address, form.houseNumber].filter(Boolean).join(', '),
+          city: form.city,
+          cap: form.cap || undefined,
+          province: form.province || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Errore nel calcolo della posizione');
+      }
+
+      setForm(prev => ({
+        ...prev,
+        latitude: data.latitude.toString(),
+        longitude: data.longitude.toString(),
+      }));
+    } catch (err) {
+      setGeocodeError(err instanceof Error ? err.message : 'Errore');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAutoApproveChange = (checked: boolean) => {
+    setAutoApproveRequests(checked);
+    if (isAdmin) {
+      setSaving(true);
+      fetch('/api/operator/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autoApproveRequests: checked }),
+      }).then(res => {
+        if (res.ok) {
+          setSuccess(checked ? 'Approvazione automatica attivata' : 'Approvazione automatica disattivata');
+          setTimeout(() => setSuccess(null), 3000);
+        }
+      }).finally(() => setSaving(false));
     }
   };
 
@@ -57,6 +306,8 @@ export default function OperatorProfilePage() {
       </div>
     );
   }
+
+  const hasLocation = form.latitude && form.longitude;
 
   return (
     <div className="space-y-6">
@@ -119,6 +370,100 @@ export default function OperatorProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Organization Settings - Admin Only */}
+      {isAdmin && (
+        <>
+          {/* Hours Info */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <span>🕐</span> Orari e informazioni
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
+              Queste informazioni verranno incluse nelle email di consegna e ritiro QR code.
+            </p>
+
+            {success && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+                ✓ {success}
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <RichTextEditor
+              value={hoursInfo}
+              onChange={setHoursInfo}
+            />
+            <button
+              type="button"
+              onClick={handleSaveSettings}
+              disabled={saving}
+              className="mt-4 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+            >
+              {saving ? 'Salvataggio...' : 'Salva orari'}
+            </button>
+          </div>
+
+          {/* Geolocation */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span>📍</span> Posizione geografica
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {hasLocation
+                ? `Posizione: ${parseFloat(form.latitude).toFixed(5)}, ${parseFloat(form.longitude).toFixed(5)}`
+                : 'Nessuna posizione registrata'}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <button
+                type="button"
+                onClick={detectLocation}
+                disabled={locating}
+                className="flex-1 px-4 py-2.5 bg-secondary-600 text-white text-sm font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              >
+                {locating ? (
+                  <><span className="animate-spin">🔄</span> Rilevamento...</>
+                ) : (
+                  <><span>📡</span> {hasLocation ? 'Aggiorna con GPS' : 'Rileva con GPS'}</>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={geocodeAddress}
+                disabled={geocoding || !form.address || !form.city}
+                className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              >
+                {geocoding ? (
+                  <><span className="animate-spin">🔄</span> Calcolo...</>
+                ) : (
+                  <><span>🏠</span> Calcola da indirizzo</>
+                )}
+              </button>
+            </div>
+
+            {geocodeError && (
+              <p className="text-sm text-red-600 mb-4">{geocodeError}</p>
+            )}
+
+            {hasLocation && (
+              <div>
+                <LocationMap
+                  latitude={parseFloat(form.latitude)}
+                  longitude={parseFloat(form.longitude)}
+                  height="250px"
+                />
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Password Change */}
       <OperatorPasswordChangeForm />

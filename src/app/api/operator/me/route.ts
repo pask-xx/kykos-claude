@@ -63,6 +63,7 @@ export async function GET() {
         firstName: operator.firstName,
         lastName: operator.lastName,
         role: operator.role,
+        permissions: operator.permissions,
         organization: operator.organization,
       },
     });
