@@ -162,7 +162,7 @@ export default function OperatorRequestsPage() {
                       Categoria: {req.object.category} • Condizione: {req.object.condition}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Ricevente: {req.recipient.name}
+                      Beneficiario: {req.recipient.name}
                     </p>
                     <p className="text-sm text-gray-400 mt-1">
                       Richiesta il {formatDate(req.createdAt)}
