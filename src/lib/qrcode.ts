@@ -12,6 +12,45 @@ export async function generateQrCodeDataUrl(data: string): Promise<string> {
   return dataUrl;
 }
 
+export async function generateAndUploadQrCode(data: string, filename: string): Promise<string> {
+  const dataUrl = await generateQrCodeDataUrl(data);
+
+  // Convert base64 to buffer
+  const base64Data = dataUrl.split(',')[1];
+  const binaryString = atob(base64Data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const buffer = Buffer.from(bytes);
+
+  // Upload to Supabase
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+
+  const uploadRes = await fetch(
+    `${supabaseUrl}/storage/v1/object/qr-codes/${filename}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'image/png',
+        'x-upsert': 'true',
+      },
+      body: buffer,
+    }
+  );
+
+  if (!uploadRes.ok) {
+    console.error('QR upload error:', await uploadRes.text());
+    // Fallback to base64 data URL
+    return dataUrl;
+  }
+
+  // Return public URL
+  return `${supabaseUrl}/storage/v1/object/public/qr-codes/${filename}`;
+}
+
 export function generateDeliverQrCode(requestId: string, donorId: string): string {
   return `kykos:deliver:${requestId}:${donorId}`;
 }

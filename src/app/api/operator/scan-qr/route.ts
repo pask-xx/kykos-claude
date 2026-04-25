@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { parseQrCodeData, generateQrCodeDataUrl, generatePickupQrCode } from '@/lib/qrcode';
+import { parseQrCodeData, generatePickupQrCode, generateAndUploadQrCode } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
 import { hasPermission } from '@/lib/permissions';
 
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
       // Generate pickup QR and send to beneficiary
       const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
-      const pickupQrImage = await generateQrCodeDataUrl(pickupQrData);
+      const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
       await sendPickupQrNotification(
         req.recipient.email,
         req.recipient.name,

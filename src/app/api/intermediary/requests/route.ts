@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { sendDeliveryQrNotification, sendPickupQrNotification, sendDonationConfirmedNotification } from '@/lib/email';
-import { generateQrCodeDataUrl, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { generateAndUploadQrCode, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
 
 export async function GET() {
   try {
@@ -95,8 +95,8 @@ export async function PATCH(request: Request) {
       // Generate both QR codes
       const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId);
       const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
-      const deliverQrImage = await generateQrCodeDataUrl(deliverQrData);
-      const pickupQrImage = await generateQrCodeDataUrl(pickupQrData);
+      const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
+      const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
 
       // Approve and create donation
       await prisma.$transaction(async (tx) => {

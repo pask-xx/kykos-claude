@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { generateQrCodeDataUrl, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { generateAndUploadQrCode, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
 
 export async function GET(
   request: Request,
@@ -57,8 +57,8 @@ export async function GET(
     // Generate QR codes
     const deliverQrData = generateDeliverQrCode(requestId, donation.donorId);
     const pickupQrData = generatePickupQrCode(requestId, donation.recipientId);
-    const deliverQrImage = await generateQrCodeDataUrl(deliverQrData);
-    const pickupQrImage = await generateQrCodeDataUrl(pickupQrData);
+    const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
+    const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
 
     return NextResponse.json({
       donation: {
