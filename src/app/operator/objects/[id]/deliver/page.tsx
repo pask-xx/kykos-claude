@@ -70,7 +70,7 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
       <div className="p-8 text-center">
         <p>Oggetto non trovato</p>
         <Link href="/operator/objects" className="text-primary-600 hover:underline">
-          ← Torna agli oggetti
+          ← Torna alle disponibilità
         </Link>
       </div>
     );
@@ -81,7 +81,7 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
       <div className="p-8 text-center">
         <p>Questo oggetto non e&apos; in stato di ritiro</p>
         <Link href="/operator/objects" className="text-primary-600 hover:underline">
-          ← Torna agli oggetti
+          ← Torna alle disponibilità
         </Link>
       </div>
     );
@@ -93,7 +93,7 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
     <div className="space-y-6">
       <div>
         <Link href="/operator/objects" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-          ← Tutti gli oggetti
+          ← Tutte le disponibilità
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">Conferma consegna</h1>
       </div>

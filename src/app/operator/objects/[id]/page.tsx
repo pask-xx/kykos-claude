@@ -71,7 +71,7 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
       <div className="text-center py-12">
         <p className="text-gray-500">Oggetto non trovato</p>
         <Link href="/operator/objects" className="text-primary-600 hover:underline mt-2 inline-block">
-          ← Torna agli oggetti
+          ← Torna alle disponibilità
         </Link>
       </div>
     );
@@ -85,7 +85,7 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
       <div className="flex items-start justify-between">
         <div>
           <Link href="/operator/objects" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Tutti gli oggetti
+            ← Tutte le disponibilità
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{object.title}</h1>
           <div className="flex items-center gap-3 mt-2">

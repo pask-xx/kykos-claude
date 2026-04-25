@@ -73,7 +73,7 @@ export default function OperatorObjectsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestione oggetti</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Gestione disponibilità</h1>
           <p className="text-gray-500">{filteredObjects.length} oggetti</p>
         </div>
         <label className="flex items-center gap-2 text-sm text-gray-600">
