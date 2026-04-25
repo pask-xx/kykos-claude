@@ -205,52 +205,52 @@ export default function ScanQrPage() {
         </div>
       )}
 
-      {/* Scanner - only show when scanning */}
-      {scanning && (
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div
-            className="relative overflow-hidden rounded-lg bg-black"
+      {/* Video element - always in DOM, just hidden when not scanning */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border">
+        <div
+          className="relative overflow-hidden rounded-lg bg-black"
+          style={{ minHeight: '300px' }}
+        >
+          <video
+            ref={videoRef}
+            className={`w-full h-full object-cover ${scanning ? '' : 'hidden'}`}
             style={{ minHeight: '300px' }}
-          >
-            <video
-              ref={videoRef}
-              className="w-full h-full object-cover"
-              style={{ minHeight: '300px' }}
-              playsInline
-              muted
-            />
-          </div>
+            playsInline
+            muted
+          />
+          {!scanning && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <p className="text-gray-500">Attiva la scansione per vedere la fotocamera</p>
+            </div>
+          )}
+        </div>
 
-          <div className="mt-4 flex justify-center gap-4">
+        <div className="mt-4 flex justify-center gap-4">
+          {!scanning ? (
+            <button
+              onClick={startScanning}
+              disabled={cameraLoading || cameras.length === 0}
+              className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-lg disabled:opacity-50 flex items-center gap-2 shadow-lg"
+            >
+              {cameraLoading ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Avvio...
+                </>
+              ) : (
+                <>📷 Avvia scansione</>
+              )}
+            </button>
+          ) : (
             <button
               onClick={stopScanning}
               className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
             >
               Ferma scansione
             </button>
-          </div>
+          )}
         </div>
-      )}
-
-      {/* Start button - only show when not scanning and no result */}
-      {!scanning && !result && (
-        <div className="flex justify-center">
-          <button
-            onClick={startScanning}
-            disabled={cameraLoading || cameras.length === 0}
-            className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-lg disabled:opacity-50 flex items-center gap-2 shadow-lg"
-          >
-            {cameraLoading ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                Avvio...
-              </>
-            ) : (
-              <>📷 Avvia scansione</>
-            )}
-          </button>
-        </div>
-      )}
+      </div>
 
       {/* Result */}
       {result && (
