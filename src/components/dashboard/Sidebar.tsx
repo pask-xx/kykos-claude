@@ -31,6 +31,7 @@ const intermediaryNav: NavItem[] = [
   { href: '/intermediary/requests', label: 'Richieste', icon: '📝' },
   { href: '/intermediary/objects', label: 'Disponibilità', icon: '📦' },
   { href: '/intermediary/recipients', label: 'Beneficiari', icon: '👥' },
+  { href: '/intermediary/operators', label: 'Operatori', icon: '👤' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/intermediary/profile', label: 'Il mio profilo', icon: '👤' },
 ];
