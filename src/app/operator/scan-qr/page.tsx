@@ -32,6 +32,11 @@ export default function ScanQrPage() {
   const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  const isBackCamera = (label: string) =>
+    label.toLowerCase().includes('back') ||
+    label.toLowerCase().includes('rear') ||
+    label.toLowerCase().includes('environment');
+
   useEffect(() => {
     async function getCameras() {
       try {
@@ -47,20 +52,9 @@ export default function ScanQrPage() {
             kind: 'videoinput' as const,
           }));
 
-        setCameras(videoDevices);
-
-        const backCamera = videoDevices.find(c =>
-          c.label.toLowerCase().includes('back') ||
-          c.label.toLowerCase().includes('rear') ||
-          c.label.toLowerCase().includes('environment')
-        );
-        const frontCamera = videoDevices.find(c =>
-          c.label.toLowerCase().includes('front') ||
-          c.label.toLowerCase().includes('face')
-        );
+        const backCamera = videoDevices.find(c => isBackCamera(c.label));
 
         if (backCamera) setSelectedCameraId(backCamera.id);
-        else if (frontCamera) setSelectedCameraId(frontCamera.id);
         else if (videoDevices.length > 0) setSelectedCameraId(videoDevices[0].id);
       } catch (err) {
         setError('Non è possibile accedere alla fotocamera. Assicurati di aver dato i permessi.');
@@ -190,9 +184,9 @@ export default function ScanQrPage() {
           {cameras.length === 0 && (
             <option value="">Caricamento...</option>
           )}
-          {cameras.map((cam, i) => (
+          {cameras.map((cam) => (
             <option key={cam.id} value={cam.id}>
-              {cam.label} ({i === 0 ? 'Frontale' : 'Posteriore'})
+              {cam.label} ({isBackCamera(cam.label) ? 'Posteriore' : 'Frontale'})
             </option>
           ))}
         </select>
