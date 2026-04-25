@@ -27,7 +27,7 @@ export default function OperatorsPage() {
 
   const fetchOperators = async () => {
     try {
-      const res = await fetch('/api/operator');
+      const res = await fetch('/api/operator/operators');
       if (res.ok) {
         const data = await res.json();
         setOperators(data.operators || []);
