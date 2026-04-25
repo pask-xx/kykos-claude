@@ -77,7 +77,7 @@ export async function POST(request: Request) {
             depositLocation: true,
             donorId: true,
             donor: { select: { name: true } },
-            intermediary: { select: { name: true, hoursInfo: true } },
+            intermediary: { select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true } },
           },
         },
         recipient: {
@@ -128,6 +128,14 @@ export async function POST(request: Request) {
         req.object.title,
         pickupQrData,
         pickupQrImage,
+        req.object.intermediary.name,
+        req.object.intermediary.address || null,
+        req.object.intermediary.houseNumber || null,
+        req.object.intermediary.cap || null,
+        req.object.intermediary.city || null,
+        req.object.intermediary.province || null,
+        req.object.intermediary.phone || null,
+        req.object.intermediary.email || null,
         req.object.intermediary.hoursInfo
       );
 

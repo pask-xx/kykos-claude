@@ -238,6 +238,14 @@ export async function sendPickupQrNotification(
   objectTitle: string,
   qrCodeData: string,
   qrCodeImageUrl: string,
+  organizationName: string,
+  organizationAddress: string | null,
+  organizationHouseNumber: string | null,
+  organizationCap: string | null,
+  organizationCity: string | null,
+  organizationProvince: string | null,
+  organizationPhone: string | null,
+  organizationEmail: string | null,
   hoursInfo?: string | null
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per il ritiro`;
@@ -261,7 +269,14 @@ export async function sendPickupQrNotification(
             <p style="font-family: monospace; font-size: 10px; margin: 8px 0 0 0; word-break: break-all;">${qrCodeData}</p>
           </div>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            Recati presso l&apos;ente intermediario per procedere con il ritiro.</p>
+            Recati presso l&apos;ente per procedere con il ritiro.</p>
+          ${(organizationName || organizationAddress || organizationHouseNumber || organizationCap || organizationCity || organizationProvince || organizationPhone || organizationEmail) ? `<div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="font-size: 14px; color: #059669; font-weight: 600; margin: 0 0 8px;">📍 Dettagli ente</p>
+            ${organizationName ? `<p style="font-size: 14px; color: #374151; font-weight: 600; margin: 0 0 4px;">${organizationName}</p>` : ''}
+            ${organizationAddress ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">${organizationAddress}${organizationHouseNumber ? `, ${organizationHouseNumber}` : ''}${organizationCap || organizationCity ? `<br>${[organizationCap, organizationCity].filter(Boolean).join(' ')}${organizationProvince ? ` (${organizationProvince})` : ''}` : ''}</p>` : ''}
+            ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
+            ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
+          </div>` : ''}
           ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #faf5ff; border-radius: 8px; border-left: 4px solid #7c3aed;">
             <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
             <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
