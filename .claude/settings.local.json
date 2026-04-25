@@ -48,7 +48,8 @@
       "Bash(rmdir \"recipient\")",
       "Bash(git ls-tree *)",
       "Bash(git status *)",
-      "Bash(git ls-remote *)"
+      "Bash(git ls-remote *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

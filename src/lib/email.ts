@@ -124,7 +124,8 @@ export async function sendQrCodeNotification(
   toEmail: string,
   recipientName: string,
   objectTitle: string,
-  qrCodeData: string
+  qrCodeData: string,
+  qrCodeImageUrl: string
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per il ritiro`;
   const html = `
@@ -142,7 +143,8 @@ export async function sendQrCodeNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             <strong>Oggetto:</strong> ${objectTitle}</p>
           <div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
-            <p style="font-size: 12px; color: #666; margin: 0;">QR Code</p>
+            <p style="font-size: 12px; color: #666; margin: 0 0 12px;">QR Code</p>
+            <img src="${qrCodeImageUrl}" alt="QR Code" style="width: 200px; height: 200px;" />
             <p style="font-family: monospace; font-size: 10px; margin: 8px 0 0 0; word-break: break-all;">${qrCodeData}</p>
           </div>
           <div style="text-align: center; margin: 32px 0;">
@@ -150,6 +152,42 @@ export async function sendQrCodeNotification(
               Vai alla dashboard
             </a>
           </div>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({ to: toEmail, subject, html });
+}
+
+export async function sendObjectReadyForPickupNotification(
+  toEmail: string,
+  recipientName: string,
+  objectTitle: string,
+  objectId: string
+): Promise<boolean> {
+  const subject = `${APP_NAME} - Il tuo oggetto e' pronto per il ritiro!`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Oggetto pronto per il ritiro!</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao ${recipientName},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Buone notizie! L'oggetto che hai richiesto e' pronto per essere ritirato.</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            <strong>Oggetto:</strong> ${objectTitle}</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Recati presso l'ente intermediario per procedere con il ritiro.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
             © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>

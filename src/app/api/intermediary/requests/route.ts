@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { sendQrCodeNotification, sendDonationConfirmedNotification } from '@/lib/email';
+import { generateQrCodeDataUrl } from '@/lib/qrcode';
 
 export async function GET() {
   try {
@@ -91,6 +92,10 @@ export async function PATCH(request: Request) {
     }
 
     if (action === 'approve') {
+      // Generate QR code data
+      const qrCodeData = `kykos:pickup:${requestId}:${req.recipientId}`;
+      const qrCodeImageUrl = await generateQrCodeDataUrl(qrCodeData);
+
       // Approve and create donation
       await prisma.$transaction(async (tx) => {
         // Update request status
@@ -118,13 +123,13 @@ export async function PATCH(request: Request) {
         });
       });
 
-      // Send QR code notification to recipient
-      const qrCodeData = `kykos:pickup:${requestId}:${req.recipientId}`;
+      // Send QR code notification to DONATORE (donor)
       await sendQrCodeNotification(
-        req.recipient.email,
-        req.recipient.name,
+        req.object.donor.email,
+        req.object.donor.name,
         req.object.title,
-        qrCodeData
+        qrCodeData,
+        qrCodeImageUrl
       );
 
       // Notify donor of completed donation

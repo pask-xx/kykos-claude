@@ -152,7 +152,19 @@ export default function OperatorObjectsPage() {
                       ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
                     </span>
                   </td>
-                  <td className="px-4 py-3">{getStatusBadge(obj.status)}</td>
+                  <td className="px-4 py-3">
+                    <div onClick={(e) => e.stopPropagation()}>
+                      {getStatusBadge(obj.status)}
+                      {obj.status === 'WITHDRAWN' && (
+                        <Link
+                          href={`/operator/objects/${obj.id}/deliver`}
+                          className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded hover:bg-green-200 inline-block"
+                        >
+                          Conferma consegna
+                        </Link>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-sm text-gray-500">{formatDate(obj.createdAt)}</td>
                 </tr>
               ))}
