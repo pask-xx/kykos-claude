@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import QrScanner from 'qr-scanner';
 
-interface CameraOption {
+interface CameraDevice {
   id: string;
   label: string;
+  kind: 'videoinput';
 }
 
 export default function ScanQrPage() {
@@ -18,92 +19,132 @@ export default function ScanQrPage() {
     type?: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [cameras, setCameras] = useState<CameraOption[]>([]);
-  const [selectedCamera, setSelectedCamera] = useState<string>('');
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+  const [cameraLoading, setCameraLoading] = useState(false);
   const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    QrScanner.listCameras().then((cameraList) => {
-      if (cameraList && cameraList.length > 0) {
-        const camOptions = cameraList.map((c: QrScanner.Camera) => ({
-          id: c.id,
-          label: c.label || `Camera ${c.id.slice(0, 8)}`,
-        }));
-        setCameras(camOptions);
-        // Prefer back camera on mobile
-        const backCamera = camOptions.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('rear'));
-        setSelectedCamera(backCamera ? backCamera.id : camOptions[0].id);
-      }
-    }).catch((err) => {
-      console.error('Camera error:', err);
-      setError('Impossibile accedere alla fotocamera');
-    });
+    async function getCameras() {
+      try {
+        // First get permission, then enumerate devices
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(t => t.stop()); // Release the stream immediately
 
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop();
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices
+          .filter(d => d.kind === 'videoinput')
+          .map(d => ({
+            id: d.deviceId,
+            label: d.label || `Camera ${d.deviceId.slice(0, 8)}`,
+            kind: 'videoinput' as const,
+          }));
+
+        console.log('Found cameras:', videoDevices);
+        setCameras(videoDevices);
+
+        // Try to find back camera first, then any camera
+        const backCamera = videoDevices.find(c =>
+          c.label.toLowerCase().includes('back') ||
+          c.label.toLowerCase().includes('rear') ||
+          c.label.toLowerCase().includes('environment')
+        );
+        const frontCamera = videoDevices.find(c =>
+          c.label.toLowerCase().includes('front') ||
+          c.label.toLowerCase().includes('face')
+        );
+
+        if (backCamera) setSelectedCameraId(backCamera.id);
+        else if (frontCamera) setSelectedCameraId(frontCamera.id);
+        else if (videoDevices.length > 0) setSelectedCameraId(videoDevices[0].id);
+      } catch (err) {
+        console.error('Camera error:', err);
+        setError('Non è possibile accedere alla fotocamera. Assicurati di aver dato i permessi.');
       }
-    };
+    }
+
+    getCameras();
   }, []);
 
   const startScanning = async () => {
-    if (!selectedCamera || !videoRef.current) return;
+    if (!videoRef.current) return;
 
-    setScanning(true);
-    setResult(null);
+    setCameraLoading(true);
     setError(null);
 
     try {
-      const scanner = new QrScanner(videoRef.current, async (result) => {
-        const decodedText = result.data;
+      // Stop any existing scanner
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      }
+
+      const scanner = new QrScanner(videoRef.current, (scanResult) => {
+        const decodedText = scanResult.data;
         console.log('QR detected:', decodedText);
-        if (!decodedText || typeof decodedText !== 'string') {
-          console.error('Invalid QR data:', decodedText);
-          return;
-        }
+
         scanner.stop();
         setScanning(false);
 
-        const res = await fetch('/api/operator/scan-qr', {
+        fetch('/api/operator/scan-qr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ qrData: decodedText }),
-        });
-        const data = await res.json();
-
-        if (res.ok) {
+        })
+        .then(res => res.json())
+        .then(data => {
           setResult({
-            success: true,
-            message: data.message,
+            success: data.success || false,
+            message: data.message || 'Errore sconosciuto',
             objectTitle: data.data?.objectTitle,
             recipientName: data.data?.recipientName,
             type: data.type,
           });
-        } else {
-          setResult({
-            success: false,
-            message: data.error || 'Errore sconosciuto',
-          });
-        }
+        })
+        .catch(err => {
+          console.error('Fetch error:', err);
+          setResult({ success: false, message: 'Errore di connessione' });
+        });
       }, {
         highlightScanRegion: true,
         highlightCodeOutline: true,
-        preferredCamera: selectedCamera,
+        maxResults: 1,
       });
 
       scannerRef.current = scanner;
-      await scanner.start();
+
+      // Start with the selected camera
+      const constraints: MediaStreamConstraints = {
+        video: selectedCameraId
+          ? { deviceId: { exact: selectedCameraId } }
+          : { facingMode: 'environment' }
+      };
+
+      await navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          // For mobile, we need to pass the stream or device ID
+          scanner.start(selectedCameraId || undefined);
+        })
+        .catch(async err => {
+          console.log('Camera error, trying default:', err);
+          // Try without specific camera
+          await scanner.start();
+        });
+
+      setScanning(true);
     } catch (err) {
       console.error('Scanner error:', err);
       setError('Errore nell\'avvio della fotocamera');
-      setScanning(false);
+    } finally {
+      setCameraLoading(false);
     }
   };
 
   const stopScanning = async () => {
     if (scannerRef.current) {
       await scannerRef.current.stop();
+      scannerRef.current = null;
     }
     setScanning(false);
   };
@@ -118,20 +159,20 @@ export default function ScanQrPage() {
       {/* Camera Selection */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Seleziona fotocamera
+          Fotocamera ({cameras.length} trovate)
         </label>
         <select
-          value={selectedCamera}
-          onChange={(e) => setSelectedCamera(e.target.value)}
+          value={selectedCameraId}
+          onChange={(e) => setSelectedCameraId(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
           disabled={scanning}
         >
           {cameras.length === 0 && (
-            <option value="">Nessuna fotocamera trovata</option>
+            <option value="">Caricamento...</option>
           )}
-          {cameras.map((cam) => (
+          {cameras.map((cam, i) => (
             <option key={cam.id} value={cam.id}>
-              {cam.label}
+              {cam.label} ({i === 0 ? 'Frontale' : 'Posteriore'})
             </option>
           ))}
         </select>
@@ -139,7 +180,10 @@ export default function ScanQrPage() {
 
       {/* Scanner */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div className="relative overflow-hidden rounded-lg" style={{ minHeight: '300px', backgroundColor: '#000' }}>
+        <div
+          className="relative overflow-hidden rounded-lg bg-black"
+          style={{ minHeight: '300px' }}
+        >
           <video
             ref={videoRef}
             className="w-full h-full object-cover"
@@ -153,10 +197,17 @@ export default function ScanQrPage() {
           {!scanning ? (
             <button
               onClick={startScanning}
-              disabled={!selectedCamera}
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+              disabled={cameraLoading || cameras.length === 0}
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 flex items-center gap-2"
             >
-              Avvia scansione
+              {cameraLoading ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Avvio...
+                </>
+              ) : (
+                'Avvia scansione'
+              )}
             </button>
           ) : (
             <button
@@ -189,17 +240,10 @@ export default function ScanQrPage() {
                   Oggetto: <strong>{result.objectTitle}</strong>
                 </p>
               )}
-              {result.recipientName && (
-                <p className="text-sm text-green-600">
-                  {result.type === 'deliver' ? 'Donatore' : 'Beneficiario'}: <strong>{result.recipientName}</strong>
-                </p>
-              )}
             </>
           ) : (
             <>
-              <h3 className="text-lg font-semibold text-red-800 mb-2">
-                Errore
-              </h3>
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Errore</h3>
               <p className="text-red-700">{result.message}</p>
             </>
           )}
@@ -216,7 +260,7 @@ export default function ScanQrPage() {
       <div className="bg-gray-50 p-4 rounded-xl">
         <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
         <ol className="text-sm text-gray-600 space-y-2">
-          <li>1. Seleziona la fotocamera (frontale o posteriore)</li>
+          <li>1. Seleziona la fotocamera dal menu</li>
           <li>2. Clicca su &quot;Avvia scansione&quot;</li>
           <li>3. Inquadra il QR code</li>
           <li>4. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
