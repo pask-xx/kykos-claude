@@ -29,7 +29,10 @@ export default function QRCodeCard({
 
     setSharing(true);
     try {
-      const blob = await fetch(imageUrl).then(r => r.blob());
+      const response = await fetch(`/api/qr/image?data=${encodeURIComponent(data)}`);
+      const { imageUrl: qrImageUrl } = await response.json();
+
+      const blob = await fetch(qrImageUrl).then(r => r.blob());
       const file = new File([blob], `kykos-${type}-${Date.now()}.png`, { type: 'image/png' });
 
       await navigator.share({
@@ -46,19 +49,40 @@ export default function QRCodeCard({
     }
   };
 
-  const handleEmailShare = () => {
-    const subject = encodeURIComponent(`KYKOS - QR Code ${label}`);
-    const body = encodeURIComponent(
-      `Ecco il QR code per la ${label.toLowerCase()} dell'oggetto "${objectTitle}".\n\n` +
-      `QR Code: ${data}\n\n` +
-      `Puoi visualizzare il QR code nella tua dashboard KYKOS.`
-    );
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+  const handleEmailShare = async () => {
+    setSharing(true);
+    try {
+      const response = await fetch(`/api/qr/image?data=${encodeURIComponent(data)}`);
+      const { imageUrl: qrImageUrl } = await response.json();
+
+      const subject = encodeURIComponent(`KYKOS - QR Code ${label}`);
+      const body = encodeURIComponent(
+        `Ecco il QR code per la ${label.toLowerCase()} dell'oggetto "${objectTitle}".\n\n` +
+        `QR Code: ${data}\n\n` +
+        `Puoi visualizzare il QR code nella tua dashboard KYKOS.\n\n` +
+        `Download QR: ${qrImageUrl}`
+      );
+      window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    } catch (err) {
+      console.error('Email share error:', err);
+    } finally {
+      setSharing(false);
+    }
   };
 
-  const handleWhatsAppShare = () => {
-    const message = `Ecco il QR code per la ${label.toLowerCase()} dell'oggetto "${objectTitle}".\n\nQR Code: ${data}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  const handleWhatsAppShare = async () => {
+    setSharing(true);
+    try {
+      const response = await fetch(`/api/qr/image?data=${encodeURIComponent(data)}`);
+      const { imageUrl: qrImageUrl } = await response.json();
+
+      const message = `Ecco il QR code per la ${label.toLowerCase()} dell'oggetto "${objectTitle}".\n\nQR Code: ${data}\n\nDownload QR: ${qrImageUrl}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    } catch (err) {
+      console.error('WhatsApp share error:', err);
+    } finally {
+      setSharing(false);
+    }
   };
 
   const handleDownload = () => {
@@ -100,13 +124,15 @@ export default function QRCodeCard({
           <div className="flex gap-2">
             <button
               onClick={handleEmailShare}
-              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+              disabled={sharing}
+              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm disabled:opacity-50"
             >
               Email
             </button>
             <button
               onClick={handleWhatsAppShare}
-              className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
+              disabled={sharing}
+              className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm disabled:opacity-50"
             >
               WhatsApp
             </button>
