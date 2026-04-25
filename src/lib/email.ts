@@ -171,6 +171,14 @@ export async function sendDeliveryQrNotification(
   objectTitle: string,
   qrCodeData: string,
   qrCodeImageUrl: string,
+  organizationName: string,
+  organizationAddress: string | null,
+  organizationHouseNumber: string | null,
+  organizationCap: string | null,
+  organizationCity: string | null,
+  organizationProvince: string | null,
+  organizationPhone: string | null,
+  organizationEmail: string | null,
   hoursInfo?: string | null
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per la consegna`;
@@ -185,7 +193,7 @@ export async function sendDeliveryQrNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Ciao ${donorName},</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            Ecco il QR code per consegnare il tuo oggetto presso l&apos;ente intermediario.</p>
+            Ecco il QR code per consegnare la tua donazione presso l&apos;ente intermediario.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             <strong>Disponibilità:</strong> ${objectTitle}</p>
           <div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
@@ -194,7 +202,14 @@ export async function sendDeliveryQrNotification(
             <p style="font-family: monospace; font-size: 10px; margin: 8px 0 0 0; word-break: break-all;">${qrCodeData}</p>
           </div>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            Recati presso l&apos;ente intermediario con l&apos;oggetto per completare la consegna.</p>
+            Recati presso l&apos;ente con la tua donazione per completare la consegna.</p>
+          ${(organizationName || organizationAddress || organizationHouseNumber || organizationCap || organizationCity || organizationProvince || organizationPhone || organizationEmail) ? `<div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="font-size: 14px; color: #059669; font-weight: 600; margin: 0 0 8px;">📍 Dettagli ente</p>
+            ${organizationName ? `<p style="font-size: 14px; color: #374151; font-weight: 600; margin: 0 0 4px;">${organizationName}</p>` : ''}
+            ${organizationAddress ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">${organizationAddress}${organizationHouseNumber ? `, ${organizationHouseNumber}` : ''}${organizationCap || organizationCity ? `<br>${[organizationCap, organizationCity].filter(Boolean).join(' ')}${organizationProvince ? ` (${organizationProvince})` : ''}` : ''}</p>` : ''}
+            ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
+            ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
+          </div>` : ''}
           ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #2563eb;">
             <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
             <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
@@ -308,7 +323,6 @@ export async function sendObjectReadyForPickupNotification(
 export async function sendDonationConfirmedNotification(
   toEmail: string,
   donorName: string,
-  recipientName: string,
   objectTitle: string
 ): Promise<boolean> {
   const subject = `${APP_NAME} - Donazione completata!`;
@@ -323,11 +337,9 @@ export async function sendDonationConfirmedNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Ciao ${donorName},</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            La tua donazione è stata completata con successo.</p>
+            La tua donazione è stata completata con successo. L'ente ha confermato che l'oggetto è stato consegnato a un beneficiario.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             <strong>Disponibilità:</strong> ${objectTitle}</p>
-          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Beneficiario:</strong> ${recipientName}</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Grazie per il tuo contributo!</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">

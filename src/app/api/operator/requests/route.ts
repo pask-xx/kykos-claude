@@ -139,10 +139,10 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
       }
 
-      // Get organization hoursInfo
+      // Get organization details
       const org = await prisma.organization.findUnique({
         where: { id: session.organizationId },
-        select: { hoursInfo: true },
+        select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
       });
 
       // Generate QR codes
@@ -181,6 +181,14 @@ export async function PATCH(request: Request) {
         req.object.title,
         deliverQrData,
         deliverQrImage,
+        org?.name || '',
+        org?.address,
+        org?.houseNumber,
+        org?.cap,
+        org?.city,
+        org?.province,
+        org?.phone,
+        org?.email,
         org?.hoursInfo
       );
     } else if (action === 'reject') {

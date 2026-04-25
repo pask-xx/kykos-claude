@@ -64,7 +64,7 @@ export async function PATCH(request: Request) {
 
     const org = await prisma.organization.findUnique({
       where: { userId: session.id },
-      select: { id: true, hoursInfo: true },
+      select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
     });
 
     if (!org) {
@@ -133,6 +133,14 @@ export async function PATCH(request: Request) {
         req.object.title,
         deliverQrData,
         deliverQrImage,
+        org.name,
+        org.address,
+        org.houseNumber,
+        org.cap,
+        org.city,
+        org.province,
+        org.phone,
+        org.email,
         org.hoursInfo
       );
 
@@ -143,7 +151,6 @@ export async function PATCH(request: Request) {
       await sendDonationConfirmedNotification(
         req.object.donor.email,
         req.object.donor.name,
-        req.recipient.name,
         req.object.title
       );
 
