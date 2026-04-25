@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
+import { generateDeliverQrCode, generatePickupQrCode, generateAndUploadQrCode } from '@/lib/qrcode';
+import { sendDeliveryQrNotification } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -120,16 +122,67 @@ export async function PATCH(request: Request) {
     }
 
     if (action === 'approve') {
-      await prisma.request.update({
+      // Get full request data with donor and organization info
+      const req = await prisma.request.findUnique({
         where: { id: requestId },
-        data: { status: 'APPROVED' },
+        include: {
+          object: {
+            include: {
+              donor: { select: { name: true, email: true } },
+            },
+          },
+          recipient: { select: { name: true, email: true } },
+        },
       });
 
-      // Update object status to RESERVED
-      await prisma.object.update({
-        where: { id: requestData.objectId },
-        data: { status: 'RESERVED' },
+      if (!req) {
+        return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+      }
+
+      // Get organization hoursInfo
+      const org = await prisma.organization.findUnique({
+        where: { id: session.organizationId },
+        select: { hoursInfo: true },
       });
+
+      // Generate QR codes
+      const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId);
+      const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+      const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
+
+      // Update request, object and create donation in transaction
+      await prisma.$transaction(async (tx) => {
+        await tx.request.update({
+          where: { id: requestId },
+          data: { status: 'APPROVED' },
+        });
+
+        await tx.object.update({
+          where: { id: req.objectId },
+          data: { status: 'RESERVED' },
+        });
+
+        await tx.donation.create({
+          data: {
+            objectId: req.objectId,
+            donorId: req.object.donorId,
+            recipientId: req.recipientId,
+            requestId: req.id,
+            amount: 1.00,
+            currency: 'EUR',
+          },
+        });
+      });
+
+      // Send Delivery QR to donor
+      await sendDeliveryQrNotification(
+        req.object.donor.email,
+        req.object.donor.name,
+        req.object.title,
+        deliverQrData,
+        deliverQrImage,
+        org?.hoursInfo
+      );
     } else if (action === 'reject') {
       await prisma.request.update({
         where: { id: requestId },
