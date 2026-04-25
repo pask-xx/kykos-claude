@@ -63,6 +63,8 @@ export async function GET() {
         province: true,
         phone: true,
         email: true,
+        latitude: true,
+        longitude: true,
         verified: true,
         autoApproveRequests: true,
         hoursInfo: true,
