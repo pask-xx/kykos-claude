@@ -53,14 +53,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Hai già richiesto questo oggetto' }, { status: 400 });
     }
 
-    // Create request
+    // Create request - check if intermediary auto-approves
+    const shouldAutoApprove = object.intermediary.autoApproveRequests;
+
     const req = await prisma.request.create({
       data: {
         objectId,
         recipientId: session.id,
         intermediaryId: object.intermediaryId,
         message,
-        status: 'PENDING',
+        status: shouldAutoApprove ? 'APPROVED' : 'PENDING',
       },
       include: {
         object: {
@@ -71,12 +73,33 @@ export async function POST(request: Request) {
       },
     });
 
+    // If auto-approved, create donation record and notify
+    if (shouldAutoApprove) {
+      await prisma.donation.create({
+        data: {
+          objectId: req.objectId,
+          donorId: req.object.donorId,
+          recipientId: session.id,
+          requestId: req.id,
+          amount: 1.00,
+          currency: 'EUR',
+          status: 'COMPLETED',
+        },
+      });
+
+      // Update object status
+      await prisma.object.update({
+        where: { id: objectId },
+        data: { status: 'RESERVED' },
+      });
+    }
+
     // Notify donor via email
     const donorEmail = req.object.donor.email;
     const donorName = req.object.donor.name;
     await sendRequestNotification(donorEmail, donorName, object.title, object.id);
 
-    return NextResponse.json({ request: req });
+    return NextResponse.json({ request: req, autoApproved: shouldAutoApprove });
   } catch (error) {
     console.error('Error creating request:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });

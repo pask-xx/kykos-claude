@@ -26,6 +26,7 @@ interface Organization {
   email: string | null;
   latitude: number | null;
   longitude: number | null;
+  autoApproveRequests: boolean;
 }
 
 interface FormData {
@@ -40,6 +41,7 @@ interface FormData {
   email: string;
   latitude: string;
   longitude: string;
+  autoApproveRequests: boolean;
 }
 
 export default function IntermediaryProfilePage() {
@@ -63,6 +65,7 @@ export default function IntermediaryProfilePage() {
     email: '',
     latitude: '',
     longitude: '',
+    autoApproveRequests: false,
   });
 
   useEffect(() => {
@@ -84,6 +87,7 @@ export default function IntermediaryProfilePage() {
             email: o.email || '',
             latitude: o.latitude?.toString() || '',
             longitude: o.longitude?.toString() || '',
+            autoApproveRequests: o.autoApproveRequests || false,
           });
         }
       })
@@ -92,8 +96,11 @@ export default function IntermediaryProfilePage() {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,6 +125,7 @@ export default function IntermediaryProfilePage() {
           email: form.email || null,
           latitude: form.latitude || null,
           longitude: form.longitude || null,
+          autoApproveRequests: form.autoApproveRequests,
         }),
       });
 
@@ -350,6 +358,23 @@ export default function IntermediaryProfilePage() {
           </div>
 
           <div className="mt-6 pt-6 border-t">
+            {/* Auto-approve option */}
+            <div className="mb-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="autoApproveRequests"
+                  checked={form.autoApproveRequests}
+                  onChange={handleChange}
+                  className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <div>
+                  <p className="font-medium text-gray-900">Approvazione automatica richieste</p>
+                  <p className="text-sm text-gray-500">Se attivo, le richieste degli utenti vengono approvate automaticamente senza necessità di intervento manuale.</p>
+                </div>
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={saving}

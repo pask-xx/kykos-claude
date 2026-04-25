@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       email,
       latitude,
       longitude,
+      autoApproveRequests,
     } = await request.json();
 
     // Get organization by userId
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
         email: email || null,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
+        autoApproveRequests: Boolean(autoApproveRequests),
       },
     });
 
