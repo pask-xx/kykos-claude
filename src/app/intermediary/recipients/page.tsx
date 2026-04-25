@@ -98,7 +98,6 @@ export default function IntermediaryRecipientsPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Nome</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Email</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Codice Fiscale</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">ISEE</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Stato</th>
