@@ -1,6 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import QrScanner from 'qr-scanner';
+
+interface CameraOption {
+  id: string;
+  label: string;
+}
 
 export default function ScanQrPage() {
   const [scanning, setScanning] = useState(false);
@@ -12,145 +18,86 @@ export default function ScanQrPage() {
     type?: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
+  const [cameras, setCameras] = useState<CameraOption[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
+  const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [qrReaderKey, setQrReaderKey] = useState(0);
 
   useEffect(() => {
-    // List cameras
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      const videoDevices = devices.filter(d => d.kind === 'videoinput');
-      setCameras(videoDevices.map(d => ({ id: d.deviceId, label: d.label || `Camera ${d.deviceId.slice(0,8)}` })));
-      if (videoDevices.length > 0) setSelectedCamera(videoDevices[0].deviceId);
+    QrScanner.listCameras().then((cameraList) => {
+      if (cameraList && cameraList.length > 0) {
+        const camOptions = cameraList.map((c: QrScanner.Camera) => ({
+          id: c.id,
+          label: c.label || `Camera ${c.id.slice(0, 8)}`,
+        }));
+        setCameras(camOptions);
+        // Prefer back camera on mobile
+        const backCamera = camOptions.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('rear'));
+        setSelectedCamera(backCamera ? backCamera.id : camOptions[0].id);
+      }
     }).catch((err) => {
       console.error('Camera error:', err);
       setError('Impossibile accedere alla fotocamera');
     });
 
     return () => {
-      stopCamera();
+      if (scannerRef.current) {
+        scannerRef.current.stop();
+      }
     };
   }, []);
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-  };
-
   const startScanning = async () => {
+    if (!selectedCamera || !videoRef.current) return;
+
     setScanning(true);
     setResult(null);
     setError(null);
-    setQrReaderKey(prev => prev + 1);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: selectedCamera ? { exact: selectedCamera } : undefined },
-        audio: false,
+      const scanner = new QrScanner(videoRef.current, async (decodedText) => {
+        scanner.stop();
+        setScanning(false);
+
+        const res = await fetch('/api/operator/scan-qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qrData: decodedText }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          setResult({
+            success: true,
+            message: data.message,
+            objectTitle: data.data?.objectTitle,
+            recipientName: data.data?.recipientName,
+            type: data.type,
+          });
+        } else {
+          setResult({
+            success: false,
+            message: data.error || 'Errore sconosciuto',
+          });
+        }
+      }, {
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
       });
 
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-
-      // Start QR detection loop
-      detectQRCode();
+      scannerRef.current = scanner;
+      await scanner.start(selectedCamera);
     } catch (err) {
-      console.error('Camera error:', err);
+      console.error('Scanner error:', err);
       setError('Errore nell\'avvio della fotocamera');
       setScanning(false);
     }
   };
 
-  const detectQRCode = async () => {
-    if (!videoRef.current || !streamRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    const checkFrame = async () => {
-      if (!scanning || !streamRef.current) return;
-
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        try {
-          // @ts-ignore
-          const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-          const barcodes = await barcodeDetector.detect(canvas);
-
-          if (barcodes && barcodes.length > 0) {
-            const qrData = barcodes[0].rawValue;
-            await handleScanResult(qrData);
-            return;
-          }
-        } catch (e) {
-          // BarcodeDetector not supported, try jsQR
-          try {
-            const { default: jsQR } = await import('jsqr');
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            if (code) {
-              await handleScanResult(code.data);
-              return;
-            }
-          } catch (e2) {
-            // jsQR not available either
-          }
-        }
-      }
-
-      if (scanning) {
-        requestAnimationFrame(checkFrame);
-      }
-    };
-
-    requestAnimationFrame(checkFrame);
-  };
-
-  const handleScanResult = async (qrData: string) => {
-    stopCamera();
-    setScanning(false);
-
-    const res = await fetch('/api/operator/scan-qr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ qrData }),
-    });
-    const data = await res.json();
-
-    if (res.ok) {
-      setResult({
-        success: true,
-        message: data.message,
-        objectTitle: data.data?.objectTitle,
-        recipientName: data.data?.recipientName,
-        type: data.type,
-      });
-    } else {
-      setResult({
-        success: false,
-        message: data.error || 'Errore sconosciuto',
-      });
+  const stopScanning = async () => {
+    if (scannerRef.current) {
+      await scannerRef.current.stop();
     }
-  };
-
-  const stopScanning = () => {
-    stopCamera();
     setScanning(false);
   };
 
@@ -185,20 +132,14 @@ export default function ScanQrPage() {
 
       {/* Scanner */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div className="relative bg-black" style={{ minHeight: '300px' }}>
+        <div className="relative overflow-hidden rounded-lg" style={{ minHeight: '300px', backgroundColor: '#000' }}>
           <video
-            key={qrReaderKey}
             ref={videoRef}
             className="w-full h-full object-cover"
             style={{ minHeight: '300px' }}
             playsInline
             muted
           />
-          {scanning && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-48 h-48 border-2 border-white rounded-lg"></div>
-            </div>
-          )}
         </div>
 
         <div className="mt-4 flex justify-center gap-4">
@@ -268,7 +209,7 @@ export default function ScanQrPage() {
       <div className="bg-gray-50 p-4 rounded-xl">
         <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
         <ol className="text-sm text-gray-600 space-y-2">
-          <li>1. Seleziona la fotocamera</li>
+          <li>1. Seleziona la fotocamera (frontale o posteriore)</li>
           <li>2. Clicca su &quot;Avvia scansione&quot;</li>
           <li>3. Inquadra il QR code</li>
           <li>4. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
