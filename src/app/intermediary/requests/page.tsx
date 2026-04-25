@@ -117,34 +117,34 @@ export default function IntermediaryRequestsPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Richieste in attesa ({pendingRequests.length})
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {pendingRequests.map((req) => (
-                    <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-amber-200">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        {/* Image */}
-                        <div className="w-full md:w-32 h-32 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                    <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border-2 border-amber-200">
+                      <div className="flex items-center gap-4">
+                        {/* Image - smaller */}
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           {req.object.imageUrls && req.object.imageUrls[0] ? (
                             <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-4xl">📦</span>
+                              <span className="text-2xl">📦</span>
                             </div>
                           )}
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Info row */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Oggetto</p>
-                              <p className="font-medium text-gray-900">{req.object.title}</p>
+                              <p className="text-xs text-gray-500">Oggetto</p>
+                              <p className="font-medium text-gray-900 truncate">{req.object.title}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Donatore</p>
+                              <p className="text-xs text-gray-500">Donatore</p>
                               <p className="font-medium text-gray-900">{req.object.donor.name}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Beneficiario</p>
+                              <p className="text-xs text-gray-500">Beneficiario</p>
                               <p className="font-medium text-gray-900">
                                 {req.recipient.firstName && req.recipient.lastName
                                   ? `${req.recipient.firstName} ${req.recipient.lastName}`
@@ -152,37 +152,34 @@ export default function IntermediaryRequestsPage() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Data richiesta</p>
+                              <p className="text-xs text-gray-500">Data</p>
                               <p className="font-medium text-gray-900">{formatDate(req.createdAt)}</p>
                             </div>
                           </div>
-
                           {req.message && (
-                            <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
-                              <span className="text-gray-500">Messaggio: </span>
-                              <span className="text-gray-700">{req.message}</span>
-                            </div>
+                            <p className="text-xs text-gray-500 mt-1 truncate">
+                              <span className="font-medium">Msg:</span> {req.message}
+                            </p>
                           )}
+                        </div>
 
-                          <div className="flex items-center justify-between mt-4">
-                            {getStatusBadge(req.status)}
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleAction(req.id, 'approve')}
-                                disabled={processing === req.id}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm disabled:opacity-50"
-                              >
-                                {processing === req.id ? 'Elaborazione...' : 'Approva'}
-                              </button>
-                              <button
-                                onClick={() => handleAction(req.id, 'reject')}
-                                disabled={processing === req.id}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm disabled:opacity-50"
-                              >
-                                Rifiuta
-                              </button>
-                            </div>
-                          </div>
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {getStatusBadge(req.status)}
+                          <button
+                            onClick={() => handleAction(req.id, 'reject')}
+                            disabled={processing === req.id}
+                            className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                          >
+                            Rifiuta
+                          </button>
+                          <button
+                            onClick={() => handleAction(req.id, 'approve')}
+                            disabled={processing === req.id}
+                            className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {processing === req.id ? '...' : 'Approva'}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -197,34 +194,34 @@ export default function IntermediaryRequestsPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Richieste elaborate
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {otherRequests.map((req) => (
-                    <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        {/* Image */}
-                        <div className="w-full md:w-32 h-32 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                    <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border">
+                      <div className="flex items-center gap-4">
+                        {/* Image - smaller */}
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           {req.object.imageUrls && req.object.imageUrls[0] ? (
                             <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-4xl">📦</span>
+                              <span className="text-2xl">📦</span>
                             </div>
                           )}
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Info row */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Oggetto</p>
-                              <p className="font-medium text-gray-900">{req.object.title}</p>
+                              <p className="text-xs text-gray-500">Oggetto</p>
+                              <p className="font-medium text-gray-900 truncate">{req.object.title}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Donatore</p>
+                              <p className="text-xs text-gray-500">Donatore</p>
                               <p className="font-medium text-gray-900">{req.object.donor.name}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Beneficiario</p>
+                              <p className="text-xs text-gray-500">Beneficiario</p>
                               <p className="font-medium text-gray-900">
                                 {req.recipient.firstName && req.recipient.lastName
                                   ? `${req.recipient.firstName} ${req.recipient.lastName}`
@@ -232,13 +229,15 @@ export default function IntermediaryRequestsPage() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Data richiesta</p>
+                              <p className="text-xs text-gray-500">Data</p>
                               <p className="font-medium text-gray-900">{formatDate(req.createdAt)}</p>
                             </div>
                           </div>
-                          <div className="mt-4">
-                            {getStatusBadge(req.status)}
-                          </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="flex-shrink-0">
+                          {getStatusBadge(req.status)}
                         </div>
                       </div>
                     </div>
