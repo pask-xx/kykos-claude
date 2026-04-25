@@ -268,7 +268,7 @@ function RegisterForm() {
                   </span>
                   <span className="text-sm font-medium">
                     {r === 'DONOR' && 'Donatore'}
-                    {r === 'RECIPIENT' && 'Ricevente'}
+                    {r === 'RECIPIENT' && 'Beneficiario'}
                   </span>
                 </button>
               ))}
