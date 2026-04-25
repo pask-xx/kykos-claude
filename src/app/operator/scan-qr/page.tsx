@@ -49,11 +49,7 @@ export default function ScanQrPage() {
 
         setCameras(videoDevices);
 
-        const backCamera = videoDevices.find(c =>
-          c.label.toLowerCase().includes('back') ||
-          c.label.toLowerCase().includes('rear') ||
-          c.label.toLowerCase().includes('environment')
-        );
+        const backCamera = videoDevices.find(c => isBackCamera(c.label));
         const frontCamera = videoDevices.find(c => isFrontCamera(c.label));
 
         if (backCamera) setSelectedCameraId(backCamera.id);
