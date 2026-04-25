@@ -83,10 +83,11 @@ export default function ScanQrPage() {
       }, {
         highlightScanRegion: true,
         highlightCodeOutline: true,
+        preferredCamera: selectedCamera,
       });
 
       scannerRef.current = scanner;
-      await scanner.start(selectedCamera);
+      await scanner.start();
     } catch (err) {
       console.error('Scanner error:', err);
       setError('Errore nell\'avvio della fotocamera');
