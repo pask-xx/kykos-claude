@@ -163,7 +163,7 @@ export default function IntermediaryRequestsPage() {
                         </div>
 
                         {/* Right section: actions */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0 w-36 justify-end">
                           <button
                             onClick={() => handleAction(req.id, 'reject')}
                             disabled={processing === req.id}
