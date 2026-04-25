@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 
 interface Recipient {
@@ -63,8 +64,8 @@ export default function OperatorRecipientsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestione riceventi</h1>
-        <p className="text-gray-500">Autorizza o revoca l'accesso ai riceventi</p>
+        <h1 className="text-2xl font-bold text-gray-900">Gestione beneficiari</h1>
+        <p className="text-gray-500">Autorizza o revoca l'accesso ai beneficiari</p>
       </div>
 
       {loading ? (
@@ -74,8 +75,8 @@ export default function OperatorRecipientsPage() {
       ) : recipients.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
           <span className="text-5xl mb-4 block">👥</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun ricevente</h2>
-          <p className="text-gray-500">Non ci sono riceventi associati a questo ente.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun beneficiario</h2>
+          <p className="text-gray-500">Non ci sono beneficiari associati a questo ente.</p>
         </div>
       ) : (
         <>
@@ -90,7 +91,9 @@ export default function OperatorRecipientsPage() {
                   <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-amber-200">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-semibold text-gray-900">{recipient.name}</h3>
+                        <Link href={`/operator/recipients/${recipient.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
+                          {recipient.name}
+                        </Link>
                         <p className="text-sm text-gray-500">{recipient.email}</p>
                         <p className="text-sm text-gray-400 mt-1">
                           Registrato il {formatDate(recipient.createdAt)}
@@ -127,7 +130,9 @@ export default function OperatorRecipientsPage() {
                 {authorizedRecipients.map((recipient) => (
                   <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{recipient.name}</h3>
+                      <Link href={`/operator/recipients/${recipient.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
+                        {recipient.name}
+                      </Link>
                       <p className="text-sm text-gray-500">{recipient.email}</p>
                       <p className="text-sm text-gray-400 mt-1">
                         Autorizzato il {formatDate(recipient.authorizedAt!)}
