@@ -53,6 +53,8 @@ export async function POST(request: Request) {
 
     const { qrData } = await request.json();
 
+    console.log('Received qrData:', qrData, 'type:', typeof qrData);
+
     if (!qrData || typeof qrData !== 'string') {
       return NextResponse.json({ error: 'QR data mancante o non valida' }, { status: 400 });
     }

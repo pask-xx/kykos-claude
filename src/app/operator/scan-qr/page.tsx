@@ -56,6 +56,11 @@ export default function ScanQrPage() {
 
     try {
       const scanner = new QrScanner(videoRef.current, async (decodedText) => {
+        console.log('QR detected:', decodedText);
+        if (!decodedText || typeof decodedText !== 'string') {
+          console.error('Invalid QR data:', decodedText);
+          return;
+        }
         scanner.stop();
         setScanning(false);
 
