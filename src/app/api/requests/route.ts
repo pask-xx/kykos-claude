@@ -82,8 +82,7 @@ export async function POST(request: Request) {
           recipientId: session.id,
           requestId: req.id,
           amount: 1.00,
-          currency: 'EUR',
-          status: 'COMPLETED',
+          currency: "EUR",
         },
       });
 
