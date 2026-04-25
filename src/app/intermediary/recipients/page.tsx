@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface Recipient {
   id: string;
@@ -24,6 +25,7 @@ export default function IntermediaryRecipientsPage() {
   const [organizationName, setOrganizationName] = useState('');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     fetchRecipients();
@@ -108,8 +110,13 @@ export default function IntermediaryRecipientsPage() {
               {recipients.map((recipient) => (
                 <tr key={recipient.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{recipient.firstName} {recipient.lastName}</p>
-                    <p className="text-sm text-gray-500">{recipient.name}</p>
+                    <button
+                      onClick={() => router.push(`/intermediary/recipients/${recipient.id}`)}
+                      className="text-left hover:underline"
+                    >
+                      <p className="font-medium text-primary-600">{recipient.firstName} {recipient.lastName}</p>
+                      <p className="text-sm text-gray-500">{recipient.name}</p>
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-gray-700">{recipient.email}</td>
                   <td className="px-6 py-4 font-mono text-sm text-gray-700 uppercase">
