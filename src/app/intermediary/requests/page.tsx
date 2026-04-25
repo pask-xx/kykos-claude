@@ -120,9 +120,9 @@ export default function IntermediaryRequestsPage() {
                 <div className="space-y-3">
                   {pendingRequests.map((req) => (
                     <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border-2 border-amber-200">
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="grid grid-cols-3 gap-4 items-center">
                         {/* Left section: image + badge + title + beneficiary */}
-                        <div className="flex items-center gap-2 flex-1">
+                        <div className="flex items-center gap-2">
                           {/* Image */}
                           <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                             {req.object.imageUrls && req.object.imageUrls[0] ? (
@@ -151,7 +151,7 @@ export default function IntermediaryRequestsPage() {
                         </div>
 
                         {/* Center section: donor + date */}
-                        <div className="flex items-center gap-6 flex-1 justify-center">
+                        <div className="flex items-center gap-6 justify-center">
                           <div className="text-center">
                             <p className="text-xs text-gray-500">Donatore</p>
                             <p className="font-medium text-gray-900 text-xs truncate max-w-20">{req.object.donor.name}</p>
@@ -163,7 +163,7 @@ export default function IntermediaryRequestsPage() {
                         </div>
 
                         {/* Right section: actions */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 justify-end">
                           <button
                             onClick={() => handleAction(req.id, 'reject')}
                             disabled={processing === req.id}
@@ -200,9 +200,9 @@ export default function IntermediaryRequestsPage() {
                 <div className="space-y-3">
                   {otherRequests.map((req) => (
                     <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border">
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="grid grid-cols-3 gap-4 items-center">
                         {/* Left section: image + badge + title + beneficiary */}
-                        <div className="flex items-center gap-2 flex-1">
+                        <div className="flex items-center gap-2">
                           {/* Image */}
                           <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                             {req.object.imageUrls && req.object.imageUrls[0] ? (
@@ -231,7 +231,7 @@ export default function IntermediaryRequestsPage() {
                         </div>
 
                         {/* Center section: donor + date */}
-                        <div className="flex items-center gap-6 flex-1 justify-center">
+                        <div className="flex items-center gap-6 justify-center">
                           <div className="text-center">
                             <p className="text-xs text-gray-500">Donatore</p>
                             <p className="font-medium text-gray-900 text-xs truncate max-w-20">{req.object.donor.name}</p>
@@ -242,8 +242,8 @@ export default function IntermediaryRequestsPage() {
                           </div>
                         </div>
 
-                        {/* Right section: empty or placeholder */}
-                        <div className="w-24" />
+                        {/* Right section: empty */}
+                        <div />
                       </div>
                     </div>
                   ))}
