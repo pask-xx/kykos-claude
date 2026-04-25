@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -69,12 +69,26 @@ export default function IntermediaryRecipientsPage() {
         return;
       }
 
-      setMessage(authorize ? 'Ricevente autorizzato' : 'Autorizzazione revocata');
+      setMessage(authorize ? 'Beneficiario autorizzato' : 'Autorizzazione revocata');
       fetchRecipients();
     } catch {
       setMessage('Errore di connessione');
     }
   };
+
+  const filteredRecipients = useMemo(() => {
+    if (!search) return recipients;
+    const s = search.toLowerCase();
+    return recipients.filter((r) => {
+      const fullName = `${r.firstName || ''} ${r.lastName || ''} ${r.name || ''}`.toLowerCase();
+      return (
+        fullName.includes(s) ||
+        r.email.toLowerCase().includes(s) ||
+        (r.city && r.city.toLowerCase().includes(s)) ||
+        (r.fiscalCode && r.fiscalCode.toLowerCase().includes(s))
+      );
+    });
+  }, [recipients, search]);
 
   if (loading) {
     return (
@@ -112,32 +126,13 @@ export default function IntermediaryRecipientsPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun beneficiario</h2>
           <p className="text-gray-500">Non ci sono beneficiari che fanno riferimento al tuo ente.</p>
         </div>
+      ) : filteredRecipients.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+          <span className="text-5xl mb-4 block">🔍</span>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun risultato</h2>
+          <p className="text-gray-500">Nessun beneficiario trovato per "{search}"</p>
+        </div>
       ) : (
-        <>
-        {(() => {
-          const filtered = recipients.filter((r) => {
-            if (!search) return true;
-            const s = search.toLowerCase();
-            const fullName = `${r.firstName || ''} ${r.lastName || ''} ${r.name || ''}`.toLowerCase();
-            return (
-              fullName.includes(s) ||
-              r.email.toLowerCase().includes(s) ||
-              (r.city && r.city.toLowerCase().includes(s)) ||
-              (r.fiscalCode && r.fiscalCode.toLowerCase().includes(s))
-            );
-          });
-
-          if (filtered.length === 0) {
-            return (
-              <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-                <span className="text-5xl mb-4 block">🔍</span>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun risultato</h2>
-                <p className="text-gray-500">Nessun beneficiario trovato per "{search}"</p>
-              </div>
-            );
-          }
-
-          return (
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
@@ -152,7 +147,7 @@ export default function IntermediaryRecipientsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((recipient) => (
+              {filteredRecipients.map((recipient) => (
                 <tr key={recipient.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <button
@@ -215,9 +210,6 @@ export default function IntermediaryRecipientsPage() {
             </tbody>
           </table>
         </div>
-          );
-        })}
-        </>
       )}
     </div>
   );
