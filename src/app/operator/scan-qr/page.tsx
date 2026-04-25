@@ -198,6 +198,26 @@ export default function ScanQrPage() {
         </select>
       </div>
 
+      {/* Start button - visible when not scanning */}
+      {!scanning && !showCamera && (
+        <div className="flex justify-center">
+          <button
+            onClick={startScanning}
+            disabled={cameraLoading || cameras.length === 0}
+            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 flex items-center gap-2"
+          >
+            {cameraLoading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Avvio...
+              </>
+            ) : (
+              'Avvia scansione'
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Scanner - only visible when actively scanning */}
       {showCamera && (
         <div className="bg-white p-4 rounded-xl shadow-sm border">
