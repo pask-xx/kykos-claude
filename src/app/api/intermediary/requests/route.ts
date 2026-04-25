@@ -26,11 +26,13 @@ export async function GET() {
       where: { intermediaryId: org.id },
       include: {
         object: {
-          include: {
+          select: {
+            title: true,
+            imageUrls: true,
             donor: { select: { name: true } },
           },
         },
-        recipient: { select: { name: true } },
+        recipient: { select: { name: true, firstName: true, lastName: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
