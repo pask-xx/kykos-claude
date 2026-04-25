@@ -32,14 +32,6 @@ export default function ScanQrPage() {
   const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const isBackCamera = (label: string) =>
-    label.toLowerCase().includes('back') ||
-    label.toLowerCase().includes('rear') ||
-    label.toLowerCase().includes('environment');
-  const isFrontCamera = (label: string) =>
-    label.toLowerCase().includes('front') ||
-    label.toLowerCase().includes('face');
-
   useEffect(() => {
     async function getCameras() {
       try {
@@ -57,7 +49,11 @@ export default function ScanQrPage() {
 
         setCameras(videoDevices);
 
-        const backCamera = videoDevices.find(c => isBackCamera(c.label));
+        const backCamera = videoDevices.find(c =>
+          c.label.toLowerCase().includes('back') ||
+          c.label.toLowerCase().includes('rear') ||
+          c.label.toLowerCase().includes('environment')
+        );
         const frontCamera = videoDevices.find(c => isFrontCamera(c.label));
 
         if (backCamera) setSelectedCameraId(backCamera.id);
@@ -169,6 +165,14 @@ export default function ScanQrPage() {
       setDepositLocation('');
     }
   };
+
+  const isBackCamera = (label: string) =>
+    label.toLowerCase().includes('back') ||
+    label.toLowerCase().includes('rear') ||
+    label.toLowerCase().includes('environment');
+  const isFrontCamera = (label: string) =>
+    label.toLowerCase().includes('front') ||
+    label.toLowerCase().includes('face');
 
   return (
     <div className="space-y-6">
