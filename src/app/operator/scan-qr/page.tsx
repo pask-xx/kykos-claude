@@ -115,23 +115,11 @@ export default function ScanQrPage() {
 
       scannerRef.current = scanner;
 
-      // Start with the selected camera
-      const constraints: MediaStreamConstraints = {
-        video: selectedCameraId
-          ? { deviceId: { exact: selectedCameraId } }
-          : { facingMode: 'environment' }
-      };
-
-      await navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-          // For mobile, we need to pass the stream or device ID
-          scanner.start(selectedCameraId || undefined);
-        })
-        .catch(async err => {
-          console.log('Camera error, trying default:', err);
-          // Try without specific camera
-          await scanner.start();
-        });
+      // Set camera if selected, then start
+      if (selectedCameraId) {
+        await scanner.setCamera(selectedCameraId);
+      }
+      await scanner.start();
 
       setScanning(true);
     } catch (err) {
