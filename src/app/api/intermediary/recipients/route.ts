@@ -32,6 +32,7 @@ export async function GET() {
         firstName: true,
         lastName: true,
         fiscalCode: true,
+        city: true,
         authorized: true,
         authorizedAt: true,
         createdAt: true,
