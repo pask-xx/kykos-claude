@@ -89,6 +89,7 @@ export default function OperatorSidebar({
             <div className="truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
+              <p className="text-xs text-gray-400 truncate">{organizationName}</p>
             </div>
             <form action="/api/operator/logout" method="POST">
               <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">

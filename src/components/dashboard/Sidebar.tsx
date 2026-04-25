@@ -39,6 +39,12 @@ interface SidebarProps {
   userEmail: string;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  DONOR: 'Donatore',
+  RECIPIENT: 'Beneficiario',
+  INTERMEDIARY: 'Ente',
+};
+
 function getDashboardHref(role: string): string {
   return `/${role.toLowerCase()}/dashboard`;
 }
@@ -131,7 +137,8 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-              <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+              <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
+              <p className="text-xs text-gray-400 truncate">{userEmail}</p>
             </div>
             <form action="/api/auth/logout" method="POST">
               <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
@@ -190,7 +197,8 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
             <div className="flex items-center justify-between">
               <div className="truncate min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-                <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
+                <p className="text-xs text-gray-400 truncate">{userEmail}</p>
               </div>
               <form action="/api/auth/logout" method="POST" className="flex-shrink-0">
                 <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
@@ -199,11 +207,14 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
               </form>
             </div>
           ) : (
-            <form action="/api/auth/logout" method="POST">
-              <button type="submit" className="text-xl text-red-600 hover:text-red-700">
-                🚪
-              </button>
-            </form>
+            <div className="flex flex-col items-center">
+              <span className="text-xs text-gray-500 mb-1">👤</span>
+              <form action="/api/auth/logout" method="POST">
+                <button type="submit" className="text-xl text-red-600 hover:text-red-700">
+                  🚪
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </aside>
