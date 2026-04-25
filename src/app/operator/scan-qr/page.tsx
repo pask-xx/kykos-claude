@@ -191,22 +191,16 @@ export default function ScanQrPage() {
       {/* Scanner */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
         <div
-          className="relative overflow-hidden rounded-lg bg-gray-900 flex items-center justify-center"
+          className="relative overflow-hidden rounded-lg bg-black"
           style={{ minHeight: '300px' }}
         >
           <video
             ref={videoRef}
-            className={`w-full h-full object-cover ${scanning ? '' : 'hidden'}`}
+            className="w-full h-full object-cover"
             style={{ minHeight: '300px' }}
             playsInline
             muted
           />
-          {!scanning && (
-            <div className="text-center text-gray-400">
-              <p className="text-5xl mb-2">📷</p>
-              <p className="text-sm">Clicca &quot;Avvia scansione&quot; per attivare la fotocamera</p>
-            </div>
-          )}
         </div>
 
         <div className="mt-4 flex justify-center gap-4">
