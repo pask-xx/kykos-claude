@@ -81,8 +81,8 @@ export default function ScanQrPage() {
       }
 
       const scanner = new QrScanner(videoRef.current, (scanResult) => {
-        const decodedText = scanResult.data;
-        console.log('QR detected:', decodedText);
+        console.log('QR detected:', scanResult);
+        const qrData = typeof scanResult === 'string' ? scanResult : scanResult.data;
 
         scanner.stop();
         setScanning(false);
@@ -90,7 +90,7 @@ export default function ScanQrPage() {
         fetch('/api/operator/scan-qr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ qrData: decodedText }),
+          body: JSON.stringify({ qrData }),
         })
         .then(res => res.json())
         .then(data => {
@@ -107,9 +107,10 @@ export default function ScanQrPage() {
           setResult({ success: false, message: 'Errore di connessione' });
         });
       }, {
+        returnDetailedScanResult: true,
         highlightScanRegion: true,
         highlightCodeOutline: true,
-        maxResults: 1,
+        maxScansPerSecond: 10,
       });
 
       scannerRef.current = scanner;
