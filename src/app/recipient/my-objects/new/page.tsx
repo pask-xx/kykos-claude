@@ -192,9 +192,9 @@ export default function NewObjectPage() {
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="mb-8">
           <Link href="/recipient/my-objects" className="text-gray-500 hover:text-gray-700 text-sm mb-2 inline-block">
-            ← I miei oggetti
+            ← Le mie disponibilità
           </Link>
-          <h1 className="text-3xl font-medium text-gray-900">Nuovo oggetto</h1>
+          <h1 className="text-3xl font-medium text-gray-900">Nuova disponibilità</h1>
           <p className="text-gray-600 mt-1">Inserisci un oggetto da donare</p>
         </div>
 
@@ -207,7 +207,7 @@ export default function NewObjectPage() {
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Foto oggetto * ({imageUrls.length}/{MAX_IMAGES})
+              Foto disponibilità * ({imageUrls.length}/{MAX_IMAGES})
             </label>
 
             <div className="space-y-3">

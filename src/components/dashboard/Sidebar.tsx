@@ -12,8 +12,8 @@ interface NavItem {
 
 const recipientNav: NavItem[] = [
   { href: '/recipient/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/recipient/objects', label: 'Sfoglia oggetti', icon: '📦' },
-  { href: '/recipient/my-objects', label: 'I miei oggetti', icon: '🎁' },
+  { href: '/recipient/objects', label: 'Cerca disponibilità', icon: '📦' },
+  { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: '🎁' },
   { href: '/recipient/requests', label: 'Le mie richieste', icon: '📝' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
@@ -21,7 +21,7 @@ const recipientNav: NavItem[] = [
 
 const donorNav: NavItem[] = [
   { href: '/donor/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/donor/objects', label: 'I miei oggetti', icon: '📦' },
+  { href: '/donor/objects', label: 'Le mie disponibilità', icon: '📦' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
 ];

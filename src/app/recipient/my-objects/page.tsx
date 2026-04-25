@@ -61,7 +61,7 @@ export default function RecipientMyObjectsPage() {
                 Dashboard
               </Link>
               <Link href="/recipient/my-objects" className="text-primary-600 font-medium">
-                I miei oggetti
+                Le mie disponibilità
               </Link>
             </nav>
           </div>
@@ -70,7 +70,7 @@ export default function RecipientMyObjectsPage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-medium text-gray-900">I miei oggetti</h1>
+          <h1 className="text-3xl font-medium text-gray-900">Le mie disponibilità</h1>
           <Link
             href="/recipient/my-objects/new"
             className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
@@ -86,8 +86,8 @@ export default function RecipientMyObjectsPage() {
         ) : objects.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
             <span className="text-5xl mb-4 block">📦</span>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun oggetto</h2>
-            <p className="text-gray-500 mb-6">Non hai ancora pubblicato oggetti da donare.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna disponibilità</h2>
+            <p className="text-gray-500 mb-6">Non hai ancora pubblicato disponibilità da donare.</p>
             <Link href="/recipient/my-objects/new" className="text-primary-600 hover:text-primary-700 font-medium">
               Pubblica il tuo primo oggetto →
             </Link>
