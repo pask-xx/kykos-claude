@@ -132,6 +132,9 @@ model User {
   // Donation history
   donations        Donation[] @relation("DonationDonor")
 
+  // Reports
+  reportsCreated   Report[] @relation("ReporterUser")
+
   @@map("users")
 }
 
@@ -164,6 +167,7 @@ model Organization {
   requests      Request[]
   payments      Payment[]
   authorizedRecipients User[] @relation("RecipientReference")
+  reports       Report[]
 
   @@map("organizations")
 }
@@ -187,6 +191,7 @@ model Object {
 
   requests      Request[]
   donation      Donation?
+  reports       Report[]
 
   @@index([donorId])
   @@index([status])
@@ -291,4 +296,31 @@ model Operator {
 
   @@unique([organizationId, username])
   @@map("operators")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+model Report {
+  id             String       @id @default(cuid())
+  reason         String
+  status         ReportStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  objectId       String
+  object         Object       @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  reporterId     String
+  reporter       User         @relation("ReporterUser", fields: [reporterId], references: [id])
+
+  intermediaryId String
+  intermediary    Organization @relation(fields: [intermediaryId], references: [id])
+
+  @@index([status])
+  @@map("reports")
 }

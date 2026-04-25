@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { CATEGORY_LABELS, REQUEST_STATUS_LABELS, RequestStatus } from '@/types';
 
 interface Object {
@@ -186,40 +187,44 @@ export default function RecipientBrowsePage() {
         ) : (
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
             {objects.map((obj) => (
-              <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                  {obj.imageUrls && obj.imageUrls[0] ? (
-                    <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                  ) : (
-                    <span className="text-5xl">📦</span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                      {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                      {obj.condition.replace('_', ' ')}
-                    </span>
-                    {userRequests.has(obj.id) && (
-                      <span className={`px-2 py-1 text-xs rounded font-medium ${
-                        userRequests.get(obj.id)?.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                        userRequests.get(obj.id)?.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                        userRequests.get(obj.id)?.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {REQUEST_STATUS_LABELS[userRequests.get(obj.id)?.status as RequestStatus] || userRequests.get(obj.id)?.status}
-                      </span>
+              <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition">
+                <Link href={`/recipient/objects/${obj.id}`} className="block">
+                  <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                    {obj.imageUrls && obj.imageUrls[0] ? (
+                      <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-5xl">📦</span>
                     )}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                    {obj.description || 'Nessuna descrizione'}
-                  </p>
-                  <p className="text-xs text-gray-400 mb-3">
-                    Ente: {obj.intermediary.name}
-                  </p>
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                        {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
+                      </span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                        {obj.condition.replace('_', ' ')}
+                      </span>
+                      {userRequests.has(obj.id) && (
+                        <span className={`px-2 py-1 text-xs rounded font-medium ${
+                          userRequests.get(obj.id)?.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                          userRequests.get(obj.id)?.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                          userRequests.get(obj.id)?.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {REQUEST_STATUS_LABELS[userRequests.get(obj.id)?.status as RequestStatus] || userRequests.get(obj.id)?.status}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                      {obj.description || 'Nessuna descrizione'}
+                    </p>
+                    <p className="text-xs text-gray-400 mb-3">
+                      Ente: {obj.intermediary.name}
+                    </p>
+                  </div>
+                </Link>
+                <div className="px-4 pb-4">
                   {userRequests.has(obj.id) ? (
                     userRequests.get(obj.id)?.status === 'PENDING' ? (
                       <button
