@@ -170,7 +170,8 @@ export async function sendDeliveryQrNotification(
   donorName: string,
   objectTitle: string,
   qrCodeData: string,
-  qrCodeImageUrl: string
+  qrCodeImageUrl: string,
+  hoursInfo?: string | null
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per la consegna`;
   const html = `
@@ -194,6 +195,10 @@ export async function sendDeliveryQrNotification(
           </div>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Recati presso l&apos;ente intermediario con l&apos;oggetto per completare la consegna.</p>
+          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #2563eb;">
+            <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
+            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
+          </div>` : ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/dashboard" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vai alla dashboard
@@ -217,7 +222,8 @@ export async function sendPickupQrNotification(
   recipientName: string,
   objectTitle: string,
   qrCodeData: string,
-  qrCodeImageUrl: string
+  qrCodeImageUrl: string,
+  hoursInfo?: string | null
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per il ritiro`;
   const html = `
@@ -241,6 +247,10 @@ export async function sendPickupQrNotification(
           </div>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Recati presso l&apos;ente intermediario per procedere con il ritiro.</p>
+          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #faf5ff; border-radius: 8px; border-left: 4px solid #7c3aed;">
+            <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
+            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
+          </div>` : ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/recipient/dashboard" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vai alla dashboard

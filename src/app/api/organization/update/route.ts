@@ -25,6 +25,7 @@ export async function POST(request: Request) {
       latitude,
       longitude,
       autoApproveRequests,
+      hoursInfo,
     } = await request.json();
 
     // Get organization by userId
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         autoApproveRequests: Boolean(autoApproveRequests),
+        hoursInfo: hoursInfo || null,
       },
     });
 

@@ -27,6 +27,8 @@ interface QRData {
     };
   };
   userType: 'donor' | 'recipient';
+  entityName: string;
+  entityHoursInfo: string | null;
 }
 
 export default function DonorQRPage({ params }: { params: Promise<{ requestId: string }> }) {
@@ -34,6 +36,7 @@ export default function DonorQRPage({ params }: { params: Promise<{ requestId: s
   const [data, setData] = useState<QRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showHoursModal, setShowHoursModal] = useState(false);
 
   useEffect(() => {
     fetchQRData();
@@ -110,8 +113,44 @@ export default function DonorQRPage({ params }: { params: Promise<{ requestId: s
             description={data.qrCodes.deliver.description}
             objectTitle={data.donation.objectTitle}
           />
+
+          {data.entityHoursInfo && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => setShowHoursModal(true)}
+                className="px-6 py-2.5 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 font-medium text-sm flex items-center gap-2"
+              >
+                <span>🕐</span> Orari Ente
+              </button>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Hours Modal */}
+      {showHoursModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <span>🕐</span> Orari {data.entityName}
+                </h3>
+                <button
+                  onClick={() => setShowHoursModal(false)}
+                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: data.entityHoursInfo || '' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

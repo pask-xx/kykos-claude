@@ -64,6 +64,7 @@ export async function PATCH(request: Request) {
 
     const org = await prisma.organization.findUnique({
       where: { userId: session.id },
+      select: { id: true, hoursInfo: true },
     });
 
     if (!org) {
@@ -131,7 +132,8 @@ export async function PATCH(request: Request) {
         req.object.donor.name,
         req.object.title,
         deliverQrData,
-        deliverQrImage
+        deliverQrImage,
+        org.hoursInfo
       );
 
       // NOTE: Pickup QR email to beneficiary will be sent AFTER donor delivers (when operator scans deliver QR)

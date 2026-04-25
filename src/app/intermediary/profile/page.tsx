@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
 import dynamic from 'next/dynamic';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import LinkExtension from '@tiptap/extension-link';
 
 const LocationMap = dynamic(() => import('@/components/map/LocationMap'), {
   ssr: false,
@@ -27,6 +30,7 @@ interface Organization {
   latitude: number | null;
   longitude: number | null;
   autoApproveRequests: boolean;
+  hoursInfo: string | null;
 }
 
 interface FormData {
@@ -42,6 +46,65 @@ interface FormData {
   latitude: string;
   longitude: string;
   autoApproveRequests: boolean;
+  hoursInfo: string;
+}
+
+function RichTextEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      LinkExtension.configure({
+        openOnClick: false,
+      }),
+    ],
+    content: value || '',
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] px-4 py-3 border border-gray-300 rounded-lg',
+      },
+    },
+  });
+
+  if (!editor) return null;
+
+  return (
+    <div className="border border-gray-300 rounded-lg overflow-hidden">
+      <div className="bg-gray-50 border-b border-gray-200 p-2 flex flex-wrap gap-1">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className={`px-3 py-1 text-sm font-medium rounded ${editor.isActive('bold') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className={`px-3 py-1 text-sm font-medium rounded italic ${editor.isActive('italic') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          I
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={`px-3 py-1 text-sm rounded ${editor.isActive('bulletList') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          •
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className={`px-3 py-1 text-sm rounded ${editor.isActive('orderedList') ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-200'}`}
+        >
+          1.
+        </button>
+      </div>
+      <EditorContent editor={editor} />
+    </div>
+  );
 }
 
 export default function IntermediaryProfilePage() {
@@ -66,6 +129,7 @@ export default function IntermediaryProfilePage() {
     latitude: '',
     longitude: '',
     autoApproveRequests: false,
+    hoursInfo: '',
   });
 
   useEffect(() => {
@@ -88,6 +152,7 @@ export default function IntermediaryProfilePage() {
             latitude: o.latitude?.toString() || '',
             longitude: o.longitude?.toString() || '',
             autoApproveRequests: o.autoApproveRequests || false,
+            hoursInfo: o.hoursInfo || '',
           });
         }
       })
@@ -101,6 +166,10 @@ export default function IntermediaryProfilePage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const handleHoursInfoChange = (html: string) => {
+    setForm(prev => ({ ...prev, hoursInfo: html }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,6 +195,7 @@ export default function IntermediaryProfilePage() {
           latitude: form.latitude || null,
           longitude: form.longitude || null,
           autoApproveRequests: form.autoApproveRequests,
+          hoursInfo: form.hoursInfo || null,
         }),
       });
 
@@ -385,6 +455,29 @@ export default function IntermediaryProfilePage() {
           </div>
         </div>
       </form>
+
+      {/* Hours Info */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span>🕐</span> Orari e informazioni
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
+          Queste informazioni verranno incluse nelle email di consegna e ritiro QR code.
+        </p>
+        <RichTextEditor
+          value={form.hoursInfo}
+          onChange={handleHoursInfoChange}
+        />
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={saving}
+          className="mt-4 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+        >
+          {saving ? 'Salvataggio...' : 'Salva orari'}
+        </button>
+      </div>
 
       {/* Geolocation */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">

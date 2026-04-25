@@ -76,6 +76,7 @@ export async function POST(request: Request) {
             status: true,
             donorId: true,
             donor: { select: { name: true } },
+            intermediary: { select: { name: true, hoursInfo: true } },
           },
         },
         recipient: {
@@ -121,7 +122,8 @@ export async function POST(request: Request) {
         req.recipient.name,
         req.object.title,
         pickupQrData,
-        pickupQrImage
+        pickupQrImage,
+        req.object.intermediary.hoursInfo
       );
 
       return NextResponse.json({

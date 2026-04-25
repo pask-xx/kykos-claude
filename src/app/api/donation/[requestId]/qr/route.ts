@@ -25,6 +25,7 @@ export async function GET(
             title: true,
             status: true,
             donorId: true,
+            intermediary: { select: { name: true, hoursInfo: true } },
           },
         },
         donor: {
@@ -83,6 +84,8 @@ export async function GET(
         },
       },
       userType: isDonor ? 'donor' : 'recipient',
+      entityName: donation.object.intermediary.name,
+      entityHoursInfo: donation.object.intermediary.hoursInfo,
     });
   } catch (error) {
     console.error('QR code API error:', error);
