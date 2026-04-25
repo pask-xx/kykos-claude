@@ -81,7 +81,7 @@ export default async function IntermediaryDashboard() {
               <p className="font-medium text-gray-900">{org?.email || '—'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 mb-1">Riceventi autorizzati</p>
+              <p className="text-sm text-gray-500 mb-1">Beneficiari autorizzati</p>
               <p className="font-medium text-gray-900">{authorizedRecipients}</p>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default async function IntermediaryDashboard() {
                 <span className="text-2xl">📦</span>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Oggetti</p>
+                <p className="text-sm text-gray-500">Disponibilità</p>
                 <p className="text-2xl font-bold text-gray-900">{org?._count.objects || 0}</p>
               </div>
             </div>
@@ -106,7 +106,7 @@ export default async function IntermediaryDashboard() {
                 <span className="text-2xl">👥</span>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Riceventi</p>
+                <p className="text-sm text-gray-500">Beneficiari</p>
                 <p className="text-2xl font-bold text-gray-900">{org?._count.requests || 0}</p>
               </div>
             </div>
