@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { parseQrCodeData } from '@/lib/qrcode';
-import { sendObjectReadyForPickupNotification } from '@/lib/email';
+import { parseQrCodeData, generateQrCodeDataUrl, generatePickupQrCode } from '@/lib/qrcode';
+import { sendPickupQrNotification } from '@/lib/email';
 import { hasPermission } from '@/lib/permissions';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -111,18 +111,21 @@ export async function POST(request: Request) {
         data: { status: 'WITHDRAWN' },
       });
 
-      // Notify beneficiary that object is ready for pickup
-      await sendObjectReadyForPickupNotification(
+      // Generate pickup QR and send to beneficiary
+      const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+      const pickupQrImage = await generateQrCodeDataUrl(pickupQrData);
+      await sendPickupQrNotification(
         req.recipient.email,
         req.recipient.name,
         req.object.title,
-        req.object.id
+        pickupQrData,
+        pickupQrImage
       );
 
       return NextResponse.json({
         success: true,
         type: 'deliver',
-        message: 'Consegna registrata! Il beneficiario sara\' notificato per il ritiro.',
+        message: 'Consegna registrata! Il beneficiario ricevera\' il QR code per il ritiro.',
         data: {
           objectTitle: req.object.title,
           donorName: req.object.donor?.name || 'Donatore',

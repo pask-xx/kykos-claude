@@ -125,7 +125,7 @@ export async function PATCH(request: Request) {
         });
       });
 
-      // Send Delivery QR to DONOR
+      // Send Delivery QR to DONOR only (donor must deliver first)
       await sendDeliveryQrNotification(
         req.object.donor.email,
         req.object.donor.name,
@@ -134,14 +134,8 @@ export async function PATCH(request: Request) {
         deliverQrImage
       );
 
-      // Send Pickup QR to BENEFICIARY (recipient)
-      await sendPickupQrNotification(
-        req.recipient.email,
-        req.recipient.name,
-        req.object.title,
-        pickupQrData,
-        pickupQrImage
-      );
+      // NOTE: Pickup QR email to beneficiary will be sent AFTER donor delivers (when operator scans deliver QR)
+      // We no longer send pickup QR immediately - that happens in scan-qr endpoint
 
       // Notify donor of completed donation
       await sendDonationConfirmedNotification(
