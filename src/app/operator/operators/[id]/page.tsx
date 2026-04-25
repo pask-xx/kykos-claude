@@ -61,7 +61,7 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
 
   const fetchOperator = async () => {
     try {
-      const res = await fetch(`/api/operator/${id}`);
+      const res = await fetch(`/api/operator/operators/${id}`);
       if (res.ok) {
         const data = await res.json();
         setOperator(data.operator);
@@ -91,7 +91,7 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
     setSuccess(null);
 
     try {
-      const res = await fetch(`/api/operator/${id}`, {
+      const res = await fetch(`/api/operator/operators/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -124,7 +124,7 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
     setTempPassword(null);
 
     try {
-      const res = await fetch(`/api/operator/${id}/reset-password`, {
+      const res = await fetch(`/api/operator/operators/${id}/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ operatorId: id }),
