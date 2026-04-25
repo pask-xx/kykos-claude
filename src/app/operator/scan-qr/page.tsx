@@ -10,6 +10,7 @@ export default function ScanQrPage() {
     message: string;
     objectTitle?: string;
     recipientName?: string;
+    type?: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
@@ -52,6 +53,7 @@ export default function ScanQrPage() {
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
         },
         async (decodedText) => {
           await scanner.stop();
@@ -69,6 +71,7 @@ export default function ScanQrPage() {
               message: data.message,
               objectTitle: data.data?.objectTitle,
               recipientName: data.data?.recipientName,
+              type: data.type,
             });
           } else {
             setResult({
@@ -82,7 +85,8 @@ export default function ScanQrPage() {
         () => {}
       );
     } catch (err) {
-      setError('Errore nell\'avvio della fotocamera');
+      console.error('Scanner error:', err);
+      setError('Errore nell\'avvio della fotocamera. Controlla che il permesso sia stato concesso.');
       setScanning(false);
     }
   };
@@ -98,7 +102,7 @@ export default function ScanQrPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Scansiona QR Code</h1>
-        <p className="text-gray-500">Scansiona il QR code per registrare il ritiro dell&apos;oggetto</p>
+        <p className="text-gray-500">Inquadra il QR code per registrare consegna o ritiro</p>
       </div>
 
       {/* Camera Selection */}
@@ -128,8 +132,7 @@ export default function ScanQrPage() {
         <div
           id="qr-reader"
           key={qrReaderKey}
-          className="w-full max-w-md mx-auto"
-          style={{ minHeight: scanning ? '300px' : '0' }}
+          style={{ width: '100%', minHeight: '300px' }}
         />
 
         <div className="mt-4 flex justify-center gap-4">
@@ -164,7 +167,7 @@ export default function ScanQrPage() {
           {result.success ? (
             <>
               <h3 className="text-lg font-semibold text-green-800 mb-2">
-                Ritiro registrato!
+                {result.type === 'deliver' ? 'Consegna registrata!' : 'Ritiro completato!'}
               </h3>
               <p className="text-green-700 mb-2">{result.message}</p>
               {result.objectTitle && (
@@ -174,12 +177,9 @@ export default function ScanQrPage() {
               )}
               {result.recipientName && (
                 <p className="text-sm text-green-600">
-                  Destinatario: <strong>{result.recipientName}</strong>
+                  {result.type === 'deliver' ? 'Donatore' : 'Beneficiario'}: <strong>{result.recipientName}</strong>
                 </p>
               )}
-              <p className="text-sm text-green-600 mt-2">
-                Il destinatario e&apos; stato notificato che puo&apos; ritirare l&apos;oggetto.
-              </p>
             </>
           ) : (
             <>
@@ -202,10 +202,10 @@ export default function ScanQrPage() {
       <div className="bg-gray-50 p-4 rounded-xl">
         <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
         <ol className="text-sm text-gray-600 space-y-2">
-          <li>1. Seleziona la fotocamera da utilizzare</li>
+          <li>1. Seleziona la fotocamera</li>
           <li>2. Clicca su &quot;Avvia scansione&quot;</li>
-          <li>3. Inquadra il QR code mostrato dal donatore</li>
-          <li>4. Il sistema registrera&apos; il ritiro e notificara&apos; il destinatario</li>
+          <li>3. Inquadra il QR code</li>
+          <li>4. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
         </ol>
       </div>
     </div>

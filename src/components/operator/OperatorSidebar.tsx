@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { OperatorPermission } from '@/types';
 
 interface NavItem {
@@ -36,6 +37,7 @@ export default function OperatorSidebar({
   children,
 }: OperatorSidebarProps) {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const hasPermission = (permission: OperatorPermission): boolean => {
     if (operatorRole === 'ADMIN') return true;
@@ -56,8 +58,77 @@ export default function OperatorSidebar({
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white border border-gray-200 rounded-lg shadow-md flex items-center justify-center"
+      >
+        <span className="text-xl">☰</span>
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <aside
+        className={`lg:hidden fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col z-50 transition-transform duration-300 ease-out ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <Link href="/operator/dashboard" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
+            <span className="text-xl font-bold text-primary-600">KYKOS</span>
+          </Link>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
+        <nav className="flex-1 p-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                <span className="font-medium truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="truncate">
+              <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
+              <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
+            </div>
+            <form action="/api/operator/logout" method="POST">
+              <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
+                Esci
+              </button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
         <div className="p-4 border-b border-gray-200">
           <Link href="/operator/dashboard" className="flex items-center gap-2">
             <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
