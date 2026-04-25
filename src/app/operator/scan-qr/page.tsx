@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
 
 export default function ScanQrPage() {
   const [scanning, setScanning] = useState(false);
@@ -15,131 +14,147 @@ export default function ScanQrPage() {
   const [error, setError] = useState<string | null>(null);
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [qrReaderKey, setQrReaderKey] = useState(0);
 
   useEffect(() => {
-    Html5Qrcode.getCameras().then((cameraList) => {
-      if (cameraList && cameraList.length > 0) {
-        setCameras(cameraList.map(c => ({ id: c.id, label: c.label || `Camera ${c.id}` })));
-        setSelectedCamera(cameraList[0].id);
-      }
+    // List cameras
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      setCameras(videoDevices.map(d => ({ id: d.deviceId, label: d.label || `Camera ${d.deviceId.slice(0,8)}` })));
+      if (videoDevices.length > 0) setSelectedCamera(videoDevices[0].deviceId);
     }).catch((err) => {
       console.error('Camera error:', err);
       setError('Impossibile accedere alla fotocamera');
     });
 
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-      }
+      stopCamera();
     };
   }, []);
 
-  const startScanning = async () => {
-    if (!selectedCamera) return;
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
 
+  const startScanning = async () => {
     setScanning(true);
     setResult(null);
     setError(null);
     setQrReaderKey(prev => prev + 1);
 
     try {
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: selectedCamera ? { exact: selectedCamera } : undefined },
+        audio: false,
+      });
 
-      await scanner.start(
-        selectedCamera,
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-        },
-        async (decodedText) => {
-          await scanner.stop();
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
 
-          const res = await fetch('/api/operator/scan-qr', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ qrData: decodedText }),
-          });
-          const data = await res.json();
-
-          if (res.ok) {
-            setResult({
-              success: true,
-              message: data.message,
-              objectTitle: data.data?.objectTitle,
-              recipientName: data.data?.recipientName,
-              type: data.type,
-            });
-          } else {
-            setResult({
-              success: false,
-              message: data.error || 'Errore sconosciuto',
-            });
-          }
-
-          setScanning(false);
-        },
-        () => {}
-      );
+      // Start QR detection loop
+      detectQRCode();
     } catch (err) {
-      console.error('Scanner error:', err);
-      setError('Errore nell\'avvio della fotocamera. Controlla che il permesso sia stato concesso.');
+      console.error('Camera error:', err);
+      setError('Errore nell\'avvio della fotocamera');
       setScanning(false);
     }
   };
 
-  const stopScanning = async () => {
-    if (scannerRef.current) {
-      await scannerRef.current.stop().catch(() => {});
+  const detectQRCode = async () => {
+    if (!videoRef.current || !streamRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return;
+
+    const checkFrame = async () => {
+      if (!scanning || !streamRef.current) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        try {
+          // @ts-ignore
+          const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+          const barcodes = await barcodeDetector.detect(canvas);
+
+          if (barcodes && barcodes.length > 0) {
+            const qrData = barcodes[0].rawValue;
+            await handleScanResult(qrData);
+            return;
+          }
+        } catch (e) {
+          // BarcodeDetector not supported, try jsQR
+          try {
+            const { default: jsQR } = await import('jsqr');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) {
+              await handleScanResult(code.data);
+              return;
+            }
+          } catch (e2) {
+            // jsQR not available either
+          }
+        }
+      }
+
+      if (scanning) {
+        requestAnimationFrame(checkFrame);
+      }
+    };
+
+    requestAnimationFrame(checkFrame);
+  };
+
+  const handleScanResult = async (qrData: string) => {
+    stopCamera();
+    setScanning(false);
+
+    const res = await fetch('/api/operator/scan-qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrData }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      setResult({
+        success: true,
+        message: data.message,
+        objectTitle: data.data?.objectTitle,
+        recipientName: data.data?.recipientName,
+        type: data.type,
+      });
+    } else {
+      setResult({
+        success: false,
+        message: data.error || 'Errore sconosciuto',
+      });
     }
+  };
+
+  const stopScanning = () => {
+    stopCamera();
     setScanning(false);
   };
 
   return (
-    <>
-      <style>{`
-        #qr-reader {
-          width: 100% !important;
-          min-height: 300px !important;
-          position: relative !important;
-          background: #000 !important;
-        }
-        #qr-reader img {
-          display: none !important;
-        }
-        #qr-reader video {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          position: relative !important;
-          z-index: 1 !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
-        #qr-reader__scan_region {
-          min-height: 300px !important;
-          padding: 0 !important;
-          position: relative !important;
-        }
-        #qr-reader__dashboard {
-          display: none !important;
-        }
-        #qr-reader__dashboard_section_swaplink {
-          display: none !important;
-        }
-        .html5-qr-code-elem {
-          display: none !important;
-        }
-        #qr-reader__header {
-          display: none !important;
-        }
-        #qr-reader__status_span {
-          display: none !important;
-        }
-      `}</style>
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Scansiona QR Code</h1>
@@ -170,11 +185,21 @@ export default function ScanQrPage() {
 
       {/* Scanner */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div
-          id="qr-reader"
-          key={qrReaderKey}
-          style={{ width: '100%', minHeight: '300px' }}
-        />
+        <div className="relative bg-black" style={{ minHeight: '300px' }}>
+          <video
+            key={qrReaderKey}
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            style={{ minHeight: '300px' }}
+            playsInline
+            muted
+          />
+          {scanning && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-48 h-48 border-2 border-white rounded-lg"></div>
+            </div>
+          )}
+        </div>
 
         <div className="mt-4 flex justify-center gap-4">
           {!scanning ? (
@@ -250,6 +275,5 @@ export default function ScanQrPage() {
         </ol>
       </div>
     </div>
-    </>
   );
 }
