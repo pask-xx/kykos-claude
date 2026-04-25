@@ -158,7 +158,7 @@ export async function POST(request: Request) {
         }),
         ...(role === 'RECIPIENT' && {
           referenceEntityId,
-          isee: parseFloat(isee),
+          isee: Math.round(parseFloat(isee) * 100) / 100,
           authorized: false,
         }),
       },
