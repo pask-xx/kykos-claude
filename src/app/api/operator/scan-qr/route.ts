@@ -47,7 +47,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
     }
 
-    // Check permission - need OBJECT_DELIVER for scanning pickup QR codes
     if (!hasPermission(operator.role, operator.permissions, 'OBJECT_DELIVER')) {
       return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
     }
@@ -58,15 +57,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'QR data mancante' }, { status: 400 });
     }
 
-    // Parse QR code data
     const parsed = parseQrCodeData(qrData);
     if (!parsed) {
       return NextResponse.json({ error: 'QR code non valido' }, { status: 400 });
     }
 
-    const { requestId, recipientId } = parsed;
+    const { type, requestId, userId } = parsed;
 
-    // Find the request and verify it belongs to this organization
     const req = await prisma.request.findUnique({
       where: { id: requestId },
       include: {
@@ -76,6 +73,7 @@ export async function POST(request: Request) {
             title: true,
             status: true,
             donorId: true,
+            donor: { select: { name: true } },
           },
         },
         recipient: {
@@ -96,36 +94,67 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    if (req.recipientId !== recipientId) {
-      return NextResponse.json({ error: 'QR code non valido per questo destinatario' }, { status: 400 });
+    if (type === 'deliver') {
+      // DELIVER QR: scanned when donor brings the object
+      // Verify donor ID matches
+      if (req.object.donorId !== userId) {
+        return NextResponse.json({ error: 'QR code non valido per questo donatore' }, { status: 400 });
+      }
+
+      if (req.object.status !== 'RESERVED') {
+        return NextResponse.json({ error: 'Oggetto non disponibile per la consegna' }, { status: 400 });
+      }
+
+      // Update object status to WITHDRAWN (object is at entity, waiting for pickup)
+      await prisma.object.update({
+        where: { id: req.objectId },
+        data: { status: 'WITHDRAWN' },
+      });
+
+      // Notify beneficiary that object is ready for pickup
+      await sendObjectReadyForPickupNotification(
+        req.recipient.email,
+        req.recipient.name,
+        req.object.title,
+        req.object.id
+      );
+
+      return NextResponse.json({
+        success: true,
+        type: 'deliver',
+        message: 'Consegna registrata! Il beneficiario sara\' notificato per il ritiro.',
+        data: {
+          objectTitle: req.object.title,
+          donorName: req.object.donor?.name || 'Donatore',
+        },
+      });
+    } else {
+      // PICKUP QR: scanned when beneficiary comes to pick up
+      // Verify recipient ID matches
+      if (req.recipientId !== userId) {
+        return NextResponse.json({ error: 'QR code non valido per questo destinatario' }, { status: 400 });
+      }
+
+      if (req.object.status !== 'WITHDRAWN') {
+        return NextResponse.json({ error: 'Oggetto non ancora pronto per il ritiro' }, { status: 400 });
+      }
+
+      // Mark as DONATED (final delivery)
+      await prisma.object.update({
+        where: { id: req.objectId },
+        data: { status: 'DONATED' },
+      });
+
+      return NextResponse.json({
+        success: true,
+        type: 'pickup',
+        message: 'Ritiro completato! Oggetto consegnato al beneficiario.',
+        data: {
+          objectTitle: req.object.title,
+          recipientName: req.recipient.name,
+        },
+      });
     }
-
-    if (req.object.status !== 'RESERVED') {
-      return NextResponse.json({ error: 'Oggetto non disponibile per il ritiro' }, { status: 400 });
-    }
-
-    // Update object status to WITHDRAWN
-    await prisma.object.update({
-      where: { id: req.objectId },
-      data: { status: 'WITHDRAWN' },
-    });
-
-    // Notify recipient that object is ready for pickup
-    await sendObjectReadyForPickupNotification(
-      req.recipient.email,
-      req.recipient.name,
-      req.object.title,
-      req.object.id
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: 'Oggetto marcato come ritirato. Destinatario notificato.',
-      data: {
-        objectTitle: req.object.title,
-        recipientName: req.recipient.name,
-      },
-    });
   } catch (error) {
     console.error('QR scan error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });

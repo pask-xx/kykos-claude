@@ -14,7 +14,7 @@ export default async function RecipientDashboard() {
   };
 
   // Parallel queries for better performance
-  const [user, pendingRequests, receivedDonations, totalContributions] = await Promise.all([
+  const [user, pendingRequests, receivedDonations, totalContributions, readyForPickup] = await Promise.all([
     measure('user.findUnique', () => prisma.user.findUnique({
       where: { id: session!.id },
       include: { referenceEntity: true },
@@ -28,6 +28,17 @@ export default async function RecipientDashboard() {
     measure('donation.aggregate', () => prisma.donation.aggregate({
       where: { recipientId: session!.id },
       _sum: { amount: true },
+    })),
+    measure('donation.findMany (ready for pickup)', () => prisma.donation.findMany({
+      where: {
+        recipientId: session!.id,
+        object: { status: 'WITHDRAWN' },
+      },
+      include: {
+        object: {
+          select: { id: true, title: true, imageUrls: true },
+        },
+      },
     })),
   ]);
 
@@ -138,6 +149,41 @@ export default async function RecipientDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Ready for Pickup */}
+        {readyForPickup.length > 0 && (
+          <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span>📦</span> Pronto per il ritiro!
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Gli oggetti che hai richiesto sono pronti per essere ritirati. Recati all&apos;ente con il tuo QR code.
+            </p>
+            <div className="space-y-4">
+              {readyForPickup.map((donation) => (
+                <div key={donation.id} className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                    {donation.object.imageUrls && donation.object.imageUrls.length > 0 ? (
+                      <img src={donation.object.imageUrls[0]} alt={donation.object.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>📦</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{donation.object.title}</p>
+                    <p className="text-sm text-purple-600">QR Code pronto per il ritiro</p>
+                  </div>
+                  <Link
+                    href={`/recipient/qr/${donation.requestId}`}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
+                  >
+                    Mostra QR
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">

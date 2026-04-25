@@ -12,10 +12,24 @@ export async function generateQrCodeDataUrl(data: string): Promise<string> {
   return dataUrl;
 }
 
-export function parseQrCodeData(data: string): { requestId: string; recipientId: string } | null {
-  const match = data.match(/^kykos:pickup:(.+):(.+)$/);
-  if (match) {
-    return { requestId: match[1], recipientId: match[2] };
+export function generateDeliverQrCode(requestId: string, donorId: string): string {
+  return `kykos:deliver:${requestId}:${donorId}`;
+}
+
+export function generatePickupQrCode(requestId: string, beneficiaryId: string): string {
+  return `kykos:pickup:${requestId}:${beneficiaryId}`;
+}
+
+export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; requestId: string; userId: string } | null {
+  const deliverMatch = data.match(/^kykos:deliver:(.+):(.+)$/);
+  if (deliverMatch) {
+    return { type: 'deliver', requestId: deliverMatch[1], userId: deliverMatch[2] };
   }
+
+  const pickupMatch = data.match(/^kykos:pickup:(.+):(.+)$/);
+  if (pickupMatch) {
+    return { type: 'pickup', requestId: pickupMatch[1], userId: pickupMatch[2] };
+  }
+
   return null;
 }

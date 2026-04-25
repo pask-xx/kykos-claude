@@ -49,7 +49,9 @@
       "Bash(git ls-tree *)",
       "Bash(git status *)",
       "Bash(git ls-remote *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(mkdir -p \"D:/PROGETTI/KYKOS/KYKOS-WITH-CLAUDE/src/app/donor/qr/[requestId]\")",
+      "Bash(mkdir -p \"D:/PROGETTI/KYKOS/KYKOS-WITH-CLAUDE/src/app/recipient/qr/[requestId]\")"
     ]
   }
 }

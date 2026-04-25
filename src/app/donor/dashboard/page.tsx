@@ -16,7 +16,7 @@ export default async function DonorDashboard() {
   }
 
   // Parallel queries for better performance
-  const [user, donatedObjects, totalDonations, recentObjects] = await Promise.all([
+  const [user, donatedObjects, totalDonations, recentObjects, pendingDeliveries] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.id },
       select: {
@@ -43,6 +43,17 @@ export default async function DonorDashboard() {
       where: { donorId: session.id },
       orderBy: { createdAt: 'desc' },
       take: 5,
+    }),
+    prisma.donation.findMany({
+      where: {
+        donorId: session.id,
+        object: { status: 'RESERVED' },
+      },
+      include: {
+        object: {
+          select: { id: true, title: true, imageUrls: true },
+        },
+      },
     }),
   ]);
 
@@ -130,6 +141,41 @@ export default async function DonorDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Pending Deliveries */}
+        {pendingDeliveries.length > 0 && (
+          <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span>📦</span> Da consegnare
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Questi oggetti sono stati richiesti. Recati all&apos;ente con l&apos;oggetto per completare la consegna.
+            </p>
+            <div className="space-y-4">
+              {pendingDeliveries.map((donation) => (
+                <div key={donation.id} className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                    {donation.object.imageUrls && donation.object.imageUrls.length > 0 ? (
+                      <img src={donation.object.imageUrls[0]} alt={donation.object.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>📦</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{donation.object.title}</p>
+                    <p className="text-sm text-blue-600">QR Code pronto per la consegna</p>
+                  </div>
+                  <Link
+                    href={`/donor/qr/${donation.requestId}`}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                  >
+                    Mostra QR
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">

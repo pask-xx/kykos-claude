@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { sendQrCodeNotification, sendDonationConfirmedNotification } from '@/lib/email';
-import { generateQrCodeDataUrl } from '@/lib/qrcode';
+import { sendDeliveryQrNotification, sendPickupQrNotification, sendDonationConfirmedNotification } from '@/lib/email';
+import { generateQrCodeDataUrl, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
 
 export async function GET() {
   try {
@@ -92,9 +92,11 @@ export async function PATCH(request: Request) {
     }
 
     if (action === 'approve') {
-      // Generate QR code data
-      const qrCodeData = `kykos:pickup:${requestId}:${req.recipientId}`;
-      const qrCodeImageUrl = await generateQrCodeDataUrl(qrCodeData);
+      // Generate both QR codes
+      const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId);
+      const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+      const deliverQrImage = await generateQrCodeDataUrl(deliverQrData);
+      const pickupQrImage = await generateQrCodeDataUrl(pickupQrData);
 
       // Approve and create donation
       await prisma.$transaction(async (tx) => {
@@ -123,13 +125,22 @@ export async function PATCH(request: Request) {
         });
       });
 
-      // Send QR code notification to DONATORE (donor)
-      await sendQrCodeNotification(
+      // Send Delivery QR to DONOR
+      await sendDeliveryQrNotification(
         req.object.donor.email,
         req.object.donor.name,
         req.object.title,
-        qrCodeData,
-        qrCodeImageUrl
+        deliverQrData,
+        deliverQrImage
+      );
+
+      // Send Pickup QR to BENEFICIARY (recipient)
+      await sendPickupQrNotification(
+        req.recipient.email,
+        req.recipient.name,
+        req.object.title,
+        pickupQrData,
+        pickupQrImage
       );
 
       // Notify donor of completed donation
