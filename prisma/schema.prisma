@@ -155,7 +155,7 @@ model Organization {
   email         String?
   verified      Boolean   @default(false)
   autoApproveRequests Boolean @default(false)
-  hoursInfo     String?   // Rich text with opening hours and instructions
+  hoursInfo     String?   @map("hours_info") @db.Text // Rich text with opening hours and instructions
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
