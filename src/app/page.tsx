@@ -1,6 +1,11 @@
+'use client';
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Header */}
@@ -11,25 +16,24 @@ export default function Home() {
               <img src="/albero.svg" alt="KYKOS" className="w-12 h-12 transition-transform group-hover:scale-110" />
               <span className="text-2xl font-bold text-primary-600">KYKOS</span>
             </Link>
-            <div className="flex items-center gap-6">
+
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center gap-4">
               <Link
                 href="/manifesto"
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-600 font-medium transition"
+                className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition"
               >
-                <span>📜</span>
-                <span>Manifesto</span>
+                Manifesto
               </Link>
               <Link
                 href="/login/operator"
-                className="flex items-center gap-2 px-4 py-2 text-secondary-600 hover:text-secondary-700 font-medium transition"
-                title="Accesso operatori ente"
+                className="px-3 py-2 text-secondary-600 hover:text-secondary-700 font-medium transition"
               >
-                <span>🏢</span>
-                <span>Operatori</span>
+                Operatori
               </Link>
               <Link
                 href="/auth/login"
-                className="px-4 py-2 text-primary-600 hover:text-primary-700 font-medium"
+                className="px-3 py-2 text-primary-600 hover:text-primary-700 font-medium"
               >
                 Accedi
               </Link>
@@ -40,7 +44,49 @@ export default function Home() {
                 Registrati
               </Link>
             </div>
+
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary-600"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
           </nav>
+
+          {/* Mobile nav dropdown */}
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 space-y-2 border-t border-gray-100 pt-4">
+              <Link
+                href="/manifesto"
+                className="block px-4 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg font-medium transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Manifesto
+              </Link>
+              <Link
+                href="/login/operator"
+                className="block px-4 py-3 text-secondary-600 hover:text-secondary-700 hover:bg-gray-50 rounded-lg font-medium transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Operatori
+              </Link>
+              <Link
+                href="/auth/login"
+                className="block px-4 py-3 text-primary-600 hover:text-primary-700 hover:bg-gray-50 rounded-lg font-medium transition"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Accedi
+              </Link>
+              <Link
+                href="/auth/register"
+                className="block px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold transition text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Registrati
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
