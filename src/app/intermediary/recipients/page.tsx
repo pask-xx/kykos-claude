@@ -114,16 +114,19 @@ export default function IntermediaryRecipientsPage() {
                       onClick={() => router.push(`/intermediary/recipients/${recipient.id}`)}
                       className="text-left hover:underline"
                     >
-                      <p className="font-medium text-primary-600">{recipient.firstName} {recipient.lastName}</p>
-                      <p className="text-sm text-gray-500">{recipient.name}</p>
+                      <p className="font-medium text-primary-600">
+                        {recipient.firstName && recipient.lastName
+                          ? `${recipient.firstName} ${recipient.lastName}`
+                          : recipient.name}
+                      </p>
+                      <p className="text-sm text-gray-500">{recipient.email}</p>
                     </button>
                   </td>
-                  <td className="px-6 py-4 text-gray-700">{recipient.email}</td>
                   <td className="px-6 py-4 font-mono text-sm text-gray-700 uppercase">
                     {recipient.fiscalCode || '—'}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {recipient.isee ? `€${parseFloat(recipient.isee.toString()).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+                    {recipient.isee ? `€${parseFloat(String(recipient.isee)).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full font-medium ${
