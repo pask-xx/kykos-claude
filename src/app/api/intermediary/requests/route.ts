@@ -134,14 +134,14 @@ export async function PATCH(request: Request) {
         deliverQrData,
         deliverQrImage,
         org.name,
-        org.address,
-        org.houseNumber,
-        org.cap,
-        org.city,
-        org.province,
-        org.phone,
-        org.email,
-        org.hoursInfo
+        org.address || null,
+        org.houseNumber || null,
+        org.cap || null,
+        org.city || null,
+        org.province || null,
+        org.phone || null,
+        org.email || null,
+        org.hoursInfo || null
       );
 
       // NOTE: Pickup QR email to beneficiary will be sent AFTER donor delivers (when operator scans deliver QR)
