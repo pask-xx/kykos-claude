@@ -9,8 +9,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    if (session.role !== 'DONOR') {
-      return NextResponse.json({ error: 'Solo donatori' }, { status: 403 });
+    if (session.role !== 'DONOR' && session.role !== 'RECIPIENT') {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
     const objects = await prisma.object.findMany({

@@ -77,8 +77,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    if (session.role !== 'DONOR') {
-      return NextResponse.json({ error: 'Solo i donatori possono pubblicare oggetti' }, { status: 403 });
+    if (session.role !== 'DONOR' && session.role !== 'RECIPIENT') {
+      return NextResponse.json({ error: 'Solo donatori e beneficiari possono pubblicare oggetti' }, { status: 403 });
     }
 
     const { title, description, category, condition, imageUrls, intermediaryId } = await request.json();

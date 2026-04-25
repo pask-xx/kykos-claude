@@ -13,6 +13,7 @@ interface NavItem {
 const recipientNav: NavItem[] = [
   { href: '/recipient/dashboard', label: 'Dashboard', icon: '🏠' },
   { href: '/recipient/objects', label: 'Sfoglia oggetti', icon: '📦' },
+  { href: '/recipient/my-objects', label: 'I miei oggetti', icon: '🎁' },
   { href: '/recipient/requests', label: 'Le mie richieste', icon: '📝' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
