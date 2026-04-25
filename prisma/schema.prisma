@@ -181,6 +181,7 @@ model Object {
   condition     Condition
   status        ObjectStatus @default(AVAILABLE)
   imageUrls     String[]
+  depositLocation String?     @map("deposit_location") // Scaffale/doposito dove è stato placed
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

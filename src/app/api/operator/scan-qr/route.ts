@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
     }
 
-    const { qrData } = await request.json();
+    const { qrData, depositLocation } = await request.json();
 
     console.log('Received qrData:', qrData, 'type:', typeof qrData);
 
@@ -74,6 +74,7 @@ export async function POST(request: Request) {
             id: true,
             title: true,
             status: true,
+            depositLocation: true,
             donorId: true,
             donor: { select: { name: true } },
             intermediary: { select: { name: true, hoursInfo: true } },
@@ -109,9 +110,13 @@ export async function POST(request: Request) {
       }
 
       // Update object status to WITHDRAWN (object is at entity, waiting for pickup)
+      // Save deposit location if provided
       await prisma.object.update({
         where: { id: req.objectId },
-        data: { status: 'WITHDRAWN' },
+        data: {
+          status: 'WITHDRAWN',
+          depositLocation: depositLocation || null,
+        },
       });
 
       // Generate pickup QR and send to beneficiary
@@ -159,6 +164,7 @@ export async function POST(request: Request) {
         data: {
           objectTitle: req.object.title,
           recipientName: req.recipient.name,
+          depositLocation: req.object.depositLocation,
         },
       });
     }

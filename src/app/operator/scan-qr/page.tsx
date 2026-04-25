@@ -9,19 +9,25 @@ interface CameraDevice {
   kind: 'videoinput';
 }
 
+interface ScanResult {
+  success: boolean;
+  message: string;
+  objectTitle?: string;
+  recipientName?: string;
+  depositLocation?: string;
+  type?: string;
+}
+
 export default function ScanQrPage() {
   const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState<{
-    success: boolean;
-    message: string;
-    objectTitle?: string;
-    recipientName?: string;
-    type?: string;
-  } | null>(null);
+  const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const [cameraLoading, setCameraLoading] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [pendingQrData, setPendingQrData] = useState<string | null>(null);
+  const [depositLocation, setDepositLocation] = useState('');
   const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -87,25 +93,24 @@ export default function ScanQrPage() {
         scanner.stop();
         setScanning(false);
 
-        fetch('/api/operator/scan-qr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ qrData }),
-        })
-        .then(res => res.json())
-        .then(data => {
-          setResult({
-            success: data.success || false,
-            message: data.message || 'Errore sconosciuto',
-            objectTitle: data.data?.objectTitle,
-            recipientName: data.data?.recipientName,
-            type: data.type,
-          });
-        })
-        .catch(err => {
-          console.error('Fetch error:', err);
-          setResult({ success: false, message: 'Errore di connessione' });
-        });
+        // For DELIVER QR, we need to ask for deposit location first
+        // We'll do a preliminary check by parsing the QR data client-side
+        // Actually, we need to send to API to know the type, but we need deposit location for deliver
+        // So we store the QR and show the modal
+
+        // Quick check: if QR contains "type=deliver", show deposit modal
+        // Otherwise proceed normally
+        if (qrData.includes('"type":"deliver"') || qrData.includes('"type":"pickup"')) {
+          const parsed = JSON.parse(qrData);
+          if (parsed.type === 'deliver') {
+            setPendingQrData(qrData);
+            setShowDepositModal(true);
+            return;
+          }
+        }
+
+        // For pickup or unknown, proceed with normal scan
+        processScan(qrData);
       }, {
         returnDetailedScanResult: true,
         highlightScanRegion: true,
@@ -136,6 +141,38 @@ export default function ScanQrPage() {
       scannerRef.current = null;
     }
     setScanning(false);
+  };
+
+  const processScan = (qrData: string, depositLoc?: string) => {
+    fetch('/api/operator/scan-qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrData, depositLocation: depositLoc }),
+    })
+    .then(res => res.json())
+    .then(data => {
+      setResult({
+        success: data.success || false,
+        message: data.message || 'Errore sconosciuto',
+        objectTitle: data.data?.objectTitle,
+        recipientName: data.data?.recipientName,
+        depositLocation: data.data?.depositLocation,
+        type: data.type,
+      });
+    })
+    .catch(err => {
+      console.error('Fetch error:', err);
+      setResult({ success: false, message: 'Errore di connessione' });
+    });
+  };
+
+  const handleDepositConfirm = () => {
+    if (pendingQrData) {
+      processScan(pendingQrData, depositLocation);
+      setShowDepositModal(false);
+      setPendingQrData(null);
+      setDepositLocation('');
+    }
   };
 
   return (
@@ -229,6 +266,11 @@ export default function ScanQrPage() {
                   Oggetto: <strong>{result.objectTitle}</strong>
                 </p>
               )}
+              {result.depositLocation && (
+                <p className="text-sm text-green-600 mt-1">
+                  Posizione: <strong>{result.depositLocation}</strong>
+                </p>
+              )}
             </>
           ) : (
             <>
@@ -245,14 +287,49 @@ export default function ScanQrPage() {
         </div>
       )}
 
+      {/* Deposit Location Modal */}
+      {showDepositModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Posizione di deposito</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Inserisci la posizione dove l&apos;oggetto verrà depositato (es. scaffale, corridoio, etc.)
+            </p>
+            <input
+              type="text"
+              value={depositLocation}
+              onChange={(e) => setDepositLocation(e.target.value)}
+              placeholder="Es. Scaffale A-12"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDepositModal(false); setPendingQrData(null); setDepositLocation(''); }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleDepositConfirm}
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+              >
+                Conferma
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
       <div className="bg-gray-50 p-4 rounded-xl">
         <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
         <ol className="text-sm text-gray-600 space-y-2">
           <li>1. Seleziona la fotocamera dal menu</li>
           <li>2. Clicca su &quot;Avvia scansione&quot;</li>
-          <li>3. Inquadra il QR code</li>
-          <li>4. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
+          <li>3. Inquadra il QR code di consegna o ritiro</li>
+          <li>4. Per consegne, inserisci la posizione di deposito (scaffale)</li>
+          <li>5. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
         </ol>
       </div>
     </div>
