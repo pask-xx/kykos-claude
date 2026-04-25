@@ -166,13 +166,16 @@ export default function ScanQrPage() {
     }
   };
 
-  const isBackCamera = (label: string) =>
-    label.toLowerCase().includes('back') ||
-    label.toLowerCase().includes('rear') ||
-    label.toLowerCase().includes('environment');
-  const isFrontCamera = (label: string) =>
-    label.toLowerCase().includes('front') ||
-    label.toLowerCase().includes('face');
+  const isBackCamera = (label: string) => {
+    const l = label.toLowerCase();
+    return l.includes('back') || l.includes('rear') || l.includes('environment') ||
+           l.includes('posteriore') || l.includes('retro');
+  };
+  const isFrontCamera = (label: string) => {
+    const l = label.toLowerCase();
+    return l.includes('front') || l.includes('face') ||
+           l.includes('anteriore') || l.includes('frontale');
+  };
 
   return (
     <div className="space-y-6">
