@@ -182,69 +182,75 @@ export default function ScanQrPage() {
         <p className="text-gray-500">Inquadra il QR code per registrare consegna o ritiro</p>
       </div>
 
-      {/* Camera Selection */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Fotocamera ({cameras.length} trovate)
-        </label>
-        <select
-          value={selectedCameraId}
-          onChange={(e) => setSelectedCameraId(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          disabled={scanning}
-        >
-          {cameras.length === 0 && (
-            <option value="">Caricamento...</option>
-          )}
-          {cameras.map((cam, i) => (
-            <option key={cam.id} value={cam.id}>
-              {cam.label} ({i === 0 ? 'Frontale' : 'Posteriore'})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Scanner */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div
-          className="relative overflow-hidden rounded-lg bg-black"
-          style={{ minHeight: '300px' }}
-        >
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            style={{ minHeight: '300px' }}
-            playsInline
-            muted
-          />
+      {/* Camera Selection - only show when not scanning */}
+      {!scanning && !result && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Fotocamera ({cameras.length} trovate)
+          </label>
+          <select
+            value={selectedCameraId}
+            onChange={(e) => setSelectedCameraId(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          >
+            {cameras.length === 0 && (
+              <option value="">Caricamento...</option>
+            )}
+            {cameras.map((cam, i) => (
+              <option key={cam.id} value={cam.id}>
+                {cam.label} ({i === 0 ? 'Frontale' : 'Posteriore'})
+              </option>
+            ))}
+          </select>
         </div>
+      )}
 
-        <div className="mt-4 flex justify-center gap-4">
-          {!scanning ? (
-            <button
-              onClick={startScanning}
-              disabled={cameraLoading || cameras.length === 0}
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 flex items-center gap-2"
-            >
-              {cameraLoading ? (
-                <>
-                  <span className="animate-spin">⏳</span>
-                  Avvio...
-                </>
-              ) : (
-                'Avvia scansione'
-              )}
-            </button>
-          ) : (
+      {/* Scanner - only show when scanning */}
+      {scanning && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border">
+          <div
+            className="relative overflow-hidden rounded-lg bg-black"
+            style={{ minHeight: '300px' }}
+          >
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              style={{ minHeight: '300px' }}
+              playsInline
+              muted
+            />
+          </div>
+
+          <div className="mt-4 flex justify-center gap-4">
             <button
               onClick={stopScanning}
               className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
             >
               Ferma scansione
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Start button - only show when not scanning and no result */}
+      {!scanning && !result && (
+        <div className="flex justify-center">
+          <button
+            onClick={startScanning}
+            disabled={cameraLoading || cameras.length === 0}
+            className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-lg disabled:opacity-50 flex items-center gap-2 shadow-lg"
+          >
+            {cameraLoading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Avvio...
+              </>
+            ) : (
+              <>📷 Avvia scansione</>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Result */}
       {result && (
@@ -322,16 +328,30 @@ export default function ScanQrPage() {
       )}
 
       {/* Instructions */}
-      <div className="bg-gray-50 p-4 rounded-xl">
-        <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
-        <ol className="text-sm text-gray-600 space-y-2">
-          <li>1. Seleziona la fotocamera dal menu</li>
-          <li>2. Clicca su &quot;Avvia scansione&quot;</li>
-          <li>3. Inquadra il QR code di consegna o ritiro</li>
-          <li>4. Per consegne, inserisci la posizione di deposito (scaffale)</li>
-          <li>5. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
-        </ol>
-      </div>
+      {!scanning && !result && (
+        <div className="bg-gray-50 p-4 rounded-xl">
+          <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
+          <ol className="text-sm text-gray-600 space-y-2">
+            <li>1. Seleziona la fotocamera dal menu</li>
+            <li>2. Clicca su &quot;Avvia scansione&quot;</li>
+            <li>3. Inquadra il QR code di consegna o ritiro</li>
+            <li>4. Per consegne, inserisci la posizione di deposito (scaffale)</li>
+            <li>5. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
+          </ol>
+        </div>
+      )}
+
+      {/* New scan button after result */}
+      {result && !scanning && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => { setResult(null); setDepositLocation(''); }}
+            className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-lg flex items-center gap-2 shadow-lg"
+          >
+            📷 Nuova scansione
+          </button>
+        </div>
+      )}
     </div>
   );
 }
