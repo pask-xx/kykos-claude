@@ -275,10 +275,6 @@ export default function ObjectDetailPage() {
 
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-1">Donatore</p>
-                <p className="font-medium text-gray-900">{object.donor.name}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
                 <p className="font-medium text-gray-900">{object.intermediary.name}</p>
               </div>
