@@ -21,6 +21,8 @@ export function generatePickupQrCode(requestId: string, beneficiaryId: string): 
 }
 
 export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; requestId: string; userId: string } | null {
+  if (typeof data !== 'string') return null;
+
   const deliverMatch = data.match(/^kykos:deliver:(.+):(.+)$/);
   if (deliverMatch) {
     return { type: 'deliver', requestId: deliverMatch[1], userId: deliverMatch[2] };
