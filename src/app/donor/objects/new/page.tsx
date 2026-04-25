@@ -10,6 +10,7 @@ interface Intermediary {
   name: string;
   type: string;
   address: string | null;
+  distance?: number;
 }
 
 const MAX_IMAGES = 5;
@@ -19,6 +20,7 @@ export default function NewObjectPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const [intermediaries, setIntermediaries] = useState<Intermediary[]>([]);
@@ -31,12 +33,28 @@ export default function NewObjectPage() {
   const [intermediaryId, setIntermediaryId] = useState('');
 
   useEffect(() => {
-    fetchIntermediaries();
+    fetchUserGeoAndIntermediaries();
   }, []);
 
-  const fetchIntermediaries = async () => {
+  const fetchUserGeoAndIntermediaries = async () => {
     try {
-      const res = await fetch('/api/intermediaries');
+      // First get user's coordinates from their profile
+      const geoRes = await fetch('/api/user/geo');
+      let lat: number | undefined;
+      let lng: number | undefined;
+
+      if (geoRes.ok) {
+        const geoData = await geoRes.json();
+        lat = geoData.latitude;
+        lng = geoData.longitude;
+      }
+
+      // Then fetch intermediaries (with distance filter if we have coordinates)
+      let url = '/api/intermediaries';
+      if (lat && lng) {
+        url += `?lat=${lat}&lng=${lng}&radius=30`;
+      }
+      const res = await fetch(url);
       const data = await res.json();
       setIntermediaries(data.intermediaries || []);
     } catch (err) {
@@ -127,7 +145,7 @@ export default function NewObjectPage() {
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       const res = await fetch('/api/objects', {
@@ -154,7 +172,7 @@ export default function NewObjectPage() {
     } catch {
       setError('Errore di connessione');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -322,12 +340,13 @@ export default function NewObjectPage() {
               value={intermediaryId}
               onChange={(e) => setIntermediaryId(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              disabled={submitting}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none disabled:bg-gray-50"
             >
               <option value="">Seleziona un ente</option>
               {intermediaries.map((int) => (
                 <option key={int.id} value={int.id}>
-                  {int.name} ({int.type})
+                  {int.name} ({int.type}){int.distance ? ` - ${int.distance.toFixed(1)} km` : ''}
                 </option>
               ))}
             </select>
@@ -339,10 +358,10 @@ export default function NewObjectPage() {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={loading || uploading || imageUrls.length === 0}
+              disabled={submitting || uploading || imageUrls.length === 0}
               className="w-full py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Pubblicazione...' : 'Pubblica oggetto'}
+              {submitting ? 'Pubblicazione in corso...' : 'Pubblica oggetto'}
             </button>
           </div>
         </form>
