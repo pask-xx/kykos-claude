@@ -120,50 +120,47 @@ export default function IntermediaryRequestsPage() {
                 <div className="space-y-3">
                   {pendingRequests.map((req) => (
                     <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border-2 border-amber-200">
-                      <div className="grid grid-cols-3 gap-4 items-center">
-                        {/* Left section: image + badge + title + beneficiary */}
-                        <div className="flex items-center gap-2">
-                          {/* Image */}
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                            {req.object.imageUrls && req.object.imageUrls[0] ? (
-                              <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <span className="text-lg">📦</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Badge */}
-                          <div className="flex-shrink-0">
-                            {getStatusBadge(req.status)}
-                          </div>
-
-                          {/* Title + Beneficiary */}
-                          <div className="min-w-0">
-                            <p className="font-medium text-gray-900 text-xs truncate">{req.object.title}</p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {req.recipient.firstName && req.recipient.lastName
-                                ? `${req.recipient.firstName} ${req.recipient.lastName}`
-                                : req.recipient.name}
-                            </p>
-                          </div>
+                      <div className="grid grid-cols-7 gap-2 items-center">
+                        {/* 1: foto */}
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {req.object.imageUrls && req.object.imageUrls[0] ? (
+                            <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-lg">📦</span>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Center section: donor + date */}
-                        <div className="flex items-center gap-6 justify-center">
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Donatore</p>
-                            <p className="font-medium text-gray-900 text-xs truncate max-w-20">{req.object.donor.name}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Data</p>
-                            <p className="font-medium text-gray-900 text-xs">{formatDate(req.createdAt)}</p>
-                          </div>
+                        {/* 2: label */}
+                        <div className="flex-shrink-0">
+                          {getStatusBadge(req.status)}
                         </div>
 
-                        {/* Right section: actions */}
-                        <div className="flex items-center gap-2 justify-end">
+                        {/* 3: nome oggetto + beneficiario */}
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 text-xs truncate">{req.object.title}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {req.recipient.firstName && req.recipient.lastName
+                              ? `${req.recipient.firstName} ${req.recipient.lastName}`
+                              : req.recipient.name}
+                          </p>
+                        </div>
+
+                        {/* 4: Donatore */}
+                        <div>
+                          <p className="text-xs text-gray-500">Donatore</p>
+                          <p className="font-medium text-gray-900 text-xs truncate">{req.object.donor.name}</p>
+                        </div>
+
+                        {/* 5: Data */}
+                        <div>
+                          <p className="text-xs text-gray-500">Data</p>
+                          <p className="font-medium text-gray-900 text-xs">{formatDate(req.createdAt)}</p>
+                        </div>
+
+                        {/* 6: Rifiuta */}
+                        <div className="flex justify-center">
                           <button
                             onClick={() => handleAction(req.id, 'reject')}
                             disabled={processing === req.id}
@@ -171,6 +168,10 @@ export default function IntermediaryRequestsPage() {
                           >
                             Rifiuta
                           </button>
+                        </div>
+
+                        {/* 7: Approva */}
+                        <div className="flex justify-center">
                           <button
                             onClick={() => handleAction(req.id, 'approve')}
                             disabled={processing === req.id}
@@ -200,49 +201,47 @@ export default function IntermediaryRequestsPage() {
                 <div className="space-y-3">
                   {otherRequests.map((req) => (
                     <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border">
-                      <div className="grid grid-cols-3 gap-4 items-center">
-                        {/* Left section: image + badge + title + beneficiary */}
-                        <div className="flex items-center gap-2">
-                          {/* Image */}
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                            {req.object.imageUrls && req.object.imageUrls[0] ? (
-                              <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <span className="text-lg">📦</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Badge */}
-                          <div className="flex-shrink-0">
-                            {getStatusBadge(req.status)}
-                          </div>
-
-                          {/* Title + Beneficiary */}
-                          <div className="min-w-0">
-                            <p className="font-medium text-gray-900 text-xs truncate">{req.object.title}</p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {req.recipient.firstName && req.recipient.lastName
-                                ? `${req.recipient.firstName} ${req.recipient.lastName}`
-                                : req.recipient.name}
-                            </p>
-                          </div>
+                      <div className="grid grid-cols-7 gap-2 items-center">
+                        {/* 1: foto */}
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {req.object.imageUrls && req.object.imageUrls[0] ? (
+                            <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-lg">📦</span>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Center section: donor + date */}
-                        <div className="flex items-center gap-6 justify-center">
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Donatore</p>
-                            <p className="font-medium text-gray-900 text-xs truncate max-w-20">{req.object.donor.name}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Data</p>
-                            <p className="font-medium text-gray-900 text-xs">{formatDate(req.createdAt)}</p>
-                          </div>
+                        {/* 2: label */}
+                        <div className="flex-shrink-0">
+                          {getStatusBadge(req.status)}
                         </div>
 
-                        {/* Right section: empty */}
+                        {/* 3: nome oggetto + beneficiario */}
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 text-xs truncate">{req.object.title}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {req.recipient.firstName && req.recipient.lastName
+                              ? `${req.recipient.firstName} ${req.recipient.lastName}`
+                              : req.recipient.name}
+                          </p>
+                        </div>
+
+                        {/* 4: Donatore */}
+                        <div>
+                          <p className="text-xs text-gray-500">Donatore</p>
+                          <p className="font-medium text-gray-900 text-xs truncate">{req.object.donor.name}</p>
+                        </div>
+
+                        {/* 5: Data */}
+                        <div>
+                          <p className="text-xs text-gray-500">Data</p>
+                          <p className="font-medium text-gray-900 text-xs">{formatDate(req.createdAt)}</p>
+                        </div>
+
+                        {/* 6-7: empty */}
+                        <div />
                         <div />
                       </div>
                     </div>
