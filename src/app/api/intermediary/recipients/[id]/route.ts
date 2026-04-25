@@ -43,7 +43,6 @@ export async function GET(
         cap: true,
         city: true,
         province: true,
-        phone: true,
         authorized: true,
         authorizedAt: true,
         createdAt: true,

@@ -175,7 +175,7 @@ export default function BeneficiaryDetailPage() {
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-1">Telefono</p>
-            <p className="font-medium text-gray-900">{beneficiary.phone || '—'}</p>
+            <p className="font-medium text-gray-900">—</p>
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
