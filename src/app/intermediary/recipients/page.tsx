@@ -20,6 +20,13 @@ interface Recipient {
   };
 }
 
+function formatIsee(value: string | null): string {
+  if (!value) return '—';
+  const num = parseFloat(value);
+  if (isNaN(num)) return '—';
+  return `€${num.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export default function IntermediaryRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [organizationName, setOrganizationName] = useState('');
@@ -125,7 +132,7 @@ export default function IntermediaryRecipientsPage() {
                     {recipient.fiscalCode || '—'}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {recipient.isee ? `€${parseFloat(String(recipient.isee)).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
+                    {formatIsee(recipient.isee)}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full font-medium ${
