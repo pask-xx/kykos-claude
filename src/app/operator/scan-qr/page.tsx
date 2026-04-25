@@ -99,6 +99,20 @@ export default function ScanQrPage() {
   };
 
   return (
+    <>
+      <style>{`
+        #qr-reader video {
+          width: 100% !important;
+          height: auto !important;
+          object-fit: cover !important;
+        }
+        #qr-reader__scan_region {
+          min-height: 300px !important;
+        }
+        #qr-reader__dashboard {
+          display: none !important;
+        }
+      `}</style>
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Scansiona QR Code</h1>
@@ -209,5 +223,6 @@ export default function ScanQrPage() {
         </ol>
       </div>
     </div>
+    </>
   );
 }
