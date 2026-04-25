@@ -60,9 +60,9 @@ export async function sendRequestNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Ciao ${recipientName},</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            Un ricevente ha fatto richiesta per il tuo oggetto.</p>
+            Un beneficiario ha fatto richiesta per la tua disponibilità.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/objects" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vedi la richiesta
@@ -101,7 +101,7 @@ export async function sendObjectAvailableNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Buone notizie! L'articolo che ti interessa è ora disponibile per il ritiro.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/objects/${objectId}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Richiedi ora
@@ -141,7 +141,7 @@ export async function sendQrCodeNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Ecco il QR code per ritirare l'oggetto presso l'ente intermediario.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
             <p style="font-size: 12px; color: #666; margin: 0 0 12px;">QR Code</p>
             <img src="${qrCodeImageUrl}" alt="QR Code" style="width: 200px; height: 200px;" />
@@ -187,7 +187,7 @@ export async function sendDeliveryQrNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Ecco il QR code per consegnare il tuo oggetto presso l&apos;ente intermediario.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
             <p style="font-size: 12px; color: #666; margin: 0 0 12px;">QR Code - Consegna</p>
             <img src="${qrCodeImageUrl}" alt="QR Code" style="width: 200px; height: 200px;" />
@@ -239,7 +239,7 @@ export async function sendPickupQrNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Ecco il QR code per ritirare l&apos;oggetto presso l&apos;ente intermediario.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
             <p style="font-size: 12px; color: #666; margin: 0 0 12px;">QR Code - Ritiro</p>
             <img src="${qrCodeImageUrl}" alt="QR Code" style="width: 200px; height: 200px;" />
@@ -289,7 +289,7 @@ export async function sendObjectReadyForPickupNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Buone notizie! L'oggetto che hai richiesto e' pronto per essere ritirato.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Recati presso l'ente intermediario per procedere con il ritiro.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
@@ -325,9 +325,9 @@ export async function sendDonationConfirmedNotification(
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             La tua donazione è stata completata con successo.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Oggetto:</strong> ${objectTitle}</p>
+            <strong>Disponibilità:</strong> ${objectTitle}</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-            <strong>Ricevente:</strong> ${recipientName}</p>
+            <strong>Beneficiario:</strong> ${recipientName}</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             Grazie per il tuo contributo!</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
