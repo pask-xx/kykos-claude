@@ -15,7 +15,7 @@ interface NavItem {
 const allNavItems: NavItem[] = [
   { href: '/operator/dashboard', label: 'Dashboard', icon: '🏠' },
   { href: '/operator/requests', label: 'Richieste', icon: '📝', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/recipients', label: 'Riceventi', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/recipients', label: 'Beneficiari', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/objects', label: 'Disponibilità', icon: '📦', permission: 'OBJECT_RECEIVE' },
   { href: '/operator/scan-qr', label: 'Scansiona QR', icon: '📱', permission: 'OBJECT_DELIVER' },
   { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
