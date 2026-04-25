@@ -101,15 +101,42 @@ export default function ScanQrPage() {
   return (
     <>
       <style>{`
+        #qr-reader {
+          width: 100% !important;
+          min-height: 300px !important;
+          position: relative !important;
+          background: #000 !important;
+        }
+        #qr-reader img {
+          display: none !important;
+        }
         #qr-reader video {
           width: 100% !important;
-          height: auto !important;
+          height: 100% !important;
           object-fit: cover !important;
+          position: relative !important;
+          z-index: 1 !important;
+          opacity: 1 !important;
+          visibility: visible !important;
         }
         #qr-reader__scan_region {
           min-height: 300px !important;
+          padding: 0 !important;
+          position: relative !important;
         }
         #qr-reader__dashboard {
+          display: none !important;
+        }
+        #qr-reader__dashboard_section_swaplink {
+          display: none !important;
+        }
+        .html5-qr-code-elem {
+          display: none !important;
+        }
+        #qr-reader__header {
+          display: none !important;
+        }
+        #qr-reader__status_span {
           display: none !important;
         }
       `}</style>
