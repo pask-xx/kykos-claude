@@ -23,6 +23,7 @@ export default function OperatorObjectsPage() {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [showDonated, setShowDonated] = useState(false);
 
   useEffect(() => {
     fetchObjects();
@@ -44,6 +45,8 @@ export default function OperatorObjectsPage() {
     const matchesSearch = obj.title.toLowerCase().includes(search.toLowerCase()) ||
       (obj.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
     const matchesCategory = !filterCategory || obj.category === filterCategory;
+    // By default, hide DONATED objects unless "showDonated" is checked
+    if (obj.status === 'DONATED' && !showDonated) return false;
     const matchesStatus = !filterStatus || obj.status === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
   });
@@ -64,13 +67,24 @@ export default function OperatorObjectsPage() {
   };
 
   const categories = [...new Set(objects.map(o => o.category))];
-  const statuses = [...new Set(objects.map(o => o.status))];
+  const statuses = [...new Set(objects.map(o => o.status))].filter(s => s !== 'DONATED');
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestione oggetti</h1>
-        <p className="text-gray-500">{filteredObjects.length} oggetti</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestione oggetti</h1>
+          <p className="text-gray-500">{filteredObjects.length} oggetti</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={showDonated}
+            onChange={(e) => setShowDonated(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300"
+          />
+          Mostra donati
+        </label>
       </div>
 
       {/* Filters */}
