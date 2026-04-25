@@ -34,9 +34,8 @@ export default function ScanQrPage() {
   useEffect(() => {
     async function getCameras() {
       try {
-        // First get permission, then enumerate devices
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(t => t.stop()); // Release the stream immediately
+        stream.getTracks().forEach(t => t.stop());
 
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices
@@ -47,10 +46,8 @@ export default function ScanQrPage() {
             kind: 'videoinput' as const,
           }));
 
-        console.log('Found cameras:', videoDevices);
         setCameras(videoDevices);
 
-        // Try to find back camera first, then any camera
         const backCamera = videoDevices.find(c =>
           c.label.toLowerCase().includes('back') ||
           c.label.toLowerCase().includes('rear') ||
@@ -65,7 +62,6 @@ export default function ScanQrPage() {
         else if (frontCamera) setSelectedCameraId(frontCamera.id);
         else if (videoDevices.length > 0) setSelectedCameraId(videoDevices[0].id);
       } catch (err) {
-        console.error('Camera error:', err);
         setError('Non è possibile accedere alla fotocamera. Assicurati di aver dato i permessi.');
       }
     }
@@ -78,28 +74,20 @@ export default function ScanQrPage() {
 
     setCameraLoading(true);
     setError(null);
+    setResult(null);
 
     try {
-      // Stop any existing scanner
       if (scannerRef.current) {
         await scannerRef.current.stop();
         scannerRef.current = null;
       }
 
       const scanner = new QrScanner(videoRef.current, (scanResult) => {
-        console.log('QR detected:', scanResult);
         const qrData = typeof scanResult === 'string' ? scanResult : scanResult.data;
 
         scanner.stop();
         setScanning(false);
 
-        // For DELIVER QR, we need to ask for deposit location first
-        // We'll do a preliminary check by parsing the QR data client-side
-        // Actually, we need to send to API to know the type, but we need deposit location for deliver
-        // So we store the QR and show the modal
-
-        // Quick check: if QR contains "type=deliver", show deposit modal
-        // Otherwise proceed normally
         if (qrData.includes('"type":"deliver"') || qrData.includes('"type":"pickup"')) {
           const parsed = JSON.parse(qrData);
           if (parsed.type === 'deliver') {
@@ -109,7 +97,6 @@ export default function ScanQrPage() {
           }
         }
 
-        // For pickup or unknown, proceed with normal scan
         processScan(qrData);
       }, {
         returnDetailedScanResult: true,
@@ -120,7 +107,6 @@ export default function ScanQrPage() {
 
       scannerRef.current = scanner;
 
-      // Set camera if selected, then start
       if (selectedCameraId) {
         await scanner.setCamera(selectedCameraId);
       }
@@ -128,7 +114,6 @@ export default function ScanQrPage() {
 
       setScanning(true);
     } catch (err) {
-      console.error('Scanner error:', err);
       setError('Errore nell\'avvio della fotocamera');
     } finally {
       setCameraLoading(false);
@@ -161,7 +146,6 @@ export default function ScanQrPage() {
       });
     })
     .catch(err => {
-      console.error('Fetch error:', err);
       setResult({ success: false, message: 'Errore di connessione' });
     });
   };
@@ -182,30 +166,29 @@ export default function ScanQrPage() {
         <p className="text-gray-500">Inquadra il QR code per registrare consegna o ritiro</p>
       </div>
 
-      {/* Camera Selection - only show when not scanning */}
-      {!scanning && !result && (
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Fotocamera ({cameras.length} trovate)
-          </label>
-          <select
-            value={selectedCameraId}
-            onChange={(e) => setSelectedCameraId(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          >
-            {cameras.length === 0 && (
-              <option value="">Caricamento...</option>
-            )}
-            {cameras.map((cam, i) => (
-              <option key={cam.id} value={cam.id}>
-                {cam.label} ({i === 0 ? 'Frontale' : 'Posteriore'})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* Camera Selection */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Fotocamera ({cameras.length} trovate)
+        </label>
+        <select
+          value={selectedCameraId}
+          onChange={(e) => setSelectedCameraId(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          disabled={scanning}
+        >
+          {cameras.length === 0 && (
+            <option value="">Caricamento...</option>
+          )}
+          {cameras.map((cam, i) => (
+            <option key={cam.id} value={cam.id}>
+              {cam.label} ({i === 0 ? 'Frontale' : 'Posteriore'})
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* Video element - always in DOM, just hidden when not scanning */}
+      {/* Scanner */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
         <div
           className="relative overflow-hidden rounded-lg bg-black"
@@ -213,16 +196,11 @@ export default function ScanQrPage() {
         >
           <video
             ref={videoRef}
-            className={`w-full h-full object-cover ${scanning ? '' : 'hidden'}`}
+            className="w-full h-full object-cover"
             style={{ minHeight: '300px' }}
             playsInline
             muted
           />
-          {!scanning && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <p className="text-gray-500">Attiva la scansione per vedere la fotocamera</p>
-            </div>
-          )}
         </div>
 
         <div className="mt-4 flex justify-center gap-4">
@@ -230,7 +208,7 @@ export default function ScanQrPage() {
             <button
               onClick={startScanning}
               disabled={cameraLoading || cameras.length === 0}
-              className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-lg disabled:opacity-50 flex items-center gap-2 shadow-lg"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 flex items-center gap-2"
             >
               {cameraLoading ? (
                 <>
@@ -238,7 +216,7 @@ export default function ScanQrPage() {
                   Avvio...
                 </>
               ) : (
-                <>📷 Avvia scansione</>
+                'Avvia scansione'
               )}
             </button>
           ) : (
@@ -328,30 +306,16 @@ export default function ScanQrPage() {
       )}
 
       {/* Instructions */}
-      {!scanning && !result && (
-        <div className="bg-gray-50 p-4 rounded-xl">
-          <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
-          <ol className="text-sm text-gray-600 space-y-2">
-            <li>1. Seleziona la fotocamera dal menu</li>
-            <li>2. Clicca su &quot;Avvia scansione&quot;</li>
-            <li>3. Inquadra il QR code di consegna o ritiro</li>
-            <li>4. Per consegne, inserisci la posizione di deposito (scaffale)</li>
-            <li>5. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
-          </ol>
-        </div>
-      )}
-
-      {/* New scan button after result */}
-      {result && !scanning && (
-        <div className="flex justify-center">
-          <button
-            onClick={() => { setResult(null); setDepositLocation(''); }}
-            className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-lg flex items-center gap-2 shadow-lg"
-          >
-            📷 Nuova scansione
-          </button>
-        </div>
-      )}
+      <div className="bg-gray-50 p-4 rounded-xl">
+        <h3 className="font-semibold text-gray-900 mb-2">Istruzioni</h3>
+        <ol className="text-sm text-gray-600 space-y-2">
+          <li>1. Seleziona la fotocamera dal menu</li>
+          <li>2. Clicca su &quot;Avvia scansione&quot;</li>
+          <li>3. Inquadra il QR code di consegna o ritiro</li>
+          <li>4. Per consegne, inserisci la posizione di deposito (scaffale)</li>
+          <li>5. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
+        </ol>
+      </div>
     </div>
   );
 }
