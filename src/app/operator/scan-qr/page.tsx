@@ -97,10 +97,20 @@ export default function ScanQrPage() {
       } catch (err) {
         console.error('Location scanner error:', err);
         setShowLocationScanner(false);
+        setError('Errore nell\'avvio della fotocamera di scansione');
       }
     };
 
-    startLocationScanner();
+    // Wait for video element to be available before starting
+    const waitForVideo = () => {
+      if (!locationVideoRef.current) {
+        setTimeout(waitForVideo, 100);
+        return;
+      }
+      startLocationScanner();
+    };
+
+    waitForVideo();
 
     return () => {
       if (locationScannerRef.current) {
