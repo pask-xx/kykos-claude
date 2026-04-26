@@ -64,7 +64,7 @@ export default function OperatorSidebar({
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[100dvh] bg-gray-50">
       {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(true)}
@@ -85,10 +85,10 @@ export default function OperatorSidebar({
 
       {/* Mobile sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col z-50 transition-transform duration-300 ease-out ${
+        className={`lg:hidden fixed left-0 top-[env(safe-area-inset-top)] h-full w-64 bg-white border-r border-gray-200 flex flex-col z-50 transition-transform duration-300 ease-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
-        style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <Link href="/operator/dashboard" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
@@ -174,7 +174,8 @@ export default function OperatorSidebar({
       </aside>
 
       {/* Mobile header with logo - centered */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40 pt-[env(safe-area-inset-top)]">
+      <header className="lg:hidden fixed left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40"
+              style={{ top: 'env(safe-area-inset-top)' }}>
         <Link href="/operator/dashboard" className="flex items-center gap-3">
           <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
           <span className="text-2xl font-bold text-primary-600">KYKOS</span>
@@ -182,7 +183,8 @@ export default function OperatorSidebar({
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0"
+           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Top bar with notifications */}
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
