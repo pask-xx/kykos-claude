@@ -208,7 +208,7 @@ export default function RecipientRequestsPage() {
                     ) : (
                       <div className="text-sm text-amber-600 flex items-center gap-2">
                         <span>⏳</span>
-                        <span>In attesa di conferma pagamento</span>
+                        <span>In attesa di consegna all'intermediario</span>
                       </div>
                     )}
                   </div>
