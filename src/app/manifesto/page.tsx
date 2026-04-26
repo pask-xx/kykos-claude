@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import SessionDashboardLink from '@/components/SessionDashboardLink';
 
 export default function ManifestoPage() {
   return (
@@ -11,7 +12,8 @@ export default function ManifestoPage() {
               <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
               <span className="text-2xl font-bold text-primary-600">KYKOS</span>
             </Link>
-            <nav className="flex items-center gap-6">
+            <nav className="flex items-center gap-4">
+              <SessionDashboardLink />
               <Link href="/auth/login" className="text-gray-600 hover:text-primary-600 font-medium">
                 Accedi
               </Link>

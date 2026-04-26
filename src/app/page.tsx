@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import SessionDashboardLink from "@/components/SessionDashboardLink";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function Home() {
 
             {/* Desktop nav */}
             <div className="hidden md:flex items-center gap-4">
+              <SessionDashboardLink />
               <Link
                 href="/manifesto"
                 className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition"
