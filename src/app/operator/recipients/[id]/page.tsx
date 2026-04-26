@@ -217,7 +217,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
               <p className="font-medium text-gray-900">🪑 Richiesta beni</p>
-              <p className="text-sm text-gray-500">Può richiedere beni all&apos;ente</p>
+              <p className="text-sm text-gray-500">Può richiedere beni</p>
             </div>
             <button
               onClick={() => toggleRequestPermission('canRequestGoods')}
@@ -236,7 +236,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
               <p className="font-medium text-gray-900">🔧 Richiesta servizi</p>
-              <p className="text-sm text-gray-500">Può richiedere servizi all&apos;ente</p>
+              <p className="text-sm text-gray-500">Può richiedere servizi</p>
             </div>
             <button
               onClick={() => toggleRequestPermission('canRequestServices')}
