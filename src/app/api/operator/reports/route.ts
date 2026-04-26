@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
+import { NotificationType, RecipientType } from '@prisma/client';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -91,6 +92,18 @@ export async function PATCH(request: Request) {
       await prisma.report.update({
         where: { id: reportId },
         data: { status: 'RESOLVED' },
+      });
+
+      // Notify reporter that report was resolved
+      await prisma.notification.create({
+        data: {
+          recipientId: report.reporterId,
+          recipientType: RecipientType.USER,
+          title: 'Segnalazione risolta',
+          message: `La tua segnalazione è stata gestita dall'ente. La ringraziamo per averci aiutato a migliorare il servizio.`,
+          type: NotificationType.REPORT_RESOLVED,
+          link: '/recipient/dashboard',
+        },
       });
     } else if (action === 'dismiss') {
       await prisma.report.update({

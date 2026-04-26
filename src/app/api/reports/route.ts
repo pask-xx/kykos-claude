@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType, RecipientType } from '@prisma/client';
 
 export async function POST(request: Request) {
   try {
@@ -41,6 +42,24 @@ export async function POST(request: Request) {
         status: 'PENDING',
       },
     });
+
+    // Notify operators about the new report
+    const operators = await prisma.operator.findMany({
+      where: { organizationId: object.intermediaryId },
+    });
+
+    for (const op of operators) {
+      await prisma.notification.create({
+        data: {
+          recipientId: op.id,
+          recipientType: RecipientType.OPERATOR,
+          title: 'Nuova segnalazione',
+          message: `Nuova segnalazione per l'oggetto "${object.title}": ${reason.substring(0, 50)}${reason.length > 50 ? '...' : ''}`,
+          type: NotificationType.REPORT_RECEIVED,
+          link: `/operator/reports`,
+        },
+      });
+    }
 
     return NextResponse.json({ report, message: 'Segnalazione inviata' });
   } catch (error) {
