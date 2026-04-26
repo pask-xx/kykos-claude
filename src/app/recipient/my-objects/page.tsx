@@ -69,13 +69,13 @@ export default function RecipientMyObjectsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-medium text-gray-900">Le mie disponibilità</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le mie disponibilità</h1>
           <Link
             href="/recipient/my-objects/new"
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+            className="shrink-0 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm text-center"
           >
-            + Nuovo oggetto
+            + Aggiungi disponibilità
           </Link>
         </div>
 
