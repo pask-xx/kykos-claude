@@ -110,9 +110,9 @@ export default function OperatorLoginPage() {
                   inputMode="text"
                   maxLength={6}
                   value={orgCode}
-                  onChange={(e) => setOrgCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g, ''))}
+                  onChange={(e) => setOrgCode(e.target.value.replace(/[^A-Fa-f0-9]/g, ''))}
                   required
-                  className="w-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-center text-2xl tracking-widest font-mono uppercase"
+                  className="w-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-center text-2xl tracking-widest font-mono"
                   placeholder="A1B2C3"
                 />
               </div>

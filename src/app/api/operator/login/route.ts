@@ -19,9 +19,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find organization by code
+    // Find organization by code (normalize to uppercase)
     const organization = await prisma.organization.findUnique({
-      where: { code: orgCode },
+      where: { code: orgCode.toUpperCase() },
     });
 
     if (!organization) {
