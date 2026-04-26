@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 
-interface GoodsRequest {
+interface EntityRequest {
   id: string;
   title: string;
   category: string;
@@ -36,10 +36,11 @@ interface GoodsRequest {
   }>;
 }
 
-export default function OperatorGoodsRequestsPage() {
-  const [requests, setRequests] = useState<GoodsRequest[]>([]);
+export default function OperatorEntityRequestsPage() {
+  const [requests, setRequests] = useState<EntityRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
+  const [typeFilter, setTypeFilter] = useState<string>('ALL');
 
   useEffect(() => {
     fetchRequests();
@@ -47,7 +48,7 @@ export default function OperatorGoodsRequestsPage() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch('/api/operator/goods-requests');
+      const res = await fetch('/api/operator/requests-entity');
       const data = await res.json();
       setRequests(data.requests || []);
     } catch (error) {
@@ -58,6 +59,7 @@ export default function OperatorGoodsRequestsPage() {
   };
 
   const filteredRequests = requests.filter(r => {
+    if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
     if (filter === 'pending') return r.status === 'PENDING';
     if (filter === 'approved') return r.status === 'APPROVED';
     if (filter === 'fulfilled') return r.status === 'FULFILLED';
@@ -90,12 +92,40 @@ export default function OperatorGoodsRequestsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-medium text-gray-900">Richieste beni</h1>
-        <p className="text-gray-500">Gestisci le richieste di beni dei beneficiari</p>
+        <h1 className="text-3xl font-medium text-gray-900">Richieste all&apos;ente</h1>
+        <p className="text-gray-500">Gestisci le richieste di beni e servizi</p>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Type Filter */}
       <div className="flex gap-2 border-b border-gray-200 pb-4">
+        <button
+          onClick={() => setTypeFilter('ALL')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+            typeFilter === 'ALL' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Tutti
+        </button>
+        <button
+          onClick={() => setTypeFilter('GOODS')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+            typeFilter === 'GOODS' ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          🪑 Beni
+        </button>
+        <button
+          onClick={() => setTypeFilter('SERVICES')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+            typeFilter === 'SERVICES' ? 'bg-purple-100 text-purple-700 border border-purple-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          🔧 Servizi
+        </button>
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex gap-2">
         <button
           onClick={() => setFilter('pending')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
@@ -110,7 +140,7 @@ export default function OperatorGoodsRequestsPage() {
             filter === 'approved' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Appronate ({requests.filter(r => r.status === 'APPROVED').length})
+          Approvate ({requests.filter(r => r.status === 'APPROVED').length})
         </button>
         <button
           onClick={() => setFilter('fulfilled')}
@@ -147,7 +177,7 @@ export default function OperatorGoodsRequestsPage() {
           {filteredRequests.map((request) => (
             <Link
               key={request.id}
-              href={`/operator/goods-requests/${request.id}`}
+              href={`/operator/requests-entity/${request.id}`}
               className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition block"
             >
               <div className="flex gap-4">
@@ -157,7 +187,12 @@ export default function OperatorGoodsRequestsPage() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{request.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900">{request.title}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded ${request.type === 'GOODS' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
+                        </span>
+                      </div>
                       <p className="text-sm text-gray-500 mt-1">
                         Richiesta da {request.beneficiary.name} • {formatDate(request.createdAt)}
                       </p>

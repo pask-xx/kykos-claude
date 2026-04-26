@@ -140,9 +140,9 @@ export async function PATCH(request: Request) {
           recipientId: goodsRequest.beneficiaryId,
           recipientType: RecipientType.USER,
           title: 'Richiesta approvata!',
-          message: `La tua richiesta di beni "${goodsRequest.title}" è stata approvata dall'ente.`,
+          message: `La tua richiesta "${goodsRequest.title}" è stata approvata dall'ente.`,
           type: NotificationType.GOODS_REQUEST_APPROVED,
-          link: `/recipient/goods-requests/${requestId}`,
+          link: `/recipient/requests-entity/requests/${requestId}`,
         },
       });
 
@@ -173,9 +173,9 @@ export async function PATCH(request: Request) {
           recipientId: goodsRequest.beneficiaryId,
           recipientType: RecipientType.USER,
           title: 'Richiesta rifiutata',
-          message: `La tua richiesta di beni "${goodsRequest.title}" è stata rifiutata dall'ente.`,
+          message: `La tua richiesta "${goodsRequest.title}" è stata rifiutata dall'ente.`,
           type: NotificationType.GOODS_REQUEST_REJECTED,
-          link: `/recipient/goods-requests/${requestId}`,
+          link: `/recipient/requests-entity/requests/${requestId}`,
         },
       });
 
@@ -219,10 +219,10 @@ export async function PATCH(request: Request) {
           data: {
             recipientId: op.id,
             recipientType: RecipientType.OPERATOR,
-            title: 'Nuova offerta per richiesta beni',
+            title: 'Nuova offerta per richiesta',
             message: `Qualcuno ha offerto di soddisfare la richiesta "${goodsRequest.title}"`,
             type: NotificationType.GOODS_OFFER_RECEIVED,
-            link: `/operator/goods-requests/${requestId}`,
+            link: `/operator/requests-entity/${requestId}`,
           },
         });
       }
@@ -235,7 +235,7 @@ export async function PATCH(request: Request) {
           title: 'Nuova offerta per la tua richiesta',
           message: `Qualcuno ha offerto di soddisfare la tua richiesta "${goodsRequest.title}"`,
           type: NotificationType.GOODS_OFFER_RECEIVED,
-          link: `/recipient/goods-requests/${requestId}`,
+          link: `/recipient/requests-entity/requests/${requestId}`,
         },
       });
 

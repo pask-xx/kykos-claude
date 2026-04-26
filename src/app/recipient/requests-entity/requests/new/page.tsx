@@ -15,11 +15,12 @@ const categories = [
   { value: 'OTHER', label: 'Altro', icon: '📦' },
 ];
 
-export default function NewGoodsRequestPage() {
+export default function NewEntityRequestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
+  const [type, setType] = useState<'GOODS' | 'SERVICES'>('GOODS');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
 
@@ -38,16 +39,16 @@ export default function NewGoodsRequestPage() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/goods-requests', {
+      const res = await fetch('/api/entity-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, category, description }),
+        body: JSON.stringify({ title, category, type, description }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/recipient/goods-requests');
+        router.push('/recipient/requests-entity/requests');
       } else {
         setError(data.error || 'Errore durante la creazione');
       }
@@ -61,8 +62,8 @@ export default function NewGoodsRequestPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-3xl font-medium text-gray-900">Nuova richiesta di beni</h1>
-        <p className="text-gray-500">Descrivi il bene di cui hai bisogno</p>
+        <h1 className="text-3xl font-medium text-gray-900">Nuova richiesta</h1>
+        <p className="text-gray-500">Descrivi il bene o servizio di cui hai bisogno</p>
       </div>
 
       {error && (
@@ -74,13 +75,47 @@ export default function NewGoodsRequestPage() {
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tipo di richiesta *
+          </label>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setType('GOODS')}
+              className={`flex-1 p-4 rounded-lg border-2 transition flex flex-col items-center gap-2 ${
+                type === 'GOODS'
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-3xl">🪑</span>
+              <span className="font-medium">Bene</span>
+              <span className="text-xs text-gray-500">Oggetto materiale</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setType('SERVICES')}
+              className={`flex-1 p-4 rounded-lg border-2 transition flex flex-col items-center gap-2 ${
+                type === 'SERVICES'
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-3xl">🔧</span>
+              <span className="font-medium">Servizio</span>
+              <span className="text-xs text-gray-500">Lavoro o attività</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Titolo *
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Es: Tavolo da cucina, PC portatile, Vestiti invernali"
+            placeholder={type === 'GOODS' ? 'Es: Tavolo da cucina, PC portatile, Vestiti invernali' : 'Es: Riparazione idraulica, Trasloco, Lezioni private'}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             maxLength={200}
           />
@@ -116,7 +151,7 @@ export default function NewGoodsRequestPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Aggiungi dettagli sul bene che stai cercando: dimensioni, condizione, colore, ecc."
+            placeholder={type === 'GOODS' ? 'Aggiungi dettagli sul bene: dimensioni, condizione, colore, ecc.' : 'Descrivi il servizio di cui hai bisogno: quando, dove, durata stimata, ecc.'}
             rows={4}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             maxLength={1000}
@@ -133,7 +168,7 @@ export default function NewGoodsRequestPage() {
             {loading ? 'Creazione...' : 'Crea richiesta'}
           </button>
           <Link
-            href="/recipient/goods-requests"
+            href="/recipient/requests-entity/requests"
             className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
           >
             Annulla
@@ -143,7 +178,7 @@ export default function NewGoodsRequestPage() {
 
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
         <p className="text-sm text-amber-800">
-          <strong>Nota:</strong> La tua richiesta sarà inviata all'ente di riferimento per l'approvazione. Una volta approvata, sarà visibile ai donatori che potranno offrire il bene di cui hai bisogno.
+          <strong>Nota:</strong> La tua richiesta sarà inviata all&apos;ente di riferimento per l&apos;approvazione. Una volta approvata, sarà visibile a chi può soddisfarla.
         </p>
       </div>
     </div>

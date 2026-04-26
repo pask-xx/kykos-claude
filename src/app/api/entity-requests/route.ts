@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { Category, NotificationType, RecipientType } from '@prisma/client';
+import { Category, NotificationType, RecipientType, RequestType } from '@prisma/client';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -36,21 +36,20 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter') || 'all';
+    const type = searchParams.get('type') as RequestType | null;
 
     let whereClause: any = {};
 
+    if (type) {
+      whereClause.type = type;
+    }
+
     if (filter === 'mine') {
-      // User's own requests
-      whereClause = { beneficiaryId: session.userId };
+      whereClause.beneficiaryId = session.userId;
     } else if (filter === 'available') {
-      // Available requests (approved, not fulfilled, not own)
-      whereClause = {
-        status: 'APPROVED',
-        fulfilledById: null,
-        beneficiaryId: { not: session.userId },
-      };
-    } else {
-      // All for operators/admins or filter by role
+      whereClause.status = 'APPROVED';
+      whereClause.fulfilledById = null;
+      whereClause.beneficiaryId = { not: session.userId };
     }
 
     const requests = await prisma.goodsRequest.findMany({
@@ -78,7 +77,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ requests });
   } catch (error) {
-    console.error('Goods requests GET error:', error);
+    console.error('Entity requests GET error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
@@ -99,21 +98,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Utente non associato a un ente' }, { status: 400 });
     }
 
-    // Check if organization allows goods requests
-    if (!user.referenceEntity.canRequestGoods) {
-      return NextResponse.json({ error: 'L\'ente non permette richieste di beni' }, { status: 403 });
-    }
-
-    const { title, category, description } = await request.json();
+    const { title, category, type, description } = await request.json();
 
     if (!title || !category) {
       return NextResponse.json({ error: 'Titolo e categoria sono obbligatori' }, { status: 400 });
     }
 
-    const goodsRequest = await prisma.goodsRequest.create({
+    const requestType = type === 'SERVICES' ? 'SERVICES' : 'GOODS';
+
+    // Check organization permissions based on type
+    if (requestType === 'GOODS' && !user.referenceEntity.canRequestGoods) {
+      return NextResponse.json({ error: 'L\'ente non permette richieste di beni' }, { status: 403 });
+    }
+    if (requestType === 'SERVICES' && !user.referenceEntity.canRequestServices) {
+      return NextResponse.json({ error: 'L\'ente non permette richieste di servizi' }, { status: 403 });
+    }
+
+    const entityRequest = await prisma.goodsRequest.create({
       data: {
         title,
         category: category as Category,
+        type: requestType,
         description,
         beneficiaryId: session.userId,
         intermediaryId: user.referenceEntityId,
@@ -130,22 +135,24 @@ export async function POST(request: Request) {
       where: { organizationId: user.referenceEntityId },
     });
 
+    const typeLabel = requestType === 'GOODS' ? 'beni' : 'servizi';
+
     for (const op of operators) {
       await prisma.notification.create({
         data: {
           recipientId: op.id,
           recipientType: RecipientType.OPERATOR,
-          title: 'Nuova richiesta beni',
-          message: `${user.name} ha creato una richiesta di beni: "${title}"`,
+          title: `Nuova richiesta ${typeLabel}`,
+          message: `${user.name} ha creato una richiesta di ${typeLabel}: "${title}"`,
           type: NotificationType.GOODS_REQUEST_CREATED,
-          link: `/operator/goods-requests/${goodsRequest.id}`,
+          link: `/operator/requests-entity/${entityRequest.id}`,
         },
       });
     }
 
-    return NextResponse.json({ goodsRequest }, { status: 201 });
+    return NextResponse.json({ entityRequest }, { status: 201 });
   } catch (error) {
-    console.error('Goods requests POST error:', error);
+    console.error('Entity requests POST error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }

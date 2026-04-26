@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 
-interface GoodsRequest {
+interface EntityRequest {
   id: string;
   title: string;
   category: string;
@@ -36,19 +36,19 @@ interface GoodsRequest {
   }>;
 }
 
-export default function RecipientGoodsRequestsPage() {
-  const [requests, setRequests] = useState<GoodsRequest[]>([]);
+export default function RecipientEntityRequestsPage() {
+  const [requests, setRequests] = useState<EntityRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('mine');
-  const [showCreate, setShowCreate] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<string>('GOODS');
 
   useEffect(() => {
     fetchRequests();
-  }, [filter]);
+  }, [filter, typeFilter]);
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch(`/api/goods-requests?filter=${filter}`);
+      const res = await fetch(`/api/entity-requests?filter=${filter}&type=${typeFilter}`);
       const data = await res.json();
       setRequests(data.requests || []);
     } catch (error) {
@@ -81,23 +81,47 @@ export default function RecipientGoodsRequestsPage() {
     return icons[category] || '📦';
   };
 
+  const getTypeLabel = (type: string) => {
+    return type === 'GOODS' ? 'Bene' : 'Servizio';
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-medium text-gray-900">Richieste di beni</h1>
-          <p className="text-gray-500">Gestisci le tue richieste di beni</p>
+          <h1 className="text-3xl font-medium text-gray-900">Richieste all&apos;ente</h1>
+          <p className="text-gray-500">Gestisci le tue richieste di beni e servizi</p>
         </div>
         <Link
-          href="/recipient/goods-requests/new"
+          href="/recipient/requests-entity/new"
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
         >
           + Nuova richiesta
         </Link>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Type Filter */}
       <div className="flex gap-2 border-b border-gray-200 pb-4">
+        <button
+          onClick={() => setTypeFilter('GOODS')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+            typeFilter === 'GOODS' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          🪑 Beni
+        </button>
+        <button
+          onClick={() => setTypeFilter('SERVICES')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+            typeFilter === 'SERVICES' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          🔧 Servizi
+        </button>
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex gap-2">
         <button
           onClick={() => setFilter('mine')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
@@ -133,11 +157,11 @@ export default function RecipientGoodsRequestsPage() {
           <span className="text-5xl mb-4 block">📋</span>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
           <p className="text-gray-500">
-            {filter === 'mine' ? 'Non hai ancora creato richieste di beni.' : 'Non ci sono richieste disponibili.'}
+            {filter === 'mine' ? 'Non hai ancora creato richieste.' : 'Non ci sono richieste disponibili.'}
           </p>
           {filter === 'mine' && (
             <Link
-              href="/recipient/goods-requests/new"
+              href="/recipient/requests-entity/new"
               className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               Crea la tua prima richiesta
@@ -149,7 +173,7 @@ export default function RecipientGoodsRequestsPage() {
           {requests.map((request) => (
             <Link
               key={request.id}
-              href={`/recipient/goods-requests/${request.id}`}
+              href={`/recipient/requests-entity/${request.id}`}
               className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition"
             >
               <div className="flex gap-4">
@@ -159,7 +183,12 @@ export default function RecipientGoodsRequestsPage() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{request.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900">{request.title}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded ${request.type === 'GOODS' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {getTypeLabel(request.type)}
+                        </span>
+                      </div>
                       <p className="text-sm text-gray-500 mt-1">
                         {filter === 'available' ? `Da ${request.beneficiary.name}` : ''} • {formatDate(request.createdAt)}
                       </p>

@@ -71,7 +71,7 @@ export async function GET() {
 
     return NextResponse.json({ requests });
   } catch (error) {
-    console.error('Operator goods requests GET error:', error);
+    console.error('Operator entity requests GET error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
