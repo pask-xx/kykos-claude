@@ -29,12 +29,8 @@ export default function ScanQrPage() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [pendingQrData, setPendingQrData] = useState<string | null>(null);
   const [depositLocation, setDepositLocation] = useState('');
-  const [showLocationScanner, setShowLocationScanner] = useState(false);
-  const [locationInputMode, setLocationInputMode] = useState<'text' | 'scan'>('text');
   const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const locationVideoRef = useRef<HTMLVideoElement | null>(null);
-  const locationScannerRef = useRef<QrScanner | null>(null);
 
   useEffect(() => {
     async function getCameras() {
@@ -67,59 +63,6 @@ export default function ScanQrPage() {
     getCameras();
   }, []);
 
-  // Handle location scanner visibility
-  useEffect(() => {
-    if (!showLocationScanner) {
-      if (locationScannerRef.current) {
-        locationScannerRef.current.stop();
-        locationScannerRef.current = null;
-      }
-      return;
-    }
-
-    const startLocationScanner = async () => {
-      if (!locationVideoRef.current) return;
-
-      try {
-        const scanner = new QrScanner(locationVideoRef.current, (scanResult) => {
-          const data = typeof scanResult === 'string' ? scanResult : scanResult.data;
-          scanner.stop();
-          setShowLocationScanner(false);
-          setDepositLocation(data);
-        }, {
-          returnDetailedScanResult: true,
-          highlightScanRegion: true,
-          maxScansPerSecond: 5,
-        });
-
-        locationScannerRef.current = scanner;
-        await scanner.start();
-      } catch (err) {
-        console.error('Location scanner error:', err);
-        setShowLocationScanner(false);
-        setError('Errore nell\'avvio della fotocamera di scansione');
-      }
-    };
-
-    // Wait for video element to be available before starting
-    const waitForVideo = () => {
-      if (!locationVideoRef.current) {
-        setTimeout(waitForVideo, 100);
-        return;
-      }
-      startLocationScanner();
-    };
-
-    waitForVideo();
-
-    return () => {
-      if (locationScannerRef.current) {
-        locationScannerRef.current.stop();
-        locationScannerRef.current = null;
-      }
-    };
-  }, [showLocationScanner]);
-
   const startScanning = async () => {
     setShowCamera(true);
     setCameraLoading(true);
@@ -146,29 +89,13 @@ export default function ScanQrPage() {
         setScanning(false);
         setShowCamera(false);
 
-        // Check if it's a deliver QR (format: kykos:deliver:requestId:donorId)
-        if (qrData.startsWith('kykos:deliver:')) {
-          setPendingQrData(qrData);
-          setShowDepositModal(true);
-          return;
-        }
-
-        // Check if it's a pickup QR (format: kykos:pickup:requestId:beneficiaryId)
-        if (qrData.startsWith('kykos:pickup:')) {
-          processScan(qrData);
-          return;
-        }
-
-        // Fallback: try to parse as JSON for legacy format
-        try {
+        if (qrData.includes('"type":"deliver"') || qrData.includes('"type":"pickup"')) {
           const parsed = JSON.parse(qrData);
           if (parsed.type === 'deliver') {
             setPendingQrData(qrData);
             setShowDepositModal(true);
             return;
           }
-        } catch {
-          // Not JSON, continue to processScan
         }
 
         processScan(qrData);
@@ -303,7 +230,7 @@ export default function ScanQrPage() {
             style={{ minHeight: '300px' }}
           >
             <video
-              ref={locationVideoRef}
+              ref={videoRef}
               className="w-full h-full object-cover"
               style={{ minHeight: '300px' }}
               playsInline
@@ -367,120 +294,32 @@ export default function ScanQrPage() {
       {showDepositModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Posizione di deposito</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Posizione di deposito</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Inserisci o scansiona la posizione dove l&apos;oggetto verrà depositato (es. scaffale, corridoio, etc.)
+              Inserisci la posizione dove l&apos;oggetto verrà depositato (es. scaffale, corridoio, etc.)
             </p>
-
-            {/* Mode Toggle */}
-            <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={depositLocation}
+              onChange={(e) => setDepositLocation(e.target.value)}
+              placeholder="Es. Scaffale A-12"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3">
               <button
-                type="button"
-                onClick={() => setLocationInputMode('text')}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm ${
-                  locationInputMode === 'text'
-                    ? 'bg-primary-100 text-primary-700 border-2 border-primary-400'
-                    : 'bg-gray-100 text-gray-600 border-2 border-transparent'
-                }`}
+                onClick={() => { setShowDepositModal(false); setPendingQrData(null); setDepositLocation(''); }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                ✏️ Manuale
+                Annulla
               </button>
               <button
-                type="button"
-                onClick={() => setLocationInputMode('scan')}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm ${
-                  locationInputMode === 'scan'
-                    ? 'bg-primary-100 text-primary-700 border-2 border-primary-400'
-                    : 'bg-gray-100 text-gray-600 border-2 border-transparent'
-                }`}
+                onClick={handleDepositConfirm}
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
               >
-                📷 Scansiona
+                Conferma
               </button>
             </div>
-
-            {/* Text Input Mode */}
-            {locationInputMode === 'text' && (
-              <>
-                <input
-                  type="text"
-                  value={depositLocation}
-                  onChange={(e) => setDepositLocation(e.target.value)}
-                  placeholder="Es. Scaffale A-12"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none mb-4"
-                  autoFocus
-                />
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setShowDepositModal(false); setPendingQrData(null); setDepositLocation(''); setLocationInputMode('text'); }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    onClick={handleDepositConfirm}
-                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-                  >
-                    Conferma
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* Scan Mode */}
-            {locationInputMode === 'scan' && (
-              <>
-                <div className="mb-4">
-                  <div className="bg-gray-100 rounded-lg p-4 text-center">
-                    {showLocationScanner ? (
-                      <div className="relative">
-                        <video
-                          ref={locationVideoRef}
-                          className="w-full h-48 object-cover rounded-lg"
-                          style={{ minHeight: '192px' }}
-                          playsInline
-                          muted
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowLocationScanner(false)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowLocationScanner(true)}
-                        className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-                      >
-                        📷 Avvia scansione posizione
-                      </button>
-                    )}
-                  </div>
-                  {depositLocation && (
-                    <p className="text-sm text-green-600 mt-2 text-center">
-                      ✓ Posizione rilevata: <strong>{depositLocation}</strong>
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setShowDepositModal(false); setPendingQrData(null); setDepositLocation(''); setLocationInputMode('text'); setShowLocationScanner(false); }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    onClick={handleDepositConfirm}
-                    disabled={!depositLocation}
-                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
-                  >
-                    Conferma
-                  </button>
-                </div>
-              </>
-            )}
           </div>
         </div>
       )}
