@@ -183,8 +183,7 @@ export default function OperatorSidebar({
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0"
-           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0">
         {/* Top bar with notifications */}
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
