@@ -179,15 +179,15 @@ export default function OperatorSidebar({
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0">
+      <main className="min-h-screen lg:ml-64 pt-14 lg:pt-0">
         {/* Top bar with notifications */}
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4">
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
         </div>
-        <main className="p-4 sm:p-6">
+        <div className="px-4 sm:px-6 py-4 sm:py-6">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
