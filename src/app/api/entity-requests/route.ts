@@ -114,6 +114,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non hai il permesso di richiedere servizi' }, { status: 403 });
     }
 
+    // Check if organization auto-approves requests
+    const shouldAutoApprove = user.referenceEntity?.autoApproveRequests ?? false;
+    const initialStatus = shouldAutoApprove ? 'APPROVED' : 'PENDING';
+
     const entityRequest = await prisma.goodsRequest.create({
       data: {
         title,
@@ -122,7 +126,7 @@ export async function POST(request: Request) {
         description,
         beneficiaryId: session.userId,
         intermediaryId: user.referenceEntityId,
-        status: 'PENDING',
+        status: initialStatus,
       },
       include: {
         beneficiary: { select: { name: true } },
@@ -130,24 +134,26 @@ export async function POST(request: Request) {
       },
     });
 
-    // Create notification for operators
-    const operators = await prisma.operator.findMany({
-      where: { organizationId: user.referenceEntityId },
-    });
-
-    const typeLabel = requestType === 'GOODS' ? 'beni' : 'servizi';
-
-    for (const op of operators) {
-      await prisma.notification.create({
-        data: {
-          recipientId: op.id,
-          recipientType: RecipientType.OPERATOR,
-          title: `Nuova richiesta ${typeLabel}`,
-          message: `${user.name} ha creato una richiesta di ${typeLabel}: "${title}"`,
-          type: NotificationType.GOODS_REQUEST_CREATED,
-          link: `/operator/requests-entity/${entityRequest.id}`,
-        },
+    // Create notification for operators only if not auto-approved
+    if (!shouldAutoApprove) {
+      const operators = await prisma.operator.findMany({
+        where: { organizationId: user.referenceEntityId },
       });
+
+      const typeLabel = requestType === 'GOODS' ? 'beni' : 'servizi';
+
+      for (const op of operators) {
+        await prisma.notification.create({
+          data: {
+            recipientId: op.id,
+            recipientType: RecipientType.OPERATOR,
+            title: `Nuova richiesta ${typeLabel}`,
+            message: `${user.name} ha creato una richiesta di ${typeLabel}: "${title}"`,
+            type: NotificationType.GOODS_REQUEST_CREATED,
+            link: `/operator/requests-entity/${entityRequest.id}`,
+          },
+        });
+      }
     }
 
     return NextResponse.json({ entityRequest }, { status: 201 });
