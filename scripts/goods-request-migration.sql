@@ -3,13 +3,14 @@
 -- Run this manually on the database
 -- =============================================
 
--- 1. Add canRequestGoods and canRequestServices to organizations
-ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "canRequestGoods" BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "canRequestServices" BOOLEAN NOT NULL DEFAULT false;
-
--- 2. Add canProvideServices to users
+-- 1. Add canProvideServices to users (already exists, skip if error)
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "canProvideServices" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "canProvideServicesAt" TIMESTAMP(3);
+
+-- 2. Add canRequestGoods and canRequestServices to users (NOT on organizations)
+-- Default: canRequestGoods = true (permesso di default), canRequestServices = false
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "canRequestGoods" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "canRequestServices" BOOLEAN NOT NULL DEFAULT false;
 
 -- 3. Create NotificationType enum value (if notifications table already exists)
 DO $$

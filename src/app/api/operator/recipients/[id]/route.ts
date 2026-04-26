@@ -73,6 +73,8 @@ export async function GET(
         isee: true,
         authorized: true,
         authorizedAt: true,
+        canRequestGoods: true,
+        canRequestServices: true,
         createdAt: true,
       },
     });
@@ -238,13 +240,15 @@ export async function PATCH(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    const { authorized } = await request.json();
+    const { authorized, canRequestGoods, canRequestServices } = await request.json();
 
     await prisma.user.update({
       where: { id },
       data: {
         authorized: authorized !== undefined ? authorized : recipient.authorized,
         authorizedAt: authorized ? (recipient.authorizedAt || new Date()) : null,
+        canRequestGoods: canRequestGoods !== undefined ? canRequestGoods : recipient.canRequestGoods,
+        canRequestServices: canRequestServices !== undefined ? canRequestServices : recipient.canRequestServices,
       },
     });
 

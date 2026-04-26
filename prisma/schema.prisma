@@ -162,6 +162,8 @@ model User {
   authorizedAt         DateTime?
   canProvideServices   Boolean       @default(false)
   canProvideServicesAt DateTime?
+  canRequestGoods     Boolean       @default(true)
+  canRequestServices  Boolean       @default(false)
 
   // Donor relations
   donatedObjects Object[]      @relation("DonorObjects")
@@ -208,8 +210,6 @@ model Organization {
   email               String?
   verified            Boolean  @default(false)
   autoApproveRequests Boolean  @default(false)
-  canRequestGoods     Boolean  @default(false)
-  canRequestServices  Boolean  @default(false)
   hoursInfo           String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

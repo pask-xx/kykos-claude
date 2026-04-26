@@ -106,12 +106,12 @@ export async function POST(request: Request) {
 
     const requestType = type === 'SERVICES' ? 'SERVICES' : 'GOODS';
 
-    // Check organization permissions based on type
-    if (requestType === 'GOODS' && !user.referenceEntity?.canRequestGoods) {
-      return NextResponse.json({ error: 'L\'ente non permette richieste di beni' }, { status: 403 });
+    // Check user permissions based on type
+    if (requestType === 'GOODS' && !user.canRequestGoods) {
+      return NextResponse.json({ error: 'Non hai il permesso di richiedere beni' }, { status: 403 });
     }
-    if (requestType === 'SERVICES' && !user.referenceEntity?.canRequestServices) {
-      return NextResponse.json({ error: 'L\'ente non permette richieste di servizi' }, { status: 403 });
+    if (requestType === 'SERVICES' && !user.canRequestServices) {
+      return NextResponse.json({ error: 'Non hai il permesso di richiedere servizi' }, { status: 403 });
     }
 
     const entityRequest = await prisma.goodsRequest.create({

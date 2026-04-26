@@ -41,6 +41,8 @@ interface Recipient {
   isee: string | null;
   authorized: boolean;
   authorizedAt: string | null;
+  canRequestGoods: boolean;
+  canRequestServices: boolean;
   createdAt: string;
 }
 
@@ -118,6 +120,31 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
     }
   };
 
+  const toggleRequestPermission = async (field: 'canRequestGoods' | 'canRequestServices') => {
+    if (!recipient) return;
+    setUpdating(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/operator/recipients/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: !recipient[field] }),
+      });
+
+      if (res.ok) {
+        setRecipient(prev => prev ? { ...prev, [field]: !prev[field] } : null);
+      } else {
+        const err = await res.json();
+        setError(err.error || 'Errore');
+      }
+    } catch (err) {
+      setError('Errore di rete');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -181,6 +208,51 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       }`}>
         <span className={`w-2 h-2 rounded-full ${recipient.authorized ? 'bg-green-500' : 'bg-gray-400'}`} />
         {recipient.authorized ? 'Attivo' : 'Disattivato'}
+      </div>
+
+      {/* Permissions */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Permessi richieste</h2>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-900">🪑 Richiesta beni</p>
+              <p className="text-sm text-gray-500">Può richiedere beni all&apos;ente</p>
+            </div>
+            <button
+              onClick={() => toggleRequestPermission('canRequestGoods')}
+              disabled={updating}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                recipient.canRequestGoods ? 'bg-green-500' : 'bg-gray-300'
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  recipient.canRequestGoods ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-900">🔧 Richiesta servizi</p>
+              <p className="text-sm text-gray-500">Può richiedere servizi all&apos;ente</p>
+            </div>
+            <button
+              onClick={() => toggleRequestPermission('canRequestServices')}
+              disabled={updating}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                recipient.canRequestServices ? 'bg-green-500' : 'bg-gray-300'
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  recipient.canRequestServices ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Info Card */}
