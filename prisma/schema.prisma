@@ -208,8 +208,10 @@ model Organization {
   province            String?
   phone               String?
   email               String?
-  verified            Boolean  @default(false)
-  autoApproveRequests Boolean  @default(false)
+  verified                   Boolean  @default(false)
+  autoApproveRequests       Boolean  @default(false) // Oggetti dal donatore
+  autoApproveGoodsRequests  Boolean  @default(true)  // Richieste beni
+  autoApproveServicesRequests Boolean @default(false) // Richieste servizi
   hoursInfo           String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

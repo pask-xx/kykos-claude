@@ -114,8 +114,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non hai il permesso di richiedere servizi' }, { status: 403 });
     }
 
-    // Check if organization auto-approves requests
-    const shouldAutoApprove = user.referenceEntity?.autoApproveRequests ?? false;
+    // Check if organization auto-approves based on request type
+    const shouldAutoApprove = requestType === 'GOODS'
+      ? (user.referenceEntity?.autoApproveGoodsRequests ?? true)
+      : (user.referenceEntity?.autoApproveServicesRequests ?? false);
     const initialStatus = shouldAutoApprove ? 'APPROVED' : 'PENDING';
 
     const entityRequest = await prisma.goodsRequest.create({

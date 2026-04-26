@@ -67,6 +67,8 @@ export async function GET() {
         longitude: true,
         verified: true,
         autoApproveRequests: true,
+        autoApproveGoodsRequests: true,
+        autoApproveServicesRequests: true,
         hoursInfo: true,
       },
     });
@@ -100,7 +102,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { hoursInfo, autoApproveRequests } = body;
+    const { hoursInfo, autoApproveRequests, autoApproveGoodsRequests, autoApproveServicesRequests } = body;
 
     const updateData: Record<string, unknown> = {};
 
@@ -110,6 +112,14 @@ export async function PATCH(request: Request) {
 
     if (autoApproveRequests !== undefined) {
       updateData.autoApproveRequests = autoApproveRequests;
+    }
+
+    if (autoApproveGoodsRequests !== undefined) {
+      updateData.autoApproveGoodsRequests = autoApproveGoodsRequests;
+    }
+
+    if (autoApproveServicesRequests !== undefined) {
+      updateData.autoApproveServicesRequests = autoApproveServicesRequests;
     }
 
     await prisma.organization.update({

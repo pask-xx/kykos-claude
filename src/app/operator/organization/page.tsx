@@ -10,6 +10,8 @@ interface OrganizationData {
   type: string;
   code: string;
   autoApproveRequests: boolean;
+  autoApproveGoodsRequests: boolean;
+  autoApproveServicesRequests: boolean;
   hoursInfo: string | null;
 }
 
@@ -22,6 +24,8 @@ export default function OrganizationSettingsPage() {
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [hoursInfo, setHoursInfo] = useState('');
   const [autoApproveRequests, setAutoApproveRequests] = useState(false);
+  const [autoApproveGoodsRequests, setAutoApproveGoodsRequests] = useState(true);
+  const [autoApproveServicesRequests, setAutoApproveServicesRequests] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -54,6 +58,8 @@ export default function OrganizationSettingsPage() {
           setOrganization(orgData.organization);
           setHoursInfo(orgData.organization.hoursInfo || '');
           setAutoApproveRequests(orgData.organization.autoApproveRequests || false);
+          setAutoApproveGoodsRequests(orgData.organization.autoApproveGoodsRequests ?? true);
+          setAutoApproveServicesRequests(orgData.organization.autoApproveServicesRequests ?? false);
         }
       }
     } catch (err) {
@@ -75,6 +81,8 @@ export default function OrganizationSettingsPage() {
         body: JSON.stringify({
           hoursInfo,
           autoApproveRequests,
+          autoApproveGoodsRequests,
+          autoApproveServicesRequests,
         }),
       });
 
@@ -92,27 +100,39 @@ export default function OrganizationSettingsPage() {
     }
   };
 
-  const handleAutoApproveToggle = async (checked: boolean) => {
-    setAutoApproveRequests(checked);
+  const handleAutoApproveToggle = async (field: string, checked: boolean) => {
+    if (field === 'autoApproveRequests') setAutoApproveRequests(checked);
+    if (field === 'autoApproveGoodsRequests') setAutoApproveGoodsRequests(checked);
+    if (field === 'autoApproveServicesRequests') setAutoApproveServicesRequests(checked);
+
     setSaving(true);
 
     try {
       const res = await fetch('/api/operator/organization', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ autoApproveRequests: checked }),
+        body: JSON.stringify({ [field]: checked }),
       });
 
       if (res.ok) {
-        setSuccess(checked ? 'Approvazione automatica attivata' : 'Approvazione automatica disattivata');
+        const labels: Record<string, string> = {
+          autoApproveRequests: 'Oggetti',
+          autoApproveGoodsRequests: 'Beni',
+          autoApproveServicesRequests: 'Servizi',
+        };
+        setSuccess(`${labels[field]}: ${checked ? 'Approvazione automatica attivata' : 'disattivata'}`);
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setAutoApproveRequests(!checked);
+        if (field === 'autoApproveRequests') setAutoApproveRequests(!checked);
+        if (field === 'autoApproveGoodsRequests') setAutoApproveGoodsRequests(!checked);
+        if (field === 'autoApproveServicesRequests') setAutoApproveServicesRequests(!checked);
         const data = await res.json();
         setError(data.error || 'Errore');
       }
     } catch (err) {
-      setAutoApproveRequests(!checked);
+      if (field === 'autoApproveRequests') setAutoApproveRequests(!checked);
+      if (field === 'autoApproveGoodsRequests') setAutoApproveGoodsRequests(!checked);
+      if (field === 'autoApproveServicesRequests') setAutoApproveServicesRequests(!checked);
       setError('Errore di rete');
     } finally {
       setSaving(false);
@@ -180,32 +200,72 @@ export default function OrganizationSettingsPage() {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>⚙️</span> Richieste beni e servizi
+          <span>⚙️</span> Approvazione automatica richieste
         </h2>
         <p className="text-sm text-gray-500 mb-4">
-          Configura come vengono gestite le richieste di beni e servizi da parte dei beneficiari.
+          Configura se le richieste vengono approvate automaticamente senza intervento dell&apos;operatore.
         </p>
 
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-          <div>
-            <p className="font-medium text-gray-900">Approvazione automatica</p>
-            <p className="text-sm text-gray-500">
-              Le richieste vengono approvate automaticamente senza intervento dell&apos;operatore
-            </p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-900">📦 Oggetti</p>
+              <p className="text-sm text-gray-500">Richieste di oggetti pubblicati da donatori</p>
+            </div>
+            <button
+              onClick={() => handleAutoApproveToggle('autoApproveRequests', !autoApproveRequests)}
+              disabled={saving}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                autoApproveRequests ? 'bg-green-500' : 'bg-gray-300'
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  autoApproveRequests ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
-          <button
-            onClick={() => handleAutoApproveToggle(!autoApproveRequests)}
-            disabled={saving}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              autoApproveRequests ? 'bg-green-500' : 'bg-gray-300'
-            } disabled:opacity-50`}
-          >
-            <span
-              className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                autoApproveRequests ? 'translate-x-7' : 'translate-x-1'
-              }`}
-            />
-          </button>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-900">🪑 Beni</p>
+              <p className="text-sm text-gray-500">Richieste di beni da parte dei beneficiari</p>
+            </div>
+            <button
+              onClick={() => handleAutoApproveToggle('autoApproveGoodsRequests', !autoApproveGoodsRequests)}
+              disabled={saving}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                autoApproveGoodsRequests ? 'bg-green-500' : 'bg-gray-300'
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  autoApproveGoodsRequests ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-900">🔧 Servizi</p>
+              <p className="text-sm text-gray-500">Richieste di servizi da parte dei beneficiari</p>
+            </div>
+            <button
+              onClick={() => handleAutoApproveToggle('autoApproveServicesRequests', !autoApproveServicesRequests)}
+              disabled={saving}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                autoApproveServicesRequests ? 'bg-green-500' : 'bg-gray-300'
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  autoApproveServicesRequests ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 
