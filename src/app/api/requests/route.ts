@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       include: {
         object: {
           include: {
-            donor: { select: { name: true, email: true } },
+            donor: { select: { id: true, name: true, email: true } },
           },
         },
       },
@@ -93,10 +93,10 @@ export async function POST(request: Request) {
       });
     }
 
-    // Notify donor via email
+    // Notify donor via email and in-app
     const donorEmail = req.object.donor.email;
     const donorName = req.object.donor.name;
-    await sendRequestNotification(donorEmail, donorName, object.title, object.id);
+    await sendRequestNotification(donorEmail, req.object.donorId, donorName, object.title, object.id);
 
     return NextResponse.json({ request: req, autoApproved: shouldAutoApprove });
   } catch (error) {

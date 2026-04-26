@@ -124,8 +124,10 @@ export async function POST(request: Request) {
       const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
       await sendPickupQrNotification(
         req.recipient.email,
+        req.recipientId,
         req.recipient.name,
         req.object.title,
+        req.objectId,
         pickupQrData,
         pickupQrImage,
         req.object.intermediary.name,

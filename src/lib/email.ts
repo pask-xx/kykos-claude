@@ -111,6 +111,7 @@ export async function sendRequestNotification(
 
 export async function sendObjectAvailableNotification(
   toEmail: string,
+  recipientId: string,
   recipientName: string,
   objectTitle: string,
   objectId: string
@@ -145,13 +146,17 @@ export async function sendObjectAvailableNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(recipientId, 'Oggetto disponibile!', `"${objectTitle}" è ora disponibile per il ritiro`, NotificationType.OBJECT_AVAILABLE, `/objects/${objectId}`);
+  return true;
 }
 
 export async function sendQrCodeNotification(
   toEmail: string,
+  recipientId: string,
   recipientName: string,
   objectTitle: string,
+  objectId: string,
   qrCodeData: string,
   qrCodeImageUrl: string
 ): Promise<boolean> {
@@ -190,11 +195,14 @@ export async function sendQrCodeNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(recipientId, 'QR Code per il ritiro', `Il tuo QR code per ritirare "${objectTitle}" è pronto`, NotificationType.OBJECT_DELIVERED, '/recipient/dashboard');
+  return true;
 }
 
 export async function sendDeliveryQrNotification(
   toEmail: string,
+  donorId: string,
   donorName: string,
   objectTitle: string,
   qrCodeData: string,
@@ -258,12 +266,16 @@ export async function sendDeliveryQrNotification(
   `;
 
   return sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(donorId, 'QR Code per la consegna', `Il tuo QR code per consegnare "${objectTitle}" è pronto`, NotificationType.OBJECT_DELIVERED, '/donor/dashboard');
+  return true;
 }
 
 export async function sendPickupQrNotification(
   toEmail: string,
+  recipientId: string,
   recipientName: string,
   objectTitle: string,
+  objectId: string,
   qrCodeData: string,
   qrCodeImageUrl: string,
   organizationName: string,
@@ -325,10 +337,13 @@ export async function sendPickupQrNotification(
   `;
 
   return sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(recipientId, 'QR Code per il ritiro', `Il tuo QR code per ritirare "${objectTitle}" è pronto`, NotificationType.OBJECT_DELIVERED, '/recipient/dashboard');
+  return true;
 }
 
 export async function sendObjectReadyForPickupNotification(
   toEmail: string,
+  recipientId: string,
   recipientName: string,
   objectTitle: string,
   objectId: string
@@ -361,10 +376,13 @@ export async function sendObjectReadyForPickupNotification(
   `;
 
   return sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(recipientId, 'Oggetto pronto per il ritiro!', `"${objectTitle}" è pronto, recati presso l'ente per il ritiro`, NotificationType.OBJECT_DELIVERED, '/recipient/dashboard');
+  return true;
 }
 
 export async function sendDonationConfirmedNotification(
   toEmail: string,
+  donorId: string,
   donorName: string,
   objectTitle: string
 ): Promise<boolean> {
@@ -396,6 +414,8 @@ export async function sendDonationConfirmedNotification(
   `;
 
   return sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(donorId, 'Donazione completata!', `La tua donazione di "${objectTitle}" è stata consegnata con successo`, NotificationType.DONATION_CONFIRMED, '/donor/dashboard');
+  return true;
 }
 
 export async function sendWelcomeEmail(

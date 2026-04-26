@@ -77,10 +77,10 @@ export async function PATCH(request: Request) {
       include: {
         object: {
           include: {
-            donor: { select: { name: true, email: true } },
+            donor: { select: { id: true, name: true, email: true } },
           },
         },
-        recipient: { select: { name: true, email: true } },
+        recipient: { select: { id: true, name: true, email: true } },
       },
     });
 
@@ -129,6 +129,7 @@ export async function PATCH(request: Request) {
       // Send Delivery QR to DONOR only (donor must deliver first)
       await sendDeliveryQrNotification(
         req.object.donor.email,
+        req.object.donorId,
         req.object.donor.name,
         req.object.title,
         deliverQrData,
@@ -150,6 +151,7 @@ export async function PATCH(request: Request) {
       // Notify donor of completed donation
       await sendDonationConfirmedNotification(
         req.object.donor.email,
+        req.object.donorId,
         req.object.donor.name,
         req.object.title
       );
