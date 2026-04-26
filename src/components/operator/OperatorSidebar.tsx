@@ -64,7 +64,7 @@ export default function OperatorSidebar({
   });
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(true)}
