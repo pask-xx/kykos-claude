@@ -265,7 +265,7 @@ export async function sendDeliveryQrNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
   await createNotificationForUser(donorId, 'QR Code per la consegna', `Il tuo QR code per consegnare "${objectTitle}" è pronto`, NotificationType.OBJECT_DELIVERED, '/donor/dashboard');
   return true;
 }
@@ -336,7 +336,7 @@ export async function sendPickupQrNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
   await createNotificationForUser(recipientId, 'QR Code per il ritiro', `Il tuo QR code per ritirare "${objectTitle}" è pronto`, NotificationType.OBJECT_DELIVERED, '/recipient/dashboard');
   return true;
 }
@@ -375,7 +375,7 @@ export async function sendObjectReadyForPickupNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
   await createNotificationForUser(recipientId, 'Oggetto pronto per il ritiro!', `"${objectTitle}" è pronto, recati presso l'ente per il ritiro`, NotificationType.OBJECT_DELIVERED, '/recipient/dashboard');
   return true;
 }
@@ -413,7 +413,7 @@ export async function sendDonationConfirmedNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
   await createNotificationForUser(donorId, 'Donazione completata!', `La tua donazione di "${objectTitle}" è stata consegnata con successo`, NotificationType.DONATION_CONFIRMED, '/donor/dashboard');
   return true;
 }
