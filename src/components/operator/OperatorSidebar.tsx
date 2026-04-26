@@ -120,7 +120,7 @@ export default function OperatorSidebar({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200 flex-shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
