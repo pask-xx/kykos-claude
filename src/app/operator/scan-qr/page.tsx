@@ -100,7 +100,11 @@ export default function ScanQrPage() {
 
         // Check if it's a pickup QR (format: kykos:pickup:requestId:beneficiaryId)
         if (qrData.startsWith('kykos:pickup:')) {
-          processScan(qrData);
+          // Parse to get requestId
+          const parts = qrData.split(':');
+          const requestId = parts[2];
+          // Navigate to pickup page
+          router.push(`/operator/pickup/${requestId}`);
           return;
         }
 
@@ -109,6 +113,10 @@ export default function ScanQrPage() {
           const parsed = JSON.parse(qrData);
           if (parsed.type === 'deliver' && parsed.requestId) {
             router.push(`/operator/deposit/${parsed.requestId}`);
+            return;
+          }
+          if (parsed.type === 'pickup' && parsed.requestId) {
+            router.push(`/operator/pickup/${parsed.requestId}`);
             return;
           }
         } catch {
