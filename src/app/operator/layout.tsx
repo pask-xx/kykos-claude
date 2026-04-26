@@ -56,9 +56,7 @@ export default async function OperatorLayout({ children }: { children: React.Rea
       operatorName={`${operator.firstName} ${operator.lastName}`}
       organizationName={operator.organization.name}
     >
-      <div className="p-6">
-        {children}
-      </div>
+      {children}
     </OperatorSidebar>
   );
 }

@@ -64,7 +64,7 @@ export default function OperatorSidebar({
   });
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(true)}
@@ -99,7 +99,7 @@ export default function OperatorSidebar({
             ✕
           </button>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
@@ -119,7 +119,7 @@ export default function OperatorSidebar({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
@@ -131,7 +131,7 @@ export default function OperatorSidebar({
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
+      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-shrink-0 flex-col fixed left-0 top-0 h-full">
         <div className="p-4 border-b border-gray-200">
           <Link href="/operator/dashboard" className="flex items-center gap-2">
             <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
@@ -139,7 +139,7 @@ export default function OperatorSidebar({
           </Link>
           <p className="text-xs text-gray-500 mt-1 truncate">{organizationName}</p>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
@@ -158,7 +158,7 @@ export default function OperatorSidebar({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
@@ -170,13 +170,21 @@ export default function OperatorSidebar({
         </div>
       </aside>
 
+      {/* Mobile header with logo - centered */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40">
+        <Link href="/operator/dashboard" className="flex items-center gap-3">
+          <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
+          <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+        </Link>
+      </header>
+
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0">
         {/* Top bar with notifications */}
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4">
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
         </div>
-        <main className="flex-1 overflow-auto">
+        <main className="p-4 sm:p-6">
           {children}
         </main>
       </div>
