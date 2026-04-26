@@ -98,10 +98,10 @@ export default function OperatorRequestsPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-4">
+      <div className="flex gap-2 border-b border-gray-200 pb-4 overflow-x-auto">
         <a
           href="/operator/requests?status=pending"
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition whitespace-nowrap ${
             statusFilter === 'pending'
               ? 'bg-amber-100 text-amber-700 border border-amber-300'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -111,7 +111,7 @@ export default function OperatorRequestsPage() {
         </a>
         <a
           href="/operator/requests?status=processed"
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition whitespace-nowrap ${
             statusFilter === 'processed'
               ? 'bg-green-100 text-green-700 border border-green-300'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -140,60 +140,74 @@ export default function OperatorRequestsPage() {
       ) : (
         <div className="space-y-4">
           {displayRequests.map((req) => (
-            <div key={req.id} className={`bg-white p-4 rounded-xl shadow-sm border-2 flex gap-4 ${
+            <div key={req.id} className={`bg-white p-4 rounded-xl shadow-sm border-2 flex flex-col gap-3 ${
               req.status === 'PENDING' ? 'border-amber-200' : 'border-gray-200'
             }`}>
-              <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                {req.object.imageUrls && req.object.imageUrls.length > 0 ? (
-                  <img
-                    src={req.object.imageUrls[0]}
-                    alt={req.object.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-3xl">📦</span>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{req.object.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      Categoria: {req.object.category} • Condizione: {req.object.condition}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Beneficiario: {req.recipient.name}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Richiesta il {formatDate(req.createdAt)}
-                    </p>
-                    {req.message && (
-                      <p className="text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded">
-                        Messaggio: {req.message}
-                      </p>
-                    )}
-                  </div>
-                  {getStatusBadge(req.status)}
+              {/* Row 1: Image + Title + Date */}
+              <div className="flex gap-3">
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  {req.object.imageUrls && req.object.imageUrls[0] ? (
+                    <img
+                      src={req.object.imageUrls[0]}
+                      alt={req.object.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl">📦</span>
+                  )}
                 </div>
-                {req.status === 'PENDING' && (
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      onClick={() => handleAction(req.id, 'approve')}
-                      disabled={processing === req.id}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm disabled:opacity-50"
-                    >
-                      {processing === req.id ? 'Elaborazione...' : 'Approva'}
-                    </button>
-                    <button
-                      onClick={() => handleAction(req.id, 'reject')}
-                      disabled={processing === req.id}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm disabled:opacity-50"
-                    >
-                      Rifiuta
-                    </button>
-                  </div>
-                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900">{req.object.title}</h3>
+                  <p className="text-xs text-gray-400">
+                    Richiesta il {formatDate(req.createdAt)}
+                  </p>
+                </div>
               </div>
+
+              {/* Row 2: Category + Condition */}
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                  {req.object.category}
+                </span>
+                <span>•</span>
+                <span>{req.object.condition}</span>
+              </div>
+
+              {/* Row 3: Beneficiary + Status */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm">
+                  <span className="text-gray-500">Beneficiario: </span>
+                  <span className="text-gray-700 font-medium">{req.recipient.name}</span>
+                </div>
+                {getStatusBadge(req.status)}
+              </div>
+
+              {/* Row 4: Message (if exists) */}
+              {req.message && (
+                <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                  Messaggio: {req.message}
+                </p>
+              )}
+
+              {/* Row 5: Actions */}
+              {req.status === 'PENDING' && (
+                <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => handleAction(req.id, 'approve')}
+                    disabled={processing === req.id}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm disabled:opacity-50"
+                  >
+                    {processing === req.id ? 'Elaborazione...' : 'Approva'}
+                  </button>
+                  <button
+                    onClick={() => handleAction(req.id, 'reject')}
+                    disabled={processing === req.id}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm disabled:opacity-50"
+                  >
+                    Rifiuta
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -45,7 +45,6 @@ export default function OperatorObjectsPage() {
     const matchesSearch = obj.title.toLowerCase().includes(search.toLowerCase()) ||
       (obj.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
     const matchesCategory = !filterCategory || obj.category === filterCategory;
-    // By default, hide DONATED objects unless "showDonated" is checked
     if (obj.status === 'DONATED' && !showDonated) return false;
     const matchesStatus = !filterStatus || obj.status === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
@@ -71,7 +70,7 @@ export default function OperatorObjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestione disponibilità</h1>
           <p className="text-gray-500">{filteredObjects.length} oggetti</p>
@@ -88,38 +87,38 @@ export default function OperatorObjectsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap gap-4">
-        <div className="flex-1 min-w-[200px]">
-          <input
-            type="text"
-            placeholder="Cerca per titolo o descrizione..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-          />
+      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4">
+        <input
+          type="text"
+          placeholder="Cerca per titolo o descrizione..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+        />
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="flex-1 min-w-[140px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          >
+            <option value="">Tutte</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>
+                {CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="flex-1 min-w-[140px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          >
+            <option value="">Tutti gli stati</option>
+            {statuses.map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
         </div>
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">Tutte le categorie</option>
-          {categories.map(cat => (
-            <option key={cat} value={cat}>
-              {CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">Tutti gli stati</option>
-          {statuses.map(status => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </select>
       </div>
 
       {loading ? (
@@ -133,57 +132,55 @@ export default function OperatorObjectsPage() {
           <p className="text-gray-500">Non ci sono oggetti che corrispondono ai filtri.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20"></th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titolo</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stato</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredObjects.map((obj) => (
-                <tr key={obj.id} className="hover:bg-gray-50 cursor-pointer transition" onClick={() => window.location.href = `/operator/objects/${obj.id}`}>
-                  <td className="px-4 py-3">
-                    <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                        <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-2xl">📦</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{obj.title}</div>
-                    <div className="text-sm text-gray-500 truncate max-w-xs">{obj.description || '—'}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+        <div className="space-y-4">
+          {filteredObjects.map((obj) => (
+            <div
+              key={obj.id}
+              className="bg-white p-4 rounded-xl shadow-sm border cursor-pointer hover:shadow-md transition"
+              onClick={() => window.location.href = `/operator/objects/${obj.id}`}
+            >
+              <div className="flex gap-3">
+                {/* Image */}
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                    <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl">📦</span>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
+                    {getStatusBadge(obj.status)}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
                     {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
                     <span className="text-gray-400 ml-1">
                       ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div onClick={(e) => e.stopPropagation()}>
-                      {getStatusBadge(obj.status)}
-                      {obj.status === 'WITHDRAWN' && (
-                        <Link
-                          href={`/operator/objects/${obj.id}/deliver`}
-                          className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded hover:bg-green-200 inline-block"
-                        >
-                          Conferma consegna
-                        </Link>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{formatDate(obj.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{formatDate(obj.createdAt)}</p>
+                </div>
+              </div>
+
+              {/* Action for WITHDRAWN */}
+              {obj.status === 'WITHDRAWN' && (
+                <div
+                  className="mt-3 pt-3 border-t border-gray-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Link
+                    href={`/operator/objects/${obj.id}/deliver`}
+                    className="inline-block px-3 py-1.5 bg-green-100 text-green-700 text-xs rounded-lg hover:bg-green-200 font-medium"
+                  >
+                    📦 Conferma consegna
+                  </Link>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

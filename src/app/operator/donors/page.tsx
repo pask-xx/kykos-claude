@@ -74,96 +74,80 @@ export default function DonorsListPage() {
     DIAMOND: 'bg-blue-400',
   };
 
+  const LEVEL_EMOJI: Record<string, string> = {
+    BRONZE: '🥉',
+    SILVER: '🥈',
+    GOLD: '🥇',
+    PLATINUM: '🏆',
+    DIAMOND: '💎',
+  };
+
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Donatori</h1>
-          <p className="text-gray-500 text-sm">Gestisci i donatori che donano al tuo ente</p>
-        </div>
+    <div className="space-y-6 p-4 sm:p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Donatori</h1>
+        <p className="text-gray-500 text-sm">Gestisci i donatori che donano al tuo ente</p>
       </div>
 
       {donors.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+          <span className="text-5xl mb-4 block">🎁</span>
           <p className="text-gray-500">Nessun donatore presente</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Donatore
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Livello
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Servizi
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Donazioni
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Registrato
-                </th>
-                <th className="px-6 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {donors.map((donor) => {
-                const displayName = donor.firstName && donor.lastName
-                  ? `${donor.firstName} ${donor.lastName}`
-                  : donor.name;
+        <div className="space-y-4">
+          {donors.map((donor) => {
+            const displayName = donor.firstName && donor.lastName
+              ? `${donor.firstName} ${donor.lastName}`
+              : donor.name;
 
-                return (
-                  <tr key={donor.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                          <span className="text-lg">🎁</span>
-                        </div>
-                        <div className="ml-4">
-                          <p className="font-medium text-gray-900">{displayName}</p>
-                          <p className="text-sm text-gray-500">{donor.email}</p>
-                        </div>
+            return (
+              <div
+                key={donor.id}
+                className="bg-white p-4 rounded-xl shadow-sm border"
+              >
+                <div className="flex gap-4">
+                  {/* Avatar */}
+                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl">🎁</span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{displayName}</h3>
+                        <p className="text-sm text-gray-500 truncate">{donor.email}</p>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium text-white rounded ${
-                        LEVEL_COLORS[donor.donorProfile?.level || 'BRONZE'] || 'bg-gray-400'
-                      }`}>
-                        {donor.donorProfile?.level || 'BRONZE'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${
-                        donor.canProvideServices
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {donor.canProvideServices ? 'Abilitato' : 'Non abilitato'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {donor.donorProfile?.totalDonations || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(donor.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
                         href={`/operator/donors/${donor.id}`}
-                        className="text-primary-600 hover:text-primary-700"
+                        className="shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
                       >
-                        Dettagli →
+                        Dettagli
                       </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+
+                    {/* Stats row */}
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                      <span className={`px-2 py-0.5 text-xs font-medium text-white rounded ${LEVEL_COLORS[donor.donorProfile?.level || 'BRONZE']}`}>
+                        {LEVEL_EMOJI[donor.donorProfile?.level || 'BRONZE']} {donor.donorProfile?.level || 'BRONZE'}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {donor.donorProfile?.totalDonations || 0} donazioni
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs rounded ${donor.canProvideServices ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {donor.canProvideServices ? '✓ Servizi' : 'Solo beni'}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-gray-400 mt-2">
+                      Registrato il {formatDate(donor.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
