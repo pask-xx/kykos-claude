@@ -1,0 +1,11 @@
+-- Migration: Donor services provider configuration
+-- This migration documents the semantics of canProvideServices field
+--
+-- For DONORS: canProvideServices means the donor is authorized to PROVIDE/SATISFY service requests
+-- For RECIPIENTS: canProvideServices is used for REQUESTING services (use canRequestServices instead)
+--
+-- The field already exists in the schema, this script is for documentation purposes only.
+
+-- Verify field exists
+-- ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "canProvideServices" BOOLEAN NOT NULL DEFAULT false;
+-- ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "canProvideServicesAt" TIMESTAMP(3);
