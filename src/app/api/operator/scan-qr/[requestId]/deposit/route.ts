@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { parseQrCodeData } from '@/lib/qrcode';
+import { sendPickupQrNotification } from '@/lib/email';
+import { generatePickupQrCode, generateAndUploadQrCode } from '@/lib/qrcode';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -47,7 +49,7 @@ export async function POST(
       return NextResponse.json({ error: 'Posizione di deposito obbligatoria' }, { status: 400 });
     }
 
-    // Find the request
+    // Find the request with all needed data
     const req = await prisma.request.findUnique({
       where: { id: requestId },
       include: {
@@ -58,7 +60,19 @@ export async function POST(
             status: true,
             donorId: true,
             donor: { select: { name: true } },
-            intermediary: { select: { name: true } },
+            intermediary: {
+              select: {
+                name: true,
+                address: true,
+                houseNumber: true,
+                cap: true,
+                city: true,
+                province: true,
+                phone: true,
+                email: true,
+                hoursInfo: true,
+              },
+            },
           },
         },
         recipient: {
@@ -79,7 +93,7 @@ export async function POST(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    // Check object is in correct status (should be RESERVED from initial approval)
+    // Check object is in correct status
     if (req.object.status !== 'RESERVED' && req.object.status !== 'WITHDRAWN') {
       return NextResponse.json({ error: 'Stato oggetto non valido per questa operazione' }, { status: 400 });
     }
@@ -93,9 +107,32 @@ export async function POST(
       },
     });
 
+    // Generate pickup QR and send to beneficiary
+    const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+    const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
+
+    await sendPickupQrNotification(
+      req.recipient.email,
+      req.recipientId,
+      req.recipient.name,
+      req.object.title,
+      req.objectId,
+      pickupQrData,
+      pickupQrImage,
+      req.object.intermediary.name,
+      req.object.intermediary.address || null,
+      req.object.intermediary.houseNumber || null,
+      req.object.intermediary.cap || null,
+      req.object.intermediary.city || null,
+      req.object.intermediary.province || null,
+      req.object.intermediary.phone || null,
+      req.object.intermediary.email || null,
+      req.object.intermediary.hoursInfo
+    );
+
     return NextResponse.json({
       success: true,
-      message: 'Posizione deposito registrata!',
+      message: 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.',
     });
   } catch (error) {
     console.error('Deposit location error:', error);
