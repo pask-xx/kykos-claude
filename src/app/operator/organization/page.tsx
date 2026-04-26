@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import OperatorSidebar from '@/components/operator/OperatorSidebar';
 import RichTextEditor from '@/components/RichTextEditor';
 
 interface OrganizationData {
@@ -14,24 +13,12 @@ interface OrganizationData {
   hoursInfo: string | null;
 }
 
-interface OperatorSession {
-  operatorId: string;
-  organizationId: string;
-  username: string;
-  role: string;
-  permissions: string[];
-  firstName: string;
-  lastName: string;
-  email: string | null;
-}
-
 export default function OrganizationSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [operator, setOperator] = useState<OperatorSession | null>(null);
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [hoursInfo, setHoursInfo] = useState('');
   const [autoApproveRequests, setAutoApproveRequests] = useState(false);
@@ -58,8 +45,6 @@ export default function OrganizationSettingsPage() {
         router.push('/operator/dashboard');
         return;
       }
-
-      setOperator(op);
 
       // Fetch organization data
       const orgRes = await fetch('/api/operator/organization');
@@ -157,17 +142,11 @@ export default function OrganizationSettingsPage() {
   };
 
   return (
-    <OperatorSidebar
-      operatorRole={operator.role}
-      operatorPermissions={operator.permissions}
-      operatorName={`${operator.firstName} ${operator.lastName}`}
-      organizationName={organization.name}
-    >
-      <div className="p-6 max-w-4xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Impostazioni ente</h1>
-          <p className="text-gray-500">Configura le opzioni dell&apos;organizzazione</p>
-        </div>
+    <div className="max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Impostazioni ente</h1>
+        <p className="text-gray-500">Configura le opzioni dell&apos;organizzazione</p>
+      </div>
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -254,6 +233,6 @@ export default function OrganizationSettingsPage() {
           </button>
         </div>
       </div>
-    </OperatorSidebar>
+    </div>
   );
 }
