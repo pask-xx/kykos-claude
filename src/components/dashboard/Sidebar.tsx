@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import LogoutForm from '@/components/LogoutForm';
 
 interface NavItem {
   href: string;
@@ -143,11 +144,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
               <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
               <p className="text-xs text-gray-400 truncate">{userEmail}</p>
             </div>
-            <form action="/api/auth/logout" method="POST">
-              <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
-                Esci
-              </button>
-            </form>
+            <LogoutForm />
           </div>
         </div>
       </aside>
@@ -203,19 +200,11 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
                 <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
                 <p className="text-xs text-gray-400 truncate">{userEmail}</p>
               </div>
-              <form action="/api/auth/logout" method="POST" className="flex-shrink-0">
-                <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
-                  Esci
-                </button>
-              </form>
+              <LogoutForm />
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <form action="/api/auth/logout" method="POST">
-                <button type="submit" className="text-sm text-red-600 hover:text-red-700">
-                  Esci
-                </button>
-              </form>
+              <LogoutForm />
             </div>
           )}
         </div>

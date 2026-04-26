@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-export async function POST() {
+export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
   cookieStore.delete('operator_session');
-  return NextResponse.json({ success: true });
+  return NextResponse.redirect(`${new URL(request.url).origin}/operator/login`);
+}
+
+export async function POST(request: NextRequest) {
+  return GET(request);
 }
