@@ -40,16 +40,6 @@ export async function GET(request: Request) {
         NOT: { id: { in: requestedObjectIds } },
       },
       include: {
-        donor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            donorProfile: {
-              select: { level: true }
-            }
-          }
-        },
         _count: {
           select: { requests: true }
         }

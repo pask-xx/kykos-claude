@@ -1,14 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-
-interface DonorInfo {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  donorProfile: { level: string } | null;
-}
 
 interface Object {
   id: string;
@@ -18,12 +10,10 @@ interface Object {
   condition: string;
   imageUrls: string[];
   createdAt: string;
-  donor: DonorInfo;
   _count: { requests: number };
 }
 
 export default function RecipientFeedClient() {
-  const router = useRouter();
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -132,14 +122,6 @@ export default function RecipientFeedClient() {
     POOR: 'Usurato',
   };
 
-  const levelEmoji: Record<string, string> = {
-    BRONZE: '🥉',
-    SILVER: '🥈',
-    GOLD: '🥇',
-    PLATINUM: '🏆',
-    DIAMOND: '💎',
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -217,9 +199,6 @@ export default function RecipientFeedClient() {
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
                     {categoryLabels[obj.category] || obj.category}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    {obj.donor.donorProfile?.level ? levelEmoji[obj.donor.donorProfile.level] : '🥉'} {obj.donor.firstName} {obj.donor.lastName?.[0]}.
-                  </span>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
                   {new Date(obj.createdAt).toLocaleDateString('it-IT')}
@@ -270,15 +249,6 @@ export default function RecipientFeedClient() {
                   <span className="text-gray-500">Pubblicato:</span>
                   <span className="ml-1 font-medium text-gray-700">
                     {new Date(obj.createdAt).toLocaleDateString('it-IT')}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Donatore:</span>
-                  <span className="ml-1 font-medium text-gray-700">
-                    {obj.donor.firstName} {obj.donor.lastName}
-                    {obj.donor.donorProfile && (
-                      <span className="ml-1">{levelEmoji[obj.donor.donorProfile.level]}</span>
-                    )}
                   </span>
                 </div>
               </div>
