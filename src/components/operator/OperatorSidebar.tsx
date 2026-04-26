@@ -179,7 +179,7 @@ export default function OperatorSidebar({
       </header>
 
       {/* Main Content */}
-      <main className="min-h-[100dvh] lg:ml-64 pt-14 lg:pt-0">
+      <main className="min-h-[100dvh] lg:ml-64 pt-14 lg:pt-0 pb-[env(safe-area-inset-bottom)]">
         {/* Top bar with notifications */}
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4">
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
