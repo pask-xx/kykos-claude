@@ -69,6 +69,7 @@ export default function OperatorSidebar({
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white border border-gray-200 rounded-lg shadow-md flex items-center justify-center"
+        style={{ top: 'calc(1rem + env(safe-area-inset-top))' }}
       >
         <span className="text-xl">☰</span>
       </button>
@@ -76,7 +77,8 @@ export default function OperatorSidebar({
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/40 z-40"
+          className="lg:hidden fixed inset-0 z-40"
+          style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -86,6 +88,7 @@ export default function OperatorSidebar({
         className={`lg:hidden fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col z-50 transition-transform duration-300 ease-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <Link href="/operator/dashboard" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
@@ -119,7 +122,7 @@ export default function OperatorSidebar({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+        <div className="p-4 border-t border-gray-200 flex-shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <div className="flex items-center justify-between">
             <div className="truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
@@ -171,7 +174,7 @@ export default function OperatorSidebar({
       </aside>
 
       {/* Mobile header with logo - centered */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40 pt-[env(safe-area-inset-top)]">
         <Link href="/operator/dashboard" className="flex items-center gap-3">
           <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
           <span className="text-2xl font-bold text-primary-600">KYKOS</span>
@@ -179,9 +182,9 @@ export default function OperatorSidebar({
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0">
+      <div className="flex-1 lg:ml-64 pt-14 lg:pt-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Top bar with notifications */}
-        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4">
+        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
         </div>
         <main className="p-4 sm:p-6">
