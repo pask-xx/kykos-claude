@@ -7,12 +7,11 @@ import { Role, OrgType } from '@prisma/client';
 import { generateOrgCode } from '@/lib/utils';
 
 async function generateUniqueOrgCode(): Promise<string> {
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const code = generateOrgCode();
-    const existing = await prisma.organization.findUnique({ where: { code } });
-    if (!existing) return code;
-  }
-  throw new Error('Impossibile generare un codice unico');
+  // 6 hex digits = ~16.7M combinations, practically zero collision risk
+  const code = generateOrgCode();
+  const existing = await prisma.organization.findUnique({ where: { code } });
+  if (existing) throw new Error('Codice ente non disponibile');
+  return code;
 }
 
 export async function POST(request: Request) {

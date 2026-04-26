@@ -22,5 +22,6 @@ export function getDonorLevel(donations: number): string {
 }
 
 export function generateOrgCode(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  // 6 hex digits = ~16.7 million combinations, essentially zero collision probability
+  return Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
 }
