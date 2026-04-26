@@ -127,7 +127,7 @@ export default function OrganizationSettingsPage() {
     );
   }
 
-  if (!operator || !organization) {
+  if (!organization) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-gray-500">Accesso negato</p>
@@ -148,90 +148,86 @@ export default function OrganizationSettingsPage() {
         <p className="text-gray-500">Configura le opzioni dell&apos;organizzazione</p>
       </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-            ✓ {success}
-          </div>
-        )}
+      {success && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+          ✓ {success}
+        </div>
+      )}
 
-        {/* Organization Info */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informazioni ente</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-500">Nome</p>
-              <p className="font-medium text-gray-900">{organization.name}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Tipo</p>
-              <p className="font-medium text-gray-900">{orgTypeLabels[organization.type] || organization.type}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Codice</p>
-              <p className="font-medium text-gray-900">{organization.code}</p>
-            </div>
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Informazioni ente</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Nome</p>
+            <p className="font-medium text-gray-900">{organization.name}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Tipo</p>
+            <p className="font-medium text-gray-900">{orgTypeLabels[organization.type] || organization.type}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Codice</p>
+            <p className="font-medium text-gray-900">{organization.code}</p>
           </div>
         </div>
+      </div>
 
-        {/* Request Settings */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-            <span>⚙️</span> Richieste beni e servizi
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Configura come vengono gestite le richieste di beni e servizi da parte dei beneficiari.
-          </p>
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span>⚙️</span> Richieste beni e servizi
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Configura come vengono gestite le richieste di beni e servizi da parte dei beneficiari.
+        </p>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">Approvazione automatica</p>
-              <p className="text-sm text-gray-500">
-                Le richieste vengono approvate automaticamente senza intervento dell&apos;operatore
-              </p>
-            </div>
-            <button
-              onClick={() => handleAutoApproveToggle(!autoApproveRequests)}
-              disabled={saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                autoApproveRequests ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  autoApproveRequests ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div>
+            <p className="font-medium text-gray-900">Approvazione automatica</p>
+            <p className="text-sm text-gray-500">
+              Le richieste vengono approvate automaticamente senza intervento dell&apos;operatore
+            </p>
           </div>
-        </div>
-
-        {/* Hours Info */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-            <span>🕐</span> Orari e informazioni
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
-          </p>
-
-          <RichTextEditor
-            value={hoursInfo}
-            onChange={setHoursInfo}
-          />
           <button
-            onClick={handleSave}
+            onClick={() => handleAutoApproveToggle(!autoApproveRequests)}
             disabled={saving}
-            className="mt-4 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+            className={`relative w-12 h-6 rounded-full transition-colors ${
+              autoApproveRequests ? 'bg-green-500' : 'bg-gray-300'
+            } disabled:opacity-50`}
           >
-            {saving ? 'Salvataggio...' : 'Salva'}
+            <span
+              className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                autoApproveRequests ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
           </button>
         </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span>🕐</span> Orari e informazioni
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
+        </p>
+
+        <RichTextEditor
+          value={hoursInfo}
+          onChange={setHoursInfo}
+        />
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="mt-4 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+        >
+          {saving ? 'Salvataggio...' : 'Salva'}
+        </button>
       </div>
     </div>
   );
