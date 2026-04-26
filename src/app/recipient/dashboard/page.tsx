@@ -1,239 +1,62 @@
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import RecipientFeedClient from '@/components/recipient/RecipientFeedClient';
 
 export default async function RecipientDashboard() {
   const session = await getSession();
 
-  // Debug: measure query times
-  const measure = async <T,>(label: string, fn: () => Promise<T>): Promise<T> => {
-    const start = Date.now();
-    const result = await fn();
-    console.log(`[PERF] ${label}: ${Date.now() - start}ms`);
-    return result;
-  };
+  if (!session) {
+    redirect('/auth/login');
+  }
 
-  // Parallel queries for better performance
-  const [user, pendingRequests, receivedDonations, totalContributions, readyForPickup] = await Promise.all([
-    measure('user.findUnique', () => prisma.user.findUnique({
-      where: { id: session!.id },
-      include: { referenceEntity: true },
-    })),
-    measure('request.count (pending)', () => prisma.request.count({
-      where: { recipientId: session!.id, status: 'PENDING' },
-    })),
-    measure('donation.count', () => prisma.donation.count({
-      where: { recipientId: session!.id },
-    })),
-    measure('donation.aggregate', () => prisma.donation.aggregate({
-      where: { recipientId: session!.id },
-      _sum: { amount: true },
-    })),
-    measure('donation.findMany (ready for pickup)', () => prisma.donation.findMany({
-      where: {
-        recipientId: session!.id,
-        object: { status: 'WITHDRAWN' },
-      },
-      include: {
-        object: {
-          select: { id: true, title: true, imageUrls: true },
-        },
-      },
-    })),
-  ]);
+  if (session.role !== 'RECIPIENT') {
+    redirect(`/${session.role.toLowerCase()}/dashboard`);
+  }
 
-  const authorizationStatus = user?.authorized ? 'Autorizzato' : 'In attesa di autorizzazione';
-  const statusColor = user?.authorized ? 'text-green-600' : 'text-yellow-600';
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: {
+      firstName: true,
+      lastName: true,
+      authorized: true,
+      referenceEntity: {
+        select: { name: true }
+      }
+    },
+  });
 
   return (
-    <div className="max-w-full">
-        {/* Status Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-          <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-              user?.authorized ? 'bg-green-100' : 'bg-yellow-100'
-            }`}>
-              <span className="text-2xl">{user?.authorized ? '✅' : '⏳'}</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">Stato autorizzazione</p>
-              <p className={`text-sm ${statusColor}`}>{authorizationStatus}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📦</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Richieste pendenti</p>
-                <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🎁</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Oggetti ricevuti</p>
-                <p className="text-2xl font-bold text-gray-900">{receivedDonations}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">💰</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Contributi versati</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  €{totalContributions._sum.amount ? Number(totalContributions._sum.amount).toFixed(2) : '0.00'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Personal Data Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>👤</span> Dati anagrafici
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Nome completo</p>
-              <p className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Email</p>
-              <p className="font-medium text-gray-900">{user?.email}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Codice Fiscale</p>
-              <p className="font-medium text-gray-900 uppercase">{user?.fiscalCode || '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Data di nascita</p>
-              <p className="font-medium text-gray-900">
-                {user?.birthDate ? new Date(user.birthDate).toLocaleDateString('it-IT') : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Indirizzo</p>
-              <p className="font-medium text-gray-900">
-                {user?.address ? `${user.address}, ${user.houseNumber || ''}` : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">CAP / Città</p>
-              <p className="font-medium text-gray-900">
-                {user?.cap ? `${user.cap} ${user.city || ''}` : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Valore ISEE</p>
-              <p className="font-medium text-gray-900">
-                {user?.isee ? `€${parseFloat(user.isee.toString()).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
-              <p className="font-medium text-gray-900">{user?.referenceEntity?.name || '—'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Ready for Pickup */}
-        {readyForPickup.length > 0 && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📦</span> Pronto per il ritiro!
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Gli oggetti che hai richiesto sono pronti per essere ritirati. Recati all&apos;ente con il tuo QR code.
-            </p>
-            <div className="space-y-4">
-              {readyForPickup.map((donation) => (
-                <div key={donation.id} className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                    {donation.object.imageUrls && donation.object.imageUrls.length > 0 ? (
-                      <img src={donation.object.imageUrls[0]} alt={donation.object.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <span>📦</span>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{donation.object.title}</p>
-                    <p className="text-sm text-purple-600">QR Code pronto per il ritiro</p>
-                  </div>
-                  <Link
-                    href={`/recipient/qr/${donation.requestId}`}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
-                  >
-                    Mostra QR
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Azioni rapide</h2>
-          <div className="flex gap-4">
-            <Link
-              href="/recipient/objects"
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-            >
-              Sfoglia oggetti
-            </Link>
-            <Link
-              href="/recipient/requests"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-            >
-              Le mie richieste
-            </Link>
-          </div>
-        </div>
-
-        {/* How it works */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Come funziona</h2>
-          <div className="space-y-4 text-gray-600">
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary-600">1</span>
-              </div>
-              <p>Sfoglia gli oggetti disponibili nella sezione "Sfoglia"</p>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary-600">2</span>
-              </div>
-              <p>Invia una richiesta per l&apos;oggetto che ti interessa</p>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary-600">3</span>
-              </div>
-              <p>L&apos;intermediario verificherà la tua richiesta</p>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary-600">4</span>
-              </div>
-              <p>Se approvato, versa un contributo simbolico (1-2€) e ritira l&apos;oggetto</p>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Ciao, {user?.firstName} 👋
+        </h1>
+        <p className="text-gray-500 mt-1">
+          Ecco le disponibilità del tuo ente
+        </p>
       </div>
+
+      {/* Authorization status */}
+      {!user?.authorized && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <span className="text-xl">⏳</span>
+            </div>
+            <div>
+              <p className="font-medium text-amber-800">Account in attesa di autorizzazione</p>
+              <p className="text-sm text-amber-600">
+                Non puoi ancora richiedere oggetti. L'ente {user?.referenceEntity?.name || ''} deve autorizzarti.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feed */}
+      <RecipientFeedClient />
+    </div>
   );
 }
