@@ -39,7 +39,7 @@ END $$;
 
 -- 4. Create notifications table
 CREATE TABLE IF NOT EXISTS "notifications" (
-  "id" TEXT NOT NULL PRIMARY KEY DEFAULT cuid(),
+  "id" TEXT NOT NULL PRIMARY KEY DEFAULT encode(gen_random_bytes(16), 'hex'),
   "title" TEXT NOT NULL,
   "message" TEXT NOT NULL,
   "type" "NotificationType" NOT NULL,
@@ -58,11 +58,3 @@ CREATE TABLE IF NOT EXISTS "notifications" (
 -- 5. Create indexes
 CREATE INDEX IF NOT EXISTS "notifications_recipient_idx" ON "notifications"("recipientId", "recipientType");
 CREATE INDEX IF NOT EXISTS "notifications_read_created_idx" ON "notifications"("read", "createdAt");
-
--- 6. Add notifications relation to reports table
-ALTER TABLE "reports" ADD COLUMN IF NOT EXISTS "notifications_notifications_reportId_fkey" TEXT;
-
--- =============================================
--- To verify, run:
--- SELECT * FROM notifications LIMIT 10;
--- =============================================
