@@ -18,6 +18,7 @@ const allNavItems: NavItem[] = [
   { href: '/operator/recipients', label: 'Beneficiari', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/objects', label: 'Disponibilità', icon: '📦', permission: 'OBJECT_RECEIVE' },
   { href: '/operator/scan-qr', label: 'Scansiona QR', icon: '📱', permission: 'OBJECT_DELIVER' },
+  { href: '/operator/reports', label: 'Segnalazioni', icon: '⚠️', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
 ];
