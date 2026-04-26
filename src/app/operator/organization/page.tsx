@@ -42,16 +42,27 @@ export default function OrganizationSettingsPage() {
 
   const fetchData = async () => {
     try {
-      const [opRes, orgRes] = await Promise.all([
-        fetch('/api/operator/session'),
-        fetch('/api/operator/organization'),
-      ]);
-
-      if (opRes.ok) {
-        const opData = await opRes.json();
-        setOperator(opData.operator);
+      // First fetch operator session
+      const opRes = await fetch('/api/operator/session');
+      if (!opRes.ok) {
+        router.push('/operator/login');
+        return;
       }
 
+      const opData = await opRes.json();
+      const op = opData.operator;
+
+      // Check if operator has ADMIN role or ORGANIZATION_ADMIN permission
+      const isAdmin = op.role === 'ADMIN' || op.permissions.includes('ORGANIZATION_ADMIN');
+      if (!isAdmin) {
+        router.push('/operator/dashboard');
+        return;
+      }
+
+      setOperator(op);
+
+      // Fetch organization data
+      const orgRes = await fetch('/api/operator/organization');
       if (orgRes.ok) {
         const orgData = await orgRes.json();
         if (orgData.organization) {
@@ -59,8 +70,6 @@ export default function OrganizationSettingsPage() {
           setHoursInfo(orgData.organization.hoursInfo || '');
           setAutoApproveRequests(orgData.organization.autoApproveRequests || false);
         }
-      } else if (orgRes.status === 403) {
-        router.push('/operator/dashboard');
       }
     } catch (err) {
       setError('Errore di rete');
