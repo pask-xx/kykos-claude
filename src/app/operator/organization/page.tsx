@@ -30,7 +30,7 @@ export default function OrganizationSettingsPage() {
   const fetchData = async () => {
     try {
       // First fetch operator session
-      const opRes = await fetch('/api/operator/session');
+      const opRes = await fetch('/api/operator/me');
       if (!opRes.ok) {
         router.push('/operator/login');
         return;
