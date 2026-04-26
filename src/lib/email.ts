@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import { prisma } from '@/lib/prisma';
+import { NotificationType, RecipientType } from '@prisma/client';
 
 const FROM_EMAIL = 'KYKOS <noreply@kykos.it>';
 const APP_NAME = 'KYKOS';
@@ -40,10 +42,34 @@ async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> 
   }
 }
 
+async function createNotificationForUser(
+  userId: string,
+  title: string,
+  message: string,
+  type: NotificationType,
+  link?: string
+) {
+  try {
+    await prisma.notification.create({
+      data: {
+        recipientId: userId,
+        recipientType: RecipientType.USER,
+        title,
+        message,
+        type,
+        link,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to create notification:', err);
+  }
+}
+
 // Email templates
 
 export async function sendRequestNotification(
   toEmail: string,
+  donorId: string,
   recipientName: string,
   objectTitle: string,
   objectId: string
@@ -78,7 +104,9 @@ export async function sendRequestNotification(
     </div>
   `;
 
-  return sendEmail({ to: toEmail, subject, html });
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(donorId, 'Nuova richiesta!', `${recipientName} ha richiesto "${objectTitle}"`, NotificationType.OBJECT_RESERVED, '/donor/objects');
+  return true;
 }
 
 export async function sendObjectAvailableNotification(

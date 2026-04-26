@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { OperatorPermission } from '@/types';
+import NotificationBell from '@/components/NotificationBell';
 
 interface NavItem {
   href: string;
@@ -175,6 +176,10 @@ export default function OperatorSidebar({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar with notifications */}
+        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4">
+          <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
+        </div>
         <main className="flex-1 overflow-auto">
           {children}
         </main>

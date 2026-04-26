@@ -88,6 +88,30 @@ enum DonorLevel {
   DIAMOND
 }
 
+enum NotificationType {
+  // User notifications
+  DONATION_CONFIRMED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  OBJECT_AVAILABLE
+  OBJECT_RESERVED
+  OBJECT_DELIVERED
+  OBJECT_WITHDRAWN
+  REPORT_RECEIVED
+  REPORT_RESOLVED
+  MESSAGE_FROM_OPERATOR
+  // Operator notifications
+  NEW_REQUEST
+  NEW_REPORT
+  REQUEST_EXPIRED
+  OBJECT_BLOCKED
+}
+
+enum RecipientType {
+  USER
+  OPERATOR
+}
+
 // ================== MODELS ==================
 
 model User {
@@ -135,6 +159,9 @@ model User {
 
   // Reports
   reportsCreated   Report[] @relation("ReporterUser")
+
+  // Notifications
+  notifications   Notification[] @relation("NotificationUser")
 
   @@map("users")
 }
@@ -297,6 +324,9 @@ model Operator {
   organizationId String
   organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  // Notifications
+  notifications Notification[] @relation("NotificationOperator")
+
   @@unique([organizationId, username])
   @@map("operators")
 }
@@ -324,6 +354,31 @@ model Report {
   intermediaryId String
   intermediary    Organization @relation(fields: [intermediaryId], references: [id])
 
+  notifications  Notification[]
+
   @@index([status])
   @@map("reports")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean          @default(false)
+  link      String?
+  data      String?          @map("data") @db.Text // JSON with extra data
+  createdAt DateTime         @default(now())
+
+  recipientId   String
+  recipientType RecipientType @default(USER)
+  recipientUser User?         @relation("NotificationUser", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_user_fk")
+  recipientOperator Operator? @relation("NotificationOperator", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_operator_fk")
+
+  reportId  String?
+  report    Report?  @relation(fields: [reportId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId, recipientType])
+  @@index([read, createdAt])
+  @@map("notifications")
 }

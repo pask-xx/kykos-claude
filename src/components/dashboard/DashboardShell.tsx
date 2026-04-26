@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Role } from '@prisma/client';
+import NotificationBell from '@/components/NotificationBell';
 
 interface NavItem {
   href: string;
@@ -90,6 +91,10 @@ export default function DashboardShell({ children, role, userName, userEmail }: 
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar with notifications */}
+        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4">
+          <NotificationBell apiPath="/api/notifications" bellSize="sm" />
+        </div>
         {/* Content area */}
         <main className="flex-1 overflow-auto">
           {children}
