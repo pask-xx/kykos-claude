@@ -145,7 +145,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
             </div>
             <form action="/api/auth/logout" method="POST">
               <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
-                🚪
+                Esci
               </button>
             </form>
           </div>
@@ -205,16 +205,15 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
               </div>
               <form action="/api/auth/logout" method="POST" className="flex-shrink-0">
                 <button type="submit" className="text-sm text-red-600 hover:text-red-700 ml-2">
-                  🚪
+                  Esci
                 </button>
               </form>
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <span className="text-xs text-gray-500 mb-1">👤</span>
               <form action="/api/auth/logout" method="POST">
-                <button type="submit" className="text-xl text-red-600 hover:text-red-700">
-                  🚪
+                <button type="submit" className="text-sm text-red-600 hover:text-red-700">
+                  Esci
                 </button>
               </form>
             </div>
