@@ -105,6 +105,24 @@ enum NotificationType {
   NEW_REPORT
   REQUEST_EXPIRED
   OBJECT_BLOCKED
+  // Goods request notifications
+  GOODS_REQUEST_CREATED
+  GOODS_REQUEST_APPROVED
+  GOODS_REQUEST_REJECTED
+  GOODS_REQUEST_FULFILLED
+  GOODS_OFFER_RECEIVED
+}
+
+enum RequestType {
+  GOODS
+  SERVICES
+}
+
+enum GoodsRequestStatus {
+  PENDING
+  APPROVED
+  FULFILLED
+  CANCELLED
 }
 
 enum RecipientType {
@@ -142,6 +160,8 @@ model User {
   isee              Decimal?
   authorized         Boolean   @default(false)
   authorizedAt       DateTime?
+  canProvideServices Boolean   @default(false)
+  canProvideServicesAt DateTime?
 
   // Donor relations
   donatedObjects Object[]     @relation("DonorObjects")
@@ -163,6 +183,11 @@ model User {
   // Notifications
   notifications   Notification[] @relation("NotificationUser")
 
+  // Goods requests
+  goodsRequests    GoodsRequest[] @relation("GoodsRequestBeneficiary")
+  goodsOffers      GoodsOffer[]   @relation("GoodsOfferGiver")
+  goodsFulfilled   GoodsRequest[] @relation("GoodsRequestFulfiller")
+
   @@map("users")
 }
 
@@ -183,6 +208,8 @@ model Organization {
   email         String?
   verified      Boolean   @default(false)
   autoApproveRequests Boolean @default(false)
+  canRequestGoods     Boolean @default(false)
+  canRequestServices  Boolean @default(false)
   hoursInfo     String?   @map("hours_info") @db.Text // Rich text with opening hours and instructions
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -197,6 +224,7 @@ model Organization {
   payments      Payment[]
   authorizedRecipients User[] @relation("RecipientReference")
   reports       Report[]
+  goodsRequests GoodsRequest[]
 
   @@map("organizations")
 }
@@ -381,4 +409,49 @@ model Notification {
   @@index([recipientId, recipientType])
   @@index([read, createdAt])
   @@map("notifications")
+}
+
+model GoodsRequest {
+  id             String            @id @default(cuid())
+  title          String
+  category       Category
+  description    String?           @map("description") @db.Text
+  type           RequestType       @default(GOODS)
+  status         GoodsRequestStatus @default(PENDING)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  beneficiaryId  String
+  beneficiary     User              @relation("GoodsRequestBeneficiary", fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  intermediaryId String
+  intermediary   Organization      @relation(fields: [intermediaryId], references: [id])
+
+  fulfilledById  String?
+  fulfilledBy    User?             @relation("GoodsRequestFulfiller", fields: [fulfilledById], references: [id], onDelete: SetNull)
+  fulfilledAt    DateTime?
+
+  offers         GoodsOffer[]
+
+  @@index([beneficiaryId])
+  @@index([intermediaryId])
+  @@index([status])
+  @@map("goods_requests")
+}
+
+model GoodsOffer {
+  id             String       @id @default(cuid())
+  message        String?
+  status         String       @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  requestId      String
+  request        GoodsRequest @relation("GoodsOfferRequest", fields: [requestId], references: [id], onDelete: Cascade)
+
+  offeredById    String
+  offeredBy      User         @relation("GoodsOfferGiver", fields: [offeredById], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@map("goods_offers")
 }
