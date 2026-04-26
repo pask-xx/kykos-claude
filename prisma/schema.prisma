@@ -133,123 +133,123 @@ enum RecipientType {
 // ================== MODELS ==================
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String    // Keep for backward compat
-  passwordHash  String
-  role          Role      @default(DONOR)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String // Keep for backward compat
+  passwordHash String
+  role         Role     @default(DONOR)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Common optional fields
-  latitude     Float?
-  longitude    Float?
-  firstName     String?
-  lastName      String?
-  birthDate     DateTime?
-  fiscalCode    String?
-  address       String?
-  houseNumber   String?
-  cap           String?
-  city          String?
-  province      String?
+  latitude    Float?
+  longitude   Float?
+  firstName   String?
+  lastName    String?
+  birthDate   DateTime?
+  fiscalCode  String?
+  address     String?
+  houseNumber String?
+  cap         String?
+  city        String?
+  province    String?
 
   // Recipient fields
-  referenceEntityId String?
-  referenceEntity   Organization? @relation("RecipientReference", fields: [referenceEntityId], references: [id])
-  isee              Decimal?
-  authorized         Boolean   @default(false)
-  authorizedAt       DateTime?
-  canProvideServices Boolean   @default(false)
+  referenceEntityId    String?
+  referenceEntity      Organization? @relation("RecipientReference", fields: [referenceEntityId], references: [id])
+  isee                 Decimal?
+  authorized           Boolean       @default(false)
+  authorizedAt         DateTime?
+  canProvideServices   Boolean       @default(false)
   canProvideServicesAt DateTime?
 
   // Donor relations
-  donatedObjects Object[]     @relation("DonorObjects")
+  donatedObjects Object[]      @relation("DonorObjects")
   donorProfile   DonorProfile?
 
   // Recipient relations
-  requests        Request[] @relation("RecipientRequests")
+  requests          Request[]  @relation("RecipientRequests")
   receivedDonations Donation[] @relation("ReceivedDonations")
 
   // Intermediary relation
-  intermediaryOrg   Organization?
+  intermediaryOrg Organization?
 
   // Donation history
-  donations        Donation[] @relation("DonationDonor")
+  donations Donation[] @relation("DonationDonor")
 
   // Reports
-  reportsCreated   Report[] @relation("ReporterUser")
+  reportsCreated Report[] @relation("ReporterUser")
 
   // Notifications
-  notifications   Notification[] @relation("NotificationUser")
+  notifications Notification[] @relation("NotificationUser")
 
   // Goods requests
-  goodsRequests    GoodsRequest[] @relation("GoodsRequestBeneficiary")
-  goodsOffers      GoodsOffer[]   @relation("GoodsOfferGiver")
-  goodsFulfilled   GoodsRequest[] @relation("GoodsRequestFulfiller")
+  goodsRequests  GoodsRequest[] @relation("GoodsRequestBeneficiary")
+  goodsOffers    GoodsOffer[]   @relation("GoodsOfferGiver")
+  goodsFulfilled GoodsRequest[] @relation("GoodsRequestFulfiller")
 
   @@map("users")
 }
 
 model Organization {
-  id            String    @id @default(cuid())
-  code         String    @unique
-  name         String
-  type          OrgType
-  vatNumber     String?
-  latitude      Float?
-  longitude     Float?
-  address       String?
-  houseNumber   String?
-  cap           String?
-  city          String?
-  province      String?
-  phone         String?
-  email         String?
-  verified      Boolean   @default(false)
-  autoApproveRequests Boolean @default(false)
-  canRequestGoods     Boolean @default(false)
-  canRequestServices  Boolean @default(false)
-  hoursInfo     String?   @map("hours_info") @db.Text // Rich text with opening hours and instructions
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String   @id @default(cuid())
+  code                String   @unique
+  name                String
+  type                OrgType
+  vatNumber           String?
+  latitude            Float?
+  longitude           Float?
+  address             String?
+  houseNumber         String?
+  cap                 String?
+  city                String?
+  province            String?
+  phone               String?
+  email               String?
+  verified            Boolean  @default(false)
+  autoApproveRequests Boolean  @default(false)
+  canRequestGoods     Boolean  @default(false)
+  canRequestServices  Boolean  @default(false)
+  hoursInfo           String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  operators     Operator[]
+  operators Operator[]
 
-  objects       Object[]
-  requests      Request[]
-  payments      Payment[]
-  authorizedRecipients User[] @relation("RecipientReference")
-  reports       Report[]
-  goodsRequests GoodsRequest[]
+  objects              Object[]
+  requests             Request[]
+  payments             Payment[]
+  authorizedRecipients User[]         @relation("RecipientReference")
+  reports              Report[]
+  goodsRequests        GoodsRequest[]
 
   @@map("organizations")
 }
 
 model Object {
-  id            String       @id @default(cuid())
-  title         String
-  description   String?
-  category      Category
-  condition     Condition
-  status        ObjectStatus @default(AVAILABLE)
-  imageUrls     String[]
-  depositLocation String?     @map("deposit_location") // Scaffale/doposito dove è stato placed
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  category        Category
+  condition       Condition
+  status          ObjectStatus @default(AVAILABLE)
+  imageUrls       String[]
+  depositLocation String?      @map("deposit_location") // Scaffale/doposito dove è stato placed
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
-  donorId       String
-  donor         User         @relation("DonorObjects", fields: [donorId], references: [id], onDelete: Cascade)
+  donorId String
+  donor   User   @relation("DonorObjects", fields: [donorId], references: [id], onDelete: Cascade)
 
   intermediaryId String
   intermediary   Organization @relation(fields: [intermediaryId], references: [id])
 
-  requests      Request[]
-  donation      Donation?
-  reports       Report[]
+  requests Request[]
+  donation Donation?
+  reports  Report[]
 
   @@index([donorId])
   @@index([status])
@@ -257,22 +257,22 @@ model Object {
 }
 
 model Request {
-  id            String        @id @default(cuid())
-  status        RequestStatus @default(PENDING)
-  message       String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id        String        @id @default(cuid())
+  status    RequestStatus @default(PENDING)
+  message   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  objectId      String
-  object        Object        @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  objectId String
+  object   Object @relation(fields: [objectId], references: [id], onDelete: Cascade)
 
-  recipientId   String
-  recipient     User          @relation("RecipientRequests", fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User   @relation("RecipientRequests", fields: [recipientId], references: [id], onDelete: Cascade)
 
   intermediaryId String
   intermediary   Organization @relation(fields: [intermediaryId], references: [id])
 
-  donation      Donation?
+  donation Donation?
 
   @@index([recipientId])
   @@index([recipientId, status])
@@ -280,43 +280,43 @@ model Request {
 }
 
 model Donation {
-  id            String   @id @default(cuid())
-  amount        Decimal  @default(1.00)
-  currency      String   @default("EUR")
-  createdAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  amount    Decimal  @default(1.00)
+  currency  String   @default("EUR")
+  createdAt DateTime @default(now())
 
-  objectId      String   @unique
-  object        Object   @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  objectId String @unique
+  object   Object @relation(fields: [objectId], references: [id], onDelete: Cascade)
 
-  donorId       String
-  donor         User     @relation("DonationDonor", fields: [donorId], references: [id], onDelete: Cascade)
+  donorId String
+  donor   User   @relation("DonationDonor", fields: [donorId], references: [id], onDelete: Cascade)
 
-  recipientId   String
-  recipient     User     @relation("ReceivedDonations", fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User   @relation("ReceivedDonations", fields: [recipientId], references: [id], onDelete: Cascade)
 
-  requestId     String   @unique
-  request       Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId String  @unique
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  paymentId     String?  @unique
-  payment       Payment? @relation(fields: [paymentId], references: [id])
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id])
 
   @@index([recipientId])
   @@map("donations")
 }
 
 model Payment {
-  id              String        @id @default(cuid())
-  amount          Decimal
-  status          PaymentStatus @default(PENDING)
-  paymentMethod   String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  amount        Decimal
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  intermediaryId  String
-  intermediary    Organization  @relation(fields: [intermediaryId], references: [id])
+  intermediaryId String
+  intermediary   Organization @relation(fields: [intermediaryId], references: [id])
 
-  donationId      String?       @unique
-  donation        Donation?
+  donationId String?   @unique
+  donation   Donation?
 
   @@map("payments")
 }
@@ -329,28 +329,28 @@ model DonorProfile {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  userId         String     @unique
-  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("donor_profiles")
 }
 
 model Operator {
-  id             String       @id @default(cuid())
-  username       String       // unique within organization
-  email          String?
-  phone          String?
-  firstName      String
-  lastName       String
-  passwordHash   String
-  role           OperatorRole @default(OPERATORE)
-  permissions    String[]     @default([])  // additional granular permissions
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  username     String // unique within organization
+  email        String?
+  phone        String?
+  firstName    String
+  lastName     String
+  passwordHash String
+  role         OperatorRole @default(OPERATORE)
+  permissions  String[]     @default([]) // additional granular permissions
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   organizationId String
-  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   // Notifications
   notifications Notification[] @relation("NotificationOperator")
@@ -367,22 +367,22 @@ enum ReportStatus {
 }
 
 model Report {
-  id             String       @id @default(cuid())
-  reason         String
-  status         ReportStatus @default(PENDING)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String       @id @default(cuid())
+  reason    String
+  status    ReportStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  objectId       String
-  object         Object       @relation(fields: [objectId], references: [id], onDelete: Cascade)
+  objectId String
+  object   Object @relation(fields: [objectId], references: [id], onDelete: Cascade)
 
-  reporterId     String
-  reporter       User         @relation("ReporterUser", fields: [reporterId], references: [id])
+  reporterId String
+  reporter   User   @relation("ReporterUser", fields: [reporterId], references: [id])
 
   intermediaryId String
-  intermediary    Organization @relation(fields: [intermediaryId], references: [id])
+  intermediary   Organization @relation(fields: [intermediaryId], references: [id])
 
-  notifications  Notification[]
+  notifications Notification[]
 
   @@index([status])
   @@map("reports")
@@ -398,13 +398,13 @@ model Notification {
   data      String?          @map("data") @db.Text // JSON with extra data
   createdAt DateTime         @default(now())
 
-  recipientId   String
-  recipientType RecipientType @default(USER)
-  recipientUser User?         @relation("NotificationUser", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_user_fk")
-  recipientOperator Operator? @relation("NotificationOperator", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_operator_fk")
+  recipientId       String
+  recipientType     RecipientType @default(USER)
+  recipientUser     User?         @relation("NotificationUser", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_user_fk")
+  recipientOperator Operator?     @relation("NotificationOperator", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_operator_fk")
 
-  reportId  String?
-  report    Report?  @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  reportId String?
+  report   Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
 
   @@index([recipientId, recipientType])
   @@index([read, createdAt])
@@ -412,26 +412,26 @@ model Notification {
 }
 
 model GoodsRequest {
-  id             String            @id @default(cuid())
-  title          String
-  category       Category
-  description    String?           @map("description") @db.Text
-  type           RequestType       @default(GOODS)
-  status         GoodsRequestStatus @default(PENDING)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  id          String             @id @default(cuid())
+  title       String
+  category    Category
+  description String?            @map("description") @db.Text
+  type        RequestType        @default(GOODS)
+  status      GoodsRequestStatus @default(PENDING)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
-  beneficiaryId  String
-  beneficiary     User              @relation("GoodsRequestBeneficiary", fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  beneficiaryId String
+  beneficiary   User   @relation("GoodsRequestBeneficiary", fields: [beneficiaryId], references: [id], onDelete: Cascade)
 
   intermediaryId String
-  intermediary   Organization      @relation(fields: [intermediaryId], references: [id])
+  intermediary   Organization @relation(fields: [intermediaryId], references: [id])
 
-  fulfilledById  String?
-  fulfilledBy    User?             @relation("GoodsRequestFulfiller", fields: [fulfilledById], references: [id], onDelete: SetNull)
-  fulfilledAt    DateTime?
+  fulfilledById String?
+  fulfilledBy   User?     @relation("GoodsRequestFulfiller", fields: [fulfilledById], references: [id], onDelete: SetNull)
+  fulfilledAt   DateTime?
 
-  offers         GoodsOffer[]
+  offers GoodsOffer[] @relation("GoodsOfferRequest")
 
   @@index([beneficiaryId])
   @@index([intermediaryId])
@@ -440,17 +440,17 @@ model GoodsRequest {
 }
 
 model GoodsOffer {
-  id             String       @id @default(cuid())
-  message        String?
-  status         String       @default("PENDING") // PENDING, ACCEPTED, REJECTED
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  message   String?
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  requestId      String
-  request        GoodsRequest @relation("GoodsOfferRequest", fields: [requestId], references: [id], onDelete: Cascade)
+  requestId String
+  request   GoodsRequest @relation("GoodsOfferRequest", fields: [requestId], references: [id], onDelete: Cascade)
 
-  offeredById    String
-  offeredBy      User         @relation("GoodsOfferGiver", fields: [offeredById], references: [id], onDelete: Cascade)
+  offeredById String
+  offeredBy   User   @relation("GoodsOfferGiver", fields: [offeredById], references: [id], onDelete: Cascade, map: "goods_offers_offeredBy_fk")
 
   @@index([requestId])
   @@map("goods_offers")
