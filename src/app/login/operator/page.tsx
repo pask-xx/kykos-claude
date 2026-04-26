@@ -107,11 +107,14 @@ export default function OperatorLoginPage() {
                 <input
                   id="orgCode"
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{4}"
+                  maxLength={4}
                   value={orgCode}
-                  onChange={(e) => setOrgCode(e.target.value)}
+                  onChange={(e) => setOrgCode(e.target.value.replace(/\D/g, ''))}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
-                  placeholder="Es: CARITAS-ROM A"
+                  className="w-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-center text-2xl tracking-widest font-mono"
+                  placeholder="1234"
                 />
               </div>
 

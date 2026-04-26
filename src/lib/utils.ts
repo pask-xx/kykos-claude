@@ -20,3 +20,7 @@ export function getDonorLevel(donations: number): string {
   if (donations >= 6) return 'SILVER';
   return 'BRONZE';
 }
+
+export function generateOrgCode(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
