@@ -14,6 +14,8 @@ interface RequestObject {
     category: string;
     condition: string;
     imageUrls: string[];
+    status: string;
+    depositLocation: string | null;
   };
   donation: {
     id: string;
@@ -72,8 +74,9 @@ export default function RecipientRequestsPage() {
   };
 
   const filteredRequests = requests.filter(r => {
-    if (filter === 'active') return r.status === 'PENDING' || r.status === 'APPROVED';
-    if (filter === 'completed') return r.status === 'REJECTED' || r.status === 'EXPIRED' || r.donation;
+    const objectStatus = r.object.status;
+    if (filter === 'active') return objectStatus !== 'DONATED';
+    if (filter === 'completed') return objectStatus === 'DONATED';
     return true;
   });
 
@@ -196,23 +199,26 @@ export default function RecipientRequestsPage() {
                 </div>
 
                 {/* Actions */}
-                {(request.status === 'APPROVED' || request.donation) && (
-                  <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                    {request.donation ? (
-                      <Link
-                        href={`/recipient/qr/${request.id}`}
-                        className="block w-full py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-sm"
-                      >
-                        📱 Ritira con QR Code
-                      </Link>
-                    ) : (
-                      <div className="text-sm text-amber-600 flex items-center gap-2">
-                        <span>⏳</span>
-                        <span>In attesa di consegna all'intermediario</span>
-                      </div>
-                    )}
+                {request.object.status === 'DONATED' ? (
+                  <div className="border-t border-gray-100 px-4 py-3 bg-green-50">
+                    <p className="text-sm text-green-600 flex items-center gap-2">
+                      <span>✅</span>
+                      <span>Ritirato</span>
+                    </p>
                   </div>
-                )}
+                ) : request.object.status === 'WITHDRAWN' ? (
+                  <Link
+                    href={`/recipient/qr/${request.id}`}
+                    className="block w-full py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-sm"
+                  >
+                    📱 Ritira con QR Code
+                  </Link>
+                ) : request.object.status === 'RESERVED' ? (
+                  <div className="text-sm text-amber-600 flex items-center gap-2 px-4 py-2">
+                    <span>⏳</span>
+                    <span>In attesa di consegna all'intermediario</span>
+                  </div>
+                ) : null}
 
                 {request.status === 'REJECTED' && (
                   <div className="border-t border-gray-100 px-4 py-3 bg-red-50">

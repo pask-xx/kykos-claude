@@ -17,8 +17,14 @@ export async function GET() {
       where: { recipientId: session.id },
       include: {
         object: {
-          include: {
-            donor: { select: { name: true } },
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            condition: true,
+            imageUrls: true,
+            status: true,
+            depositLocation: true,
           },
         },
       },
