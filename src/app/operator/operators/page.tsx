@@ -42,24 +42,6 @@ export default function OperatorsPage() {
     }
   };
 
-  const toggleActive = async (operatorId: string, currentActive: boolean) => {
-    try {
-      const res = await fetch(`/api/operator/${operatorId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active: !currentActive }),
-      });
-
-      if (res.ok) {
-        setOperators(prev =>
-          prev.map(op => op.id === operatorId ? { ...op, active: !currentActive } : op)
-        );
-      }
-    } catch (err) {
-      console.error('Toggle active error:', err);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -128,24 +110,12 @@ export default function OperatorsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/operator/operators/${op.id}`}
-                        className="px-3 py-1.5 text-sm bg-primary-100 text-primary-700 rounded hover:bg-primary-200"
-                      >
-                        Dettagli
-                      </Link>
-                      <button
-                        onClick={() => toggleActive(op.id, op.active)}
-                        className={`px-3 py-1.5 text-sm rounded ${
-                          op.active
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
-                      >
-                        {op.active ? 'Disattiva' : 'Attiva'}
-                      </button>
-                    </div>
+                    <Link
+                      href={`/operator/operators/${op.id}`}
+                      className="px-3 py-1.5 text-sm bg-primary-100 text-primary-700 rounded hover:bg-primary-200"
+                    >
+                      Gestisci
+                    </Link>
                   </td>
                 </tr>
               ))

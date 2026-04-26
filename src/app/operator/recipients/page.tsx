@@ -138,13 +138,12 @@ export default function OperatorRecipientsPage() {
                         Autorizzato il {formatDate(recipient.authorizedAt!)}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleAuthorize(recipient.id, false)}
-                      disabled={processing === recipient.id}
-                      className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium text-sm disabled:opacity-50"
+                    <Link
+                      href={`/operator/recipients/${recipient.id}`}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
                     >
-                      Revoca
-                    </button>
+                      Gestisci
+                    </Link>
                   </div>
                 ))}
               </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { OPERATOR_ROLE_LABELS, OPERATOR_PERMISSION_LABELS, OperatorRole, OperatorPermission } from '@/types';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Operator {
   id: string;
@@ -81,6 +82,22 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
       setError('Errore di rete');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleActive = async () => {
+    if (!operator) return;
+    try {
+      const res = await fetch(`/api/operator/${operator.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !operator.active }),
+      });
+      if (res.ok) {
+        setOperator(prev => prev ? { ...prev, active: !prev.active } : null);
+      }
+    } catch (err) {
+      console.error('Toggle active error:', err);
     }
   };
 
@@ -184,11 +201,32 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
           <h1 className="text-2xl font-bold text-gray-900">{operator.firstName} {operator.lastName}</h1>
           <p className="text-gray-500">@{operator.username}</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-          operator.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
-          {operator.active ? 'Attivo' : 'Disattivato'}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            operator.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          }`}>
+            {operator.active ? 'Attivo' : 'Disattivato'}
+          </span>
+          <ConfirmDialog
+            title={operator.active ? 'Disattiva operatore' : 'Attiva operatore'}
+            message={operator.active
+              ? `Vuoi disattivare ${operator.firstName} ${operator.lastName}? Non potrà più accedere.`
+              : `Vuoi attivare ${operator.firstName} ${operator.lastName}?`}
+            confirmLabel={operator.active ? 'Disattiva' : 'Attiva'}
+            variant="warning"
+            onConfirm={toggleActive}
+          >
+            <button
+              className={`px-4 py-2 rounded-lg font-medium text-sm ${
+                operator.active
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              {operator.active ? 'Disattiva' : 'Attiva'}
+            </button>
+          </ConfirmDialog>
+        </div>
       </div>
 
       {success && (
