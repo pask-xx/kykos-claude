@@ -38,7 +38,7 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[100dvh] bg-gray-50">
       {/* Fixed floating sidebar */}
       <Sidebar
         role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY'}
@@ -55,7 +55,7 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
       </header>
 
       {/* Main content */}
-      <main className="min-h-screen lg:pl-16 pt-14 lg:pt-0">
+      <main className="min-h-[100dvh] lg:pl-16 pt-14 lg:pt-0">
         <div className="px-6 py-6">
           {children}
         </div>
