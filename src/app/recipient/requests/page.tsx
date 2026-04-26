@@ -31,6 +31,14 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   EXPIRED: { label: 'Scaduta', color: 'bg-gray-100 text-gray-700' },
 };
 
+const objectStatusLabels: Record<string, { label: string; color: string; icon: string }> = {
+  AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700', icon: '📦' },
+  RESERVED: { label: 'In attesa consegna', color: 'bg-amber-100 text-amber-700', icon: '⏳' },
+  WITHDRAWN: { label: 'Pronto per ritiro', color: 'bg-blue-100 text-blue-700', icon: '📱' },
+  DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700', icon: '✅' },
+  BLOCKED: { label: 'Bloccato', color: 'bg-red-100 text-red-700', icon: '🚫' },
+};
+
 const categoryLabels: Record<string, string> = {
   FURNITURE: 'Arredamento',
   ELECTRONICS: 'Elettronica',
@@ -148,18 +156,19 @@ export default function RecipientRequestsPage() {
       ) : (
         <div className="space-y-4">
           {filteredRequests.map((request) => {
-            const status = statusLabels[request.status] || { label: request.status, color: 'bg-gray-100 text-gray-700' };
-            const hasQR = request.donation || request.status === 'APPROVED';
+            const requestStatus = statusLabels[request.status] || { label: request.status, color: 'bg-gray-100 text-gray-700' };
+            const objStatus = objectStatusLabels[request.object.status] || { label: request.object.status, color: 'bg-gray-100 text-gray-700', icon: '📦' };
 
             return (
               <div
                 key={request.id}
-                className="bg-white rounded-xl shadow-sm border w-full"
+                className="bg-white rounded-xl shadow-sm border w-full p-4"
               >
-                <div className="p-4">
-                  <div className="flex gap-4">
-                    {/* Image */}
-                    <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                {/* Mobile-first stacked layout */}
+                <div className="flex flex-col gap-3">
+                  {/* Row 1: Image + Title */}
+                  <div className="flex gap-3">
+                    <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                       {request.object.imageUrls && request.object.imageUrls.length > 0 ? (
                         <img
                           src={request.object.imageUrls[0]}
@@ -170,50 +179,43 @@ export default function RecipientRequestsPage() {
                         <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
                       )}
                     </div>
-
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 truncate">{request.object.title}</h3>
-                          <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                            <span>{categoryLabels[request.object.category] || request.object.category}</span>
-                            <span>•</span>
-                            <span>{conditionLabels[request.object.condition]}</span>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-2">
-                            Richiesta il {new Date(request.createdAt).toLocaleDateString('it-IT')}
-                          </p>
-                          {request.message && (
-                            <p className="text-sm text-gray-600 mt-2 italic">"{request.message}"</p>
-                          )}
-                        </div>
-
-                        {/* Right side: status + action */}
-                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                          <span className={`px-2 py-1 text-xs rounded font-medium ${status.color}`}>
-                            {status.label}
-                          </span>
-                          {request.object.status === 'DONATED' ? (
-                            <span className="text-sm text-green-600 flex items-center gap-1">
-                              <span>✅</span> Ritirato
-                            </span>
-                          ) : request.object.status === 'WITHDRAWN' ? (
-                            <Link
-                              href={`/recipient/qr/${request.id}`}
-                              className="inline-block px-3 py-1.5 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-xs"
-                            >
-                              📱 Ritira
-                            </Link>
-                          ) : request.object.status === 'RESERVED' ? (
-                            <span className="text-xs text-amber-600 flex items-center gap-1">
-                              <span>⏳</span> In attesa
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
+                      <h3 className="font-semibold text-gray-900">{request.object.title}</h3>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Richiesta il {new Date(request.createdAt).toLocaleDateString('it-IT')}
+                      </p>
                     </div>
                   </div>
+
+                  {/* Row 2: Category + Condition */}
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                      {categoryLabels[request.object.category] || request.object.category}
+                    </span>
+                    <span>•</span>
+                    <span>{conditionLabels[request.object.condition]}</span>
+                  </div>
+
+                  {/* Row 3: Object Status + Action */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded font-medium ${objStatus.color}`}>
+                      <span>{objStatus.icon}</span>
+                      {objStatus.label}
+                    </span>
+                    {request.object.status === 'WITHDRAWN' && (
+                      <Link
+                        href={`/recipient/qr/${request.id}`}
+                        className="inline-block px-3 py-1.5 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-xs"
+                      >
+                        📱 Ritira
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* Row 4: Request message (if exists) */}
+                  {request.message && (
+                    <p className="text-sm text-gray-600 italic">"{request.message}"</p>
+                  )}
                 </div>
               </div>
             );
