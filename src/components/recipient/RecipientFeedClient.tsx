@@ -10,6 +10,9 @@ interface Object {
   condition: string;
   imageUrls: string[];
   createdAt: string;
+  donor: {
+    donorProfile: { level: string } | null;
+  };
   _count: { requests: number };
 }
 
@@ -25,8 +28,10 @@ export default function RecipientFeedClient() {
   const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFetchRef = useRef<string | null>(null);
 
-  const fetchObjects = useCallback(async (cursor: string | null = null) => {
+  const fetchObjects = useCallback(async (cursor: string | null = null, silent = false) => {
     try {
       const url = cursor
         ? `/api/recipient/objects?cursor=${cursor}&limit=10`
@@ -45,16 +50,21 @@ export default function RecipientFeedClient() {
 
       setCursor(data.nextCursor);
       setHasNextPage(data.hasNextPage);
+      lastFetchRef.current = data.objects[0]?.id || null;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore generico');
+      if (!silent) {
+        setError(err instanceof Error ? err.message : 'Errore generico');
+      }
     }
   }, []);
 
+  // Initial load
   useEffect(() => {
     setLoading(true);
     fetchObjects().finally(() => setLoading(false));
   }, [fetchObjects]);
 
+  // Load more when scrolling
   useEffect(() => {
     if (!hasNextPage || !loadMoreRef.current) return;
 
@@ -74,6 +84,31 @@ export default function RecipientFeedClient() {
       observerRef.current?.disconnect();
     };
   }, [hasNextPage, loadingMore, cursor, fetchObjects]);
+
+  // Auto-refresh when user reached the end and no more pages
+  useEffect(() => {
+    if (!hasNextPage && objects.length > 0) {
+      // User has reached the end, start polling for new items
+      refreshIntervalRef.current = setInterval(() => {
+        // Fetch first page to check for new items (without cursor)
+        fetch('/api/recipient/objects?limit=1')
+          .then(res => res.json())
+          .then(data => {
+            if (data.objects.length > 0 && data.objects[0].id !== lastFetchRef.current) {
+              // New items available, reload all silently
+              fetchObjects(null, true);
+            }
+          })
+          .catch(() => {});
+      }, 30000); // Check every 30 seconds
+
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+      };
+    }
+  }, [hasNextPage, objects.length, fetchObjects]);
 
   const handleRequest = async (objectId: string) => {
     setRequestingId(objectId);
@@ -120,6 +155,14 @@ export default function RecipientFeedClient() {
     GOOD: 'Buono',
     FAIR: 'Discreto',
     POOR: 'Usurato',
+  };
+
+  const levelEmoji: Record<string, string> = {
+    BRONZE: '🥉',
+    SILVER: '🥈',
+    GOLD: '🥇',
+    PLATINUM: '🏆',
+    DIAMOND: '💎',
   };
 
   if (loading) {
@@ -199,6 +242,9 @@ export default function RecipientFeedClient() {
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
                     {categoryLabels[obj.category] || obj.category}
                   </span>
+                  {obj.donor.donorProfile?.level && (
+                    <span className="text-sm">{levelEmoji[obj.donor.donorProfile.level]}</span>
+                  )}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
                   {new Date(obj.createdAt).toLocaleDateString('it-IT')}
@@ -270,11 +316,15 @@ export default function RecipientFeedClient() {
       ))}
 
       {/* Load more trigger */}
-      {hasNextPage && (
+      {hasNextPage ? (
         <div ref={loadMoreRef} className="flex justify-center py-4">
           {loadingMore && (
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
           )}
+        </div>
+      ) : (
+        <div className="text-center py-4 text-sm text-gray-400">
+          Fine delle disponibilità
         </div>
       )}
     </div>
