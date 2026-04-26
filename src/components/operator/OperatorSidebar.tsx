@@ -68,7 +68,7 @@ export default function OperatorSidebar({
       {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white border border-gray-200 rounded-lg shadow-md flex items-center justify-center"
+        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 bg-white border border-gray-200 rounded-lg shadow-md flex items-center justify-center"
       >
         <span className="text-xl">☰</span>
       </button>
