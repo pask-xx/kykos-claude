@@ -209,7 +209,7 @@ export default function RecipientRequestsPage() {
                 ) : request.object.status === 'WITHDRAWN' ? (
                   <Link
                     href={`/recipient/qr/${request.id}`}
-                    className="block w-full py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-sm"
+                    className="inline-block px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-sm"
                   >
                     📱 Ritira con QR Code
                   </Link>
