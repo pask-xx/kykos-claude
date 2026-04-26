@@ -188,7 +188,7 @@ export default function OperatorSidebar({
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
         </div>
-        <main className="p-4 sm:p-6">
+        <main className="p-4 sm:p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
           {children}
         </main>
       </div>
