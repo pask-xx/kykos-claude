@@ -154,7 +154,7 @@ export default function RecipientRequestsPage() {
             return (
               <div
                 key={request.id}
-                className="bg-white rounded-xl shadow-sm border overflow-hidden"
+                className="bg-white rounded-xl shadow-sm border w-full"
               >
                 <div className="p-4">
                   <div className="flex gap-4">
