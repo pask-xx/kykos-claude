@@ -3,8 +3,22 @@ import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
 import { geocodeAddress } from '@/lib/geocode';
 import { sendWelcomeEmail } from '@/lib/email';
+import { sendConfirmationEmail } from '@/lib/email';
 import { Role, OrgType } from '@prisma/client';
 import { generateOrgCode } from '@/lib/utils';
+import { SignJWT } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
+);
+
+async function generateConfirmationToken(userId: string, email: string): Promise<string> {
+  return await new SignJWT({ userId, email, purpose: 'email_confirmation' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('24h') // Token valid for 24 hours
+    .sign(JWT_SECRET);
+}
 
 export async function POST(request: Request) {
   try {
@@ -119,7 +133,7 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: false, // Require email confirmation
+      email_confirm: true, // Supabase confirms immediately, we send our own email
       user_metadata: {
         role,
         firstName: firstName || null,
@@ -139,6 +153,9 @@ export async function POST(request: Request) {
     }
 
     const authUserId = authData.user.id;
+
+    // Generate our own confirmation token
+    const confirmToken = await generateConfirmationToken(authUserId, email);
 
     // Geocode address if needed
     let lat = latitude ? parseFloat(latitude) : null;
@@ -172,6 +189,7 @@ export async function POST(request: Request) {
         referenceEntityId: role === 'RECIPIENT' ? referenceEntityId : null,
         isee: role === 'RECIPIENT' && isee ? Math.round(parseFloat(isee) * 100) / 100 : null,
         authorized: false, // Will be authorized after email confirmation
+        emailConfirmed: false, // Requires email confirmation
         ...(role === 'INTERMEDIARY' && orgName && orgType && {
           intermediaryOrg: {
             create: {
@@ -197,8 +215,8 @@ export async function POST(request: Request) {
       },
     });
 
-    // Supabase will send confirmation email automatically
-    // User will be able to login after confirming their email
+    // Send our own confirmation email via Resend
+    await sendConfirmationEmail(email, fullName, confirmToken);
 
     return NextResponse.json({
       message: 'Registrazione completata. Controlla la email per confermare il tuo account.',

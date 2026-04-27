@@ -161,6 +161,8 @@ model User {
   isee                 Decimal?
   authorized           Boolean       @default(false)
   authorizedAt         DateTime?
+  emailConfirmed       Boolean       @default(false)
+  emailConfirmedAt     DateTime?
   canProvideServices   Boolean       @default(false)
   canProvideServicesAt DateTime?
   canRequestGoods     Boolean       @default(true)

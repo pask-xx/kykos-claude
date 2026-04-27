@@ -1,13 +1,127 @@
 'use client';
 
-import { Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+
+function ConfirmContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [message, setMessage] = useState('Confermo la tua email...');
+
+  useEffect(() => {
+    async function confirmEmail() {
+      if (!token) {
+        setStatus('error');
+        setMessage('Token mancante');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          setStatus('success');
+          setMessage(data.message || 'Email confermata con successo!');
+          // Redirect to login after 3 seconds
+          setTimeout(() => {
+            router.push('/auth/login');
+          }, 3000);
+        } else {
+          setStatus('error');
+          setMessage(data.error || 'Errore durante la conferma');
+        }
+      } catch {
+        setStatus('error');
+        setMessage('Errore di connessione');
+      }
+    }
+
+    confirmEmail();
+  }, [token, router]);
+
+  return (
+    <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+      <div className="w-full max-w-md text-center">
+        {/* Logo */}
+        <div className="mb-8 flex items-center justify-center gap-3">
+          <img src="/albero.svg" alt="KYKOS" className="w-12 h-12" />
+          <span className="text-3xl font-bold text-secondary-600">KYKOS</span>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-8">
+          {status === 'loading' && (
+            <>
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl animate-spin">⏳</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Conferma in corso</h2>
+              <p className="text-gray-600">{message}</p>
+            </>
+          )}
+
+          {status === 'success' && (
+            <>
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">✅</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Email confermata!</h2>
+              <p className="text-gray-600 mb-6">{message}</p>
+              <p className="text-sm text-gray-500 mb-6">
+                Verrai reindirizzato al login tra 3 secondi...
+              </p>
+              <Link
+                href="/auth/login"
+                className="inline-block bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-secondary-700 transition"
+              >
+                Accedi ora
+              </Link>
+            </>
+          )}
+
+          {status === 'error' && (
+            <>
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">❌</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Errore</h2>
+              <p className="text-gray-600 mb-6">{message}</p>
+              <div className="border-t pt-6">
+                <Link
+                  href="/auth/register"
+                  className="text-secondary-600 hover:text-secondary-700 font-medium text-sm"
+                >
+                  Torna alla registrazione
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ConfirmNoticeContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
+  const hasToken = searchParams.has('token');
 
+  // If token is present, show confirmation content
+  if (hasToken) {
+    return <ConfirmContent />;
+  }
+
+  // Otherwise show the notice page
   return (
     <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
       <div className="w-full max-w-md text-center">
@@ -23,9 +137,11 @@ function ConfirmNoticeContent() {
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Controlla la tua email</h2>
-          <p className="text-gray-600 mb-6">
-            Abbiamo inviato un link di conferma a <strong className="text-gray-800">{email}</strong>
-          </p>
+          {email && (
+            <p className="text-gray-600 mb-6">
+              Abbiamo inviato un link di conferma a <strong className="text-gray-800">{email}</strong>
+            </p>
+          )}
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
             <p className="text-sm text-blue-800">
@@ -59,7 +175,7 @@ function ConfirmNoticeContent() {
   );
 }
 
-export default function AuthConfirmNoticePage() {
+export default function AuthConfirmPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding */}

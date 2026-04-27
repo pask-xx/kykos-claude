@@ -17,3 +17,7 @@ ALTER TABLE "operators" ALTER COLUMN "passwordHash" DROP NOT NULL;
 
 -- 5. Remove PendingRegistration table (no longer needed with Supabase Auth)
 DROP TABLE IF EXISTS "pending_registrations";
+
+-- 6. Add email confirmation fields
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "emailConfirmed" BOOLEAN DEFAULT false;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "emailConfirmedAt" TIMESTAMP(3);
