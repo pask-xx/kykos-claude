@@ -6,10 +6,6 @@ import { sendWelcomeEmail } from '@/lib/email';
 import { Role, OrgType } from '@prisma/client';
 import { generateOrgCode } from '@/lib/utils';
 
-function generateOrgCode(): string {
-  return Math.random().toString(16).substring(2, 8).toUpperCase();
-}
-
 export async function POST(request: Request) {
   try {
     const {
