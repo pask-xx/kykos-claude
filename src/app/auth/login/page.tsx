@@ -19,31 +19,30 @@ export default function LoginPage() {
     setResendMessage('');
     setLoading(true);
 
+    const isEmail = emailOrUsername.includes('@');
+
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailOrUsername, password }),
-      });
+      if (isEmail) {
+        // User login with email
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailOrUsername, password }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok) {
-        // Check if operator login failed
-        if (data.isOperatorError) {
-          setError(data.error || 'Login fallito');
+        if (!res.ok) {
+          if (data.error?.includes('confermare')) {
+            setResendMessage(data.error);
+            setError('');
+          } else {
+            setError(data.error || 'Login fallito');
+          }
           return;
         }
-        if (data.error?.includes('confermare')) {
-          setResendMessage(data.error);
-          setError('');
-        } else {
-          setError(data.error || 'Login fallito');
-        }
-        return;
-      }
 
-      switch (data.user.role) {
+        switch (data.user.role) {
           case 'DONOR':
             router.push('/donor/dashboard');
             break;
@@ -59,6 +58,23 @@ export default function LoginPage() {
           default:
             router.push('/');
         }
+      } else {
+        // Operator login with username
+        const res = await fetch('/api/operator/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: emailOrUsername, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || 'Login operatore fallito');
+          return;
+        }
+
+        router.push('/operator/dashboard');
+      }
     } catch {
       setError('Errore di connessione');
     } finally {
@@ -183,16 +199,16 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                  Email o username
                 </label>
                 <input
                   id="emailOrUsername"
-                  type="email"
+                  type="text"
                   value={emailOrUsername}
                   onChange={(e) => setEmailOrUsername(e.target.value)}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-                  placeholder="la tua@email.com"
+                  placeholder="la tua@email.com oppure mario.rossi"
                 />
               </div>
 

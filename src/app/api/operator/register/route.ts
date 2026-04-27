@@ -26,17 +26,16 @@ export async function POST(request: Request) {
     }
 
     const {
-      email,
       firstName,
       lastName,
-      password,
+      notifyEmail,
       role,
     } = await request.json();
 
     // Validate required fields
-    if (!email || !firstName || !lastName) {
+    if (!firstName || !lastName) {
       return NextResponse.json(
-        { error: 'Email, nome e cognome sono obbligatori' },
+        { error: 'Nome e cognome sono obbligatori' },
         { status: 400 }
       );
     }
@@ -56,31 +55,30 @@ export async function POST(request: Request) {
     // Generate username from firstName.lastName
     let username = generateOperatorUsername(firstName, lastName, organization.code);
 
-    // Check if username already exists (globally unique now)
+    // Check if username already exists - append .1, .2, etc. until unique
     let existing = await prisma.operator.findUnique({
       where: { username },
     });
 
-    // If exists, generate with org code suffix until unique
-    while (existing) {
-      username = `${generateOperatorUsername(firstName, lastName, organization.code)}.${organization.code.toLowerCase()}`;
-      existing = await prisma.operator.findUnique({
-        where: { username },
-      });
-      // If still exists, append a number
-      if (!existing) break;
-      const suffix = Math.floor(Math.random() * 1000);
-      username = `${generateOperatorUsername(firstName, lastName, organization.code)}.${organization.code.toLowerCase()}.${suffix}`;
-      existing = await prisma.operator.findUnique({
-        where: { username },
-      });
+    if (existing) {
+      let counter = 1;
+      let newUsername = `${generateOperatorUsername(firstName, lastName, organization.code)}.${counter}`;
+      while (true) {
+        const check = await prisma.operator.findUnique({
+          where: { username: newUsername },
+        });
+        if (!check) break;
+        counter++;
+        newUsername = `${generateOperatorUsername(firstName, lastName, organization.code)}.${counter}`;
+      }
+      username = newUsername;
     }
 
-    // Generate temp password if not provided
-    const tempPassword = password || generateTempPassword();
+    // Generate temp password
+    const tempPassword = generateTempPassword();
 
-    // Create operator email for Supabase Auth
-    const operatorEmail = email; // User provides email directly
+    // Create operator email for Supabase Auth: username@kykos.operators
+    const operatorEmail = `${username}@kykos.operators`;
 
     // Create Supabase Auth user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -118,14 +116,16 @@ export async function POST(request: Request) {
       },
     });
 
-    // Send credentials email to operator
-    const emailSent = await sendOperatorCredentialsEmail(
-      operator.email,
-      `${operator.firstName} ${operator.lastName}`,
-      operator.username,
-      tempPassword,
-      organization.name
-    );
+    // Send credentials email to the notifyEmail provided by intermediary
+    const emailSent = notifyEmail
+      ? await sendOperatorCredentialsEmail(
+          notifyEmail,
+          `${operator.firstName} ${operator.lastName}`,
+          operator.username,
+          tempPassword,
+          organization.name
+        )
+      : false;
 
     return NextResponse.json({
       operator: {

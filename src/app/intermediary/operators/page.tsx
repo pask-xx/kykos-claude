@@ -24,9 +24,9 @@ export default function IntermediaryOperatorsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newOp, setNewOp] = useState({
-    email: '',
     firstName: '',
     lastName: '',
+    notifyEmail: '',
     role: 'OPERATORE' as OperatorRole,
     permissions: [] as string[],
   });
@@ -81,9 +81,9 @@ export default function IntermediaryOperatorsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: newOp.email,
           firstName: newOp.firstName,
           lastName: newOp.lastName,
+          notifyEmail: newOp.notifyEmail || null,
           role: newOp.role,
           permissions: newOp.permissions,
         }),
@@ -93,9 +93,9 @@ export default function IntermediaryOperatorsPage() {
         const data = await res.json();
         setCreatedOp(data);
         setNewOp({
-          email: '',
           firstName: '',
           lastName: '',
+          notifyEmail: '',
           role: 'OPERATORE',
           permissions: [],
         });
@@ -289,14 +289,15 @@ export default function IntermediaryOperatorsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email per invio credenziali</label>
                       <input
                         type="email"
-                        value={newOp.email}
-                        onChange={(e) => setNewOp(prev => ({ ...prev, email: e.target.value }))}
-                        required
+                        value={newOp.notifyEmail}
+                        onChange={(e) => setNewOp(prev => ({ ...prev, notifyEmail: e.target.value }))}
+                        placeholder="email@ente.it"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Se inserita, le credenziali verranno inviate a questo indirizzo</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>
