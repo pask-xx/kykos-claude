@@ -30,7 +30,7 @@ export default function IntermediaryOperatorsPage() {
     role: 'OPERATORE' as OperatorRole,
     permissions: [] as string[],
   });
-  const [createdOp, setCreatedOp] = useState<{ operator: Operator; tempPassword: string; emailSent: boolean } | null>(null);
+  const [createdOp, setCreatedOp] = useState<{ operator: Operator; tempPassword: string; emailSent: boolean; notifyEmail: string } | null>(null);
 
   useEffect(() => {
     fetchOperators();

@@ -54,31 +54,26 @@ export async function POST(request: Request) {
 
     // Generate base username from firstName.lastName (no org code suffix)
     const baseUsername = generateOperatorUsername(firstName, lastName);
-    console.log('[DEBUG] baseUsername generated:', baseUsername);
 
     // Check if username already exists - append .1, .2, etc. until unique
     let username = baseUsername;
     let existing = await prisma.operator.findUnique({
       where: { username },
     });
-    console.log('[DEBUG] check existing for', username, ':', existing ? 'EXISTS' : 'FREE');
 
     if (existing) {
       let counter = 1;
       while (true) {
         const newUsername = `${baseUsername}.${counter}`;
-        console.log('[DEBUG] trying username:', newUsername);
         const check = await prisma.operator.findUnique({
           where: { username: newUsername },
         });
-        console.log('[DEBUG] check result for', newUsername, ':', check ? 'EXISTS' : 'FREE');
         if (!check) {
           username = newUsername;
           break;
         }
         counter++;
       }
-      console.log('[DEBUG] final username assigned:', username);
     }
 
     // Generate temp password
