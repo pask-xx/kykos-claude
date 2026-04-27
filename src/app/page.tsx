@@ -19,7 +19,7 @@ export default function Home() {
             </Link>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
               <SessionDashboardLink />
               <Link
                 href="/manifesto"
@@ -29,13 +29,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/auth/login"
-                className="px-3 py-2 text-secondary-600 hover:text-secondary-700 font-medium transition"
-              >
-                Operatori
-              </Link>
-              <Link
-                href="/auth/login"
-                className="px-3 py-2 text-primary-600 hover:text-primary-700 font-medium"
+                className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 font-medium shadow-sm transition"
               >
                 Accedi
               </Link>
@@ -68,14 +62,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/auth/login"
-                className="block px-4 py-3 text-secondary-600 hover:text-secondary-700 hover:bg-gray-50 rounded-lg font-medium transition"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Operatori
-              </Link>
-              <Link
-                href="/auth/login"
-                className="block px-4 py-3 text-primary-600 hover:text-primary-700 hover:bg-gray-50 rounded-lg font-medium transition"
+                className="block px-4 py-3 text-secondary-600 hover:bg-gray-50 rounded-lg font-medium transition font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Accedi
