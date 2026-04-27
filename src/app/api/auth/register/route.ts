@@ -1,20 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 import { geocodeAddress } from '@/lib/geocode';
-import { sendOtpEmail } from '@/lib/email';
+import { sendWelcomeEmail } from '@/lib/email';
 import { Role, OrgType } from '@prisma/client';
 import { generateOrgCode } from '@/lib/utils';
 
-function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-async function generateUniqueOrgCode(): Promise<string> {
-  const code = generateOrgCode();
-  const existing = await prisma.organization.findUnique({ where: { code } });
-  if (existing) throw new Error('Codice ente non disponibile');
-  return code;
+function generateOrgCode(): string {
+  return Math.random().toString(16).substring(2, 8).toUpperCase();
 }
 
 export async function POST(request: Request) {
@@ -94,7 +87,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists in KYKOS DB
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -104,16 +97,6 @@ export async function POST(request: Request) {
         { error: 'Email già registrata' },
         { status: 400 }
       );
-    }
-
-    // Check if there's already a pending registration with this email
-    const existingPending = await prisma.pendingRegistration.findUnique({
-      where: { email },
-    });
-
-    if (existingPending) {
-      // Delete old pending registration
-      await prisma.pendingRegistration.delete({ where: { email } });
     }
 
     // Verify reference entity exists (for RECIPIENT)
@@ -130,18 +113,52 @@ export async function POST(request: Request) {
       }
     }
 
-    // Hash password (skip for OAuth users)
-    const passwordHash = isOAuth ? '' : await hashPassword(password);
+    // Build name from firstName and lastName
+    const fullName = firstName && lastName
+      ? `${firstName} ${lastName}`
+      : (firstName || lastName || email.split('@')[0]);
 
-    // Generate OTP
-    const otpCode = generateOtp();
-    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // Create user in Supabase Auth
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: false, // Require email confirmation
+      user_metadata: {
+        role,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        fullName,
+      },
+    });
 
-    // Create pending registration instead of user
-    await prisma.pendingRegistration.create({
+    if (authError || !authData.user) {
+      console.error('Supabase Auth error:', authError);
+      return NextResponse.json(
+        { error: 'Errore durante la registrazione. Riprova.' },
+        { status: 500 }
+      );
+    }
+
+    const authUserId = authData.user.id;
+
+    // Geocode address if needed
+    let lat = latitude ? parseFloat(latitude) : null;
+    let lng = longitude ? parseFloat(longitude) : null;
+
+    if (!lat && !lng && address && city) {
+      const geoResult = await geocodeAddress(address, city, cap || '');
+      if (geoResult) {
+        lat = geoResult.latitude;
+        lng = geoResult.longitude;
+      }
+    }
+
+    // Create KYKOS User record
+    const user = await prisma.user.create({
       data: {
+        authUserId,
         email,
-        passwordHash,
+        name: fullName,
         role: role as Role,
         firstName: firstName || null,
         lastName: lastName || null,
@@ -151,23 +168,43 @@ export async function POST(request: Request) {
         cap: cap || null,
         city: city || null,
         houseNumber: houseNumber || null,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
+        latitude: lat,
+        longitude: lng,
         referenceEntityId: role === 'RECIPIENT' ? referenceEntityId : null,
         isee: role === 'RECIPIENT' && isee ? Math.round(parseFloat(isee) * 100) / 100 : null,
-        orgName: role === 'INTERMEDIARY' ? orgName : null,
-        orgType: role === 'INTERMEDIARY' ? orgType as OrgType : null,
-        otpCode,
-        otpExpiresAt,
+        authorized: false, // Will be authorized after email confirmation
+        ...(role === 'INTERMEDIARY' && orgName && orgType && {
+          intermediaryOrg: {
+            create: {
+              name: orgName,
+              type: orgType as OrgType,
+              code: generateOrgCode(),
+            },
+          },
+        }),
+        ...(role === 'DONOR' && {
+          donorProfile: {
+            create: {
+              level: 'BRONZE',
+              totalDonations: 0,
+              totalObjects: 0,
+            },
+          },
+        }),
+      },
+      include: {
+        intermediaryOrg: true,
+        donorProfile: true,
       },
     });
 
-    // Send OTP email
-    await sendOtpEmail(email, otpCode, 10);
+    // Supabase will send confirmation email automatically
+    // User will be able to login after confirming their email
 
     return NextResponse.json({
-      message: 'Codice di verifica inviato',
-      email,
+      message: 'Registrazione completata. Controlla la email per confermare il tuo account.',
+      email: user.email,
+      needsEmailConfirmation: true,
     });
   } catch (error) {
     console.error('Register error:', error);

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -55,16 +55,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify password
-    const passwordHash = await hashPassword(password);
-    if (passwordHash !== operator.passwordHash) {
+    // If operator has supabaseAuthId, use Supabase Auth
+    if (operator.supabaseAuthId && operator.email) {
+      const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+        email: operator.email,
+        password,
+      });
+
+      if (authError || !authData.user) {
+        return NextResponse.json(
+          { error: 'Username o password non validi' },
+          { status: 401 }
+        );
+      }
+    } else {
+      // Fallback for operators migrated from old system without Supabase Auth
+      // This path can be removed after all operators are migrated
       return NextResponse.json(
-        { error: 'Username o password non validi' },
+        { error: 'Account operatore non configurato per questo tipo di login. Contatta l\'amministratore.' },
         { status: 401 }
       );
     }
 
-    // Create JWT token
+    // Create JWT token for app-level session
     const token = await new SignJWT({
       operatorId: operator.id,
       organizationId: operator.organizationId,

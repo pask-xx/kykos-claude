@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createSession, setSessionCookie, hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { createSession, setSessionCookie } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -13,28 +14,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find user
-    const user = await prisma.user.findUnique({
+    // Authenticate with Supabase Auth
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.user) {
+      return NextResponse.json(
+        { error: 'Credenziali non valide' },
+        { status: 401 }
+      );
+    }
+
+    // Find or create user in KYKOS DB
+    let user = await prisma.user.findUnique({
       where: { email },
     });
 
+    // If user doesn't exist but has Supabase auth, they might need to complete registration
     if (!user) {
       return NextResponse.json(
-        { error: 'Credenziali non valide' },
+        { error: 'Account non trovato. Completa la registrazione prima di accedere.' },
         { status: 401 }
       );
     }
 
-    // Verify password
-    const passwordHash = await hashPassword(password);
-    if (user.passwordHash !== passwordHash) {
-      return NextResponse.json(
-        { error: 'Credenziali non valide' },
-        { status: 401 }
-      );
-    }
-
-    // Create session
+    // Create app-level session
     const token = await createSession({
       id: user.id,
       email: user.email,

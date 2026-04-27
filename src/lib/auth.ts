@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
-import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -14,6 +13,10 @@ export interface SessionUser {
   role: Role;
 }
 
+/**
+ * Create an app-level session JWT (after Supabase Auth confirms identity)
+ * This is separate from Supabase Auth session - used for role-based authorization
+ */
 export async function createSession(user: SessionUser): Promise<string> {
   const token = await new SignJWT({ user })
     .setProtectedHeader({ alg: 'HS256' })
@@ -24,6 +27,9 @@ export async function createSession(user: SessionUser): Promise<string> {
   return token;
 }
 
+/**
+ * Get current user session from cookie
+ */
 export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get('session')?.value;
@@ -52,17 +58,4 @@ export async function setSessionCookie(token: string) {
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete('session');
-}
-
-export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
 }

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { supabaseAdmin } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
-import { hashPassword } from '@/lib/auth';
+import { generateOperatorUsername } from '@/lib/utils';
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +20,6 @@ export async function POST(request: Request) {
     }
 
     const {
-      username,
       email,
       phone,
       firstName,
@@ -29,9 +29,9 @@ export async function POST(request: Request) {
     } = await request.json();
 
     // Validate required fields
-    if (!username || !firstName || !lastName || !password) {
+    if (!email || !firstName || !lastName || !password) {
       return NextResponse.json(
-        { error: 'Username, nome, cognome e password sono obbligatori' },
+        { error: 'Email, nome, cognome e password sono obbligatori' },
         { status: 400 }
       );
     }
@@ -48,6 +48,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Generate username from firstName.lastName
+    let username = generateOperatorUsername(firstName, lastName, organization.code);
+
     // Check if username already exists in this organization
     const existing = await prisma.operator.findUnique({
       where: {
@@ -58,24 +61,47 @@ export async function POST(request: Request) {
       },
     });
 
+    // If exists, generate with unique suffix
     if (existing) {
+      username = generateOperatorUsername(firstName, lastName, organization.code);
+    }
+
+    // Create operator email for Supabase Auth
+    const operatorEmail = `${username}@kykos.operators`;
+
+    // Create Supabase Auth user
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: operatorEmail,
+      password,
+      email_confirm: true, // Operators don't need email confirmation
+      user_metadata: {
+        firstName,
+        lastName,
+        organizationId: organization.id,
+        organizationName: organization.name,
+      },
+    });
+
+    if (authError || !authData.user) {
+      console.error('Supabase Auth error:', authError);
       return NextResponse.json(
-        { error: 'Username già esistente in questa organizzazione' },
-        { status: 400 }
+        { error: 'Errore durante la creazione dell\'account operatore' },
+        { status: 500 }
       );
     }
 
-    // Create operator
+    // Create operator in KYKOS DB
     const operator = await prisma.operator.create({
       data: {
+        supabaseAuthId: authData.user.id,
         username,
-        email: email || null,
+        email: operatorEmail,
         phone: phone || null,
         firstName,
         lastName,
-        passwordHash: await hashPassword(password),
         role: role || 'OPERATORE',
         organizationId: organization.id,
+        // No passwordHash - Supabase handles auth
       },
     });
 

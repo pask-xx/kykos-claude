@@ -134,9 +134,10 @@ enum RecipientType {
 
 model User {
   id           String   @id @default(cuid())
+  authUserId   String?  @unique  // Supabase Auth user ID
   email        String   @unique
   name         String // Keep for backward compat
-  passwordHash String
+  passwordHash String?           // Nullable - null for Supabase Auth users, kept for migration
   role         Role     @default(DONOR)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -338,18 +339,19 @@ model DonorProfile {
 }
 
 model Operator {
-  id           String       @id @default(cuid())
-  username     String // unique within organization
-  email        String?
-  phone        String?
-  firstName    String
-  lastName     String
-  passwordHash String
-  role         OperatorRole @default(OPERATORE)
-  permissions  String[]     @default([]) // additional granular permissions
-  active       Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  supabaseAuthId  String?      @unique  // Supabase Auth user ID
+  username       String       // unique within organization (format: nome.cognome or nome.cognome.CODICE)
+  email          String?
+  phone          String?
+  firstName      String
+  lastName       String
+  passwordHash   String?
+  role           OperatorRole @default(OPERATORE)
+  permissions    String[]     @default([]) // additional granular permissions
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -458,31 +460,4 @@ model GoodsOffer {
   @@map("goods_offers")
 }
 
-model PendingRegistration {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         Role
-  firstName    String?
-  lastName     String?
-  birthDate    DateTime?
-  fiscalCode   String?
-  address      String?
-  houseNumber  String?
-  cap          String?
-  city         String?
-  province     String?
-  latitude     Float?
-  longitude    Float?
-  referenceEntityId String?
-  isee         Decimal?
-  orgName      String?
-  orgType      OrgType?
-  otpCode      String
-  otpExpiresAt DateTime
-  createdAt    DateTime @default(now())
-
-  @@index([email])
-  @@index([otpCode])
-  @@map("pending_registrations")
-}
+// PendingRegistration removed - now using Supabase Auth email confirmation
