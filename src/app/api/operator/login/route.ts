@@ -41,12 +41,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Operator email for Supabase Auth
-    const operatorEmail = operator.email;
+    // Operator email for Supabase Auth (must exist)
+    if (!operator.email) {
+      return NextResponse.json(
+        { error: 'Account operatore non configurato correttamente' },
+        { status: 500 }
+      );
+    }
 
     // Use Supabase Auth to verify password
     const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-      email: operatorEmail,
+      email: operator.email!,
       password,
     });
 
