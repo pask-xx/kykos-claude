@@ -26,17 +26,17 @@ export async function POST(request: Request) {
     }
 
     const {
+      email,
       firstName,
       lastName,
       password,
       role,
-      notifyEmail, // Optional custom email for notifications
     } = await request.json();
 
     // Validate required fields
-    if (!firstName || !lastName) {
+    if (!email || !firstName || !lastName) {
       return NextResponse.json(
-        { error: 'Nome e cognome sono obbligatori' },
+        { error: 'Email, nome e cognome sono obbligatori' },
         { status: 400 }
       );
     }
@@ -61,21 +61,26 @@ export async function POST(request: Request) {
       where: { username },
     });
 
-    // If exists, generate with suffix until unique
-    let suffix = 2;
+    // If exists, generate with org code suffix until unique
     while (existing) {
-      username = `${generateOperatorUsername(firstName, lastName, organization.code)}.${suffix}`;
+      username = `${generateOperatorUsername(firstName, lastName, organization.code)}.${organization.code.toLowerCase()}`;
       existing = await prisma.operator.findUnique({
         where: { username },
       });
-      suffix++;
+      // If still exists, append a number
+      if (!existing) break;
+      const suffix = Math.floor(Math.random() * 1000);
+      username = `${generateOperatorUsername(firstName, lastName, organization.code)}.${organization.code.toLowerCase()}.${suffix}`;
+      existing = await prisma.operator.findUnique({
+        where: { username },
+      });
     }
 
     // Generate temp password if not provided
     const tempPassword = password || generateTempPassword();
 
     // Create operator email for Supabase Auth
-    const operatorEmail = `${username}@kykos.operators`;
+    const operatorEmail = email; // User provides email directly
 
     // Create Supabase Auth user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -113,18 +118,14 @@ export async function POST(request: Request) {
       },
     });
 
-    // Send credentials email if notifyEmail is provided, otherwise show in UI
-    let emailSent = false;
-    const emailToNotify = notifyEmail || null;
-    if (emailToNotify) {
-      emailSent = await sendOperatorCredentialsEmail(
-        emailToNotify,
-        `${operator.firstName} ${operator.lastName}`,
-        operator.username,
-        tempPassword,
-        organization.name
-      );
-    }
+    // Send credentials email to operator
+    const emailSent = await sendOperatorCredentialsEmail(
+      operator.email,
+      `${operator.firstName} ${operator.lastName}`,
+      operator.username,
+      tempPassword,
+      organization.name
+    );
 
     return NextResponse.json({
       operator: {
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
         role: operator.role,
         active: operator.active,
       },
-      tempPassword, // Always return so UI can show it if email fails
+      tempPassword,
       emailSent,
     });
   } catch (error) {
