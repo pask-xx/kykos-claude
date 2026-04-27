@@ -51,19 +51,19 @@ export async function POST(request: Request) {
     // Generate username from firstName.lastName
     let username = generateOperatorUsername(firstName, lastName, organization.code);
 
-    // Check if username already exists in this organization
-    const existing = await prisma.operator.findUnique({
-      where: {
-        organizationId_username: {
-          organizationId: organization.id,
-          username: username,
-        },
-      },
+    // Check if username already exists (globally unique now)
+    let existing = await prisma.operator.findUnique({
+      where: { username },
     });
 
-    // If exists, generate with unique suffix
-    if (existing) {
-      username = generateOperatorUsername(firstName, lastName, organization.code);
+    // If exists, generate with suffix until unique
+    let suffix = 2;
+    while (existing) {
+      username = `${generateOperatorUsername(firstName, lastName, organization.code)}.${suffix}`;
+      existing = await prisma.operator.findUnique({
+        where: { username },
+      });
+      suffix++;
     }
 
     // Create operator email for Supabase Auth
