@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   title: "KYKOS - Dona con dignità",
   description: "Platform for anonymous donation of objects to people in need",
   manifest: "/manifest.json",
-  themeColor: "#2563eb",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -36,6 +35,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({
