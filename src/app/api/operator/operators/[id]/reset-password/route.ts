@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission } from '@/lib/permissions';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -65,14 +65,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
     }
 
-    // Reset password to temporary one
-    const tempPassword = 'cambiamisubito';
-    const newHash = await hashPassword(tempPassword);
+    // Check if operator has Supabase Auth
+    if (!targetOperator.supabaseAuthId || !targetOperator.email) {
+      return NextResponse.json(
+        { error: 'Operatore non configurato per il reset password automatico' },
+        { status: 400 }
+      );
+    }
 
-    await prisma.operator.update({
-      where: { id: operatorId },
-      data: { passwordHash: newHash },
-    });
+    // Reset password via Supabase Admin API
+    const tempPassword = 'cambiamisubito';
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      targetOperator.supabaseAuthId,
+      { password: tempPassword }
+    );
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: 'Errore durante il reset password' },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

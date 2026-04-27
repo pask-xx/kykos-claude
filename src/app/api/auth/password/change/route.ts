@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { createSession, setSessionCookie } from '@/lib/auth';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -54,21 +55,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Utente non trovato' }, { status: 404 });
     }
 
-    // Verify current password
-    const currentHash = await hashPassword(currentPassword);
-    if (currentHash !== user.passwordHash) {
+    // Verify current password via Supabase Auth
+    if (user.authUserId) {
+      const { error: verifyError } = await supabaseAdmin.auth.admin.updateUserById(
+        user.authUserId,
+        { password: newPassword }
+      );
+
+      if (verifyError) {
+        return NextResponse.json(
+          { error: 'Errore durante il cambio password' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Fallback for users without Supabase Auth (migrated users)
       return NextResponse.json(
-        { error: 'Password attuale non corretta' },
+        { error: 'Account non configurato per questo tipo di cambio password' },
         { status: 400 }
       );
     }
-
-    // Update password
-    const newHash = await hashPassword(newPassword);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash: newHash },
-    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

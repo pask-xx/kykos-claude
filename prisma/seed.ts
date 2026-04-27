@@ -1,13 +1,33 @@
 import { PrismaClient, Role, OrgType } from '@prisma/client';
-import { hashPassword } from '../src/lib/auth';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const prisma = new PrismaClient();
 
+// Supabase connection for creating auth users
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabase: SupabaseClient = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : createClient(supabaseUrl, 'placeholder-anon-key');
+
 async function main() {
   console.log('Creating seed data...');
+  console.log('Note: Auth users require SUPABASE_SERVICE_ROLE_KEY env var');
+
+  // For seed data without Supabase Auth (legacy approach for development)
+  // Create users with passwordHash for backward compatibility
+
+  // Create a simple hash function
+  const encoder = new TextEncoder();
+  async function simpleHash(password: string): Promise<string> {
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
   // Create Admin
-  const adminPassword = await hashPassword('admin123');
+  const adminPassword = await simpleHash('admin123');
   const admin = await prisma.user.upsert({
     where: { email: 'admin@kykos.it' },
     update: {},
@@ -27,8 +47,6 @@ async function main() {
       name: 'Caritas Diocesana Roma',
       type: 'CHARITY' as OrgType,
       address: 'Roma, RM',
-      lat: 41.9028,
-      lng: 12.4964,
       code: 'CARITAS-ROM A',
     },
     {
@@ -36,8 +54,6 @@ async function main() {
       name: 'Parrocchia San Giovanni',
       type: 'CHURCH' as OrgType,
       address: 'Roma, RM',
-      lat: 41.8894,
-      lng: 12.5065,
       code: 'PARROCCHIA-SGIOVANNI',
     },
     {
@@ -45,14 +61,12 @@ async function main() {
       name: 'Associazione Arcobaleno',
       type: 'ASSOCIATION' as OrgType,
       address: 'Roma, RM',
-      lat: 41.9100,
-      lng: 12.4800,
       code: 'ASSOC-ARCOBALENO',
     },
   ];
 
   for (const data of intermediaries) {
-    const password = await hashPassword('ente123');
+    const password = await simpleHash('ente123');
     const user = await prisma.user.upsert({
       where: { email: data.email },
       update: {},
@@ -77,7 +91,7 @@ async function main() {
   }
 
   // Create a Donor
-  const donorPassword = await hashPassword('donatore123');
+  const donorPassword = await simpleHash('donatore123');
   const donor = await prisma.user.upsert({
     where: { email: 'donatore@test.it' },
     update: {},
@@ -98,7 +112,7 @@ async function main() {
   console.log('Created donor:', donor.email);
 
   // Create a Recipient
-  const recipientPassword = await hashPassword('ricevente123');
+  const recipientPassword = await simpleHash('ricevente123');
   const recipient = await prisma.user.upsert({
     where: { email: 'ricevente@test.it' },
     update: {},
@@ -111,8 +125,8 @@ async function main() {
   });
   console.log('Created recipient:', recipient.email);
 
-  console.log('\n✅ Seed completed!');
-  console.log('\n📋 Test accounts:');
+  console.log('\n Seed completed!');
+  console.log('\n Test accounts:');
   console.log('Admin: admin@kykos.it / admin123');
   console.log('Intermediario 1: caritas.roma@kykos.it / ente123');
   console.log('Intermediario 2: parrocchia.sangiovanni@kykos.it / ente123');

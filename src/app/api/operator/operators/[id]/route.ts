@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission } from '@/lib/permissions';
-import { hashPassword } from '@/lib/auth';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -164,7 +163,12 @@ export async function PATCH(
     if (lastName !== undefined) updateData.lastName = lastName;
     if (role !== undefined) updateData.role = role;
     if (permissions !== undefined) updateData.permissions = permissions;
-    if (password) updateData.passwordHash = await hashPassword(password);
+    if (password) {
+      return NextResponse.json(
+        { error: 'La modifica della password non è supportata per questo tipo di account' },
+        { status: 400 }
+      );
+    }
 
     const updated = await prisma.operator.update({
       where: { id },

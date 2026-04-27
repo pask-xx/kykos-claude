@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -65,12 +65,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update password
-    const newHash = await hashPassword(newPassword);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash: newHash },
-    });
+    // Update password via Supabase Auth
+    if (user.authUserId) {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        user.authUserId,
+        { password: newPassword }
+      );
+
+      if (updateError) {
+        return NextResponse.json(
+          { error: 'Errore durante il reset password' },
+          { status: 400 }
+        );
+      }
+    } else {
+      return NextResponse.json(
+        { error: 'Account non configurato per questo tipo di reset' },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

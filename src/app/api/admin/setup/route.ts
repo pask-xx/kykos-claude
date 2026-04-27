@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -13,20 +13,38 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists in KYKOS DB
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: 'Utente già esistente' }, { status: 400 });
     }
 
-    // Create admin user
-    const passwordHash = await hashPassword(password);
+    // Create admin user in Supabase Auth
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        role: 'ADMIN',
+        fullName: name,
+      },
+    });
+
+    if (authError || !authData.user) {
+      return NextResponse.json(
+        { error: 'Errore durante la creazione dell\'account admin' },
+        { status: 500 }
+      );
+    }
+
+    // Create admin user in KYKOS DB
     const user = await prisma.user.create({
       data: {
+        authUserId: authData.user.id,
         email,
         name,
-        passwordHash,
         role: 'ADMIN',
+        // No passwordHash - Supabase handles auth
       },
     });
 

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
 import { hasPermission } from '@/lib/permissions';
 
 const JWT_SECRET = new TextEncoder().encode(

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -41,14 +41,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
     }
 
-    // Reset password to temporary one
-    const tempPassword = 'cambiamisubito';
-    const newHash = await hashPassword(tempPassword);
+    // Check if operator has Supabase Auth
+    if (!operator.supabaseAuthId || !operator.email) {
+      return NextResponse.json(
+        { error: 'Operatore non configurato per il reset password automatico' },
+        { status: 400 }
+      );
+    }
 
-    await prisma.operator.update({
-      where: { id: operatorId },
-      data: { passwordHash: newHash },
-    });
+    // Reset password via Supabase Admin API
+    const tempPassword = 'cambiamisubito';
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      operator.supabaseAuthId,
+      { password: tempPassword }
+    );
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: 'Errore durante il reset password' },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

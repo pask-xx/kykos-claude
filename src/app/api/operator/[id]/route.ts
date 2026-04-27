@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { hashPassword } from '@/lib/auth';
 
 export async function GET(
   request: Request,
@@ -155,7 +153,12 @@ export async function PATCH(
     if (role !== undefined) updateData.role = role;
     if (permissions !== undefined) updateData.permissions = permissions;
     if (active !== undefined) updateData.active = active;
-    if (password) updateData.passwordHash = await hashPassword(password);
+    if (password) {
+      return NextResponse.json(
+        { error: 'La modifica della password non è supportata per questo tipo di account' },
+        { status: 400 }
+      );
+    }
 
     const updated = await prisma.operator.update({
       where: { id },

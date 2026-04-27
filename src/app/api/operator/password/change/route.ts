@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -37,11 +37,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    const { currentPassword, newPassword } = await request.json();
+    const { newPassword } = await request.json();
 
-    if (!currentPassword || !newPassword) {
+    if (!newPassword) {
       return NextResponse.json(
-        { error: 'Password attuale e nuova password sono obbligatorie' },
+        { error: 'Nuova password obbligatoria' },
         { status: 400 }
       );
     }
@@ -61,21 +61,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
     }
 
-    // Verify current password
-    const currentHash = await hashPassword(currentPassword);
-    if (currentHash !== operator.passwordHash) {
+    // Check if operator has Supabase Auth
+    if (!operator.supabaseAuthId) {
       return NextResponse.json(
-        { error: 'Password attuale non corretta' },
+        { error: 'Operatore non configurato per questo tipo di cambio password' },
         { status: 400 }
       );
     }
 
-    // Update password
-    const newHash = await hashPassword(newPassword);
-    await prisma.operator.update({
-      where: { id: operator.id },
-      data: { passwordHash: newHash },
-    });
+    // Update password via Supabase Admin API
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      operator.supabaseAuthId,
+      { password: newPassword }
+    );
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: 'Errore durante il cambio password' },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
