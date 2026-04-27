@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { OPERATOR_ROLE_LABELS, OPERATOR_PERMISSION_LABELS, OperatorRole, OperatorPermission } from '@/types';
 
 interface Operator {
@@ -19,22 +18,19 @@ interface Operator {
 }
 
 export default function IntermediaryOperatorsPage() {
-  const router = useRouter();
   const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newOp, setNewOp] = useState({
-    username: '',
-    email: '',
-    phone: '',
     firstName: '',
     lastName: '',
+    notifyEmail: '',
     role: 'OPERATORE' as OperatorRole,
     permissions: [] as string[],
   });
-  const [createdOp, setCreatedOp] = useState<{ operator: Operator; tempPassword: string } | null>(null);
+  const [createdOp, setCreatedOp] = useState<{ operator: Operator; tempPassword: string; emailSent: boolean } | null>(null);
 
   useEffect(() => {
     fetchOperators();
@@ -42,7 +38,7 @@ export default function IntermediaryOperatorsPage() {
 
   const fetchOperators = async () => {
     try {
-      const res = await fetch('/api/intermediary/operators');
+      const res = await fetch('/api/operator/operators');
       if (res.ok) {
         const data = await res.json();
         setOperators(data.operators || []);
@@ -81,21 +77,25 @@ export default function IntermediaryOperatorsPage() {
     setError(null);
 
     try {
-      const res = await fetch('/api/intermediary/operators', {
+      const res = await fetch('/api/operator/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOp),
+        body: JSON.stringify({
+          firstName: newOp.firstName,
+          lastName: newOp.lastName,
+          notifyEmail: newOp.notifyEmail || null,
+          role: newOp.role,
+          permissions: newOp.permissions,
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
         setCreatedOp(data);
         setNewOp({
-          username: '',
-          email: '',
-          phone: '',
           firstName: '',
           lastName: '',
+          notifyEmail: '',
           role: 'OPERATORE',
           permissions: [],
         });
@@ -239,11 +239,22 @@ export default function IntermediaryOperatorsPage() {
                 <div>
                   <p className="text-green-700 font-medium mb-2">✓ Operatore creato con successo!</p>
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                    <p className="font-medium text-amber-800 mb-1">Password temporanea:</p>
+                    <p className="font-medium text-amber-800 mb-1">Username:</p>
+                    <p className="text-2xl font-mono text-amber-900">{createdOp.operator.username}</p>
+                    <p className="font-medium text-amber-800 mt-3 mb-1">Password temporanea:</p>
                     <p className="text-2xl font-mono text-amber-900">{createdOp.tempPassword}</p>
                   </div>
+                  {createdOp.emailSent ? (
+                    <p className="text-sm text-green-600 mb-4">
+                      ✓ Credenziali inviate per email a {createdOp.operator.email}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-amber-600 mb-4">
+                      ⚠ Email non inviata. Comunica le credenziali manualmente all'operatore.
+                    </p>
+                  )}
                   <p className="text-sm text-gray-600 mb-4">
-                    Comunica le credenziali all'operatore e chiedigli di cambiare la password al primo accesso.
+                    Chiedi all'operatore di cambiare la password al primo accesso.
                   </p>
                   <button
                     onClick={() => { setShowCreateModal(false); setCreatedOp(null); }}
@@ -278,34 +289,15 @@ export default function IntermediaryOperatorsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email per notifiche (opzionale)</label>
                       <input
-                        type="text"
-                        value={newOp.username}
-                        onChange={(e) => setNewOp(prev => ({ ...prev, username: e.target.value }))}
-                        required
+                        type="email"
+                        value={newOp.notifyEmail}
+                        onChange={(e) => setNewOp(prev => ({ ...prev, notifyEmail: e.target.value }))}
+                        placeholder="operator@example.com"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                          type="email"
-                          value={newOp.email}
-                          onChange={(e) => setNewOp(prev => ({ ...prev, email: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                        <input
-                          type="tel"
-                          value={newOp.phone}
-                          onChange={(e) => setNewOp(prev => ({ ...prev, phone: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
-                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Se inserita, le credenziali verranno inviate a questo indirizzo</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>

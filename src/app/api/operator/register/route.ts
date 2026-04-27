@@ -3,6 +3,12 @@ import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 import { generateOperatorUsername } from '@/lib/utils';
+import { sendOperatorCredentialsEmail } from '@/lib/email';
+import { randomBytes } from 'crypto';
+
+function generateTempPassword(length = 12): string {
+  return randomBytes(length).toString('base64').slice(0, length);
+}
 
 export async function POST(request: Request) {
   try {
@@ -20,18 +26,17 @@ export async function POST(request: Request) {
     }
 
     const {
-      email,
-      phone,
       firstName,
       lastName,
       password,
       role,
+      notifyEmail, // Optional custom email for notifications
     } = await request.json();
 
     // Validate required fields
-    if (!email || !firstName || !lastName || !password) {
+    if (!firstName || !lastName) {
       return NextResponse.json(
-        { error: 'Email, nome, cognome e password sono obbligatori' },
+        { error: 'Nome e cognome sono obbligatori' },
         { status: 400 }
       );
     }
@@ -66,13 +71,16 @@ export async function POST(request: Request) {
       suffix++;
     }
 
+    // Generate temp password if not provided
+    const tempPassword = password || generateTempPassword();
+
     // Create operator email for Supabase Auth
     const operatorEmail = `${username}@kykos.operators`;
 
     // Create Supabase Auth user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: operatorEmail,
-      password,
+      password: tempPassword,
       email_confirm: true, // Operators don't need email confirmation
       user_metadata: {
         firstName,
@@ -96,7 +104,7 @@ export async function POST(request: Request) {
         supabaseAuthId: authData.user.id,
         username,
         email: operatorEmail,
-        phone: phone || null,
+        phone: null,
         firstName,
         lastName,
         role: role || 'OPERATORE',
@@ -104,6 +112,19 @@ export async function POST(request: Request) {
         // No passwordHash - Supabase handles auth
       },
     });
+
+    // Send credentials email if notifyEmail is provided, otherwise show in UI
+    let emailSent = false;
+    const emailToNotify = notifyEmail || null;
+    if (emailToNotify) {
+      emailSent = await sendOperatorCredentialsEmail(
+        emailToNotify,
+        `${operator.firstName} ${operator.lastName}`,
+        operator.username,
+        tempPassword,
+        organization.name
+      );
+    }
 
     return NextResponse.json({
       operator: {
@@ -116,6 +137,8 @@ export async function POST(request: Request) {
         role: operator.role,
         active: operator.active,
       },
+      tempPassword, // Always return so UI can show it if email fails
+      emailSent,
     });
   } catch (error) {
     console.error('Operator register error:', error);
