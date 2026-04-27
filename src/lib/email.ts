@@ -692,3 +692,57 @@ export async function sendOperatorCredentialsEmail(
 
   return sendEmail({ to: toEmail, subject, html });
 }
+
+export async function sendIntermediaryCredentialsEmail(
+  toEmail: string,
+  adminName: string,
+  orgName: string,
+  tempPassword: string
+): Promise<boolean> {
+  const subject = `${APP_NAME} - Il tuo account ${orgName} è pronto`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Account ente creato</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao <strong>${adminName}</strong>, il tuo account per <strong>${orgName}</strong> è stato attivato.
+          </p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Usa le seguenti credenziali per accedere alla dashboard dell'ente:
+          </p>
+          <div style="background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+            <div style="margin-bottom: 12px;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0 0 4px;">Email</p>
+              <p style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0; font-family: monospace;">${toEmail}</p>
+            </div>
+            <div>
+              <p style="color: #6b7280; font-size: 12px; margin: 0 0 4px;">Password temporanea</p>
+              <p style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0; font-family: monospace;">${tempPassword}</p>
+            </div>
+          </div>
+          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 0 8px 8px 0; margin: 24px 0;">
+            <p style="color: #92400e; font-size: 14px; margin: 0;">
+              <strong>Importante:</strong> cambia la password al primo accesso.
+            </p>
+          </div>
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${APP_URL}/auth/login" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Accedi ora
+            </a>
+          </div>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({ to: toEmail, subject, html });
+}

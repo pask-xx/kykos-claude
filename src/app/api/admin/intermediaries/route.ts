@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateOrgCode } from '@/lib/utils';
-import { OrgType } from '@prisma/client';
+import { sendIntermediaryCredentialsEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
 
 function generateTempPassword(length = 12): string {
@@ -58,7 +58,6 @@ export async function POST(request: Request) {
 
     const {
       email,
-      password,
       firstName,
       lastName,
       orgName,
@@ -72,8 +71,8 @@ export async function POST(request: Request) {
       longitude,
     } = await request.json();
 
-    // Validate required fields
-    if (!email || !password || !firstName || !lastName || !orgName || !orgType) {
+    // Validate required fields (no password - we generate temp one)
+    if (!email || !firstName || !lastName || !orgName || !orgType) {
       return NextResponse.json(
         { error: 'Tutti i campi sono obbligatori' },
         { status: 400 }
@@ -99,11 +98,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create user in Supabase Auth
+    // Generate temp password
+    const tempPassword = generateTempPassword();
+
+    // Create user in Supabase Auth with email already confirmed
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password,
-      email_confirm: true,
+      password: tempPassword,
+      email_confirm: true, // Email verified immediately
       user_metadata: {
         role: 'INTERMEDIARY',
         firstName,
@@ -124,7 +126,7 @@ export async function POST(request: Request) {
 
     // Create user first, then organization
     const result = await prisma.$transaction(async (tx) => {
-      // Create user first (without userId initially since org doesn't exist yet)
+      // Create user first
       const user = await tx.user.create({
         data: {
           authUserId,
@@ -160,14 +162,24 @@ export async function POST(request: Request) {
       return { org, user };
     });
 
+    // Send credentials email
+    const emailSent = await sendIntermediaryCredentialsEmail(
+      email,
+      `${firstName} ${lastName}`,
+      String(orgName),
+      tempPassword
+    );
+
     return NextResponse.json({
       success: true,
+      emailSent,
       intermediary: result.org,
       user: {
         id: result.user.id,
         email: result.user.email,
         name: result.user.name,
       },
+      tempPassword, // Only for admin to see if email failed
     });
   } catch (error) {
     console.error('Error creating intermediary:', error);
