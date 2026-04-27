@@ -38,7 +38,7 @@ export default function IntermediaryOperatorsPage() {
 
   const fetchOperators = async () => {
     try {
-      const res = await fetch('/api/operator/operators');
+      const res = await fetch('/api/intermediary/operators');
       if (res.ok) {
         const data = await res.json();
         setOperators(data.operators || []);
@@ -246,7 +246,7 @@ export default function IntermediaryOperatorsPage() {
                   </div>
                   {createdOp.emailSent ? (
                     <p className="text-sm text-green-600 mb-4">
-                      ✓ Credenziali inviate per email a {createdOp.operator.email}
+                      ✓ Credenziali inviate per email a {createdOp.notifyEmail}
                     </p>
                   ) : (
                     <p className="text-sm text-amber-600 mb-4">
