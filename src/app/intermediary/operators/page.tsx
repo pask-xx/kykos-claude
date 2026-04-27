@@ -289,15 +289,15 @@ export default function IntermediaryOperatorsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email per invio credenziali</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email per notifiche *</label>
                       <input
                         type="email"
                         value={newOp.notifyEmail}
                         onChange={(e) => setNewOp(prev => ({ ...prev, notifyEmail: e.target.value }))}
+                        required
                         placeholder="email@ente.it"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Se inserita, le credenziali verranno inviate a questo indirizzo</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>

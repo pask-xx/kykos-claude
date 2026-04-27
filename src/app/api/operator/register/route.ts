@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     } = await request.json();
 
     // Validate required fields
-    if (!firstName || !lastName) {
+    if (!firstName || !lastName || !notifyEmail) {
       return NextResponse.json(
-        { error: 'Nome e cognome sono obbligatori' },
+        { error: 'Nome, cognome e email per notifiche sono obbligatori' },
         { status: 400 }
       );
     }
