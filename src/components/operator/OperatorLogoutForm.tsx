@@ -17,7 +17,7 @@ export default function OperatorLogoutForm({ logoutUrl = '/api/operator/logout' 
 
     try {
       await fetch(logoutUrl, { method: 'GET' });
-      router.push('/login/operator');
+      router.push('/auth/login');
       router.refresh();
     } catch (error) {
       console.error('Logout error:', error);

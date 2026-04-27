@@ -28,7 +28,7 @@ export default function Home() {
                 Manifesto
               </Link>
               <Link
-                href="/login/operator"
+                href="/auth/login"
                 className="px-3 py-2 text-secondary-600 hover:text-secondary-700 font-medium transition"
               >
                 Operatori
@@ -67,7 +67,7 @@ export default function Home() {
                 Manifesto
               </Link>
               <Link
-                href="/login/operator"
+                href="/auth/login"
                 className="block px-4 py-3 text-secondary-600 hover:text-secondary-700 hover:bg-gray-50 rounded-lg font-medium transition"
                 onClick={() => setMobileMenuOpen(false)}
               >
