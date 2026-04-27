@@ -234,6 +234,31 @@ model Organization {
   @@map("organizations")
 }
 
+// ================== GEOGRAPHY ==================
+
+model Province {
+  id        String   @id @default(cuid())
+  sigla     String   @unique  // e.g., "AG", "TO", "RM"
+  name      String             // e.g., "Agrigento", "Torino", "Roma"
+
+  comuni    Comune[]
+
+  @@map("provinces")
+}
+
+model Comune {
+  id         String   @id @default(cuid())
+  istat     String   @unique  // ISTAT code, e.g., "1001"
+  name      String              // e.g., "Agliè", "Roma"
+  latitude  Float?
+  longitude Float?
+
+  provinceSigla String
+  province      Province @relation(fields: [provinceSigla], references: [sigla])
+
+  @@map("comunes")
+}
+
 model Object {
   id              String       @id @default(cuid())
   title           String

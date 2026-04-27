@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Role } from '@/types';
+import CitySelector from '@/components/geo/CitySelector';
 
 interface Intermediary {
   id: string;
@@ -39,6 +40,10 @@ function RegisterForm() {
   const [cap, setCap] = useState('');
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('');
+  const [cityCoords, setCityCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: null,
+    lng: null,
+  });
   const [houseNumber, setHouseNumber] = useState('');
 
   // Recipient fields
@@ -195,9 +200,13 @@ function RegisterForm() {
         payload.isee = isee;
       }
 
-      if (latitude && longitude) {
-        payload.latitude = latitude;
-        payload.longitude = longitude;
+      // Use user-provided coordinates if available, otherwise fall back to city coordinates
+      const lat = latitude || (cityCoords.lat ? cityCoords.lat.toString() : null);
+      const lng = longitude || (cityCoords.lng ? cityCoords.lng.toString() : null);
+
+      if (lat && lng) {
+        payload.latitude = lat;
+        payload.longitude = lng;
       }
 
       const res = await fetch('/api/auth/register', {
@@ -387,29 +396,16 @@ function RegisterForm() {
                   placeholder="00100"
                 />
               </div>
-              <div className="flex-[13]">
-                <label htmlFor="city" className="block text-xs text-gray-500 mb-1">Città *</label>
-                <input
-                  id="city"
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
+              <div className="flex-[8]">
+                <CitySelector
+                  selectedProvince={province}
+                  selectedCity={city}
+                  onProvinceChange={setProvince}
+                  onCityChange={(name, lat, lng) => {
+                    setCity(name);
+                    setCityCoords({ lat: lat ?? null, lng: lng ?? null });
+                  }}
                   required={isRecipient}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
-                  placeholder="Roma"
-                />
-              </div>
-              <div className="flex-[3]">
-                <label htmlFor="province" className="block text-xs text-gray-500 mb-1">Prov *</label>
-                <input
-                  id="province"
-                  type="text"
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value.toUpperCase())}
-                  required={isRecipient}
-                  maxLength={2}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm uppercase"
-                  placeholder="RM"
                 />
               </div>
             </div>

@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import CitySelector from '@/components/geo/CitySelector';
 
 export default function NewIntermediaryPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [emailSent, setEmailSent] = useState(true);
 
   // User fields
   const [email, setEmail] = useState('');
@@ -20,9 +20,15 @@ export default function NewIntermediaryPage() {
   const [orgType, setOrgType] = useState('CHARITY');
   const [address, setAddress] = useState('');
   const [cap, setCap] = useState('');
-  const [city, setCity] = useState('');
-  const [province, setProvince] = useState('');
   const [phone, setPhone] = useState('');
+
+  // City fields (from CitySelector)
+  const [province, setProvince] = useState('');
+  const [city, setCity] = useState('');
+  const [cityCoords, setCityCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: null,
+    lng: null,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,9 +53,11 @@ export default function NewIntermediaryPage() {
           orgType,
           address,
           cap,
-          city,
           province,
+          city,
           phone,
+          latitude: cityCoords.lat,
+          longitude: cityCoords.lng,
         }),
       });
 
@@ -60,7 +68,6 @@ export default function NewIntermediaryPage() {
         return;
       }
 
-      setEmailSent(data.emailSent);
       router.push('/admin/dashboard?created=true');
     } catch (err) {
       setError('Errore di connessione');
@@ -186,39 +193,28 @@ export default function NewIntermediaryPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
-              <input
-                type="text"
-                value={cap}
-                onChange={(e) => setCap(e.target.value)}
-                maxLength={5}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-                placeholder="00100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-                placeholder="Roma"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-              <input
-                type="text"
-                value={province}
-                onChange={(e) => setProvince(e.target.value.toUpperCase())}
-                maxLength={2}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-                placeholder="RM"
-              />
-            </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+            <input
+              type="text"
+              value={cap}
+              onChange={(e) => setCap(e.target.value)}
+              maxLength={5}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+              placeholder="00100"
+            />
+          </div>
+
+          <div className="mt-4">
+            <CitySelector
+              selectedProvince={province}
+              selectedCity={city}
+              onProvinceChange={setProvince}
+              onCityChange={(name, lat, lng) => {
+                setCity(name);
+                setCityCoords({ lat: lat ?? null, lng: lng ?? null });
+              }}
+            />
           </div>
         </div>
 
