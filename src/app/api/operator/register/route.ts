@@ -108,13 +108,12 @@ export async function POST(request: Request) {
       data: {
         supabaseAuthId: authData.user.id,
         username,
-        email: operatorEmail,
+        email: notifyEmail, // Store personal email, not supabase email
         phone: null,
         firstName,
         lastName,
         role: role || 'OPERATORE',
         organizationId: organization.id,
-        // No passwordHash - Supabase handles auth
       },
     });
 

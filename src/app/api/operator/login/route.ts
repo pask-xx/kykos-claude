@@ -41,7 +41,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Operator email for Supabase Auth (must exist)
+    // Operator email for Supabase Auth is reconstructed from username
+    const operatorEmail = `${operator.username}@kykos.operators`;
+
     if (!operator.email) {
       return NextResponse.json(
         { error: 'Account operatore non configurato correttamente' },
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
 
     // Use Supabase Auth to verify password
     const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-      email: operator.email!,
+      email: operatorEmail,
       password,
     });
 
