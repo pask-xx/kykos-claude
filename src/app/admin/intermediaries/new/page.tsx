@@ -30,12 +30,61 @@ export default function NewIntermediaryPage() {
     lng: null,
   });
 
+  // Geocoding
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodingError, setGeocodingError] = useState('');
+
+  const geocodeFromAddress = async () => {
+    if (!address || !city) {
+      setGeocodingError('Inserisci indirizzo e città');
+      return;
+    }
+
+    setGeocoding(true);
+    setGeocodingError('');
+
+    try {
+      const res = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, city, cap, province }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setGeocodingError(data.error || 'Errore nel calcolo delle coordinate');
+        return;
+      }
+
+      setCityCoords({ lat: data.latitude, lng: data.longitude });
+    } catch {
+      setGeocodingError('Errore di connessione');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!firstName || !lastName || !email || !orgName) {
       setError('Tutti i campi sono obbligatori');
+      return;
+    }
+
+    // If user provided address but didn't geocode, try to geocode now
+    if (address && (!cityCoords.lat || !cityCoords.lng)) {
+      await geocodeFromAddress();
+    }
+
+    // If still no coords, use city coords as fallback (from CitySelector)
+    const finalLat = cityCoords.lat;
+    const finalLng = cityCoords.lng;
+
+    if (!finalLat || !finalLng) {
+      setError('Coordinate non disponibili. Compila indirizzo e città correttamente.');
       return;
     }
 
@@ -56,8 +105,8 @@ export default function NewIntermediaryPage() {
           province,
           city,
           phone,
-          latitude: cityCoords.lat,
-          longitude: cityCoords.lng,
+          latitude: finalLat,
+          longitude: finalLng,
         }),
       });
 
@@ -215,6 +264,36 @@ export default function NewIntermediaryPage() {
                 setCityCoords({ lat: lat ?? null, lng: lng ?? null });
               }}
             />
+          </div>
+
+          {/* Geocoding Section */}
+          <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
+              <span>📍</span> Coordinate geografiche
+            </h3>
+            <p className="text-xs text-gray-500 mb-3">
+              {cityCoords.lat && cityCoords.lng
+                ? `Coordinate: ${cityCoords.lat.toFixed(6)}, ${cityCoords.lng.toFixed(6)}`
+                : 'Non ancora calcolate'}
+              {cityCoords.lat && cityCoords.lng && city && (
+                <span className="text-green-600 ml-2">✓ dal comune</span>
+              )}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={geocodeFromAddress}
+                disabled={geocoding || !address || !city}
+                className="flex-1 px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
+              >
+                {geocoding ? '⏳ Calcolo...' : '📍 Calcola da indirizzo'}
+              </button>
+            </div>
+
+            {geocodingError && (
+              <p className="text-xs text-red-600 mt-2">{geocodingError}</p>
+            )}
           </div>
         </div>
 

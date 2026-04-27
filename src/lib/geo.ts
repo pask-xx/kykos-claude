@@ -57,3 +57,20 @@ export function formatDistance(km: number): string {
   }
   return `${km.toFixed(1)} km`;
 }
+
+export function coordsMatchCity(
+  orgLat: number | null,
+  orgLng: number | null,
+  cityLat: number | null,
+  cityLng: number | null,
+  toleranceKm: number = 10
+): { matches: boolean; distance?: number } {
+  if (!orgLat || !orgLng || !cityLat || !cityLng) {
+    return { matches: false };
+  }
+  const distance = calculateDistance(orgLat, orgLng, cityLat, cityLng);
+  return {
+    matches: distance <= toleranceKm,
+    distance,
+  };
+}

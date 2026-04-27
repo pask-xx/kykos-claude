@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { coordsMatchCity } from '@/lib/geo';
 
 export default async function IntermediaryDashboard() {
   const session = await getSession();
@@ -26,6 +27,29 @@ export default async function IntermediaryDashboard() {
       },
     },
   });
+
+  // Get city coordinates for comparison
+  let cityCoords = { lat: null as number | null, lng: null as number | null };
+  if (org?.city && org?.province) {
+    const comune = await prisma.comune.findFirst({
+      where: {
+        name: org.city,
+        provinceSigla: org.province,
+      },
+    });
+    if (comune) {
+      cityCoords = { lat: comune.latitude, lng: comune.longitude };
+    }
+  }
+
+  // Check if org coordinates match city
+  const coordCheck = coordsMatchCity(
+    org?.latitude ?? null,
+    org?.longitude ?? null,
+    cityCoords.lat,
+    cityCoords.lng,
+    10 // 10km tolerance
+  );
 
   // Fetch stats in parallel
   const [pendingRequests, totalFunds, authorizedRecipients] = await Promise.all([
@@ -86,6 +110,42 @@ export default async function IntermediaryDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Coordinate Alert */}
+        {(!org?.latitude || !org?.longitude) && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-medium text-amber-800">Coordinate mancanti</p>
+              <p className="text-sm text-amber-700 mt-1">
+                L&apos;ente non ha coordinate geografiche. Gli utenti non possono trovare questo ente nella ricerca per zona.
+              </p>
+              <Link
+                href="/intermediary/profile"
+                className="inline-block mt-2 text-sm font-medium text-amber-800 underline hover:text-amber-900"
+              >
+                Aggiungi coordinate →
+              </Link>
+            </div>
+          </div>
+        )}
+        {org?.latitude && org?.longitude && !coordCheck.matches && cityCoords.lat && cityCoords.lng && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-medium text-amber-800">Coordinate non congruenti</p>
+              <p className="text-sm text-amber-700 mt-1">
+                Le coordinate dell&apos;ente ({org.latitude.toFixed(4)}, {org.longitude.toFixed(4)}) sono distanti {coordCheck.distance?.toFixed(1)} km dal comune di {org.city} ({cityCoords.lat.toFixed(4)}, {cityCoords.lng.toFixed(4)}).
+              </p>
+              <Link
+                href="/intermediary/profile"
+                className="inline-block mt-2 text-sm font-medium text-amber-800 underline hover:text-amber-900"
+              >
+                Verifica coordinate →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
