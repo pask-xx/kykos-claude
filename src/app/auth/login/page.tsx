@@ -10,10 +10,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setResendMessage('');
     setLoading(true);
 
     try {
@@ -26,7 +29,13 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Login fallito');
+        // Check if error is about email confirmation
+        if (data.error?.includes('confermare')) {
+          setResendMessage(data.error);
+          setError(''); // Don't show error, show resend option instead
+        } else {
+          setError(data.error || 'Login fallito');
+        }
         return;
       }
 
@@ -50,6 +59,37 @@ export default function LoginPage() {
       setError('Errore di connessione');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Inserisci la tua email');
+      return;
+    }
+
+    setResending(true);
+    setResendMessage('');
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setResendMessage(data.message || 'Email di conferma inviata!');
+      } else {
+        setError(data.error || 'Errore nell\'invio dell\'email');
+      }
+    } catch {
+      setError('Errore di connessione');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -120,6 +160,20 @@ export default function LoginPage() {
             {error && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                 {error}
+              </div>
+            )}
+
+            {resendMessage && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 mb-3">{resendMessage}</p>
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resending}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
+                >
+                  {resending ? 'Invio in corso...' : 'Rinvia email di conferma'}
+                </button>
               </div>
             )}
 
