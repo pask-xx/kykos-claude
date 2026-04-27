@@ -138,7 +138,7 @@ export async function PATCH(
       where: { id },
     });
 
-    if (!operator || operator.organizationId !== organization.id) {
+    if (!operator || operator.organizationId !== organizationId) {
       return NextResponse.json(
         { error: 'Operatore non trovato' },
         { status: 404 }
@@ -257,7 +257,7 @@ export async function DELETE(
       where: { id },
     });
 
-    if (!operator || operator.organizationId !== organization.id) {
+    if (!operator || operator.organizationId !== organizationId) {
       return NextResponse.json(
         { error: 'Operatore non trovato' },
         { status: 404 }
