@@ -127,17 +127,12 @@ export async function PATCH(
     // Check if new username conflicts with another operator
     if (username && username !== operator.username) {
       const existing = await prisma.operator.findUnique({
-        where: {
-          organizationId_username: {
-            organizationId: organization.id,
-            username: username,
-          },
-        },
+        where: { username },
       });
 
       if (existing) {
         return NextResponse.json(
-          { error: 'Username già esistente in questa organizzazione' },
+          { error: 'Username già esistente' },
           { status: 400 }
         );
       }
