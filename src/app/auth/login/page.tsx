@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,41 +19,61 @@ export default function LoginPage() {
     setResendMessage('');
     setLoading(true);
 
+    const isEmail = emailOrUsername.includes('@');
+
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      if (isEmail) {
+        // User login with email
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailOrUsername, password }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok) {
-        // Check if error is about email confirmation
-        if (data.error?.includes('confermare')) {
-          setResendMessage(data.error);
-          setError(''); // Don't show error, show resend option instead
-        } else {
-          setError(data.error || 'Login fallito');
+        if (!res.ok) {
+          if (data.error?.includes('confermare')) {
+            setResendMessage(data.error);
+            setError('');
+          } else {
+            setError(data.error || 'Login fallito');
+          }
+          return;
         }
-        return;
-      }
 
-      switch (data.user.role) {
-        case 'DONOR':
-          router.push('/donor/dashboard');
-          break;
-        case 'RECIPIENT':
-          router.push('/recipient/dashboard');
-          break;
-        case 'INTERMEDIARY':
-          router.push('/intermediary/dashboard');
-          break;
-        case 'ADMIN':
-          router.push('/admin/dashboard');
-          break;
-        default:
-          router.push('/');
+        switch (data.user.role) {
+          case 'DONOR':
+            router.push('/donor/dashboard');
+            break;
+          case 'RECIPIENT':
+            router.push('/recipient/dashboard');
+            break;
+          case 'INTERMEDIARY':
+            router.push('/intermediary/dashboard');
+            break;
+          case 'ADMIN':
+            router.push('/admin/dashboard');
+            break;
+          default:
+            router.push('/');
+        }
+      } else {
+        // Operator login with username
+        const res = await fetch('/api/operator/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: emailOrUsername, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || 'Login operatore fallito');
+          return;
+        }
+
+        router.push('/operator/dashboard');
       }
     } catch {
       setError('Errore di connessione');
@@ -63,7 +83,7 @@ export default function LoginPage() {
   };
 
   const handleResendConfirmation = async () => {
-    if (!email) {
+    if (!emailOrUsername) {
       setError('Inserisci la tua email');
       return;
     }
@@ -76,7 +96,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/resend-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: emailOrUsername }),
       });
 
       const data = await res.json();
@@ -97,7 +117,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Decorative elements */}
         <div className="absolute top-20 right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
 
@@ -179,17 +198,17 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email o username
                 </label>
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="emailOrUsername"
+                  type="text"
+                  value={emailOrUsername}
+                  onChange={(e) => setEmailOrUsername(e.target.value)}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
-                  placeholder="la tua@email.com"
+                  placeholder="la tua@email.com oppure mario.rossi"
                 />
               </div>
 

@@ -361,7 +361,7 @@ model Operator {
   // Notifications
   notifications Notification[] @relation("NotificationOperator")
 
-  @@unique([organizationId, username])
+  @@unique([username])
   @@map("operators")
 }
 

@@ -10,34 +10,20 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function POST(request: Request) {
   try {
-    const { orgCode, username, password } = await request.json();
+    const { username, password } = await request.json();
 
-    if (!orgCode || !username || !password) {
+    if (!username || !password) {
       return NextResponse.json(
-        { error: 'Codice ente, username e password sono obbligatori' },
+        { error: 'Username e password sono obbligatorie' },
         { status: 400 }
       );
     }
 
-    // Find organization by code (normalize to uppercase)
-    const organization = await prisma.organization.findUnique({
-      where: { code: orgCode.toUpperCase() },
-    });
-
-    if (!organization) {
-      return NextResponse.json(
-        { error: 'Codice ente non valido' },
-        { status: 401 }
-      );
-    }
-
-    // Find operator by username within organization
+    // Find operator by username (username is unique across all organizations)
     const operator = await prisma.operator.findUnique({
-      where: {
-        organizationId_username: {
-          organizationId: organization.id,
-          username: username,
-        },
+      where: { username },
+      include: {
+        organization: true,
       },
     });
 
@@ -55,24 +41,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // If operator has supabaseAuthId, use Supabase Auth
-    if (operator.supabaseAuthId && operator.email) {
-      const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-        email: operator.email,
-        password,
-      });
+    // Operator email for Supabase Auth
+    const operatorEmail = operator.email;
 
-      if (authError || !authData.user) {
-        return NextResponse.json(
-          { error: 'Username o password non validi' },
-          { status: 401 }
-        );
-      }
-    } else {
-      // Fallback for operators migrated from old system without Supabase Auth
-      // This path can be removed after all operators are migrated
+    // Use Supabase Auth to verify password
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      email: operatorEmail,
+      password,
+    });
+
+    if (authError || !authData.user) {
       return NextResponse.json(
-        { error: 'Account operatore non configurato per questo tipo di login. Contatta l\'amministratore.' },
+        { error: 'Username o password non validi' },
         { status: 401 }
       );
     }
@@ -109,9 +89,9 @@ export async function POST(request: Request) {
         lastName: operator.lastName,
         role: operator.role,
         organization: {
-          id: organization.id,
-          name: organization.name,
-          type: organization.type,
+          id: operator.organization.id,
+          name: operator.organization.name,
+          type: operator.organization.type,
         },
       },
     });
