@@ -21,8 +21,8 @@ interface Intermediary {
   _count: {
     objects: number;
     requests: number;
-    authorizedRecipients: number;
   };
+  authorizedRecipients?: { id: string }[];
 }
 
 export default function IntermediaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -66,7 +66,7 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
     scriptEl.onload = () => {
       if (!mapRef.current || mapInstanceRef.current) return;
 
-      const L = window.L;
+      const L = (window as any).L;
 
       const map = L.map(mapRef.current).setView([intermediary.lat!, intermediary.lng!], 15);
 
@@ -86,7 +86,7 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <p className="text-gray-500">Caricamento...</p>
       </div>
     );
@@ -94,7 +94,7 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
 
   if (!intermediary) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <p className="text-gray-500">Ente non trovato</p>
       </div>
     );
@@ -107,112 +107,98 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/admin/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
-                ← Torna agli enti
-              </Link>
-              <div className="flex items-center gap-3">
-                <form action="/api/auth/logout" method="POST">
-                  <button type="submit" className="text-sm text-red-600 hover:text-red-700">
-                    Esci
-                  </button>
-                </form>
-              </div>
-            </nav>
+    <div>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <Link href="/admin/dashboard" className="hover:text-primary-600">
+          Enti
+        </Link>
+        <span>→</span>
+        <span>{intermediary.name}</span>
+      </div>
+
+      {/* Title */}
+      <div className="flex items-center gap-4 mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">{intermediary.name}</h1>
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+          intermediary.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+        }`}>
+          {intermediary.verified ? 'Verificato' : 'In attesa'}
+        </span>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Info Card */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informazioni</h2>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-500">Tipo</p>
+              <p className="font-medium text-gray-900">{orgTypeLabels[intermediary.type] || intermediary.type}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Indirizzo</p>
+              <p className="font-medium text-gray-900">{intermediary.address || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium text-gray-900">{intermediary.email || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Telefono</p>
+              <p className="font-medium text-gray-900">{intermediary.phone || '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Email utente</p>
+              <p className="font-medium text-gray-900">{intermediary.user.email}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Registrato il</p>
+              <p className="font-medium text-gray-900">
+                {new Date(intermediary.user.createdAt).toLocaleDateString('it-IT', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </p>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{intermediary.name}</h1>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            intermediary.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-          }`}>
-            {intermediary.verified ? 'Verificato' : 'In attesa'}
-          </span>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Info Card */}
+        {/* Stats & Map Card */}
+        <div className="space-y-6">
+          {/* Stats */}
           <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Informazioni</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-500">Tipo</p>
-                <p className="font-medium text-gray-900">{orgTypeLabels[intermediary.type] || intermediary.type}</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Statistiche</h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-3xl font-bold text-gray-900">{intermediary._count.objects}</p>
+                <p className="text-sm text-gray-500">Oggetti</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Indirizzo</p>
-                <p className="font-medium text-gray-900">{intermediary.address || '—'}</p>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-3xl font-bold text-gray-900">{intermediary._count.requests}</p>
+                <p className="text-sm text-gray-500">Richieste</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <p className="font-medium text-gray-900">{intermediary.email || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Telefono</p>
-                <p className="font-medium text-gray-900">{intermediary.phone || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Email utente</p>
-                <p className="font-medium text-gray-900">{intermediary.user.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Registrato il</p>
-                <p className="font-medium text-gray-900">
-                  {new Date(intermediary.user.createdAt).toLocaleDateString('it-IT', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-3xl font-bold text-gray-900">{intermediary.authorizedRecipients?.length || 0}</p>
+                <p className="text-sm text-gray-500">Riceventi</p>
               </div>
             </div>
           </div>
 
-          {/* Stats & Map Card */}
-          <div className="space-y-6">
-            {/* Stats */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Statistiche</h2>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-gray-900">{intermediary._count.objects}</p>
-                  <p className="text-sm text-gray-500">Oggetti</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-gray-900">{intermediary._count.requests}</p>
-                  <p className="text-sm text-gray-500">Richieste</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-gray-900">{intermediary._count.authorizedRecipients}</p>
-                  <p className="text-sm text-gray-500">Riceventi</p>
-                </div>
+          {/* Map */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Posizione</h2>
+            {intermediary.lat && intermediary.lng ? (
+              <div ref={mapRef} className="h-48 rounded-lg bg-gray-100" />
+            ) : (
+              <div className="h-48 rounded-lg bg-gray-100 flex items-center justify-center">
+                <p className="text-gray-500">Posizione non disponibile</p>
               </div>
-            </div>
-
-            {/* Map */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Posizione</h2>
-              {intermediary.lat && intermediary.lng ? (
-                <div ref={mapRef} className="h-64 rounded-lg bg-gray-100" />
-              ) : (
-                <div className="h-64 rounded-lg bg-gray-100 flex items-center justify-center">
-                  <p className="text-gray-500">Posizione non disponibile</p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

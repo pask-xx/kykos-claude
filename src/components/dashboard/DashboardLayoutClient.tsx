@@ -29,7 +29,7 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
     );
   }
 
-  if (!['RECIPIENT', 'DONOR', 'INTERMEDIARY'].includes(user.role)) {
+  if (!['RECIPIENT', 'DONOR', 'INTERMEDIARY', 'ADMIN'].includes(user.role)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-gray-500">Ruolo non valido</p>
@@ -41,7 +41,7 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
     <div className="min-h-[100dvh] bg-gray-50">
       {/* Fixed floating sidebar */}
       <Sidebar
-        role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY'}
+        role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN'}
         userName={user.name}
         userEmail={user.email}
       />

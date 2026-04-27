@@ -4,6 +4,14 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
+    // Verify admin setup secret
+    const authHeader = request.headers.get('authorization');
+    const expectedSecret = process.env.ADMIN_SETUP_SECRET;
+
+    if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
     const { email, password, name } = await request.json();
 
     if (!email || !password || !name) {

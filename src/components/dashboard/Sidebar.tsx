@@ -37,8 +37,14 @@ const intermediaryNav: NavItem[] = [
   { href: '/intermediary/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
+const adminNav: NavItem[] = [
+  { href: '/admin/dashboard', label: 'Enti', icon: '🏢' },
+  { href: '/admin/intermediaries/new', label: 'Nuovo Ente', icon: '➕' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
+];
+
 interface SidebarProps {
-  role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY';
+  role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN';
   userName: string;
   userEmail: string;
 }
@@ -47,6 +53,7 @@ const ROLE_LABELS: Record<string, string> = {
   DONOR: 'Donatore',
   RECIPIENT: 'Beneficiario',
   INTERMEDIARY: 'Ente',
+  ADMIN: 'Amministratore',
 };
 
 function getDashboardHref(role: string): string {
@@ -61,6 +68,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
 
   const navItems = role === 'RECIPIENT' ? recipientNav
     : role === 'DONOR' ? donorNav
+    : role === 'ADMIN' ? adminNav
     : intermediaryNav;
 
   const handleMouseEnter = useCallback(() => {

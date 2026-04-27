@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -27,7 +26,8 @@ export async function POST(
     });
 
     // Redirect back to admin dashboard with success message
-    return NextResponse.redirect(new URL('/admin/dashboard?verified=true', request.url));
+    const baseUrl = new URL(request.url).origin;
+    return NextResponse.redirect(`${baseUrl}/admin/dashboard?verified=true`);
   } catch (error) {
     console.error('Error verifying intermediary:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });

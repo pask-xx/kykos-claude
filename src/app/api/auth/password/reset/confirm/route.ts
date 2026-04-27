@@ -67,6 +67,7 @@ export async function POST(request: Request) {
 
     // Update password via Supabase Auth
     if (user.authUserId) {
+      // User has Supabase Auth account - update password directly
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         user.authUserId,
         { password: newPassword }
@@ -78,6 +79,36 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
+    } else if (user.passwordHash) {
+      // Legacy account with passwordHash but no Supabase Auth - migrate to Supabase Auth
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: user.email,
+        password: newPassword,
+        email_confirm: true,
+        user_metadata: {
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          fullName: user.name,
+        },
+      });
+
+      if (authError || !authData.user) {
+        console.error('Supabase Auth migration error:', authError);
+        return NextResponse.json(
+          { error: 'Errore durante la migrazione dell\'account' },
+          { status: 400 }
+        );
+      }
+
+      // Update user with new authUserId and clear old passwordHash
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          authUserId: authData.user.id,
+          passwordHash: null,
+        },
+      });
     } else {
       return NextResponse.json(
         { error: 'Account non configurato per questo tipo di reset' },

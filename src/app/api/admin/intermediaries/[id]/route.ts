@@ -29,7 +29,11 @@ export async function GET(
           select: {
             objects: true,
             requests: true,
-            authorizedRecipients: true,
+          },
+        },
+        authorizedRecipients: {
+          select: {
+            id: true,
           },
         },
       },
