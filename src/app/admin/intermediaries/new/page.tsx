@@ -9,6 +9,7 @@ export default function NewIntermediaryPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState<{ tempPassword?: string; emailSent?: boolean } | null>(null);
 
   // User fields
   const [email, setEmail] = useState('');
@@ -68,6 +69,7 @@ export default function NewIntermediaryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(null);
 
     if (!firstName || !lastName || !email || !orgName) {
       setError('Tutti i campi sono obbligatori');
@@ -117,13 +119,60 @@ export default function NewIntermediaryPage() {
         return;
       }
 
-      router.push('/admin/dashboard?created=true');
+      setSuccess({
+        tempPassword: data.tempPassword,
+        emailSent: data.emailSent,
+      });
     } catch (err) {
       setError('Errore di connessione');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="max-w-2xl">
+        <div className="bg-white p-8 rounded-xl shadow-sm border text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">✅</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ente creato!</h2>
+          <p className="text-gray-600 mb-6">
+            L&apos;ente <strong>{orgName}</strong> è stato creato con successo.
+          </p>
+
+          {!success.emailSent && success.tempPassword && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-left">
+              <p className="font-medium text-amber-800 mb-2">⚠️ L&apos;email non è stata inviata</p>
+              <p className="text-sm text-amber-700 mb-4">
+                Comunica manualmente queste credenziali all&apos;amministratore dell&apos;ente:
+              </p>
+              <div className="bg-white rounded-lg p-4 space-y-2">
+                <div>
+                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="font-mono font-medium">{email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Password temporanea</p>
+                  <p className="font-mono font-medium text-lg">{success.tempPassword}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4 justify-center">
+            <Link
+              href="/admin/dashboard"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition"
+            >
+              Torna alla dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

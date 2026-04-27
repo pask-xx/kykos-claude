@@ -170,6 +170,10 @@ export async function POST(request: Request) {
       tempPassword
     );
 
+    if (!emailSent) {
+      console.error('Failed to send credentials email to:', email);
+    }
+
     return NextResponse.json({
       success: true,
       emailSent,
