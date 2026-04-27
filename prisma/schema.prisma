@@ -457,3 +457,32 @@ model GoodsOffer {
   @@index([requestId])
   @@map("goods_offers")
 }
+
+model PendingRegistration {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  firstName    String?
+  lastName     String?
+  birthDate    DateTime?
+  fiscalCode   String?
+  address      String?
+  houseNumber  String?
+  cap          String?
+  city         String?
+  province     String?
+  latitude     Float?
+  longitude    Float?
+  referenceEntityId String?
+  isee         Decimal?
+  orgName      String?
+  orgType      OrgType?
+  otpCode      String
+  otpExpiresAt DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+  @@index([otpCode])
+  @@map("pending_registrations")
+}

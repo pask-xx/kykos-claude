@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createSession, setSessionCookie, hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth';
 import { geocodeAddress } from '@/lib/geocode';
-import { sendWelcomeEmail } from '@/lib/email';
+import { sendOtpEmail } from '@/lib/email';
 import { Role, OrgType } from '@prisma/client';
 import { generateOrgCode } from '@/lib/utils';
 
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 async function generateUniqueOrgCode(): Promise<string> {
-  // 6 hex digits = ~16.7M combinations, practically zero collision risk
   const code = generateOrgCode();
   const existing = await prisma.organization.findUnique({ where: { code } });
   if (existing) throw new Error('Codice ente non disponibile');
@@ -84,13 +87,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!['DONOR', 'RECIPIENT', 'INTERMEDIARY'].includes(role)) {
-      return NextResponse.json(
-        { error: 'Ruolo non valido' },
-        { status: 400 }
-      );
-    }
-
     if (role === 'INTERMEDIARY' && (!orgName || !orgType)) {
       return NextResponse.json(
         { error: 'Nome e tipo organizzazione sono obbligatori per enti' },
@@ -98,7 +94,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user exists
+    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -108,6 +104,16 @@ export async function POST(request: Request) {
         { error: 'Email già registrata' },
         { status: 400 }
       );
+    }
+
+    // Check if there's already a pending registration with this email
+    const existingPending = await prisma.pendingRegistration.findUnique({
+      where: { email },
+    });
+
+    if (existingPending) {
+      // Delete old pending registration
+      await prisma.pendingRegistration.delete({ where: { email } });
     }
 
     // Verify reference entity exists (for RECIPIENT)
@@ -127,13 +133,13 @@ export async function POST(request: Request) {
     // Hash password (skip for OAuth users)
     const passwordHash = isOAuth ? '' : await hashPassword(password);
 
-    // Build name from firstName and lastName
-    const fullName = firstName && lastName ? `${firstName} ${lastName}` : (firstName || lastName || email);
+    // Generate OTP
+    const otpCode = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Create user
-    const user = await prisma.user.create({
+    // Create pending registration instead of user
+    await prisma.pendingRegistration.create({
       data: {
-        name: fullName,
         email,
         passwordHash,
         role: role as Role,
@@ -147,80 +153,27 @@ export async function POST(request: Request) {
         houseNumber: houseNumber || null,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
-        ...(role === 'INTERMEDIARY' && {
-          intermediaryOrg: {
-            create: {
-              name: orgName,
-              type: orgType as OrgType,
-              code: await generateUniqueOrgCode(),
-            },
-          },
-        }),
-        ...(role === 'DONOR' && {
-          donorProfile: {
-            create: {
-              level: 'BRONZE',
-              totalDonations: 0,
-              totalObjects: 0,
-            },
-          },
-        }),
-        ...(role === 'RECIPIENT' && {
-          referenceEntityId,
-          isee: Math.round(parseFloat(isee) * 100) / 100,
-          authorized: false,
-        }),
-      },
-      include: {
-        intermediaryOrg: true,
-        donorProfile: true,
+        referenceEntityId: role === 'RECIPIENT' ? referenceEntityId : null,
+        isee: role === 'RECIPIENT' && isee ? Math.round(parseFloat(isee) * 100) / 100 : null,
+        orgName: role === 'INTERMEDIARY' ? orgName : null,
+        orgType: role === 'INTERMEDIARY' ? orgType as OrgType : null,
+        otpCode,
+        otpExpiresAt,
       },
     });
 
-    // Geocode address if coordinates not provided
-    if (!latitude && !longitude && address && city) {
-      const geoResult = await geocodeAddress(address, city, cap || '');
-      if (geoResult) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            latitude: geoResult.latitude,
-            longitude: geoResult.longitude,
-          },
-        });
-      }
-    }
-
-    // Create session
-    const token = await createSession({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    });
-
-    await setSessionCookie(token);
-
-    // Send welcome email (async, don't wait)
-    const userRole = user.role as 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY';
-    sendWelcomeEmail(user.email, fullName, userRole).catch(err => {
-      console.error('Failed to send welcome email:', err);
-    });
+    // Send OTP email
+    await sendOtpEmail(email, otpCode, 10);
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      message: 'Codice di verifica inviato',
+      email,
     });
   } catch (error) {
     console.error('Register error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    const stack = error instanceof Error ? error.stack : '';
     return NextResponse.json(
-      { error: 'Errore interno del server', details: message, stack: stack },
+      { error: 'Errore interno del server', details: message },
       { status: 500 }
     );
   }

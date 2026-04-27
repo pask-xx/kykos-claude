@@ -213,7 +213,8 @@ function RegisterForm() {
         return;
       }
 
-      router.push('/profile/complete');
+      // Redirect to OTP verification page
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
     } catch {
       setError('Errore di connessione');
     } finally {
