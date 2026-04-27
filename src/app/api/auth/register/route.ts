@@ -115,6 +115,7 @@ export async function POST(request: Request) {
       : (firstName || lastName || email.split('@')[0]);
 
     // Create user in Supabase Auth
+    console.log('Creating Supabase Auth user with:', { email, role });
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -126,6 +127,8 @@ export async function POST(request: Request) {
         fullName,
       },
     });
+
+    console.log('Supabase Auth result:', { authData, authError });
 
     if (authError || !authData.user) {
       console.error('Supabase Auth error:', authError);
