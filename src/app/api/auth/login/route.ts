@@ -40,6 +40,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if email is confirmed
+    if (!user.emailConfirmed) {
+      return NextResponse.json(
+        { error: 'Devi confermare la tua email prima di accedere. Controlla la tua casella di posta.' },
+        { status: 403 }
+      );
+    }
+
     // Create app-level session
     const token = await createSession({
       id: user.id,
