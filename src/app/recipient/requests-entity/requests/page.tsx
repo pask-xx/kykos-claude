@@ -36,14 +36,42 @@ interface EntityRequest {
   }>;
 }
 
+interface ObjectRequest {
+  id: string;
+  status: string;
+  message: string | null;
+  createdAt: string;
+  object: {
+    id: string;
+    title: string;
+    category: string;
+    condition: string;
+    imageUrls: string[];
+    status: string;
+    depositLocation: string | null;
+  };
+  donation: {
+    id: string;
+    amount: string;
+    createdAt: string;
+  } | null;
+}
+
+type TabType = 'GOODS' | 'SERVICES' | 'AVAILABLE';
+
 export default function RecipientEntityRequestsPage() {
   const [requests, setRequests] = useState<EntityRequest[]>([]);
+  const [objectRequests, setObjectRequests] = useState<ObjectRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('mine');
-  const [typeFilter, setTypeFilter] = useState<string>('GOODS');
+  const [typeFilter, setTypeFilter] = useState<TabType>('GOODS');
 
   useEffect(() => {
-    fetchRequests();
+    if (typeFilter === 'AVAILABLE') {
+      fetchObjectRequests();
+    } else {
+      fetchRequests();
+    }
   }, [filter, typeFilter]);
 
   const fetchRequests = async () => {
@@ -51,6 +79,27 @@ export default function RecipientEntityRequestsPage() {
       const res = await fetch(`/api/entity-requests?filter=${filter}&type=${typeFilter}`);
       const data = await res.json();
       setRequests(data.requests || []);
+      setObjectRequests([]);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchObjectRequests = async () => {
+    try {
+      const res = await fetch('/api/recipient/requests');
+      const data = await res.json();
+      const requests = data.requests || [];
+      // Filter based on status tab
+      const filtered = filter === 'mine'
+        ? requests
+        : filter === 'available'
+        ? requests.filter((r: ObjectRequest) => r.object.status !== 'DONATED')
+        : requests;
+      setObjectRequests(filtered);
+      setRequests([]);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -73,6 +122,17 @@ export default function RecipientEntityRequestsPage() {
     }
   };
 
+  const getObjectStatusBadge = (status: string) => {
+    const labels: Record<string, { label: string; color: string }> = {
+      AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700' },
+      RESERVED: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
+      WITHDRAWN: { label: 'Pronto', color: 'bg-blue-100 text-blue-700' },
+      DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700' },
+    };
+    const s = labels[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
+    return <span className={`px-2 py-1 text-xs rounded ${s.color}`}>{s.label}</span>;
+  };
+
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, string> = {
       FURNITURE: '🪑', ELECTRONICS: '📱', CLOTHING: '👕', BOOKS: '📚',
@@ -89,15 +149,17 @@ export default function RecipientEntityRequestsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-medium text-gray-900">Richieste all&apos;ente</h1>
-          <p className="text-gray-500">Gestisci le tue richieste di beni e servizi</p>
+          <h1 className="text-3xl font-medium text-gray-900">Richieste</h1>
+          <p className="text-gray-500">Gestisci le tue richieste di beni, servizi e oggetti</p>
         </div>
-        <Link
-          href="/recipient/requests-entity/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-        >
-          + Nuova richiesta
-        </Link>
+        {typeFilter !== 'AVAILABLE' && (
+          <Link
+            href="/recipient/requests-entity/new"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+          >
+            + Nuova richiesta
+          </Link>
+        )}
       </div>
 
       {/* Type Filter */}
@@ -118,40 +180,121 @@ export default function RecipientEntityRequestsPage() {
         >
           🔧 Servizi
         </button>
+        <button
+          onClick={() => setTypeFilter('AVAILABLE')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+            typeFilter === 'AVAILABLE' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          📦 Disponibilità
+        </button>
       </div>
 
       {/* Status Filter */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setFilter('mine')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'mine' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Le mie richieste
-        </button>
-        <button
-          onClick={() => setFilter('available')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'available' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Disponibili
-        </button>
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'all' ? 'bg-gray-200 text-gray-800 border border-gray-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Tutte
-        </button>
-      </div>
+      {typeFilter !== 'AVAILABLE' ? (
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('mine')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+              filter === 'mine' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Le mie richieste
+          </button>
+          <button
+            onClick={() => setFilter('available')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+              filter === 'available' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Disponibili
+          </button>
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+              filter === 'all' ? 'bg-gray-200 text-gray-800 border border-gray-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Tutte
+          </button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('mine')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+              filter === 'mine' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Le mie richieste
+          </button>
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+              filter === 'all' ? 'bg-gray-200 text-gray-800 border border-gray-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Tutte
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-gray-500">Caricamento...</p>
         </div>
+      ) : typeFilter === 'AVAILABLE' ? (
+        // Available objects (from Request table)
+        objectRequests.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+            <span className="text-5xl mb-4 block">📦</span>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta di oggetto</h2>
+            <p className="text-gray-500">
+              {filter === 'mine' ? 'Non hai ancora richiesto nessun oggetto.' : 'Non ci sono richieste.'}
+            </p>
+            {filter === 'mine' && (
+              <Link
+                href="/recipient/dashboard"
+                className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Sfoglia gli oggetti disponibili
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {objectRequests.map((request) => (
+              <div
+                key={request.id}
+                className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition"
+              >
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                    {request.object.imageUrls && request.object.imageUrls.length > 0 ? (
+                      <img src={request.object.imageUrls[0]} alt={request.object.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{request.object.title}</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Richiesta il {new Date(request.createdAt).toLocaleDateString('it-IT')}
+                        </p>
+                      </div>
+                      {getObjectStatusBadge(request.object.status)}
+                    </div>
+                    {request.object.depositLocation && (
+                      <p className="text-xs text-gray-400 mt-1">📍 {request.object.depositLocation}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       ) : requests.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
           <span className="text-5xl mb-4 block">📋</span>
