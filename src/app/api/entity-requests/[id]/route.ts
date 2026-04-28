@@ -4,8 +4,8 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { NotificationType, RecipientType } from '@prisma/client';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
-import { generateAndUploadQrCode, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
-import { sendGoodsDeliveryQrNotification, sendGoodsPickupQrNotification } from '@/lib/email';
+import { generateAndUploadQrCode, generateDeliverQrCode } from '@/lib/qrcode';
+import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -305,14 +305,11 @@ export async function PATCH(request: Request) {
         });
       });
 
-      // Send QR code emails (outside transaction)
+      // Send delivery QR code email to fulfiller (donor)
       try {
         const deliverQrData = generateDeliverQrCode(requestId, offerData.offeredById);
-        const pickupQrData = generatePickupQrCode(requestId, goodsRequest.beneficiaryId);
         const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `goods-deliver-${requestId}.png`);
-        const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `goods-pickup-${requestId}.png`);
 
-        // Send delivery QR to fulfiller (donor)
         await sendGoodsDeliveryQrNotification(
           offerData.offeredBy.email,
           offerData.offeredById,
@@ -331,32 +328,11 @@ export async function PATCH(request: Request) {
           goodsRequest.intermediary.email,
           goodsRequest.intermediary.hoursInfo
         );
-
-        // Send pickup QR to beneficiary
-        await sendGoodsPickupQrNotification(
-          goodsRequest.beneficiary.email,
-          goodsRequest.beneficiaryId,
-          goodsRequest.beneficiary.name,
-          goodsRequest.title,
-          requestId,
-          pickupQrData,
-          pickupQrImage,
-          goodsRequest.intermediary.name,
-          goodsRequest.intermediary.address,
-          goodsRequest.intermediary.houseNumber,
-          goodsRequest.intermediary.cap,
-          goodsRequest.intermediary.city,
-          goodsRequest.intermediary.province,
-          goodsRequest.intermediary.phone,
-          goodsRequest.intermediary.email,
-          goodsRequest.intermediary.hoursInfo
-        );
       } catch (emailError) {
-        console.error('Error sending QR emails:', emailError);
-        // Don't fail the request if email fails
+        console.error('Error sending delivery QR email:', emailError);
       }
 
-      // Create in-app notifications with QR links
+      // Create in-app notification for fulfiller (donor) with QR link
       await prisma.notification.create({
         data: {
           recipientUserId: offerData.offeredById,
@@ -368,14 +344,15 @@ export async function PATCH(request: Request) {
         },
       });
 
+      // Create in-app notification for beneficiary (no QR link yet - they get it after delivery)
       await prisma.notification.create({
         data: {
           recipientUserId: goodsRequest.beneficiaryId,
           recipientType: RecipientType.USER,
           title: 'Disponibilità accettata!',
-          message: `Un donatore ha accettato la tua richiesta di "${goodsRequest.title}". Ritira il QR code per il ritiro.`,
+          message: `Un donatore ha accettato la tua richiesta di "${goodsRequest.title}". Ti avviseremo quando il bene sarà pronto per il ritiro.`,
           type: NotificationType.GOODS_OFFER_RECEIVED,
-          link: `/recipient/qr-goods/${requestId}`,
+          link: `/recipient/requests-entity/requests/${requestId}`,
         },
       });
 
