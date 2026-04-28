@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface GoodsRequest {
   id: string;
@@ -46,12 +47,9 @@ interface GoodsRequest {
 
 export default function GoodsRequestDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [request, setRequest] = useState<GoodsRequest | null>(null);
   const [loading, setLoading] = useState(true);
-  const [offerMessage, setOfferMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [showOfferForm, setShowOfferForm] = useState(false);
 
   useEffect(() => {
     fetchRequest();
@@ -71,32 +69,8 @@ export default function GoodsRequestDetailPage() {
     }
   };
 
-  const handleOffer = async () => {
-    if (!request) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/entity-requests/${request.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'offer', message: offerMessage }),
-      });
-
-      if (res.ok) {
-        setShowOfferForm(false);
-        setOfferMessage('');
-        fetchRequest();
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleAcceptOffer = async (offerId: string) => {
     if (!request) return;
-    if (!confirm('Sei sicuro di voler accettare questa offerta?')) return;
-
     setSubmitting(true);
     try {
       const res = await fetch(`/api/entity-requests/${request.id}`, {
@@ -215,61 +189,25 @@ export default function GoodsRequestDetailPage() {
       {/* Fulfiller Info */}
       {request.fulfilledBy && (
         <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-          <h3 className="font-semibold text-green-900 mb-2">✓ Soddisfatta da</h3>
-          <p className="text-green-700">{request.fulfilledBy.name}</p>
+          <h3 className="font-semibold text-green-900 mb-2">✓ Soddisfatta</h3>
         </div>
       )}
 
       {/* Offers Section */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Offerte ({request.offers.length})</h2>
-          {request.status === 'APPROVED' && !request.fulfilledBy && (
-            <button
-              onClick={() => setShowOfferForm(!showOfferForm)}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium"
-            >
-              {showOfferForm ? 'Annulla' : 'Offri il bene'}
-            </button>
-          )}
+          <h2 className="text-lg font-semibold text-gray-900">Disponibilità ({request.offers.length})</h2>
         </div>
 
-        {showOfferForm && (
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <textarea
-              value={offerMessage}
-              onChange={(e) => setOfferMessage(e.target.value)}
-              placeholder="Aggiungi un messaggio (opzionale)..."
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-            />
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={handleOffer}
-                disabled={submitting}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium disabled:opacity-50"
-              >
-                {submitting ? 'Invio...' : 'Invia offerta'}
-              </button>
-              <button
-                onClick={() => setShowOfferForm(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
-              >
-                Annulla
-              </button>
-            </div>
-          </div>
-        )}
-
         {request.offers.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">Nessuna offerta ancora</p>
+          <p className="text-gray-500 text-center py-8">Nessuna disponibilità ancora</p>
         ) : (
           <div className="space-y-3">
             {request.offers.map((offer) => (
               <div key={offer.id} className="border rounded-lg p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{offer.offeredBy.name}</p>
+                    <p className="font-medium text-gray-900">Disponibilità</p>
                     <p className="text-sm text-gray-500">{formatDate(offer.createdAt)}</p>
                     {offer.message && (
                       <p className="text-gray-600 mt-2 text-sm">{offer.message}</p>
@@ -278,13 +216,20 @@ export default function GoodsRequestDetailPage() {
                   <div className="flex items-center gap-2">
                     {getOfferStatusBadge(offer.status)}
                     {offer.status === 'PENDING' && request.status === 'APPROVED' && !request.fulfilledBy && (
-                      <button
-                        onClick={() => handleAcceptOffer(offer.id)}
-                        disabled={submitting}
-                        className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                      <ConfirmDialog
+                        title="Accetta disponibilità"
+                        message="Sei sicuro di voler accettare questa disponibilità?"
+                        confirmLabel="Accetta"
+                        variant="warning"
+                        onConfirm={() => handleAcceptOffer(offer.id)}
                       >
-                        Accetta
-                      </button>
+                        <button
+                          disabled={submitting}
+                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Accetta
+                        </button>
+                      </ConfirmDialog>
                     )}
                   </div>
                 </div>
