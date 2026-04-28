@@ -16,6 +16,7 @@ const recipientNav: NavItem[] = [
   { href: '/recipient/objects', label: 'Cerca disponibilità', icon: '📦' },
   { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: '🎁' },
   { href: '/recipient/requests', label: 'Le mie richieste', icon: '📝' },
+  { href: '/recipient/requests-entity/requests/new', label: 'Nuova richiesta', icon: '➕' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
 ];
