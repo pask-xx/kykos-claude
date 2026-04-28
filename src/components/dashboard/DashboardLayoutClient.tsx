@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Sidebar from './Sidebar';
+import NotificationBell from '../NotificationBell';
 
 interface User {
   id: string;
@@ -16,26 +17,14 @@ interface DashboardLayoutClientProps {
 }
 
 export default function DashboardLayoutClient({ children, user }: DashboardLayoutClientProps) {
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">
-          Sessione non trovata.{' '}
-          <Link href="/auth/login" className="text-primary-600 hover:underline">
-            Accedi
-          </Link>
-        </p>
-      </div>
-    );
-  }
+  if (!user) return null;
 
-  if (!['RECIPIENT', 'DONOR', 'INTERMEDIARY', 'ADMIN'].includes(user.role)) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Ruolo non valido</p>
-      </div>
-    );
-  }
+  const showNotificationBell = ['RECIPIENT', 'DONOR', 'INTERMEDIARY'].includes(user.role);
+  const notificationApiPath = user?.role === 'DONOR'
+    ? '/api/donor/notifications'
+    : user?.role === 'INTERMEDIARY'
+    ? '/api/operator/notifications'
+    : '/api/notifications';
 
   return (
     <div className="min-h-[100dvh] bg-gray-50">
@@ -52,6 +41,11 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
           <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
           <span className="text-2xl font-bold text-primary-600">KYKOS</span>
         </Link>
+        {showNotificationBell && (
+          <div className="absolute right-4">
+            <NotificationBell apiPath={notificationApiPath} bellSize="sm" />
+          </div>
+        )}
       </header>
 
       {/* Main content */}
