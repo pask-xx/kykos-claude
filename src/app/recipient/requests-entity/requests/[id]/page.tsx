@@ -38,6 +38,7 @@ interface GoodsRequest {
     message: string | null;
     status: string;
     createdAt: string;
+    imageUrls: string[];
     offeredBy: {
       id: string;
       name: string;
@@ -211,6 +212,19 @@ export default function GoodsRequestDetailPage() {
                     <p className="text-sm text-gray-500">{formatDate(offer.createdAt)}</p>
                     {offer.message && (
                       <p className="text-gray-600 mt-2 text-sm">{offer.message}</p>
+                    )}
+                    {offer.imageUrls && offer.imageUrls.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {offer.imageUrls.map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={url}
+                              alt={`Immagine ${i + 1}`}
+                              className="w-16 h-16 object-cover rounded-lg border border-gray-200 hover:border-primary-400 transition-colors"
+                            />
+                          </a>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <div className="flex items-center gap-2">

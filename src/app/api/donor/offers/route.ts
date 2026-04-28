@@ -13,10 +13,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Solo i donatori possono fare offerte' }, { status: 403 });
     }
 
-    const { requestId, message } = await request.json();
+    const { requestId, message, imageUrls } = await request.json();
 
     if (!requestId) {
       return NextResponse.json({ error: 'ID richiesta mancante' }, { status: 400 });
+    }
+
+    // Validate imageUrls if provided
+    if (imageUrls && !Array.isArray(imageUrls)) {
+      return NextResponse.json({ error: 'imageUrls deve essere un array' }, { status: 400 });
+    }
+
+    if (imageUrls && imageUrls.length > 5) {
+      return NextResponse.json({ error: 'Massimo 5 immagini' }, { status: 400 });
     }
 
     // Check if request exists and is APPROVED
@@ -61,6 +70,7 @@ export async function POST(request: Request) {
         offeredById: session.id,
         message: message || null,
         status: 'PENDING',
+        imageUrls: imageUrls || [],
       },
     });
 
@@ -72,7 +82,7 @@ export async function POST(request: Request) {
         title: 'Nuova offerta per la tua richiesta',
         message: 'Un donatore ha risposto alla tua richiesta. L\'ente valuterà l\'offerta.',
         type: 'GOODS_OFFER_RECEIVED' as any,
-        link: '/recipient/requests',
+        link: '/recipient/requests-entity/requests',
       },
     });
 

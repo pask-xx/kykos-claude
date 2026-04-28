@@ -486,6 +486,8 @@ model GoodsOffer {
   offeredById String
   offeredBy   User   @relation("GoodsOfferGiver", fields: [offeredById], references: [id], onDelete: Cascade, map: "goods_offers_offeredBy_fk")
 
+  imageUrls String[] @default([])
+
   @@index([requestId])
   @@map("goods_offers")
 }
