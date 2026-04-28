@@ -41,7 +41,12 @@ export async function GET(request: Request) {
       where: {
         status: 'AVAILABLE',
         intermediaryId: recipient.referenceEntityId,
-        NOT: { id: { in: requestedObjectIds } },
+        NOT: {
+          OR: [
+            { id: { in: requestedObjectIds } },
+            { donorId: session.id },
+          ]
+        },
       },
       include: {
         donor: {
