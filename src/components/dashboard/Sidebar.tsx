@@ -21,8 +21,9 @@ const recipientNav: NavItem[] = [
 ];
 
 const donorNav: NavItem[] = [
-  { href: '/donor/dashboard', label: 'Dashboard', icon: '🏠' },
+  { href: '/donor/dashboard', label: 'Richieste', icon: '📋' },
   { href: '/donor/objects', label: 'Le mie disponibilità', icon: '📦' },
+  { href: '/donor/statistics', label: 'Statistiche', icon: '📊' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
 ];
