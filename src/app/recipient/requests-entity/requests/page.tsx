@@ -316,7 +316,7 @@ export default function RecipientEntityRequestsPage() {
           {requests.map((request) => (
             <Link
               key={request.id}
-              href={`/recipient/requests-entity/${request.id}`}
+              href={`/recipient/requests-entity/requests/${request.id}`}
               className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition"
             >
               <div className="flex gap-4">
