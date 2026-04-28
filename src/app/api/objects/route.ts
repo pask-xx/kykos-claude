@@ -11,12 +11,20 @@ export async function GET(request: Request) {
     const lon = searchParams.get('longitude');
     const radius = searchParams.get('radius');
 
+    // Get session to exclude own objects if logged in as recipient
+    const session = await getSession();
+    const excludeDonorId = session?.role === 'RECIPIENT' ? session.id : null;
+
     const where: Record<string, unknown> = {
       status: 'AVAILABLE',
     };
 
     if (category && category !== 'ALL') {
       where.category = category;
+    }
+
+    if (excludeDonorId) {
+      where.donorId = { not: excludeDonorId };
     }
 
     const objects = await prisma.object.findMany({
