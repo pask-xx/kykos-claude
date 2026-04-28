@@ -1,5 +1,12 @@
 import QRCode from 'qrcode';
+import sharp from 'sharp';
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
 
 export async function generateQrCodeDataUrl(data: string): Promise<string> {
   const dataUrl = await QRCode.toDataURL(data, {
@@ -11,6 +18,46 @@ export async function generateQrCodeDataUrl(data: string): Promise<string> {
     },
   });
   return dataUrl;
+}
+
+async function compositeLogoOnQr(qrBuffer: Buffer): Promise<Buffer> {
+  // Get logo from public folder
+  const logoPath = `${process.cwd()}/public/albero.svg`;
+  let logoBuffer: Buffer;
+
+  try {
+    const fs = await import('fs');
+    logoBuffer = fs.readFileSync(logoPath);
+  } catch {
+    // Fallback: return original if logo not found
+    return qrBuffer;
+  }
+
+  // Convert SVG to PNG with transparency
+  const logoPng = await sharp(logoBuffer)
+    .resize(60, 60)
+    .png()
+    .toBuffer();
+
+  // Get QR code dimensions
+  const qrImage = sharp(qrBuffer);
+  const qrMeta = await qrImage.metadata();
+  const qrSize = qrMeta.width || 300;
+
+  // Calculate logo position (center)
+  const logoSize = 60;
+  const left = Math.floor((qrSize - logoSize) / 2);
+  const top = Math.floor((qrSize - logoSize) / 2);
+
+  // Composite logo in center of QR
+  return await sharp(qrBuffer)
+    .composite([{
+      input: logoPng,
+      left,
+      top,
+    }])
+    .png()
+    .toBuffer();
 }
 
 export async function generateAndUploadQrCode(data: string, filename: string): Promise<string> {
@@ -25,31 +72,29 @@ export async function generateAndUploadQrCode(data: string, filename: string): P
   }
   const buffer = Buffer.from(bytes);
 
-  // Upload to Supabase
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+  // Composite logo onto QR code
+  const qrWithLogo = await compositeLogoOnQr(buffer);
 
-  const uploadRes = await fetch(
-    `${supabaseUrl}/storage/v1/object/qr-codes/${filename}`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'image/png',
-        'x-upsert': 'true',
-      },
-      body: buffer,
-    }
-  );
+  // Upload to Supabase storage
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from('qr-codes')
+    .upload(filename, qrWithLogo, {
+      contentType: 'image/png',
+      upsert: true,
+    });
 
-  if (!uploadRes.ok) {
-    console.error('QR upload error:', await uploadRes.text());
+  if (uploadError) {
+    console.error('QR upload error:', uploadError);
     // Fallback to base64 data URL
     return dataUrl;
   }
 
-  // Return public URL
-  return `${supabaseUrl}/storage/v1/object/public/qr-codes/${filename}`;
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('qr-codes')
+    .getPublicUrl(filename);
+
+  return urlData.publicUrl;
 }
 
 export function generateDeliverQrCode(requestId: string, donorId: string): string {
