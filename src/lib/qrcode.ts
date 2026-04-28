@@ -1,5 +1,4 @@
 import QRCode from 'qrcode';
-import sharp from 'sharp';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -20,46 +19,6 @@ export async function generateQrCodeDataUrl(data: string): Promise<string> {
   return dataUrl;
 }
 
-async function compositeLogoOnQr(qrBuffer: Buffer): Promise<Buffer> {
-  // Get logo from public folder
-  const logoPath = `${process.cwd()}/public/albero.svg`;
-  let logoBuffer: Buffer;
-
-  try {
-    const fs = await import('fs');
-    logoBuffer = fs.readFileSync(logoPath);
-  } catch {
-    // Fallback: return original if logo not found
-    return qrBuffer;
-  }
-
-  // Convert SVG to PNG with transparency
-  const logoPng = await sharp(logoBuffer)
-    .resize(60, 60)
-    .png()
-    .toBuffer();
-
-  // Get QR code dimensions
-  const qrImage = sharp(qrBuffer);
-  const qrMeta = await qrImage.metadata();
-  const qrSize = qrMeta.width || 300;
-
-  // Calculate logo position (center)
-  const logoSize = 60;
-  const left = Math.floor((qrSize - logoSize) / 2);
-  const top = Math.floor((qrSize - logoSize) / 2);
-
-  // Composite logo in center of QR
-  return await sharp(qrBuffer)
-    .composite([{
-      input: logoPng,
-      left,
-      top,
-    }])
-    .png()
-    .toBuffer();
-}
-
 export async function generateAndUploadQrCode(data: string, filename: string): Promise<string> {
   const dataUrl = await generateQrCodeDataUrl(data);
 
@@ -72,20 +31,16 @@ export async function generateAndUploadQrCode(data: string, filename: string): P
   }
   const buffer = Buffer.from(bytes);
 
-  // Composite logo onto QR code
-  const qrWithLogo = await compositeLogoOnQr(buffer);
-
   // Upload to Supabase storage
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('qr-codes')
-    .upload(filename, qrWithLogo, {
+    .upload(filename, buffer, {
       contentType: 'image/png',
       upsert: true,
     });
 
   if (uploadError) {
     console.error('QR upload error:', uploadError);
-    // Fallback to base64 data URL
     return dataUrl;
   }
 
