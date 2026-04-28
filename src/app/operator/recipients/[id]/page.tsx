@@ -183,26 +183,6 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
           <p className="text-gray-500">{recipient.email}</p>
         </div>
-        <ConfirmDialog
-          title={recipient.authorized ? 'Revoca autorizzazione' : 'Attiva beneficiario'}
-          message={recipient.authorized
-            ? `Vuoi revocare l'autorizzazione a ${displayName}? Non potrà più fare richieste.`
-            : `Vuoi attivare l'autorizzazione per ${displayName}?`}
-          confirmLabel={recipient.authorized ? 'Revoca' : 'Attiva'}
-          variant="warning"
-          onConfirm={toggleAuthorized}
-        >
-          <button
-            disabled={updating}
-            className={`px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 ${
-              recipient.authorized
-                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
-            }`}
-          >
-            {updating ? 'Aggiornamento...' : recipient.authorized ? 'Revoca' : 'Attiva'}
-          </button>
-        </ConfirmDialog>
         <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName}>
           <button className="px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-medium text-sm">
             📩 Messaggio
@@ -462,6 +442,33 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         ) : (
           <p className="text-gray-500 text-sm">Nessuna donazione ricevuta</p>
         )}
+      </div>
+
+      {/* Actions */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Azioni</h2>
+        <div className="flex gap-3">
+          <ConfirmDialog
+            title={recipient.authorized ? 'Revoca autorizzazione' : 'Attiva beneficiario'}
+            message={recipient.authorized
+              ? `Vuoi revocare l'autorizzazione a ${displayName}? Non potrà più fare richieste.`
+              : `Vuoi attivare l'autorizzazione per ${displayName}?`}
+            confirmLabel={recipient.authorized ? 'Revoca' : 'Attiva'}
+            variant="warning"
+            onConfirm={toggleAuthorized}
+          >
+            <button
+              disabled={updating}
+              className={`px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 ${
+                recipient.authorized
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              {updating ? 'Aggiornamento...' : recipient.authorized ? 'Revoca autorizzazione' : 'Attiva autorizzazione'}
+            </button>
+          </ConfirmDialog>
+        </div>
       </div>
     </div>
   );
