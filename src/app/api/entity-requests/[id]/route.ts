@@ -137,7 +137,7 @@ export async function PATCH(request: Request) {
       // Notify beneficiary
       await prisma.notification.create({
         data: {
-          recipientId: goodsRequest.beneficiaryId,
+          recipientUserId: goodsRequest.beneficiaryId,
           recipientType: RecipientType.USER,
           title: 'Richiesta approvata!',
           message: `La tua richiesta "${goodsRequest.title}" è stata approvata dall'ente.`,
@@ -170,7 +170,7 @@ export async function PATCH(request: Request) {
       // Notify beneficiary
       await prisma.notification.create({
         data: {
-          recipientId: goodsRequest.beneficiaryId,
+          recipientUserId: goodsRequest.beneficiaryId,
           recipientType: RecipientType.USER,
           title: 'Richiesta rifiutata',
           message: `La tua richiesta "${goodsRequest.title}" è stata rifiutata dall'ente.`,
@@ -217,7 +217,7 @@ export async function PATCH(request: Request) {
       for (const op of operators) {
         await prisma.notification.create({
           data: {
-            recipientId: op.id,
+            recipientOperatorId: op.id,
             recipientType: RecipientType.OPERATOR,
             title: 'Nuova offerta per richiesta',
             message: `Qualcuno ha offerto di soddisfare la richiesta "${goodsRequest.title}"`,
@@ -230,7 +230,7 @@ export async function PATCH(request: Request) {
       // Notify beneficiary
       await prisma.notification.create({
         data: {
-          recipientId: goodsRequest.beneficiaryId,
+          recipientUserId: goodsRequest.beneficiaryId,
           recipientType: RecipientType.USER,
           title: 'Nuova offerta per la tua richiesta',
           message: `Qualcuno ha offerto di soddisfare la tua richiesta "${goodsRequest.title}"`,

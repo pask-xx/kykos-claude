@@ -153,7 +153,7 @@ export async function POST(request: Request) {
       for (const op of operators) {
         await prisma.notification.create({
           data: {
-            recipientId: op.id,
+            recipientOperatorId: op.id,
             recipientType: RecipientType.OPERATOR,
             title: `Nuova richiesta ${typeLabel}`,
             message: `${user.name} ha creato una richiesta di ${typeLabel}: "${title}"`,

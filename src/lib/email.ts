@@ -52,7 +52,7 @@ async function createNotificationForUser(
   try {
     await prisma.notification.create({
       data: {
-        recipientId: userId,
+        recipientUserId: userId,
         recipientType: RecipientType.USER,
         title,
         message,

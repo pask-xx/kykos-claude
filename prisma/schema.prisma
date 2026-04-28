@@ -429,15 +429,17 @@ model Notification {
   data      String?          @map("data") @db.Text // JSON with extra data
   createdAt DateTime         @default(now())
 
-  recipientId       String
   recipientType     RecipientType @default(USER)
-  recipientUser     User?         @relation("NotificationUser", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_user_fk")
-  recipientOperator Operator?     @relation("NotificationOperator", fields: [recipientId], references: [id], onDelete: Cascade, map: "notification_operator_fk")
+  recipientUserId   String?       @unique(map: "notification_recipient_user_unique")
+  recipientOperatorId String?     @unique(map: "notification_recipient_operator_unique")
+
+  recipientUser     User?     @relation("NotificationUser", fields: [recipientUserId], references: [id], onDelete: Cascade, map: "notification_user_fk")
+  recipientOperator Operator? @relation("NotificationOperator", fields: [recipientOperatorId], references: [id], onDelete: Cascade, map: "notification_operator_fk")
 
   reportId String?
   report   Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
 
-  @@index([recipientId, recipientType])
+  @@index([recipientType, createdAt])
   @@index([read, createdAt])
   @@map("notifications")
 }

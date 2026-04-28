@@ -15,50 +15,75 @@ interface CreateNotificationParams {
 export async function createNotification(params: CreateNotificationParams) {
   const { recipientId, recipientType, title, message, type, link, data, reportId } = params;
 
-  return prisma.notification.create({
-    data: {
-      recipientId,
-      recipientType,
-      title,
-      message,
-      type,
-      link,
-      data: data ? JSON.stringify(data) : null,
-      reportId,
-    },
-  });
+  if (recipientType === RecipientType.USER) {
+    return prisma.notification.create({
+      data: {
+        recipientUserId: recipientId,
+        recipientType,
+        title,
+        message,
+        type,
+        link,
+        data: data ? JSON.stringify(data) : null,
+        reportId,
+      },
+    });
+  } else {
+    return prisma.notification.create({
+      data: {
+        recipientOperatorId: recipientId,
+        recipientType,
+        title,
+        message,
+        type,
+        link,
+        data: data ? JSON.stringify(data) : null,
+        reportId,
+      },
+    });
+  }
 }
 
 export async function getNotifications(recipientId: string, recipientType: RecipientType) {
+  const where = recipientType === RecipientType.USER
+    ? { recipientUserId: recipientId }
+    : { recipientOperatorId: recipientId };
+
   return prisma.notification.findMany({
-    where: { recipientId, recipientType },
+    where,
     orderBy: { createdAt: 'desc' },
     take: 50,
   });
 }
 
 export async function getUnreadCount(recipientId: string, recipientType: RecipientType) {
-  return prisma.notification.count({
-    where: { recipientId, recipientType, read: false },
-  });
+  const where = recipientType === RecipientType.USER
+    ? { recipientUserId: recipientId, read: false }
+    : { recipientOperatorId: recipientId, read: false };
+
+  return prisma.notification.count({ where });
 }
 
 export async function markAsRead(notificationId: string, recipientId: string) {
   return prisma.notification.updateMany({
-    where: { id: notificationId, recipientId },
+    where: { id: notificationId },
     data: { read: true },
   });
 }
 
 export async function markAllAsRead(recipientId: string, recipientType: RecipientType) {
+  const where = recipientType === RecipientType.USER
+    ? { recipientUserId: recipientId, read: false }
+    : { recipientOperatorId: recipientId, read: false };
+
   return prisma.notification.updateMany({
-    where: { recipientId, recipientType, read: false },
+    where,
     data: { read: true },
   });
 }
 
 export async function deleteNotification(notificationId: string, recipientId: string) {
   return prisma.notification.deleteMany({
-    where: { id: notificationId, recipientId },
+    where: { id: notificationId },
   });
 }

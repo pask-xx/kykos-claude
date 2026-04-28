@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     for (const op of operators) {
       await prisma.notification.create({
         data: {
-          recipientId: op.id,
+          recipientOperatorId: op.id,
           recipientType: RecipientType.OPERATOR,
           title: 'Nuova segnalazione',
           message: `Nuova segnalazione per l'oggetto "${object.title}": ${reason.substring(0, 50)}${reason.length > 50 ? '...' : ''}`,

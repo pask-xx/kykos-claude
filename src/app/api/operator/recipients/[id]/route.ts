@@ -242,6 +242,9 @@ export async function PATCH(
 
     const { authorized, canRequestGoods, canRequestServices } = await request.json();
 
+    const wasAlreadyAuthorized = recipient.authorized;
+    const isNowAuthorized = authorized === true && !wasAlreadyAuthorized;
+
     await prisma.user.update({
       where: { id },
       data: {
@@ -251,6 +254,20 @@ export async function PATCH(
         canRequestServices: canRequestServices !== undefined ? canRequestServices : recipient.canRequestServices,
       },
     });
+
+    // Notify beneficiary if they were just authorized
+    if (isNowAuthorized) {
+      await prisma.notification.create({
+        data: {
+          recipientUserId: id,
+          recipientType: 'USER' as any,
+          title: 'Account autorizzato!',
+          message: `Il tuo account è stato autorizzato dall'ente. Ora puoi richiedere oggetti e servizi.`,
+          type: 'REQUEST_APPROVED' as any,
+          link: '/recipient/dashboard',
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

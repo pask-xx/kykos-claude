@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     // Notify beneficiary
     await prisma.notification.create({
       data: {
-        recipientId: goodsRequest.beneficiaryId,
+        recipientUserId: goodsRequest.beneficiaryId,
         recipientType: 'USER' as any,
         title: 'Nuova offerta per la tua richiesta',
         message: 'Un donatore ha risposto alla tua richiesta. L\'ente valuterà l\'offerta.',

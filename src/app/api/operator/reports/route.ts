@@ -97,7 +97,7 @@ export async function PATCH(request: Request) {
       // Notify reporter that report was resolved
       await prisma.notification.create({
         data: {
-          recipientId: report.reporterId,
+          recipientUserId: report.reporterId,
           recipientType: RecipientType.USER,
           title: 'Segnalazione risolta',
           message: `La tua segnalazione è stata gestita dall'ente. La ringraziamo per averci aiutato a migliorare il servizio.`,
