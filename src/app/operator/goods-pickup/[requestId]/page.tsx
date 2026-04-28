@@ -7,6 +7,8 @@ interface GoodsPickupData {
   title: string;
   beneficiaryName: string;
   fulfilledByName: string;
+  depositLocation: string | null;
+  depositNotes: string | null;
 }
 
 export default function GoodsPickupPage() {
@@ -34,6 +36,8 @@ export default function GoodsPickupPage() {
             title: data.goodsRequest.title,
             beneficiaryName: data.goodsRequest.beneficiary?.name || 'Beneficiario',
             fulfilledByName: data.goodsRequest.fulfilledBy?.name || 'Donatore',
+            depositLocation: data.goodsRequest.depositLocation || null,
+            depositNotes: data.goodsRequest.depositNotes || null,
           });
         }
       } else {
@@ -163,6 +167,16 @@ export default function GoodsPickupPage() {
                 <p className="text-sm text-gray-500">
                   Donato da: {goodsData.fulfilledByName}
                 </p>
+                {goodsData.depositLocation && (
+                  <p className="text-sm text-green-600 font-medium mt-2">
+                    📍 Posizione: <strong>{goodsData.depositLocation}</strong>
+                  </p>
+                )}
+                {goodsData.depositNotes && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Note: {goodsData.depositNotes}
+                  </p>
+                )}
               </div>
 
               {/* Info note */}

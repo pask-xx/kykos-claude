@@ -122,6 +122,7 @@ enum GoodsRequestStatus {
   PENDING
   APPROVED
   FULFILLED
+  COMPLETED
   CANCELLED
 }
 
@@ -464,6 +465,9 @@ model GoodsRequest {
   fulfilledById String?
   fulfilledBy   User?     @relation("GoodsRequestFulfiller", fields: [fulfilledById], references: [id], onDelete: SetNull)
   fulfilledAt   DateTime?
+
+  depositLocation String? @map("deposit_location") // Scaffale/dove è stato depositato
+  depositNotes    String? @map("deposit_notes")    // Note aggiuntive sulla consegna
 
   offers GoodsOffer[] @relation("GoodsOfferRequest")
 

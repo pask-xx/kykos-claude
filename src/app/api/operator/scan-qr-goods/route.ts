@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
     }
 
-    const { qrData, depositLocation } = await request.json();
+    const { qrData, depositLocation, notes } = await request.json();
 
     if (!qrData || typeof qrData !== 'string') {
       return NextResponse.json({ error: 'QR data mancante o non valida' }, { status: 400 });
@@ -121,13 +121,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Richiesta non in stato valido per la consegna' }, { status: 400 });
     }
 
-    // Update status to indicate delivered to entity (using a status that makes sense)
-    // Note: GoodsRequest status is FULFILLED when offer accepted, we might need to track delivery state differently
-    // For now, we'll just mark that the entity received the goods
+    // Update status to indicate delivered to entity and save location
     await prisma.goodsRequest.update({
       where: { id: requestId },
       data: {
-        // Could add a deliveredAt field if needed
+        depositLocation: depositLocation || null,
+        depositNotes: notes || null,
       },
     });
 

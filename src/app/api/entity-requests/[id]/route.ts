@@ -360,6 +360,41 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: true, message: 'Offerta accettata' });
     }
 
+    // Handle operator action: complete goods pickup
+    if (operatorSession && action === 'complete_pickup') {
+      const goodsRequest = await prisma.goodsRequest.findUnique({
+        where: { id: requestId },
+      });
+
+      if (!goodsRequest) {
+        return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+      }
+
+      if (goodsRequest.intermediaryId !== operatorSession.organizationId) {
+        return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+      }
+
+      // Update status to completed
+      await prisma.goodsRequest.update({
+        where: { id: requestId },
+        data: { status: 'COMPLETED' as any },
+      });
+
+      // Notify beneficiary
+      await prisma.notification.create({
+        data: {
+          recipientUserId: goodsRequest.beneficiaryId,
+          recipientType: RecipientType.USER,
+          title: 'Bene ritirato!',
+          message: `Hai ritirato "${goodsRequest.title}" con successo.`,
+          type: NotificationType.GOODS_REQUEST_FULFILLED,
+          link: `/recipient/requests-entity/requests/${requestId}`,
+        },
+      });
+
+      return NextResponse.json({ success: true, message: 'Ritiro completato' });
+    }
+
     return NextResponse.json({ error: 'Azione non valida' }, { status: 400 });
   } catch (error) {
     console.error('Goods request PATCH error:', error);
