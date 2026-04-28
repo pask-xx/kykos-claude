@@ -183,7 +183,7 @@ export default function OperatorSidebar({
       </div>
 
       {/* Main Content */}
-      <main className="min-h-[100dvh] lg:ml-64 pt-14 lg:pt-0 pb-[env(safe-area-inset-bottom)]">
+      <main className="min-h-[100dvh] lg:ml-64 pt-14 lg:pt-0">
         <div className="px-4 sm:px-6 py-4 sm:py-6">
           {children}
         </div>
