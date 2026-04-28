@@ -48,6 +48,15 @@ interface Recipient {
   createdAt: string;
 }
 
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  createdAt: string;
+}
+
 const CATEGORY_COLORS: Record<Category, string> = {
   FURNITURE: 'bg-amber-500',
   ELECTRONICS: 'bg-blue-500',
@@ -71,13 +80,28 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
   const { id } = use(params);
   const [recipient, setRecipient] = useState<Recipient | null>(null);
   const [stats, setStats] = useState<RecipientStats | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRecipient();
+    fetchNotifications();
   }, [id]);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`/api/operator/recipients/${id}/notifications`);
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  };
 
   const fetchRecipient = async () => {
     try {
@@ -183,11 +207,6 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
           <p className="text-gray-500">{recipient.email}</p>
         </div>
-        <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName}>
-          <button className="px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-medium text-sm">
-            📩 Messaggio
-          </button>
-        </SendMessageDialog>
       </div>
 
       {error && (
@@ -444,6 +463,39 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         )}
       </div>
 
+      {/* Notifications from Entity */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Notifiche inviate</h2>
+          <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName}>
+            <button className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg font-medium text-sm flex items-center gap-1.5">
+              📩 Nuovo messaggio
+            </button>
+          </SendMessageDialog>
+        </div>
+        {notifications.length > 0 ? (
+          <div className="flex flex-wrap gap-3">
+            {notifications.map((notif) => (
+              <div
+                key={notif.id}
+                onClick={() => setSelectedNotification(notif)}
+                className={`w-48 p-3 rounded-lg shadow-sm flex flex-col gap-1 cursor-pointer hover:shadow-md transition ${
+                  notif.read
+                    ? 'bg-amber-50 border border-amber-100'
+                    : 'bg-amber-100 border border-amber-300'
+                }`}
+              >
+                <p className="font-semibold text-amber-900 text-sm line-clamp-1">{notif.title}</p>
+                <p className="text-amber-800 text-xs line-clamp-3">{notif.message}</p>
+                <p className="text-amber-600 text-xs mt-auto">{formatDate(notif.createdAt)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">Nessuna notifica inviata a questo beneficiario</p>
+        )}
+      </div>
+
       {/* Actions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Azioni</h2>
@@ -470,6 +522,25 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           </ConfirmDialog>
         </div>
       </div>
+    {/* Notification Detail Modal */}
+      {selectedNotification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedNotification(null)} />
+          <div className="relative bg-amber-50 rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border-2 border-amber-300">
+            <button
+              onClick={() => setSelectedNotification(null)}
+              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-amber-700 hover:bg-amber-100 rounded-full"
+            >
+              ✕
+            </button>
+            <h3 className="text-lg font-bold text-amber-900 mb-2 pr-8">{selectedNotification.title}</h3>
+            <p className="text-amber-800 text-sm mb-4 whitespace-pre-wrap">{selectedNotification.message}</p>
+            <p className="text-amber-600 text-xs">
+              Inviato il {new Date(selectedNotification.createdAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
