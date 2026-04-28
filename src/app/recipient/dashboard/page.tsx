@@ -55,8 +55,16 @@ export default async function RecipientDashboard() {
         </div>
       )}
 
-      {/* Feed */}
-      <RecipientFeedClient />
+      {/* Feed - only for authorized users */}
+      {user?.authorized ? (
+        <RecipientFeedClient />
+      ) : (
+        <div className="text-center py-12">
+          <div className="text-5xl mb-4">🔒</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Account non autorizzato</h3>
+          <p className="text-gray-500">Attendi l'autorizzazione dall'ente per visualizzare le disponibilità.</p>
+        </div>
+      )}
     </div>
   );
 }

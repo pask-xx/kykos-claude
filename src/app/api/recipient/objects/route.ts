@@ -13,14 +13,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Solo i riceventi possono fare richieste' }, { status: 403 });
     }
 
-    // Get recipient's organization
+    // Get recipient's organization and authorization status
     const recipient = await prisma.user.findUnique({
       where: { id: session.id },
-      select: { referenceEntityId: true },
+      select: { referenceEntityId: true, authorized: true },
     });
 
     if (!recipient?.referenceEntityId) {
       return NextResponse.json({ objects: [], nextCursor: null });
+    }
+
+    if (!recipient.authorized) {
+      return NextResponse.json({ objects: [], nextCursor: null, unauthorized: true });
     }
 
     const { searchParams } = new URL(request.url);
