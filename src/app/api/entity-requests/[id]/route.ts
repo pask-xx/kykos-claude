@@ -98,7 +98,8 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    const { requestId, action } = await request.json();
+    const body = await request.json();
+    const { requestId, action } = body;
 
     if (!requestId || !action) {
       return NextResponse.json({ error: 'Dati mancanti' }, { status: 400 });
@@ -186,7 +187,7 @@ export async function PATCH(request: Request) {
 
     // Handle user action: offer to fulfill
     if (userSession && action === 'offer') {
-      const { message } = await request.json();
+      const { message } = body;
 
       // Check if request is available for offers
       if (goodsRequest.status !== 'APPROVED') {
@@ -246,7 +247,7 @@ export async function PATCH(request: Request) {
 
     // Handle user action: accept offer (beneficiary or operator)
     if (userSession && action === 'accept_offer') {
-      const { offerId } = await request.json();
+      const { offerId } = body;
 
       // First, get offer and goodsRequest data (needed for emails)
       const offerData = await prisma.goodsOffer.findUnique({
