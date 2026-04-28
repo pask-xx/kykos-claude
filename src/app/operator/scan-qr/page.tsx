@@ -93,8 +93,8 @@ export default function ScanQrPage() {
           // Parse to get requestId
           const parts = qrData.split(':');
           const requestId = parts[2];
-          // Navigate to deposit page
-          router.push(`/operator/deposit/${requestId}`);
+          // Navigate to goods-deposit page (handles both object donations and goods requests)
+          router.push(`/operator/goods-deposit/${requestId}`);
           return;
         }
 
@@ -103,8 +103,8 @@ export default function ScanQrPage() {
           // Parse to get requestId
           const parts = qrData.split(':');
           const requestId = parts[2];
-          // Navigate to pickup page
-          router.push(`/operator/pickup/${requestId}`);
+          // Navigate to goods-pickup page (handles both object donations and goods requests)
+          router.push(`/operator/goods-pickup/${requestId}`);
           return;
         }
 
