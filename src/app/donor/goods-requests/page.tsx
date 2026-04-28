@@ -52,14 +52,8 @@ export default function DonorGoodsRequestsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">Richieste accettate</h1>
-        <Link
-          href="/donor/dashboard"
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
-        >
-          ← Richieste disponibili
-        </Link>
       </div>
 
       {loading ? (
