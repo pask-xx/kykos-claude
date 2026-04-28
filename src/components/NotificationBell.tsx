@@ -61,7 +61,16 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
+        const count = data.unreadCount || 0;
+        setUnreadCount(count);
+        // Update app badge on home screen
+        if ('setAppBadge' in navigator) {
+          if (count > 0) {
+            navigator.setAppBadge(count);
+          } else {
+            navigator.clearAppBadge();
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -73,6 +82,9 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
       await fetch(apiPath, { method: 'PATCH' });
       setUnreadCount(0);
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      if ('clearAppBadge' in navigator) {
+        navigator.clearAppBadge();
+      }
     } catch (error) {
       console.error('Error marking as read:', error);
     }
