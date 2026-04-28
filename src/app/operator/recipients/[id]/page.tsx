@@ -467,7 +467,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Notifiche inviate</h2>
-          <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName}>
+          <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName} onSent={fetchNotifications}>
             <button className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg font-medium text-sm flex items-center gap-1.5">
               📩 Nuovo messaggio
             </button>
