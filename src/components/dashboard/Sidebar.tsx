@@ -125,7 +125,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
@@ -147,7 +147,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
         </nav>
 
         {/* User info */}
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3 border-t border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
@@ -178,7 +178,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
@@ -202,7 +202,7 @@ export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
         </nav>
 
         {/* User info */}
-        <div className={`p-3 border-t border-gray-200 ${expanded ? 'justify-start' : 'justify-center'}`}>
+        <div className={`p-3 border-t border-gray-200 flex-shrink-0 ${expanded ? 'justify-start' : 'justify-center'}`}>
           {expanded ? (
             <div className="flex items-center justify-between">
               <div className="truncate min-w-0">
