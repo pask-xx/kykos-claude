@@ -104,8 +104,11 @@ export default function QRCodeCard({
       <div className="p-4">
         <p className="text-sm text-gray-600 mb-3">{description}</p>
 
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-4 relative">
           <img src={imageUrl} alt={`QR Code per ${label}`} className="w-48 h-48" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img src="/albero.svg" alt="KYKOS" className="w-12 h-12" />
+          </div>
         </div>
 
         <p className="text-xs text-gray-400 text-center font-mono truncate mb-4">

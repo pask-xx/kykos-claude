@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { NextResponse } from 'next/server';
 
 export async function generateQrCodeDataUrl(data: string): Promise<string> {
   const dataUrl = await QRCode.toDataURL(data, {
