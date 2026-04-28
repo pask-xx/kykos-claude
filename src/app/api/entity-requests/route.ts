@@ -100,6 +100,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Utente non associato a un ente' }, { status: 400 });
     }
 
+    if (!user.authorized) {
+      return NextResponse.json({ error: 'Il tuo account deve essere autorizzato dall\'ente prima di poter fare richieste' }, { status: 403 });
+    }
+
     const { title, category, type, description } = await request.json();
 
     if (!title || !category) {
