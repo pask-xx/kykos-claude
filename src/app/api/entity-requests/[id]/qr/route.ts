@@ -5,7 +5,7 @@ import { generateAndUploadQrCode, generateDeliverQrCode, generatePickupQrCode } 
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ requestId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    const { requestId } = await params;
+    const { id: requestId } = await params;
 
     const goodsRequest = await prisma.goodsRequest.findUnique({
       where: { id: requestId },
