@@ -131,14 +131,14 @@ export default function NewEntityRequestPage() {
                 key={cat.value}
                 type="button"
                 onClick={() => setCategory(cat.value)}
-                className={`p-3 rounded-lg border-2 transition flex flex-row items-center gap-2 ${
+                className={`p-3 rounded-lg border-2 transition flex flex-col items-center gap-1.5 ${
                   category === cat.value
                     ? 'border-primary-500 bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <span className="text-2xl flex-shrink-0">{cat.icon}</span>
-                <span className="text-sm font-medium text-left leading-tight">{cat.label}</span>
+                <span className="text-2xl">{cat.icon}</span>
+                <span className="text-xs font-medium text-center leading-tight">{cat.label}</span>
               </button>
             ))}
           </div>
