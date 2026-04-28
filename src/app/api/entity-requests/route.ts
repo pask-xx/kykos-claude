@@ -21,7 +21,9 @@ async function getUserSession(): Promise<UserSession | null> {
 
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as unknown as UserSession;
+    const user = payload.user as { id: string; role: string } | undefined;
+    if (!user) return null;
+    return { userId: user.id, role: user.role };
   } catch {
     return null;
   }
