@@ -90,12 +90,20 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
     }
   };
 
-  const openNotification = (notification: Notification) => {
+  const openNotification = async (notification: Notification) => {
     if (!notification.read) {
+      try {
+        await fetch(`${apiPath}/${notification.id}`, { method: 'PATCH' });
+      } catch (err) {
+        console.error('Error marking notification as read:', err);
+      }
       setNotifications(prev =>
         prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+      if ('clearAppBadge' in navigator && unreadCount <= 1) {
+        navigator.clearAppBadge();
+      }
     }
     setSelectedNotification(notification);
     setOpen(false);
