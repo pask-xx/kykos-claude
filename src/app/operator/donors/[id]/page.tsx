@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import SendMessageDialog from '@/components/SendMessageDialog';
 
 interface DonorStats {
   totalDonations: number;
@@ -141,6 +142,11 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
         }`}>
           {donor.donorProfile?.level || 'BRONZE'}
         </span>
+        <SendMessageDialog userId={donor.id} userType="USER" userName={displayName}>
+          <button className="px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-medium text-sm">
+            📩 Messaggio
+          </button>
+        </SendMessageDialog>
       </div>
 
       {error && (

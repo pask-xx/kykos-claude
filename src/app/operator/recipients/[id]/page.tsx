@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import SendMessageDialog from '@/components/SendMessageDialog';
 
 interface RecipientStats {
   totalRequests: number;
@@ -202,6 +203,11 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
             {updating ? 'Aggiornamento...' : recipient.authorized ? 'Revoca' : 'Attiva'}
           </button>
         </ConfirmDialog>
+        <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName}>
+          <button className="px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-medium text-sm">
+            📩 Messaggio
+          </button>
+        </SendMessageDialog>
       </div>
 
       {error && (
