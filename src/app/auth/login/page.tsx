@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import InstallAppBanner from '@/components/InstallAppBanner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -126,6 +127,9 @@ export default function LoginPage() {
             <span className="text-4xl font-bold text-white">KYKOS</span>
           </Link>
           <p className="text-primary-100 mt-3 text-lg">Dona con dignità, ricevi con gratitudine</p>
+          <div className="mt-6">
+            <InstallAppBanner />
+          </div>
         </div>
 
         <div className="relative z-10 space-y-8">

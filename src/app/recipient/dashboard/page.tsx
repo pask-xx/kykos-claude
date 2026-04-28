@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import RecipientFeedClient from '@/components/recipient/RecipientFeedClient';
+import InstallAppBanner from '@/components/InstallAppBanner';
 
 export default async function RecipientDashboard() {
   const session = await getSession();
@@ -37,6 +38,9 @@ export default async function RecipientDashboard() {
           Ecco le disponibilità del tuo ente
         </p>
       </div>
+
+      {/* Install App Banner */}
+      <InstallAppBanner />
 
       {/* Authorization status */}
       {!user?.authorized && (
