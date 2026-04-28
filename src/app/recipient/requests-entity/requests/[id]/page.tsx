@@ -77,7 +77,7 @@ export default function GoodsRequestDetailPage() {
       const res = await fetch(`/api/entity-requests/${request.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'accept_offer', offerId }),
+        body: JSON.stringify({ requestId: request.id, action: 'accept_offer', offerId }),
       });
 
       if (res.ok) {
