@@ -37,8 +37,41 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
+    const requestId = searchParams.get('id');
     const filter = searchParams.get('filter') || 'all';
     const type = searchParams.get('type') as RequestType | null;
+
+    // If id is provided, return single request
+    if (requestId) {
+      const goodsRequest = await prisma.goodsRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          beneficiary: {
+            select: { id: true, name: true, firstName: true, lastName: true, email: true },
+          },
+          intermediary: {
+            select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
+          },
+          fulfilledBy: {
+            select: { id: true, name: true, email: true },
+          },
+          offers: {
+            include: {
+              offeredBy: {
+                select: { id: true, name: true, email: true },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      });
+
+      if (!goodsRequest) {
+        return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+      }
+
+      return NextResponse.json({ goodsRequest });
+    }
 
     let whereClause: any = {};
 
