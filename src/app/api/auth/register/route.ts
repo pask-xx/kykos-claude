@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists in KYKOS DB
+    // Check if email already exists in KYKOS DB
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -105,6 +105,24 @@ export async function POST(request: Request) {
     if (existingUser) {
       return NextResponse.json(
         { error: 'Email già registrata' },
+        { status: 400 }
+      );
+    }
+
+    // Check if email exists in Supabase Auth (even if KYKOS record was deleted)
+    console.log('Checking Supabase Auth for existing user with email:', email);
+    const { data: supabaseUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+
+    if (listError) {
+      console.error('Error listing Supabase users:', listError);
+    }
+
+    const existingSupabaseUser = supabaseUsers?.users.find(u => u.email === email);
+    console.log('Found existing Supabase user:', existingSupabaseUser ? 'yes' : 'no', existingSupabaseUser?.id);
+
+    if (existingSupabaseUser) {
+      return NextResponse.json(
+        { error: 'Email già registrata. Prova a fare login o reimposta la password.' },
         { status: 400 }
       );
     }
@@ -128,31 +146,65 @@ export async function POST(request: Request) {
       ? `${firstName} ${lastName}`
       : (firstName || lastName || email.split('@')[0]);
 
-    // Create user in Supabase Auth
-    console.log('Creating Supabase Auth user with:', { email, role });
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Supabase confirms immediately, we send our own email
-      user_metadata: {
-        role,
-        firstName: firstName || null,
-        lastName: lastName || null,
-        fullName,
-      },
-    });
+    let authUserId: string;
 
-    console.log('Supabase Auth result:', { authData, authError });
+    // OAuth users already have a Supabase Auth user created during the OAuth callback
+    if (isOAuth) {
+      // Find existing Supabase Auth user by email
+      const { data: supabaseUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      if (listError) {
+        console.error('Error listing Supabase users:', listError);
+        return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+      }
+      const existingUser = supabaseUsers?.users.find(u => u.email === email);
+      if (!existingUser) {
+        console.error('OAuth user not found in Supabase Auth');
+        return NextResponse.json({ error: 'Sessione OAuth non valida. Riprova il login con Google.' }, { status: 400 });
+      }
+      authUserId = existingUser.id;
+    } else {
+      // Create user in Supabase Auth for non-OAuth registrations
+      console.log('Creating Supabase Auth user with:', { email, role });
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true, // Supabase confirms immediately, we send our own email
+        user_metadata: {
+          role,
+          firstName: firstName || null,
+          lastName: lastName || null,
+          fullName,
+        },
+      });
 
-    if (authError || !authData.user) {
-      console.error('Supabase Auth error:', authError);
-      return NextResponse.json(
-        { error: 'Errore durante la registrazione. Riprova.' },
-        { status: 500 }
-      );
+      console.log('Supabase Auth result:', { authData, authError });
+
+      if (authError) {
+        console.error('Supabase Auth error:', authError);
+
+        // Check for email_exists specifically
+        if (authError.code === 'email_exists') {
+          return NextResponse.json(
+            { error: 'Email già registrata. Prova a fare login o reimposta la password.' },
+            { status: 400 }
+          );
+        }
+
+        return NextResponse.json(
+          { error: 'Errore durante la registrazione. Riprova.' },
+          { status: 500 }
+        );
+      }
+
+      if (!authData.user) {
+        return NextResponse.json(
+          { error: 'Errore durante la registrazione. Riprova.' },
+          { status: 500 }
+        );
+      }
+
+      authUserId = authData.user.id;
     }
-
-    const authUserId = authData.user.id;
 
     // Generate our own confirmation token
     const confirmToken = await generateConfirmationToken(authUserId, email);
