@@ -98,7 +98,7 @@ export async function sendConfirmationEmail(
           </p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -138,7 +138,7 @@ export async function sendRequestNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -180,7 +180,7 @@ export async function sendObjectAvailableNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -229,7 +229,7 @@ export async function sendQrCodeNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -299,7 +299,7 @@ export async function sendDeliveryQrNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -370,7 +370,7 @@ export async function sendPickupQrNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -409,7 +409,7 @@ export async function sendObjectReadyForPickupNotification(
             Recati presso l'ente intermediario per procedere con il ritiro.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -447,7 +447,7 @@ export async function sendDonationConfirmedNotification(
             Grazie per il tuo contributo!</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -515,55 +515,47 @@ export async function sendWelcomeEmail(
             <span>📜</span> Il Manifesto KYKOS
           </h2>
 
-          <div style="display: grid; gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 16px;">
             <!-- Principle 1 -->
-            <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
-                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
-                  <span style="font-size: 18px;">🔒</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="width: 48px; height: 48px; min-width: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 22px; line-height: 1;">🔒</span>
               </div>
-              <div>
-                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Anonimato totale</h3>
+              <div style="flex: 1; padding: 4px 0;">
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px; line-height: 1.3;">Anonimato totale</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">Chi dona non sa chi riceve. Chi riceve non sa chi dona. La dignità è preservata attraverso l'anonimato reciproco.</p>
               </div>
             </div>
 
             <!-- Principle 2 -->
-            <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
-                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
-                  <span style="font-size: 18px;">🏢</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="width: 48px; height: 48px; min-width: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 22px; line-height: 1;">🏢</span>
               </div>
-              <div>
-                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Enti fidati</h3>
+              <div style="flex: 1; padding: 4px 0;">
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px; line-height: 1.3;">Enti fidati</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">Caritas, parrocchie e associazioni verificano i riceventi e coordinano lo scambio in sicurezza.</p>
               </div>
             </div>
 
             <!-- Principle 3 -->
-            <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
-                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
-                  <span style="font-size: 18px;">🌱</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="width: 48px; height: 48px; min-width: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 22px; line-height: 1;">🌱</span>
               </div>
-              <div>
-                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Sostenibilità</h3>
+              <div style="flex: 1; padding: 4px 0;">
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px; line-height: 1.3;">Sostenibilità</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">Dai nuova vita alle cose che non usi più. Ogni donazione contribuisce a un mondo più sostenibile.</p>
               </div>
             </div>
 
             <!-- Principle 4 -->
-            <div style="display: flex; gap: 16px; align-items: flex-start;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857); border-radius: 8px; display: table; flex-shrink: 0;">
-                <div style="display: table-cell; vertical-align: middle; text-align: center; line-height: 40px;">
-                  <span style="font-size: 18px;">💚</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="width: 48px; height: 48px; min-width: 48px; background: linear-gradient(135deg, #059669, #047857); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-size: 22px; line-height: 1;">💚</span>
               </div>
-              <div>
-                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px;">Comunità</h3>
+              <div style="flex: 1; padding: 4px 0;">
+                <h3 style="color: #1f2937; font-size: 16px; margin: 0 0 4px; line-height: 1.3;">Comunità</h3>
                 <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.6;">KYKOS costruisce ponti nella comunità, creando relazioni di fiducia e solidarietà tra persone.</p>
               </div>
             </div>
@@ -587,7 +579,7 @@ export async function sendWelcomeEmail(
         <!-- Footer -->
         <div style="background: #f9fafb; padding: 24px 32px; border-top: 1px solid #e5e7eb;">
           <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             <a href="${APP_URL}/manifesto" style="color: #059669; text-decoration: none;">Leggi il manifesto completo</a>
           </p>
         </div>
@@ -627,7 +619,7 @@ export async function sendPasswordResetEmail(
           </p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -682,7 +674,7 @@ export async function sendOperatorCredentialsEmail(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -736,7 +728,7 @@ export async function sendIntermediaryCredentialsEmail(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © 2024 KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
             Non rispondere a questa email.
           </p>
         </div>
