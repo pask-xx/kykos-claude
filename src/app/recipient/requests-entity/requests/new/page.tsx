@@ -125,20 +125,20 @@ export default function NewEntityRequestPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Categoria *
           </label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {categories.map((cat) => (
               <button
                 key={cat.value}
                 type="button"
                 onClick={() => setCategory(cat.value)}
-                className={`p-3 rounded-lg border-2 transition flex flex-col items-center gap-1 ${
+                className={`p-3 rounded-lg border-2 transition flex flex-row items-center gap-2 ${
                   category === cat.value
                     ? 'border-primary-500 bg-primary-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <span className="text-2xl">{cat.icon}</span>
-                <span className="text-xs font-medium">{cat.label}</span>
+                <span className="text-2xl flex-shrink-0">{cat.icon}</span>
+                <span className="text-sm font-medium text-left leading-tight">{cat.label}</span>
               </button>
             ))}
           </div>
