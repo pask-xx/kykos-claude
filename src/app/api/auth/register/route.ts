@@ -109,22 +109,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if email exists in Supabase Auth (even if KYKOS record was deleted)
-    console.log('Checking Supabase Auth for existing user with email:', email);
-    const { data: supabaseUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    // For non-OAuth registrations, check if email exists in Supabase Auth
+    // (OAuth users already have Supabase Auth user created during OAuth callback)
+    if (!isOAuth) {
+      console.log('Checking Supabase Auth for existing user with email:', email);
+      const { data: supabaseUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
 
-    if (listError) {
-      console.error('Error listing Supabase users:', listError);
-    }
+      if (listError) {
+        console.error('Error listing Supabase users:', listError);
+      }
 
-    const existingSupabaseUser = supabaseUsers?.users.find(u => u.email === email);
-    console.log('Found existing Supabase user:', existingSupabaseUser ? 'yes' : 'no', existingSupabaseUser?.id);
+      const existingSupabaseUser = supabaseUsers?.users.find(u => u.email === email);
+      console.log('Found existing Supabase user:', existingSupabaseUser ? 'yes' : 'no', existingSupabaseUser?.id);
 
-    if (existingSupabaseUser) {
-      return NextResponse.json(
-        { error: 'Email già registrata. Prova a fare login o reimposta la password.' },
-        { status: 400 }
-      );
+      if (existingSupabaseUser) {
+        return NextResponse.json(
+          { error: 'Email già registrata. Prova a fare login o reimposta la password.' },
+          { status: 400 }
+        );
+      }
     }
 
     // Verify reference entity exists (for RECIPIENT)
