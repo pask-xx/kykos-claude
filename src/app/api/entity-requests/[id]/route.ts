@@ -4,6 +4,8 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { NotificationType, RecipientType } from '@prisma/client';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
+import { generateAndUploadQrCode, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { sendGoodsDeliveryQrNotification, sendGoodsPickupQrNotification } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -246,25 +248,43 @@ export async function PATCH(request: Request) {
     if (userSession && action === 'accept_offer') {
       const { offerId } = await request.json();
 
-      const offer = await prisma.goodsOffer.findUnique({
+      // First, get offer and goodsRequest data (needed for emails)
+      const offerData = await prisma.goodsOffer.findUnique({
         where: { id: offerId },
         include: {
           offeredBy: { select: { id: true, name: true, email: true } },
         },
       });
 
-      if (!offer || offer.requestId !== requestId) {
+      if (!offerData || offerData.requestId !== requestId) {
         return NextResponse.json({ error: 'Offerta non trovata' }, { status: 404 });
       }
 
-      // Accept offer - update request status and create QR notification flow
+      const goodsRequest = await prisma.goodsRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          beneficiary: { select: { id: true, name: true, email: true } },
+          intermediary: {
+            select: {
+              name: true, address: true, houseNumber: true, cap: true,
+              city: true, province: true, phone: true, email: true, hoursInfo: true
+            },
+          },
+        },
+      });
+
+      if (!goodsRequest) {
+        return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+      }
+
+      // Accept offer - update request status
       await prisma.$transaction(async (tx) => {
         // Update request
         await tx.goodsRequest.update({
           where: { id: requestId },
           data: {
             status: 'FULFILLED',
-            fulfilledById: offer.offeredById,
+            fulfilledById: offerData.offeredById,
             fulfilledAt: new Date(),
           },
         });
@@ -285,7 +305,79 @@ export async function PATCH(request: Request) {
         });
       });
 
-      // TODO: Send delivery QR email to fulfiller and pickup QR to beneficiary
+      // Send QR code emails (outside transaction)
+      try {
+        const deliverQrData = generateDeliverQrCode(requestId, offerData.offeredById);
+        const pickupQrData = generatePickupQrCode(requestId, goodsRequest.beneficiaryId);
+        const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `goods-deliver-${requestId}.png`);
+        const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `goods-pickup-${requestId}.png`);
+
+        // Send delivery QR to fulfiller (donor)
+        await sendGoodsDeliveryQrNotification(
+          offerData.offeredBy.email,
+          offerData.offeredById,
+          offerData.offeredBy.name,
+          goodsRequest.title,
+          requestId,
+          deliverQrData,
+          deliverQrImage,
+          goodsRequest.intermediary.name,
+          goodsRequest.intermediary.address,
+          goodsRequest.intermediary.houseNumber,
+          goodsRequest.intermediary.cap,
+          goodsRequest.intermediary.city,
+          goodsRequest.intermediary.province,
+          goodsRequest.intermediary.phone,
+          goodsRequest.intermediary.email,
+          goodsRequest.intermediary.hoursInfo
+        );
+
+        // Send pickup QR to beneficiary
+        await sendGoodsPickupQrNotification(
+          goodsRequest.beneficiary.email,
+          goodsRequest.beneficiaryId,
+          goodsRequest.beneficiary.name,
+          goodsRequest.title,
+          requestId,
+          pickupQrData,
+          pickupQrImage,
+          goodsRequest.intermediary.name,
+          goodsRequest.intermediary.address,
+          goodsRequest.intermediary.houseNumber,
+          goodsRequest.intermediary.cap,
+          goodsRequest.intermediary.city,
+          goodsRequest.intermediary.province,
+          goodsRequest.intermediary.phone,
+          goodsRequest.intermediary.email,
+          goodsRequest.intermediary.hoursInfo
+        );
+      } catch (emailError) {
+        console.error('Error sending QR emails:', emailError);
+        // Don't fail the request if email fails
+      }
+
+      // Create in-app notifications with QR links
+      await prisma.notification.create({
+        data: {
+          recipientUserId: offerData.offeredById,
+          recipientType: RecipientType.USER,
+          title: 'Offerta accettata!',
+          message: `La tua offerta per "${goodsRequest.title}" è stata accettata. Ricevi il QR code per la consegna.`,
+          type: NotificationType.GOODS_OFFER_RECEIVED,
+          link: `/donor/qr-goods/${requestId}`,
+        },
+      });
+
+      await prisma.notification.create({
+        data: {
+          recipientUserId: goodsRequest.beneficiaryId,
+          recipientType: RecipientType.USER,
+          title: 'Disponibilità accettata!',
+          message: `Un donatore ha accettato la tua richiesta di "${goodsRequest.title}". Ritira il QR code per il ritiro.`,
+          type: NotificationType.GOODS_OFFER_RECEIVED,
+          link: `/recipient/qr-goods/${requestId}`,
+        },
+      });
 
       return NextResponse.json({ success: true, message: 'Offerta accettata' });
     }
