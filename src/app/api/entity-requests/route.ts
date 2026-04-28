@@ -13,6 +13,13 @@ interface UserSession {
   role: string;
 }
 
+interface OperatorSession {
+  operatorId: string;
+  organizationId: string;
+  username: string;
+  role: string;
+}
+
 async function getUserSession(): Promise<UserSession | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get('session')?.value;
@@ -29,10 +36,26 @@ async function getUserSession(): Promise<UserSession | null> {
   }
 }
 
+async function getOperatorSession(): Promise<OperatorSession | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('operator_session')?.value;
+
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as OperatorSession;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: Request) {
   try {
-    const session = await getUserSession();
-    if (!session) {
+    const userSession = await getUserSession();
+    const operatorSession = await getOperatorSession();
+
+    if (!userSession && !operatorSession) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
@@ -80,11 +103,11 @@ export async function GET(request: Request) {
     }
 
     if (filter === 'mine') {
-      whereClause.beneficiaryId = session.userId;
+      whereClause.beneficiaryId = userSession?.userId;
     } else if (filter === 'available') {
       whereClause.status = 'APPROVED';
       whereClause.fulfilledById = null;
-      whereClause.beneficiaryId = { not: session.userId };
+      whereClause.beneficiaryId = { not: userSession?.userId };
     }
 
     const requests = await prisma.goodsRequest.findMany({
