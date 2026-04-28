@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { geocodeAddress } from '@/lib/geocode';
 import { sendWelcomeEmail } from '@/lib/email';
 import { sendConfirmationEmail } from '@/lib/email';
-import { Role, OrgType } from '@prisma/client';
+import { Role, OrgType, NotificationType, RecipientType } from '@prisma/client';
 import { generateOrgCode } from '@/lib/utils';
 import { SignJWT } from 'jose';
 
@@ -272,6 +272,30 @@ export async function POST(request: Request) {
 
     // Send our own confirmation email via Resend
     await sendConfirmationEmail(email, fullName, confirmToken);
+
+    // Notify operators when a new RECIPIENT registers (needs authorization)
+    if (role === 'RECIPIENT' && user.referenceEntityId) {
+      const operators = await prisma.operator.findMany({
+        where: {
+          organizationId: user.referenceEntityId,
+          active: true,
+        },
+        select: { id: true },
+      });
+
+      const notifications = operators.map(op => ({
+        recipientId: op.id,
+        recipientType: RecipientType.OPERATOR as any,
+        title: 'Nuovo beneficiario da autorizzare',
+        message: `${fullName} si è registrato come beneficiario e richiede autorizzazione.`,
+        type: NotificationType.NEW_REQUEST,
+        link: '/operator/recipients',
+      }));
+
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    }
 
     return NextResponse.json({
       message: 'Registrazione completata. Controlla la email per confermare il tuo account.',
