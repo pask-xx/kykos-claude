@@ -12,6 +12,7 @@ export default function GoodsDepositLocationPage() {
   const [loading, setLoading] = useState(true);
   const [goodsData, setGoodsData] = useState<{
     title: string;
+    fulfilledById: string;
     fulfilledByName: string;
   } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -82,6 +83,7 @@ export default function GoodsDepositLocationPage() {
           if (data.goodsRequest) {
             setGoodsData({
               title: data.goodsRequest.title,
+              fulfilledById: data.goodsRequest.fulfilledBy?.id || '',
               fulfilledByName: data.goodsRequest.fulfilledBy?.name || 'Donatore',
             });
           }
@@ -155,7 +157,7 @@ export default function GoodsDepositLocationPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          qrData: `kykos:deliver:${requestId}:${goodsData?.fulfilledByName || ''}`,
+          qrData: `kykos:deliver:${requestId}:${goodsData?.fulfilledById || ''}`,
           depositLocation: depositLocation.trim(),
           notes: notes.trim() || undefined,
         }),
