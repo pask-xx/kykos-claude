@@ -71,7 +71,7 @@ export async function POST(request: Request) {
 
     // Mark email as confirmed (authorized stays false - only INTERMEDIARY can set it)
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         emailConfirmed: true,
         emailConfirmedAt: new Date(),
