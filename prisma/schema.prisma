@@ -269,6 +269,7 @@ model Object {
   status          ObjectStatus @default(AVAILABLE)
   imageUrls       String[]
   depositLocation String?      @map("deposit_location") // Scaffale/doposito dove è stato placed
+  depositNotes    String?      @map("deposit_notes")    // Note aggiuntive sulla consegna
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 

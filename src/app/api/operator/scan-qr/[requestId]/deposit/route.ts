@@ -104,6 +104,7 @@ export async function POST(
       data: {
         status: 'WITHDRAWN',
         depositLocation: depositLocation,
+        depositNotes: notes || null,
       },
     });
 

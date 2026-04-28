@@ -48,6 +48,7 @@ export async function GET(
             id: true,
             title: true,
             depositLocation: true,
+            depositNotes: true,
             status: true,
           },
         },
@@ -71,6 +72,7 @@ export async function GET(
     return NextResponse.json({
       title: req.object.title,
       depositLocation: req.object.depositLocation,
+      depositNotes: req.object.depositNotes || null,
       objectId: req.object.id,
       recipientName: req.recipient.name,
       objectStatus: req.object.status,

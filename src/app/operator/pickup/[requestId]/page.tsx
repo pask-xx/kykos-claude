@@ -12,6 +12,7 @@ export default function PickupLocationPage() {
   const [objectData, setObjectData] = useState<{
     title: string;
     depositLocation: string;
+    depositNotes: string | null;
     objectId: string;
     recipientName: string;
   } | null>(null);
@@ -28,7 +29,13 @@ export default function PickupLocationPage() {
       const res = await fetch(`/api/operator/requests/${requestId}/pickup`);
       if (res.ok) {
         const data = await res.json();
-        setObjectData(data);
+        setObjectData({
+          title: data.title,
+          depositLocation: data.depositLocation,
+          depositNotes: data.depositNotes || null,
+          objectId: data.objectId,
+          recipientName: data.recipientName,
+        });
       } else {
         const data = await res.json();
         setError(data.error || 'Richiesta non trovata');
@@ -165,6 +172,11 @@ export default function PickupLocationPage() {
                   <p className="text-2xl font-bold text-center text-green-900">
                     {objectData.depositLocation}
                   </p>
+                  {objectData.depositNotes && (
+                    <p className="text-sm text-center text-green-700 mt-2">
+                      Note: {objectData.depositNotes}
+                    </p>
+                  )}
                   <p className="text-sm text-center text-green-600 mt-2">
                     Comunica questa posizione al beneficiario per il ritiro
                   </p>
