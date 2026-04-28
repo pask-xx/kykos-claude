@@ -49,9 +49,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find user in KYKOS DB
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    // Find user in KYKOS DB by authUserId (Supabase Auth user ID from token)
+    const user = await prisma.user.findFirst({
+      where: { authUserId: userId },
     });
 
     if (!user) {
