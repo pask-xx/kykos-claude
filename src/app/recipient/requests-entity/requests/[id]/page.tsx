@@ -59,7 +59,7 @@ export default function GoodsRequestDetailPage() {
 
   const fetchRequest = async () => {
     try {
-      const res = await fetch(`/api/goods-requests?id=${params.id}`);
+      const res = await fetch(`/api/entity-requests?id=${params.id}`);
       const data = await res.json();
       if (res.ok) {
         setRequest(data.goodsRequest);
@@ -75,7 +75,7 @@ export default function GoodsRequestDetailPage() {
     if (!request) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/goods-requests/${request.id}`, {
+      const res = await fetch(`/api/entity-requests/${request.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'offer', message: offerMessage }),
@@ -99,7 +99,7 @@ export default function GoodsRequestDetailPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/goods-requests/${request.id}`, {
+      const res = await fetch(`/api/entity-requests/${request.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'accept_offer', offerId }),
@@ -163,7 +163,7 @@ export default function GoodsRequestDetailPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold text-gray-900">Richiesta non trovata</h2>
-        <Link href="/recipient/goods-requests" className="text-primary-600 hover:underline mt-4 inline-block">
+        <Link href="/recipient/requests-entity/requests" className="text-primary-600 hover:underline mt-4 inline-block">
           Torna alle richieste
         </Link>
       </div>
@@ -173,7 +173,7 @@ export default function GoodsRequestDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/recipient/goods-requests" className="text-gray-500 hover:text-gray-700">
+        <Link href="/recipient/requests-entity/requests" className="text-gray-500 hover:text-gray-700">
           ← Indietro
         </Link>
       </div>
