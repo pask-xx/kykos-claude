@@ -188,10 +188,24 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
       {/* Notification Detail Modal */}
       {selectedNotification && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedNotification(null)} />
+          <div className="absolute inset-0 bg-black/50" onClick={() => {
+            if (!selectedNotification.read) {
+              fetch(`${apiPath}/${selectedNotification.id}`, { method: 'PATCH' });
+              setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? { ...n, read: true } : n));
+              setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+            setSelectedNotification(null);
+          }} />
           <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
             <button
-              onClick={() => setSelectedNotification(null)}
+              onClick={() => {
+                if (!selectedNotification.read) {
+                  fetch(`${apiPath}/${selectedNotification.id}`, { method: 'PATCH' });
+                  setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? { ...n, read: true } : n));
+                  setUnreadCount(prev => Math.max(0, prev - 1));
+                }
+                setSelectedNotification(null);
+              }}
               className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
             >
               ✕
@@ -216,7 +230,14 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
                 <a
                   href={selectedNotification.link}
                   className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  onClick={() => setSelectedNotification(null)}
+                  onClick={() => {
+                    if (!selectedNotification.read) {
+                      fetch(`${apiPath}/${selectedNotification.id}`, { method: 'PATCH' });
+                      setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? { ...n, read: true } : n));
+                      setUnreadCount(prev => Math.max(0, prev - 1));
+                    }
+                    setSelectedNotification(null);
+                  }}
                 >
                   Vai al contenuto →
                 </a>
