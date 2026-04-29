@@ -33,7 +33,9 @@ export default function VolunteerApplyPage() {
   const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [profile, setProfile] = useState<string>('');
   const [note, setNote] = useState<string>('');
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvUrl, setCvUrl] = useState<string>('');
+  const [uploadingCv, setUploadingCv] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [noLocation, setNoLocation] = useState(false);
@@ -97,6 +99,7 @@ export default function VolunteerApplyPage() {
         setSelectedOrg('');
         setProfile('');
         setNote('');
+        setCvFile(null);
         setCvUrl('');
         setTimeout(() => router.push('/donor/dashboard'), 2000);
       } else {
@@ -112,6 +115,53 @@ export default function VolunteerApplyPage() {
   const formatDistance = (km: number) => {
     if (km < 1) return `${Math.round(km * 1000)}m`;
     return `${km.toFixed(1)}km`;
+  };
+
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Tipo di file non supportato. Usa PDF, DOC, DOCX o immagini.');
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File troppo grande (max 10MB)');
+      return;
+    }
+
+    setCvFile(file);
+    setError(null);
+
+    // Upload file
+    setUploadingCv(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/volunteer/upload-cv', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setCvUrl(data.url);
+      } else {
+        setError(data.error || 'Errore upload CV');
+        setCvFile(null);
+      }
+    } catch (err) {
+      setError('Errore upload CV');
+      setCvFile(null);
+    } finally {
+      setUploadingCv(false);
+    }
   };
 
   if (loading) {
@@ -254,18 +304,42 @@ export default function VolunteerApplyPage() {
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Link al tuo CV (opzionale)
+                Carica il tuo CV (opzionale)
               </label>
-              <input
-                type="url"
-                value={cvUrl}
-                onChange={(e) => setCvUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Inserisci un link pubblico al tuo CV (es. Google Drive, Dropbox, LinkedIn).
-              </p>
+              {cvUrl ? (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <span className="text-green-600">✅ CV caricato</span>
+                  <button
+                    type="button"
+                    onClick={() => { setCvFile(null); setCvUrl(''); }}
+                    className="ml-auto text-sm text-red-600 hover:underline"
+                  >
+                    Rimuovi
+                  </button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-400 transition">
+                  <input
+                    type="file"
+                    id="cv-upload"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+                    onChange={handleCvUpload}
+                    disabled={uploadingCv}
+                    className="hidden"
+                  />
+                  <label htmlFor="cv-upload" className="cursor-pointer">
+                    {uploadingCv ? (
+                      <span className="text-gray-500">Caricamento...</span>
+                    ) : (
+                      <>
+                        <span className="text-2xl block mb-1">📄</span>
+                        <span className="text-sm text-gray-600">Clicca per selezionare un file</span>
+                        <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, JPG, PNG (max 10MB)</p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              )}
             </div>
 
             <button
