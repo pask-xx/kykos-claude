@@ -81,11 +81,11 @@ export async function GET() {
       orderBy: { startDate: 'desc' },
     });
 
-    // Include cvUrl and profile in response (Prisma returns all fields by default with include)
+    // Include cvUrl and skills in response (Prisma returns all fields by default with include)
     const approvedWithCv = approvedVolunteers.map(v => ({
       ...v,
       cvUrl: v.cvUrl,
-      profile: v.profile,
+      skills: v.skills,
     }));
 
     return NextResponse.json({

@@ -520,7 +520,7 @@ model VolunteerAssociation {
   organizationId String
   organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   status        VolunteerStatus @default(PENDING)
-  profile       String?         // es. "Distribuzione", "Assistenza", "Amministrativo"
+  skills        String[]        @default([]) // es. ["Distribuzione", "Trasporto", "Assistenza"]
   note          String?         @db.Text // Note testuali del candidato
   cvUrl         String?         // URL del CV allegato
   startDate     DateTime?

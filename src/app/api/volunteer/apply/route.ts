@@ -93,10 +93,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { organizationId, profile, note, cvUrl } = body;
+    const { organizationId, skills, note, cvUrl } = body;
 
     if (!organizationId) {
       return NextResponse.json({ error: 'Ente obbligatorio' }, { status: 400 });
+    }
+
+    // Validate skills array if provided
+    if (skills && !Array.isArray(skills)) {
+      return NextResponse.json({ error: 'Skills deve essere un array' }, { status: 400 });
     }
 
     // Validate CV URL if provided
@@ -174,7 +179,7 @@ export async function POST(request: Request) {
       },
       update: {
         status: 'PENDING',
-        profile,
+        skills: skills || [],
         note,
         cvUrl,
         startDate: null,
@@ -184,7 +189,7 @@ export async function POST(request: Request) {
         userId: session.userId,
         organizationId,
         status: 'PENDING',
-        profile,
+        skills: skills || [],
         note,
         cvUrl,
       },
@@ -203,7 +208,7 @@ export async function POST(request: Request) {
       recipientOperatorId: op.id,
       recipientType: RecipientType.OPERATOR,
       title: 'Nuova candidatura volontario',
-      message: `${user.name} si è candidato come volontario per "${organization.name}".${profile ? ` Profilo: ${profile}.` : ''}${note ? ` Note: ${note.substring(0, 50)}${note.length > 50 ? '...' : ''}` : ''}`,
+      message: `${user.name} si è candidato come volontario per "${organization.name}".${skills && skills.length > 0 ? ` Disponibilità: ${skills.join(', ')}.` : ''}${note ? ` Note: ${note.substring(0, 50)}${note.length > 50 ? '...' : ''}` : ''}`,
       type: NotificationType.NEW_REQUEST,
       link: '/operator/volunteers',
     }));

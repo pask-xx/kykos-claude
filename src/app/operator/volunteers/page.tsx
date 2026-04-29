@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 interface Volunteer {
   id: string;
   userId: string;
-  profile: string | null;
+  skills: string[];
   note: string | null;
   cvUrl: string | null;
   status: string;
@@ -207,9 +207,9 @@ export default function OperatorVolunteersPage() {
                     {volunteer.user.city && (
                       <p className="text-sm text-gray-400">{volunteer.user.city}</p>
                     )}
-                    {volunteer.profile && (
+                    {volunteer.skills && volunteer.skills.length > 0 && (
                       <p className="text-sm text-primary-600 mt-1">
-                        Profilo: {volunteer.profile}
+                        Disponibilità: {volunteer.skills.join(', ')}
                       </p>
                     )}
                     {volunteer.note && (
@@ -283,9 +283,9 @@ export default function OperatorVolunteersPage() {
                       {volunteer.user.name} →
                     </button>
                     <p className="text-sm text-gray-500">{volunteer.user.email}</p>
-                    {volunteer.profile && (
+                    {volunteer.skills && volunteer.skills.length > 0 && (
                       <p className="text-sm text-primary-600 mt-1">
-                        Profilo: {volunteer.profile}
+                        Disponibilità: {volunteer.skills.join(', ')}
                       </p>
                     )}
                     {volunteer.cvUrl && (

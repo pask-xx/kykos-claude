@@ -15,8 +15,7 @@ interface Organization {
   distance: number;
 }
 
-const PROFILES = [
-  { value: '', label: 'Seleziona profilo...' },
+const SKILLS = [
   { value: 'Distribuzione', label: 'Distribuzione' },
   { value: 'Assistenza', label: 'Assistenza' },
   { value: 'Amministrativo', label: 'Amministrativo' },
@@ -31,7 +30,7 @@ export default function VolunteerApplyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<string>('');
-  const [profile, setProfile] = useState<string>('');
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [note, setNote] = useState<string>('');
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvUrl, setCvUrl] = useState<string>('');
@@ -87,7 +86,7 @@ export default function VolunteerApplyPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           organizationId: selectedOrg,
-          profile,
+          skills: selectedSkills,
           note: note.trim() || undefined,
           cvUrl: cvUrl.trim() || undefined,
         }),
@@ -98,7 +97,7 @@ export default function VolunteerApplyPage() {
       if (res.ok) {
         setSuccess('Candidatura inviata! Riceverai una notifica quando l\'ente la revisionerà.');
         setSelectedOrg('');
-        setProfile('');
+        setSelectedSkills([]);
         setNote('');
         setCvFile(null);
         setCvUrl('');
@@ -271,20 +270,37 @@ export default function VolunteerApplyPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Profilo preferito (opzionale)
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Disponibilità (opzionale)
               </label>
-              <select
-                value={profile}
-                onChange={(e) => setProfile(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                {PROFILES.map(p => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
+              <div className="grid grid-cols-2 gap-2">
+                {SKILLS.map(skill => (
+                  <label
+                    key={skill.value}
+                    className={`flex items-center gap-2 p-2 border rounded-lg cursor-pointer transition ${
+                      selectedSkills.includes(skill.value)
+                        ? 'bg-primary-50 border-primary-300'
+                        : 'hover:bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedSkills.includes(skill.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedSkills([...selectedSkills, skill.value]);
+                        } else {
+                          setSelectedSkills(selectedSkills.filter(s => s !== skill.value));
+                        }
+                      }}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">{skill.label}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
               <p className="text-xs text-gray-500 mt-1">
-                Seleziona il tipo di attività che preferisci. Non obbligatorio.
+                Seleziona una o più aree in cui puoi collaborare.
               </p>
             </div>
 
