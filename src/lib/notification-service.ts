@@ -46,8 +46,8 @@ export async function createNotification(params: CreateNotificationParams) {
 
 export async function getNotifications(recipientId: string, recipientType: RecipientType) {
   const where = recipientType === RecipientType.USER
-    ? { recipientUserId: recipientId }
-    : { recipientOperatorId: recipientId };
+    ? { recipientUserId: recipientId, recipientType }
+    : { recipientOperatorId: recipientId, recipientType };
 
   return prisma.notification.findMany({
     where,
@@ -58,8 +58,8 @@ export async function getNotifications(recipientId: string, recipientType: Recip
 
 export async function getUnreadCount(recipientId: string, recipientType: RecipientType) {
   const where = recipientType === RecipientType.USER
-    ? { recipientUserId: recipientId, read: false }
-    : { recipientOperatorId: recipientId, read: false };
+    ? { recipientUserId: recipientId, recipientType, read: false }
+    : { recipientOperatorId: recipientId, recipientType, read: false };
 
   return prisma.notification.count({ where });
 }
@@ -73,8 +73,8 @@ export async function markAsRead(notificationId: string, recipientId: string) {
 
 export async function markAllAsRead(recipientId: string, recipientType: RecipientType) {
   const where = recipientType === RecipientType.USER
-    ? { recipientUserId: recipientId, read: false }
-    : { recipientOperatorId: recipientId, read: false };
+    ? { recipientUserId: recipientId, recipientType, read: false }
+    : { recipientOperatorId: recipientId, recipientType, read: false };
 
   return prisma.notification.updateMany({
     where,
