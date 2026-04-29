@@ -28,6 +28,7 @@ export default function OperatorVolunteersPage() {
   const [approved, setApproved] = useState<Volunteer[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ volunteer: Volunteer; action: 'approve' | 'reject' | 'suspend' } | null>(null);
 
   useEffect(() => {
     fetchVolunteers();
@@ -127,6 +128,53 @@ export default function OperatorVolunteersPage() {
         </div>
       )}
 
+      {/* Confirmation Modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmAction(null)} />
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {confirmAction.action === 'approve' && 'Conferma approvazione'}
+              {confirmAction.action === 'reject' && 'Conferma rifiuto'}
+              {confirmAction.action === 'suspend' && 'Conferma sospensione'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {confirmAction.action === 'approve' && (
+                <>Vuoi davvero approvare la candidatura di <strong>{confirmAction.volunteer.user.name}</strong> come volontario?</>
+              )}
+              {confirmAction.action === 'reject' && (
+                <>Vuoi davvero rifiutare la candidatura di <strong>{confirmAction.volunteer.user.name}</strong>?</>
+              )}
+              {confirmAction.action === 'suspend' && (
+                <>Vuoi davvero sospendere <strong>{confirmAction.volunteer.user.name}</strong> dall'attività di volontario?</>
+              )}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={() => {
+                  const { volunteer, action } = confirmAction;
+                  setConfirmAction(null);
+                  handleAction(volunteer.id, action);
+                }}
+                className={`px-4 py-2 text-white rounded-lg ${
+                  confirmAction.action === 'approve' ? 'bg-green-600 hover:bg-green-700' :
+                  confirmAction.action === 'reject' ? 'bg-red-600 hover:bg-red-700' :
+                  'bg-gray-500 hover:bg-gray-600'
+                }`}
+              >
+                Conferma
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pending Section */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -185,14 +233,14 @@ export default function OperatorVolunteersPage() {
                   </div>
                   <div className="flex gap-2 ml-4">
                     <button
-                      onClick={() => handleAction(volunteer.id, 'approve')}
+                      onClick={() => setConfirmAction({ volunteer, action: 'approve' })}
                       disabled={actionLoading === volunteer.id}
                       className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50"
                     >
                       {actionLoading === volunteer.id ? '...' : 'Approva'}
                     </button>
                     <button
-                      onClick={() => handleAction(volunteer.id, 'reject')}
+                      onClick={() => setConfirmAction({ volunteer, action: 'reject' })}
                       disabled={actionLoading === volunteer.id}
                       className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50"
                     >
@@ -240,7 +288,7 @@ export default function OperatorVolunteersPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => handleAction(volunteer.id, 'suspend')}
+                    onClick={() => setConfirmAction({ volunteer, action: 'suspend' })}
                     disabled={actionLoading === volunteer.id}
                     className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 disabled:opacity-50"
                   >
