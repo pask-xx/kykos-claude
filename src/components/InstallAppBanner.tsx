@@ -75,7 +75,7 @@ export default function InstallAppBanner() {
             </ol>
           ) : (
             <p className="mt-2 text-xs text-primary-700">
-             安装后可在主屏幕看到 KYKOS 图标，方便快速访问。
+              Installa KYKOS sulla schermata Home per un accesso rapido.
             </p>
           )}
         </div>
