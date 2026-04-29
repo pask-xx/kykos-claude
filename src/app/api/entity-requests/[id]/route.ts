@@ -379,6 +379,11 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Ritiro già completato!' }, { status: 400 });
       }
 
+      // Must be in DELIVERED status to complete pickup
+      if (goodsRequest.status !== 'DELIVERED') {
+        return NextResponse.json({ error: 'Bene non ancora consegnato! Scansiona prima il QR di consegna.' }, { status: 400 });
+      }
+
       // Update status to completed
       await prisma.goodsRequest.update({
         where: { id: requestId },

@@ -117,8 +117,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'QR code non valido per questo donatore' }, { status: 400 });
     }
 
-    // Check if already delivered (depositLocation already set)
-    if (goodsRequest.depositLocation) {
+    // Check if already delivered
+    if (goodsRequest.status === 'DELIVERED') {
       return NextResponse.json({ error: 'QR code già utilizzato! La consegna è stata già registrata.' }, { status: 400 });
     }
 
@@ -126,10 +126,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Richiesta non in stato valido per la consegna' }, { status: 400 });
     }
 
-    // Update status to indicate delivered to entity and save location
+    // Update status to DELIVERED and save location/notes
     await prisma.goodsRequest.update({
       where: { id: requestId },
       data: {
+        status: 'DELIVERED',
         depositLocation: depositLocation || null,
         depositNotes: notes || null,
       },
