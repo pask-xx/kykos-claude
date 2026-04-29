@@ -521,6 +521,8 @@ model VolunteerAssociation {
   organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   status        VolunteerStatus @default(PENDING)
   profile       String?         // es. "Distribuzione", "Assistenza", "Amministrativo"
+  note          String?         @db.Text // Note testuali del candidato
+  cvUrl         String?         // URL del CV allegato
   startDate     DateTime?
   endDate       DateTime?
   createdAt     DateTime        @default(now())

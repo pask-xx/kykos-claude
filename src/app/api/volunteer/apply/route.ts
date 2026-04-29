@@ -93,10 +93,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { organizationId, profile } = body;
+    const { organizationId, profile, note, cvUrl } = body;
 
     if (!organizationId) {
       return NextResponse.json({ error: 'Ente obbligatorio' }, { status: 400 });
+    }
+
+    // Validate CV URL if provided
+    if (cvUrl && !cvUrl.startsWith('http')) {
+      return NextResponse.json({ error: 'URL CV non valido' }, { status: 400 });
     }
 
     // Verify user has coordinates for geo-filtering
@@ -170,6 +175,8 @@ export async function POST(request: Request) {
       update: {
         status: 'PENDING',
         profile,
+        note,
+        cvUrl,
         startDate: null,
         endDate: null,
       },
@@ -178,6 +185,8 @@ export async function POST(request: Request) {
         organizationId,
         status: 'PENDING',
         profile,
+        note,
+        cvUrl,
       },
     });
 
@@ -194,7 +203,7 @@ export async function POST(request: Request) {
       recipientOperatorId: op.id,
       recipientType: RecipientType.OPERATOR,
       title: 'Nuova candidatura volontario',
-      message: `${user.name} si è candidato come volontario per "${organization.name}". Profilo: ${profile || 'Non specificato'}.`,
+      message: `${user.name} si è candidato come volontario per "${organization.name}".${profile ? ` Profilo: ${profile}.` : ''}${note ? ` Note: ${note.substring(0, 50)}${note.length > 50 ? '...' : ''}` : ''}`,
       type: NotificationType.NEW_REQUEST,
       link: '/operator/volunteers',
     }));

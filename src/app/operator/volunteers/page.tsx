@@ -8,6 +8,8 @@ interface Volunteer {
   id: string;
   userId: string;
   profile: string | null;
+  note: string | null;
+  cvUrl: string | null;
   status: string;
   startDate: string | null;
   createdAt: string;
@@ -146,8 +148,13 @@ export default function OperatorVolunteersPage() {
             {pending.map(volunteer => (
               <div key={volunteer.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">{volunteer.user.name}</p>
+                  <div className="flex-1">
+                    <button
+                      onClick={() => router.push(`/operator/recipients/${volunteer.user.id}`)}
+                      className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      {volunteer.user.name} →
+                    </button>
                     <p className="text-sm text-gray-500">{volunteer.user.email}</p>
                     {volunteer.user.city && (
                       <p className="text-sm text-gray-400">{volunteer.user.city}</p>
@@ -157,11 +164,26 @@ export default function OperatorVolunteersPage() {
                         Profilo: {volunteer.profile}
                       </p>
                     )}
+                    {volunteer.note && (
+                      <p className="text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded">
+                        💬 {volunteer.note}
+                      </p>
+                    )}
+                    {volunteer.cvUrl && (
+                      <a
+                        href={volunteer.cvUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline mt-1 block"
+                      >
+                        📄 Scarica CV
+                      </a>
+                    )}
                     <p className="text-xs text-gray-400 mt-2">
                       Candidatura del {formatDate(volunteer.createdAt)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => handleAction(volunteer.id, 'approve')}
                       disabled={actionLoading === volunteer.id}

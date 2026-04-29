@@ -32,6 +32,8 @@ export default function VolunteerApplyPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [profile, setProfile] = useState<string>('');
+  const [note, setNote] = useState<string>('');
+  const [cvUrl, setCvUrl] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [noLocation, setNoLocation] = useState(false);
@@ -83,6 +85,8 @@ export default function VolunteerApplyPage() {
         body: JSON.stringify({
           organizationId: selectedOrg,
           profile,
+          note: note.trim() || undefined,
+          cvUrl: cvUrl.trim() || undefined,
         }),
       });
 
@@ -92,6 +96,8 @@ export default function VolunteerApplyPage() {
         setSuccess('Candidatura inviata! Riceverai una notifica quando l\'ente la revisionerà.');
         setSelectedOrg('');
         setProfile('');
+        setNote('');
+        setCvUrl('');
         setTimeout(() => router.push('/donor/dashboard'), 2000);
       } else {
         setError(data.error || 'Errore durante l\'invio');
@@ -227,6 +233,38 @@ export default function VolunteerApplyPage() {
               </select>
               <p className="text-xs text-gray-500 mt-1">
                 Seleziona il tipo di attività che preferisci. Non obbligatorio.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Note per l'ente (opzionale)
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Racconta qualcosa su di te, le tue esperienze o motivazioni..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Le tue note saranno visibili all'ente quando revisionerà la tua candidatura.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Link al tuo CV (opzionale)
+              </label>
+              <input
+                type="url"
+                value={cvUrl}
+                onChange={(e) => setCvUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Inserisci un link pubblico al tuo CV (es. Google Drive, Dropbox, LinkedIn).
               </p>
             </div>
 
