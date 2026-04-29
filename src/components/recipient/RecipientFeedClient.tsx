@@ -26,6 +26,7 @@ export default function RecipientFeedClient() {
   const [error, setError] = useState<string | null>(null);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string; index: number } | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -270,12 +271,20 @@ export default function RecipientFeedClient() {
               {obj.imageUrls && obj.imageUrls.length > 0 && (
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                   {obj.imageUrls.map((url, i) => (
-                    <img
+                    <button
                       key={i}
-                      src={url}
-                      alt={`${obj.title} - ${i + 1}`}
-                      className="w-32 h-32 object-cover rounded-lg flex-shrink-0"
-                    />
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage({ url, title: obj.title, index: i });
+                      }}
+                      className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg overflow-hidden"
+                    >
+                      <img
+                        src={url}
+                        alt={`${obj.title} - ${i + 1}`}
+                        className="w-32 h-32 object-cover hover:opacity-90 transition-opacity"
+                      />
+                    </button>
                   ))}
                 </div>
               )}
@@ -325,6 +334,57 @@ export default function RecipientFeedClient() {
       ) : (
         <div className="text-center py-4 text-sm text-gray-400">
           Fine delle disponibilità
+        </div>
+      )}
+
+      {/* Image Lightbox Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          onClick={() => setSelectedImage(null)}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
+          >
+            ✕
+          </button>
+
+          {/* Image counter */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm">
+            {selectedImage.index + 1}
+          </div>
+
+          {/* Main image */}
+          <img
+            src={selectedImage.url}
+            alt={selectedImage.title}
+            className="max-w-[90vw] max-h-[85vh] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Navigation arrows */}
+          {selectedImage.index > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // Navigate to previous image - find the object first
+                const currentObj = objects.find(o => o.imageUrls.includes(selectedImage.url));
+                if (currentObj) {
+                  const newIndex = selectedImage.index - 1;
+                  setSelectedImage({
+                    url: currentObj.imageUrls[newIndex],
+                    title: selectedImage.title,
+                    index: newIndex,
+                  });
+                }
+              }}
+              className="absolute left-4 w-12 h-12 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
+            >
+              ◀
+            </button>
+          )}
         </div>
       )}
     </div>
