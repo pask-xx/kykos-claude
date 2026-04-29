@@ -284,8 +284,8 @@ export async function POST(request: Request) {
       });
 
       const notifications = operators.map(op => ({
-        recipientId: op.id,
-        recipientType: RecipientType.OPERATOR as any,
+        recipientOperatorId: op.id,
+        recipientType: RecipientType.OPERATOR,
         title: 'Nuovo beneficiario da autorizzare',
         message: `${fullName} si è registrato come beneficiario e richiede autorizzazione.`,
         type: NotificationType.NEW_REQUEST,
