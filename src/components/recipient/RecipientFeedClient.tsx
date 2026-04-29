@@ -369,7 +369,6 @@ export default function RecipientFeedClient() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                // Navigate to previous image - find the object first
                 const currentObj = objects.find(o => o.imageUrls.includes(selectedImage.url));
                 if (currentObj) {
                   const newIndex = selectedImage.index - 1;
@@ -385,6 +384,28 @@ export default function RecipientFeedClient() {
               ◀
             </button>
           )}
+          {(() => {
+            const currentObj = objects.find(o => o.imageUrls.includes(selectedImage.url));
+            if (currentObj && selectedImage.index < currentObj.imageUrls.length - 1) {
+              return (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newIndex = selectedImage.index + 1;
+                    setSelectedImage({
+                      url: currentObj.imageUrls[newIndex],
+                      title: selectedImage.title,
+                      index: newIndex,
+                    });
+                  }}
+                  className="absolute right-4 w-12 h-12 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
+                >
+                  ▶
+                </button>
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
     </div>
