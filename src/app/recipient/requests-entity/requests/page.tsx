@@ -65,6 +65,20 @@ export default function RecipientEntityRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('mine');
   const [typeFilter, setTypeFilter] = useState<TabType>('GOODS');
+  const [counts, setCounts] = useState<{ GOODS: number; SERVICES: number; AVAILABLE: number }>({ GOODS: 0, SERVICES: 0, AVAILABLE: 0 });
+
+  useEffect(() => {
+    // Fetch counts for all tabs on mount
+    fetch('/api/entity-requests?filter=mine&type=GOODS')
+      .then(res => res.json())
+      .then(data => setCounts(prev => ({ ...prev, GOODS: (data.requests || []).length })));
+    fetch('/api/entity-requests?filter=mine&type=SERVICES')
+      .then(res => res.json())
+      .then(data => setCounts(prev => ({ ...prev, SERVICES: (data.requests || []).length })));
+    fetch('/api/recipient/requests')
+      .then(res => res.json())
+      .then(data => setCounts(prev => ({ ...prev, AVAILABLE: ((data.requests || [])).length })));
+  }, []);
 
   useEffect(() => {
     if (typeFilter === 'AVAILABLE') {
@@ -170,7 +184,7 @@ export default function RecipientEntityRequestsPage() {
             typeFilter === 'GOODS' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          🪑 Beni
+          🪑 Beni ({counts.GOODS})
         </button>
         <button
           onClick={() => setTypeFilter('SERVICES')}
@@ -178,7 +192,7 @@ export default function RecipientEntityRequestsPage() {
             typeFilter === 'SERVICES' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          🔧 Servizi
+          🔧 Servizi ({counts.SERVICES})
         </button>
         <button
           onClick={() => setTypeFilter('AVAILABLE')}
@@ -186,7 +200,7 @@ export default function RecipientEntityRequestsPage() {
             typeFilter === 'AVAILABLE' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          📦 Disponibilità
+          📦 Disponibilità ({counts.AVAILABLE})
         </button>
       </div>
 
