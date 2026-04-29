@@ -32,7 +32,7 @@ export default async function DonorDashboard() {
             Ciao, {user?.firstName} 👋
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            Ecco le richieste che puoi soddisfare
+            Ecco le richieste che puoi soddisfare.
           </p>
         </div>
         <Link
