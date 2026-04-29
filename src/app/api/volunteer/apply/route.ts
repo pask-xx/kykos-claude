@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     // Verify organization exists and is verified
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { id: true, name: true, latitude: true, longitude: true },
+      select: { id: true, name: true, latitude: true, longitude: true, verified: true },
     });
 
     if (!organization || !organization.verified) {

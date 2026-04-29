@@ -46,6 +46,8 @@ export async function GET() {
             city: true,
             province: true,
             address: true,
+            latitude: true,
+            longitude: true,
           },
         },
       },
