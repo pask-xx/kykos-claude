@@ -117,6 +117,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'QR code non valido per questo donatore' }, { status: 400 });
     }
 
+    // Check if already delivered (depositLocation already set)
+    if (goodsRequest.depositLocation) {
+      return NextResponse.json({ error: 'QR code già utilizzato! La consegna è stata già registrata.' }, { status: 400 });
+    }
+
     if (goodsRequest.status !== 'FULFILLED') {
       return NextResponse.json({ error: 'Richiesta non in stato valido per la consegna' }, { status: 400 });
     }

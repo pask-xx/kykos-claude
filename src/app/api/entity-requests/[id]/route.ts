@@ -374,6 +374,11 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
       }
 
+      // Check if already completed
+      if (goodsRequest.status === 'COMPLETED') {
+        return NextResponse.json({ error: 'Ritiro già completato!' }, { status: 400 });
+      }
+
       // Update status to completed
       await prisma.goodsRequest.update({
         where: { id: requestId },
