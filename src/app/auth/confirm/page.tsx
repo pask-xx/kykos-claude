@@ -9,45 +9,40 @@ function ConfirmContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('Confermo la tua email...');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState<string>('');
 
-  useEffect(() => {
-    async function confirmEmail() {
-      if (!token) {
-        setStatus('error');
-        setMessage('Token mancante');
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/auth/confirm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          setStatus('success');
-          setMessage(data.message || 'Email confermata con successo!');
-          // Redirect to login after 3 seconds
-          setTimeout(() => {
-            router.push('/auth/login');
-          }, 3000);
-        } else {
-          setStatus('error');
-          setMessage(data.error || 'Errore durante la conferma');
-        }
-      } catch {
-        setStatus('error');
-        setMessage('Errore di connessione');
-      }
+  const handleConfirm = async () => {
+    if (!token) {
+      setStatus('error');
+      setMessage('Token mancante');
+      return;
     }
 
-    confirmEmail();
-  }, [token, router]);
+    setStatus('loading');
+    setMessage('Confermo la tua email...');
+
+    try {
+      const res = await fetch('/api/auth/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus('success');
+        setMessage(data.message || 'Email confermata con successo!');
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Errore durante la conferma');
+      }
+    } catch {
+      setStatus('error');
+      setMessage('Errore di connessione');
+    }
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
@@ -59,6 +54,24 @@ function ConfirmContent() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
+          {status === 'idle' && (
+            <>
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">📧</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Conferma il tuo indirizzo email</h2>
+              <p className="text-gray-600 mb-6">
+                Clicca sul pulsante qui sotto per attivare il tuo account KYKOS.
+              </p>
+              <button
+                onClick={handleConfirm}
+                className="w-full bg-secondary-600 text-white py-3 rounded-lg font-medium hover:bg-secondary-700 transition"
+              >
+                Conferma email
+              </button>
+            </>
+          )}
+
           {status === 'loading' && (
             <>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -76,9 +89,6 @@ function ConfirmContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Email confermata!</h2>
               <p className="text-gray-600 mb-6">{message}</p>
-              <p className="text-sm text-gray-500 mb-6">
-                Verrai reindirizzato al login tra 3 secondi...
-              </p>
               <Link
                 href="/auth/login"
                 className="inline-block bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-secondary-700 transition"
