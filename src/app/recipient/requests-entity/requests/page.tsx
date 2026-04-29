@@ -63,7 +63,7 @@ export default function RecipientEntityRequestsPage() {
   const [requests, setRequests] = useState<EntityRequest[]>([]);
   const [objectRequests, setObjectRequests] = useState<ObjectRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('mine');
+  const [filter, setFilter] = useState<string>('available');
   const [typeFilter, setTypeFilter] = useState<TabType>('GOODS');
   const [counts, setCounts] = useState<{ GOODS: number; SERVICES: number; AVAILABLE: number }>({ GOODS: 0, SERVICES: 0, AVAILABLE: 0 });
 
