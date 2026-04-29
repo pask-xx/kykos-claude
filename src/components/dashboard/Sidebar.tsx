@@ -16,6 +16,7 @@ const recipientNav: NavItem[] = [
   { href: '/recipient/objects', label: 'Cerca disponibilità', icon: '📦' },
   { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: '🎁' },
   { href: '/recipient/requests-entity/requests', label: 'Richieste', icon: '📝' },
+  { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
 ];
@@ -25,6 +26,7 @@ const donorNav: NavItem[] = [
   { href: '/donor/objects', label: 'Le mie disponibilità', icon: '📦' },
   { href: '/donor/goods-requests', label: 'Offerte beni', icon: '🎁' },
   { href: '/donor/statistics', label: 'Statistiche', icon: '📊' },
+  { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
 ];

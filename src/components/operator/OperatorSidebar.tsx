@@ -23,6 +23,7 @@ const allNavItems: NavItem[] = [
   { href: '/operator/reports', label: 'Segnalazioni', icon: '⚠️', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/donors', label: 'Donatori', icon: '🎁', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/requests-entity', label: 'Richieste ente', icon: '📋', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/volunteers', label: 'Volontari', icon: '🤝', permission: 'VOLUNTEER_MANAGE' },
   { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
