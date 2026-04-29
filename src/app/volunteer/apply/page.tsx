@@ -36,6 +36,7 @@ export default function VolunteerApplyPage() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvUrl, setCvUrl] = useState<string>('');
   const [uploadingCv, setUploadingCv] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [noLocation, setNoLocation] = useState(false);
@@ -101,6 +102,7 @@ export default function VolunteerApplyPage() {
         setNote('');
         setCvFile(null);
         setCvUrl('');
+        setPrivacyConsent(false);
         setTimeout(() => router.push('/donor/dashboard'), 2000);
       } else {
         setError(data.error || 'Errore durante l\'invio');
@@ -342,9 +344,23 @@ export default function VolunteerApplyPage() {
               )}
             </div>
 
+            <div className="mb-6">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={privacyConsent}
+                  onChange={(e) => setPrivacyConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-600">
+                  Acconsento al trattamento dei miei dati personali secondo la normativa sulla Privacy. I dati sono raccolti e gestiti al fine di rendere possibile lo svolgimento del rapporto di fornitura e/o prestazione nel rispetto della Normativa Europea sul trattamento dei dati - GDPR (General Data Protection Regulation) 2016/679.
+                </span>
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={submitting || !selectedOrg}
+              disabled={submitting || !selectedOrg || !privacyConsent}
               className="w-full py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Invio in corso...' : 'Invia candidatura'}
