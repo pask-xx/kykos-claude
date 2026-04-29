@@ -275,13 +275,28 @@ export default function OperatorVolunteersPage() {
             {approved.map(volunteer => (
               <div key={volunteer.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">{volunteer.user.name}</p>
+                  <div className="flex-1">
+                    <button
+                      onClick={() => router.push(`/operator/recipients/${volunteer.user.id}`)}
+                      className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      {volunteer.user.name} →
+                    </button>
                     <p className="text-sm text-gray-500">{volunteer.user.email}</p>
                     {volunteer.profile && (
                       <p className="text-sm text-primary-600 mt-1">
                         Profilo: {volunteer.profile}
                       </p>
+                    )}
+                    {volunteer.cvUrl && (
+                      <a
+                        href={volunteer.cvUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline mt-1 block"
+                      >
+                        📄 Scarica CV
+                      </a>
                     )}
                     <p className="text-xs text-gray-400 mt-2">
                       Attivo dal {formatDate(volunteer.startDate)}
