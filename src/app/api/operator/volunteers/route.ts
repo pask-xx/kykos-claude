@@ -81,9 +81,16 @@ export async function GET() {
       orderBy: { startDate: 'desc' },
     });
 
+    // Include cvUrl and profile in response (Prisma returns all fields by default with include)
+    const approvedWithCv = approvedVolunteers.map(v => ({
+      ...v,
+      cvUrl: v.cvUrl,
+      profile: v.profile,
+    }));
+
     return NextResponse.json({
       pending: pendingVolunteers,
-      approved: approvedVolunteers,
+      approved: approvedWithCv,
     });
   } catch (error) {
     console.error('Operator volunteers GET error:', error);
