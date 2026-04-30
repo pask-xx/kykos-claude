@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import LogoutForm from '@/components/LogoutForm';
@@ -11,22 +11,20 @@ interface NavItem {
   icon: string;
 }
 
-const recipientNav: NavItem[] = [
+const recipientNavBase: NavItem[] = [
   { href: '/recipient/dashboard', label: 'Dashboard', icon: '🏠' },
   { href: '/recipient/objects', label: 'Cerca disponibilità', icon: '📦' },
   { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: '🎁' },
   { href: '/recipient/requests-entity/requests', label: 'Richieste', icon: '📝' },
-  { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
-const donorNav: NavItem[] = [
+const donorNavBase: NavItem[] = [
   { href: '/donor/dashboard', label: 'Richieste', icon: '📋' },
   { href: '/donor/objects', label: 'Le mie disponibilità', icon: '📦' },
   { href: '/donor/goods-requests', label: 'Offerte beni', icon: '🎁' },
   { href: '/donor/statistics', label: 'Statistiche', icon: '📊' },
-  { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜' },
   { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
 ];
@@ -51,6 +49,7 @@ interface SidebarProps {
   role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN';
   userName: string;
   userEmail: string;
+  hasApprovedVolunteer?: boolean;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -64,16 +63,28 @@ function getDashboardHref(role: string): string {
   return `/${role.toLowerCase()}/dashboard`;
 }
 
-export default function Sidebar({ role, userName, userEmail }: SidebarProps) {
+function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', hasApprovedVolunteer: boolean): NavItem[] {
+  const volunteerItem: NavItem = hasApprovedVolunteer
+    ? { href: '/volunteer', label: 'Volontariato', icon: '🤝' }
+    : { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' };
+
+  if (role === 'RECIPIENT') {
+    return [...recipientNavBase, volunteerItem];
+  }
+  if (role === 'DONOR') {
+    return [...donorNavBase, volunteerItem];
+  }
+  // For INTERMEDIARY and ADMIN, return as-is (no volunteer item in nav)
+  return role === 'INTERMEDIARY' ? intermediaryNav : adminNav;
+}
+
+export default function Sidebar({ role, userName, userEmail, hasApprovedVolunteer = false }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navItems = role === 'RECIPIENT' ? recipientNav
-    : role === 'DONOR' ? donorNav
-    : role === 'ADMIN' ? adminNav
-    : intermediaryNav;
+  const navItems = buildNavItems(role, hasApprovedVolunteer);
 
   const handleMouseEnter = useCallback(() => {
     if (timeoutRef.current) {

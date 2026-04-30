@@ -11,8 +11,55 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "KYKOS - Dona con dignità",
-  description: "Platform for anonymous donation of objects to people in need",
+  title: {
+    default: "KYKOS - Dona con dignità, ricevi con gratitudine",
+    template: "%s | KYKOS",
+  },
+  description: "Piattaforma di donazione anonima di oggetti a persone bisognose. Chi dona non sa chi riceve, chi riceve non sa chi dona. Gestito da enti fidati come Caritas e parrocchie.",
+  keywords: ["donazione anonima", "caritas", "donare oggetti", "aiuto sociale", "solidarietà", "economia circolare", "beneficenza", "intermediari fidati", "KYKOS"],
+  authors: [{ name: "KYKOS" }],
+  creator: "KYKOS",
+  publisher: "KYKOS",
+  metadataBase: new URL("https://kykos.app"),
+  alternates: {
+    canonical: "/",
+    languages: {
+      "it-IT": "/",
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "it_IT",
+    url: "https://kykos.app",
+    siteName: "KYKOS",
+    title: "KYKOS - Dona con dignità, ricevi con gratitudine",
+    description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "KYKOS - Dona con dignità",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KYKOS - Dona con dignità, ricevi con gratitudine",
+    description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

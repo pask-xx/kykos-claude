@@ -15,9 +15,10 @@ interface User {
 interface DashboardLayoutClientProps {
   children: React.ReactNode;
   user: User | null;
+  hasApprovedVolunteer?: boolean;
 }
 
-export default function DashboardLayoutClient({ children, user }: DashboardLayoutClientProps) {
+export default function DashboardLayoutClient({ children, user, hasApprovedVolunteer = false }: DashboardLayoutClientProps) {
   if (!user) return null;
 
   const showNotificationBell = ['RECIPIENT', 'DONOR', 'INTERMEDIARY'].includes(user.role);
@@ -34,6 +35,7 @@ export default function DashboardLayoutClient({ children, user }: DashboardLayou
         role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN'}
         userName={user.name}
         userEmail={user.email}
+        hasApprovedVolunteer={hasApprovedVolunteer}
       />
 
       {/* Mobile header */}

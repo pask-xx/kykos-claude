@@ -137,6 +137,7 @@ enum VolunteerStatus {
   APPROVED
   REJECTED
   SUSPENDED
+  WITHDRAWN
 }
 
 // ================== MODELS ==================

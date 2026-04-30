@@ -1,5 +1,18 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
 import SessionDashboardLink from '@/components/SessionDashboardLink';
+
+export const metadata: Metadata = {
+  title: 'Il Manifesto KYKOS - Donazione anonima e solidarietà',
+  description: 'Scopri i principi fondanti di KYKOS: anonimato, gioia nel donare, sostenibilità. La donazione anonima che preserva la dignità di tutti.',
+  keywords: ['manifesto KYKOS', 'donazione anonima', 'solidarietà', 'principi', 'Caritas', 'sostenibilità', 'economia circolare'],
+  openGraph: {
+    title: 'Il Manifesto KYKOS',
+    description: 'Anonimato, gioia, sostenibilità. I principi che guidano la donazione anonima.',
+    url: 'https://kykos.app/manifesto',
+    type: 'website',
+  },
+};
 
 export default function ManifestoPage() {
   return (

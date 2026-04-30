@@ -3,6 +3,16 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reimposta Password - KYKOS',
+  description: 'Reimposta la password del tuo account KYKOS.',
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 function ResetPasswordForm() {
   const router = useRouter();

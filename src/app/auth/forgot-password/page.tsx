@@ -3,6 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Recupera Password - KYKOS',
+  description: 'Hai dimenticato la password? Recupera l\'accesso al tuo account KYKOS.',
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default function ForgotPasswordPage() {
   const router = useRouter();

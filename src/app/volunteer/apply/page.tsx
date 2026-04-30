@@ -41,8 +41,34 @@ export default function VolunteerApplyPage() {
   const [noLocation, setNoLocation] = useState(false);
 
   useEffect(() => {
-    fetchOrganizations();
+    checkAndFetch();
   }, []);
+
+  const checkAndFetch = async () => {
+    try {
+      // Check if user already has approved volunteer associations
+      const assocRes = await fetch('/api/volunteer/associations');
+      const assocData = await assocRes.json();
+
+      if (assocRes.ok && assocData.associations) {
+        const approvedCount = (assocData.associations as any[]).filter(
+          (a: any) => a.status === 'APPROVED'
+        ).length;
+
+        if (approvedCount > 0) {
+          // User already has approved volunteer status - redirect to management page
+          router.push('/volunteer');
+          return;
+        }
+      }
+
+      // Fetch organizations for new application
+      fetchOrganizations();
+    } catch (err) {
+      setError('Errore di connessione');
+      setLoading(false);
+    }
+  };
 
   const fetchOrganizations = async () => {
     try {

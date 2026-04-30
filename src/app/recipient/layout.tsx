@@ -26,6 +26,15 @@ export default async function RecipientLayout({ children }: { children: React.Re
     },
   });
 
+  // Check if user has any approved volunteer associations
+  const hasApprovedVolunteer = await prisma.volunteerAssociation.findFirst({
+    where: {
+      userId: session.id,
+      status: 'APPROVED',
+    },
+    select: { id: true },
+  }).then(result => !!result);
+
   const userData = user ? {
     id: user.id,
     email: user.email,
@@ -34,7 +43,7 @@ export default async function RecipientLayout({ children }: { children: React.Re
   } : null;
 
   return (
-    <DashboardLayoutClient user={userData}>
+    <DashboardLayoutClient user={userData} hasApprovedVolunteer={hasApprovedVolunteer}>
       {children}
     </DashboardLayoutClient>
   );

@@ -4,10 +4,61 @@ import Link from "next/link";
 import { useState } from "react";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "KYKOS",
+  "description": "Platform for anonymous donation of objects to people in need. Dona con dignità, ricevi con gratitudine.",
+  "url": "https://kykos.app",
+  "logo": "https://kykos.app/albero.svg",
+  "sameAs": [],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "description": "Supporto KYKOS",
+    "email": "info@kykos.app"
+  }
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Come funziona KYKOS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "KYKOS è una piattaforma di donazione anonima. Chi dona non sa chi riceve e chi riceve non sa chi dona. Gli oggetti vengono pubblicati, verificati da enti fidati (Caritas, parrocchie) e consegnati con un contributo simbolico di 1-2€."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "KYKOS è realmente anonimo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sì, KYKOS garantisce l'anonimato totale. Donatori e riceventi non si conoscono. Gli intermediari fidati gestiscono la verifica e il coordinamento."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quanto costa ricevere un oggetto?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Il contributo simbolico richiesto è di 1-2€ per coprire i costi logistici. Nessun profitto è generato dagli intermediari."
+      }
+    }
+  ]
+};
+
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLd, faqJsonLd]) }}
+      />
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Header */}
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm shadow-sm z-50">
@@ -235,5 +286,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

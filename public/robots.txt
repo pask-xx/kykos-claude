@@ -1,0 +1,17 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow dashboard and authenticated routes
+Disallow: /donor/dashboard
+Disallow: /recipient/dashboard
+Disallow: /intermediary/dashboard
+Disallow: /operator/dashboard
+Disallow: /admin/dashboard
+Disallow: /volunteer/dashboard
+
+# Disallow API routes
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://kykos.app/sitemap.xml
