@@ -5,16 +5,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Registrati - KYKOS',
-  description: 'Registrati su KYKOS per donare oggetti o richiedere aiuto in modo anonimo.',
-  robots: {
-    index: false,
-    follow: true,
-  },
-};
 
 interface Intermediary {
   id: string;

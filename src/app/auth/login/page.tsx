@@ -3,17 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Metadata } from 'next';
 import InstallAppBanner from '@/components/InstallAppBanner';
-
-export const metadata: Metadata = {
-  title: 'Accedi - KYKOS',
-  description: 'Accedi al tuo account KYKOS. Dona con dignità, ricevi con gratitudine.',
-  robots: {
-    index: false,
-    follow: true,
-  },
-};
 
 export default function LoginPage() {
   const router = useRouter();

@@ -3,16 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Conferma Email - KYKOS',
-  description: 'Conferma il tuo indirizzo email per attivare l\'account KYKOS.',
-  robots: {
-    index: false,
-    follow: true,
-  },
-};
 
 function ConfirmContent() {
   const router = useRouter();
