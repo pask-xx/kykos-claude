@@ -160,6 +160,9 @@ function AdminDashboardContent() {
           }`}
         >
           Gestione Enti
+          <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+            {intermediaries.length}
+          </span>
           {pendingCount > 0 && (
             <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
               {pendingCount}
