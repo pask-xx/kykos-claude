@@ -83,14 +83,22 @@ function AdminDashboardContent() {
   const unconfirmedCount = adesioni.filter(a => a.status === 'PENDING' && !a.emailConfirmed).length;
 
   const handleAdesioneAction = async (id: string, action: 'approve' | 'reject') => {
+    if (!confirm(`Sei sicuro di voler ${action === 'approve' ? 'approvare' : 'rifiutare'} questa richiesta?`)) {
+      return;
+    }
     try {
       const res = await fetch(`/api/adesione?id=${id}&action=${action}`, { method: 'PATCH' });
+      const data = await res.json();
       if (res.ok) {
-        const data = await fetch('/api/adesione').then(r => r.json());
-        setAdesioni(data.requests || []);
+        // Refresh the list
+        const refreshData = await fetch('/api/adesione').then(r => r.json());
+        setAdesioni(refreshData.requests || []);
+      } else {
+        alert(data.error || 'Errore durante l\'operazione');
       }
     } catch (err) {
       console.error('Error:', err);
+      alert('Errore di connessione');
     }
   };
 
