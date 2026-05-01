@@ -79,7 +79,7 @@ function AdminDashboardContent() {
 
   const verifiedCount = intermediaries.filter(i => i.verified).length;
   const pendingCount = intermediaries.filter(i => !i.verified).length;
-  const pendingAdesioni = adesioni.filter(a => a.status === 'PENDING' && a.emailConfirmed).length;
+  const pendingAdesioni = adesioni.filter(a => a.status === 'PENDING').length;
   const unconfirmedCount = adesioni.filter(a => a.status === 'PENDING' && !a.emailConfirmed).length;
 
   const handleAdesioneAction = async (id: string, action: 'approve' | 'reject') => {
