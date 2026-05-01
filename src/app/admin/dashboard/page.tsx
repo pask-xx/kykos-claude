@@ -153,13 +153,18 @@ function AdminDashboardContent() {
       <div className="flex gap-4 mb-6 border-b">
         <button
           onClick={() => setActiveTab('enti')}
-          className={`pb-3 px-2 font-medium transition ${
+          className={`pb-3 px-2 font-medium transition flex items-center gap-2 ${
             activeTab === 'enti'
               ? 'border-b-2 border-primary-600 text-primary-600'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Gestione Enti ({intermediaries.length})
+          Gestione Enti
+          {pendingCount > 0 && (
+            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {pendingCount}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setActiveTab('adesioni')}
