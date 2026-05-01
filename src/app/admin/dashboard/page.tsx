@@ -90,7 +90,7 @@ function AdminDashboardContent() {
     setActionLoading(true);
     setActionError(null);
     try {
-      const res = await fetch(`/api/adesione?id=${confirmAction.id}&action=${confirmAction.action}`, { method: 'PATCH' });
+      const res = await fetch(`/api/adesione/${confirmAction.id}?action=${confirmAction.action}`, { method: 'PATCH' });
       const data = await res.json();
       if (res.ok) {
         const refreshData = await fetch('/api/adesione').then(r => r.json());
