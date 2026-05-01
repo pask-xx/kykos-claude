@@ -82,7 +82,7 @@ export default function RegistrationsClosedPage() {
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
               <span>🙏</span>
-              <span>Beneficiario richiede con un piccolo contributo</span>
+              <span>Beneficiario richiede</span>
             </div>
           </div>
 
