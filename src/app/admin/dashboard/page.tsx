@@ -121,7 +121,7 @@ function AdminDashboardContent() {
               <span className="text-2xl">⏳</span>
             </div>
             <div>
-              <p className="text-sm text-gray-500">In attesa</p>
+              <p className="text-sm text-gray-500">Enti da verificare</p>
               <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
             </div>
           </div>
