@@ -152,9 +152,9 @@ export default function Home() {
           <img src="/albero.svg" alt="KYKOS" className="w-24 h-24" />
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-          Dona con <span className="text-primary-600">dignità</span>,
+          Dona con <span className="text-primary-600">amore</span>,
           <br />
-          ricevi con <span className="text-secondary-600">gratitudine</span>
+          ricevi con <span className="text-secondary-600">dignità</span>
         </h1>
         <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed">
           Anonimato totale per donatori e riceventi.
