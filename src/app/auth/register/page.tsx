@@ -6,6 +6,42 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
 
+const REGISTRATION_ENABLED = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED === 'true';
+
+// Show closed page if registration is disabled
+function RegistrationClosedMessage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-8">
+      <div className="max-w-md text-center">
+        <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="text-4xl">🚧</span>
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Costruiamo insieme la rete KYKOS
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Al momento le registrazioni sono chiuse perché stiamo costruendo
+          la <strong>rete di intermediari</strong> (parrocchie, centri Caritas,
+          associazioni) che permetteranno a KYKOS di funzionare.
+        </p>
+        <p className="text-gray-600 mb-8">
+          Se vuoi essere avvisato quando le registrazioni apriranno,{' '}
+          <Link href="/registrations-closed" className="text-primary-600 hover:underline font-medium">
+            clicca qui
+          </Link>
+          .
+        </p>
+        <Link
+          href="/"
+          className="text-gray-500 hover:text-primary-600 transition"
+        >
+          ← Torna alla home
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 interface Intermediary {
   id: string;
   name: string;
@@ -619,6 +655,10 @@ function RegisterForm() {
 }
 
 export default function RegisterPage() {
+  if (!REGISTRATION_ENABLED) {
+    return <RegistrationClosedMessage />;
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding */}

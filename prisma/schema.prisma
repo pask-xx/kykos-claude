@@ -561,3 +561,11 @@ model AdesioneEnte {
 
   @@map("adesione_enti")
 }
+
+model NotifyEmail {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("notify_emails")
+}
