@@ -82,7 +82,6 @@ function AdminDashboardContent() {
   const verifiedCount = intermediaries.filter(i => i.verified).length;
   const pendingCount = intermediaries.filter(i => !i.verified).length;
   const pendingAdesioni = adesioni.filter(a => a.status === 'PENDING').length;
-  const unconfirmedCount = adesioni.filter(a => a.status === 'PENDING' && !a.emailConfirmed).length;
 
   const handleAdesioneAction = async () => {
     if (!confirmAction) return;
@@ -106,7 +105,7 @@ function AdminDashboardContent() {
   };
 
   return (
-    <div>
+    <>
       {showSuccess && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-3">
           <span className="text-xl">✅</span>
@@ -305,7 +304,7 @@ function AdminDashboardContent() {
                         {adesione.website && <p><strong>Sito web:</strong> {adesione.website}</p>}
                         {adesione.nota && <p><strong>Nota:</strong> {adesione.nota}</p>}
                         {adesione.status === 'PENDING' && !adesione.emailConfirmed && (
-                          <p className="text-amber-600"><strong>⚠️ Email non confermata</strong> - L'ente deve cliccare il link nella email ricevuta</p>
+                          <p className="text-amber-600"><strong>⚠️ Email non confermata</strong> - L&apos;ente deve cliccare il link nella email ricevuta</p>
                         )}
                       </div>
                       <p className="text-xs text-gray-400 mt-2">
@@ -335,42 +334,42 @@ function AdminDashboardContent() {
           )}
         </div>
       )}
-    </div>
 
-    {/* Confirmation Modal */}
-    {confirmAction && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmAction(null)} />
-        <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
-            Conferma {confirmAction.action === 'approve' ? 'approvazione' : 'rifiuto'}
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Sei sicuro di voler {confirmAction.action === 'approve' ? 'approvare' : 'rifiutare'} questa richiesta di adesione?
-          </p>
-          <div className="flex gap-3 justify-end">
-            <button
-              onClick={() => setConfirmAction(null)}
-              disabled={actionLoading}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-            >
-              Annulla
-            </button>
-            <button
-              onClick={handleAdesioneAction}
-              disabled={actionLoading}
-              className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
-                confirmAction.action === 'approve'
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-red-600 hover:bg-red-700'
-              }`}
-            >
-              {actionLoading ? 'Operazione in corso...' : 'Conferma'}
-            </button>
+      {/* Confirmation Modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmAction(null)} />
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Conferma {confirmAction.action === 'approve' ? 'approvazione' : 'rifiuto'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Sei sicuro di voler {confirmAction.action === 'approve' ? 'approvare' : 'rifiutare'} questa richiesta di adesione?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setConfirmAction(null)}
+                disabled={actionLoading}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleAdesioneAction}
+                disabled={actionLoading}
+                className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
+                  confirmAction.action === 'approve'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {actionLoading ? 'Operazione in corso...' : 'Conferma'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
+    </>
   );
 }
 
