@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KYKOS - Presentazione per Sostenitori 2026</title>
+  <style>
+    /* ============================================
+       KYKOS PRESENTATION STYLES
+       Optimized for print/PDF generation
+       Versione: Maggio 2026
+       ============================================ */
+
+    :root {
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-light: #d1fae5;
+      --secondary: #7c3aed;
+      --secondary-dark: #6d28d9;
+      --accent: #f59e0b;
+      --accent-light: #fef3c7;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --error: #dc2626;
+      --warning: #f59e0b;
+      --success: #059669;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @page :first {
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: var(--gray-800);
+      background: white;
+    }
+
+    /* ============================================
+       PAGE BREAKS
+       ============================================ */
+
+    .page {
+      width: 100%;
+      min-height: 297mm;
+      padding: 20mm;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+
+    .page:last-child {
+      page-break-after: auto;
+    }
+
+    .page-break-before {
+      page-break-before: always;
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+
+    h1 {
+      font-size: 28pt;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16pt;
+      color: var(--gray-900);
+    }
+
+    h2 {
+      font-size: 20pt;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-top: 24pt;
+      margin-bottom: 12pt;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 8pt;
+    }
+
+    h3 {
+      font-size: 14pt;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-top: 16pt;
+      margin-bottom: 8pt;
+      color: var(--gray-800);
+    }
+
+    h4 {
+      font-size: 12pt;
+      font-weight: 600;
+      margin-top: 12pt;
+      margin-bottom: 6pt;
+      color: var(--gray-700);
+    }
+
+    p {
+      margin-bottom: 10pt;
+      text-align: justify;
+    }
+
+    .lead {
+      font-size: 13pt;
+      color: var(--gray-600);
+      line-height: 1.7;
+    }
+
+    .small {
+      font-size: 9pt;
+      color: var(--gray-500);
+    }
+
+    .text-primary { color: var(--primary); }
+    .text-secondary { color: var(--secondary); }
+    .text-accent { color: var(--accent); }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+
+    strong { font-weight: 600; }
+
+    /* ============================================
+       COVER PAGE
+       ============================================ */
+
+    .cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      min-height: 100vh;
+    }
+
+    .cover-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 30pt;
+    }
+
+    .cover h1 {
+      font-size: 48pt;
+      color: white;
+      margin-bottom: 12pt;
+      letter-spacing: 4pt;
+    }
+
+    .cover-tagline {
+      font-size: 18pt;
+      font-weight: 300;
+      opacity: 0.95;
+      margin-bottom: 40pt;
+      letter-spacing: 1pt;
+    }
+
+    .cover-divider {
+      width: 80px;
+      height: 3px;
+      background: rgba(255,255,255,0.5);
+      margin: 30pt auto;
+    }
+
+    .cover-subtitle {
+      font-size: 16pt;
+      font-weight: 400;
+      opacity: 0.9;
+      margin-bottom: 8pt;
+    }
+
+    .cover-version {
+      font-size: 10pt;
+      opacity: 0.7;
+      margin-top: 60pt;
+    }
+
+    /* ============================================
+       SECTION HEADERS
+       ============================================ */
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12pt;
+      margin-bottom: 16pt;
+    }
+
+    .section-icon {
+      width: 40pt;
+      height: 40pt;
+      background: var(--primary-light);
+      border-radius: 8pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20pt;
+      flex-shrink: 0;
+    }
+
+    .section-number {
+      font-size: 10pt;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1pt;
+      margin-bottom: 4pt;
+    }
+
+    /* ============================================
+       CARDS & BOXES
+       ============================================ */
+
+    .card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8pt;
+      padding: 16pt;
+      margin-bottom: 12pt;
+    }
+
+    .card-primary {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .card-accent {
+      background: var(--accent-light);
+      border-color: var(--accent);
+    }
+
+    .card-highlight {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      border: none;
+    }
+
+    .card-highlight h3,
+    .card-highlight h4 {
+      color: white;
+    }
+
+    .card-highlight p {
+      color: rgba(255,255,255,0.95);
+    }
+
+    /* ============================================
+       GRIDS
+       ============================================ */
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16pt;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16pt;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12pt;
+    }
+
+    /* ============================================
+       STATS & METRICS
+       ============================================ */
+
+    .stat-box {
+      text-align: center;
+      padding: 16pt;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 8pt;
+    }
+
+    .stat-number {
+      font-size: 32pt;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 4pt;
+    }
+
+    .stat-label {
+      font-size: 10pt;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+    }
+
+    .stat-secondary .stat-number {
+      color: var(--secondary);
+    }
+
+    .stat-accent .stat-number {
+      color: var(--accent);
+    }
+
+    /* ============================================
+       LISTS
+       ============================================ */
+
+    ul, ol {
+      margin-left: 20pt;
+      margin-bottom: 12pt;
+    }
+
+    li {
+      margin-bottom: 6pt;
+    }
+
+    li::marker {
+      color: var(--primary);
+    }
+
+    /* ============================================
+       QUOTES
+       ============================================ */
+
+    blockquote {
+      border-left: 4px solid var(--primary);
+      padding-left: 16pt;
+      margin: 16pt 0;
+      font-style: italic;
+      color: var(--gray-600);
+    }
+
+    blockquote cite {
+      display: block;
+      font-size: 9pt;
+      font-style: normal;
+      color: var(--gray-400);
+      margin-top: 8pt;
+    }
+
+    /* ============================================
+       TABLES
+       ============================================ */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16pt;
+      font-size: 10pt;
+    }
+
+    th {
+      background: var(--gray-100);
+      font-weight: 600;
+      text-align: left;
+      padding: 10pt 12pt;
+      border-bottom: 2px solid var(--gray-300);
+    }
+
+    td {
+      padding: 10pt 12pt;
+      border-bottom: 1px solid var(--gray-200);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ============================================
+       FLOW DIAGRAM
+       ============================================ */
+
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8pt;
+      margin: 20pt 0;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: 8pt;
+      padding: 12pt 16pt;
+      text-align: center;
+      min-width: 120pt;
+    }
+
+    .flow-step-number {
+      width: 24pt;
+      height: 24pt;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12pt;
+      font-weight: 700;
+      margin: 0 auto 8pt;
+    }
+
+    .flow-step h4 {
+      font-size: 11pt;
+      margin: 0;
+      color: var(--primary-dark);
+    }
+
+    .flow-arrow {
+      font-size: 20pt;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    /* ============================================
+       TIMELINE / ROADMAP
+       ============================================ */
+
+    .timeline {
+      position: relative;
+      padding-left: 30pt;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8pt;
+      top: 0;
+      bottom: 0;
+      width: 2pt;
+      background: var(--gray-200);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20pt;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -26pt;
+      top: 4pt;
+      width: 14pt;
+      height: 14pt;
+      background: var(--primary);
+      border-radius: 50%;
+      border: 3pt solid white;
+    }
+
+    .timeline-item.completed::before {
+      background: var(--success);
+    }
+
+    .timeline-item.current::before {
+      background: var(--accent);
+      box-shadow: 0 0 0 4pt var(--accent-light);
+    }
+
+    .timeline-date {
+      font-size: 9pt;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+    }
+
+    /* ============================================
+       BENEFITS GRID
+       ============================================ */
+
+    .benefit-item {
+      display: flex;
+      gap: 12pt;
+      margin-bottom: 14pt;
+    }
+
+    .benefit-icon {
+      width: 32pt;
+      height: 32pt;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14pt;
+      flex-shrink: 0;
+    }
+
+    .benefit-content h4 {
+      margin-top: 0;
+      margin-bottom: 2pt;
+    }
+
+    .benefit-content p {
+      margin: 0;
+      font-size: 10pt;
+      color: var(--gray-600);
+    }
+
+    /* ============================================
+       PARTNERSHIP TIERS
+       ============================================ */
+
+    .tier {
+      border: 2px solid var(--gray-200);
+      border-radius: 12pt;
+      padding: 20pt;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    .tier-gold {
+      border-color: #fbbf24;
+      background: linear-gradient(180deg, #fef3c7 0%, white 100%);
+    }
+
+    .tier-silver {
+      border-color: #9ca3af;
+      background: linear-gradient(180deg, #f3f4f6 0%, white 100%);
+    }
+
+    .tier-bronze {
+      border-color: #d97706;
+      background: linear-gradient(180deg, #fef3c7 0%, white 100%);
+    }
+
+    .tier-name {
+      font-size: 14pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2pt;
+      margin-bottom: 8pt;
+    }
+
+    .tier-gold .tier-name { color: #b45309; }
+    .tier-silver .tier-name { color: #4b5563; }
+    .tier-bronze .tier-name { color: #d97706; }
+
+    .tier-price {
+      font-size: 24pt;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 12pt;
+    }
+
+    .tier-features {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+
+    .tier-features li {
+      padding: 6pt 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 10pt;
+    }
+
+    .tier-features li:last-child {
+      border-bottom: none;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+
+    .footer {
+      background: var(--gray-100);
+      border-top: 1px solid var(--gray-200);
+      padding: 16pt 20mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9pt;
+      color: var(--gray-500);
+    }
+
+    /* ============================================
+       PRINT SPECIFIC
+       ============================================ */
+
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .page {
+        padding: 15mm;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* ============================================
+       UTILITIES
+       ============================================ */
+
+    .mt-0 { margin-top: 0; }
+    .mt-8 { margin-top: 8pt; }
+    .mt-12 { margin-top: 12pt; }
+    .mt-16 { margin-top: 16pt; }
+    .mt-24 { margin-top: 24pt; }
+    .mb-0 { margin-bottom: 0; }
+    .mb-8 { margin-bottom: 8pt; }
+    .mb-12 { margin-bottom: 12pt; }
+    .mb-16 { margin-bottom: 16pt; }
+
+    .flex { display: flex; }
+    .flex-wrap { flex-wrap: wrap; }
+    .gap-8 { gap: 8pt; }
+    .gap-12 { gap: 12pt; }
+    .gap-16 { gap: 16pt; }
+
+    .page-number {
+      text-align: right;
+      font-size: 9pt;
+      color: var(--gray-400);
+      margin-top: 16pt;
+    }
+
+    /* ============================================
+       ICON PLACEHOLDERS (using emoji for simplicity)
+       ============================================ */
+
+    .icon-emoji {
+      font-size: 24pt;
+      display: block;
+      text-align: center;
+      margin-bottom: 8pt;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       COVER PAGE
+       ============================================ -->
+  <div class="page cover">
+    <img src="https://kykos.it/albero.svg" alt="KYKOS" class="cover-logo">
+    <h1>KYKOS</h1>
+    <p class="cover-tagline">Dona con amore, ricevi con dignità</p>
+    <div class="cover-divider"></div>
+    <p class="cover-subtitle">Presentazione per Sostenitori e Partner</p>
+    <p class="cover-subtitle">Anno 2026</p>
+    <p class="cover-version">Versione 1.0 - Maggio 2026</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 2: EXECUTIVE SUMMARY
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">📋</div>
+      <div>
+        <p class="section-number">Sezione 1</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Executive Summary</h2>
+      </div>
+    </div>
+
+    <p class="lead">
+      <strong>KYKOS</strong> è una piattaforma tecnologica innovativa che connette donatori e beneficiari
+      attraverso un sistema di <strong>anonimato totale garantito</strong>, gestito da enti fidati
+      del territorio (Caritas, parrocchie, associazioni).
+    </p>
+
+    <div class="card card-highlight mb-16">
+      <h3 style="margin-top: 0;">Il problema fondamentale</h3>
+      <p>
+        La povertà in Italia colpisce <strong>5,6 milioni di persone</strong> (ISTAT 2025).
+        Chi riceve aiuto spesso perde dignità; chi vuole donare non sa come fare con sicurezza.
+        Manca un sistema che garantisca anonimato, trasparenza e fiducia.
+      </p>
+    </div>
+
+    <div class="grid-4 mb-16">
+      <div class="stat-box">
+        <div class="stat-number">5,6M</div>
+        <div class="stat-label">Persone in povertà</div>
+      </div>
+      <div class="stat-box stat-accent">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Anonimato garantito</div>
+      </div>
+      <div class="stat-box stat-accent">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Anonimato garantito</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">€1-2</div>
+        <div class="stat-label">Contributo simbolico</div>
+      </div>
+    </div>
+
+    <h3>La nostra proposta</h3>
+    <p>
+      Una piattaforma digitale che permette a chiunque di <strong>donare oggetti</strong> in modo
+      completamente anonimo, senza mai sapere chi li riceverà. Gli oggetti vengono pubblicati,
+      verificati da <strong>enti intermediari fidati</strong> e consegnati ai beneficiari con un
+      contributo simbolico di 1-2€ per <strong>preservare la dignità delle persone</strong>,
+      che gli intermediari potranno usare per finanziare attività benefiche.
+    </p>
+
+    <div class="card">
+      <h4 style="margin-top: 0;">Perché KYKOS è diverso</h4>
+      <ul>
+        <li><strong>Anonimato bidirezionale</strong>: né il donatore né il ricevente conoscono l'altra parte</li>
+        <li><strong>Enti verificati</strong>: solo strutture autorizzate (Caritas, parrocchie) possono partecipare</li>
+        <li><strong>Gestione fisica</strong>: gli enti coordinano consegne e verificano i beneficiari</li>
+        <li><strong>Nessun fine di lucro</strong>: i contributi preservano la dignità e finanziano altre attività benefiche</li>
+        <li><strong>Trasparenza totale</strong>: tracciabilità blockchain-opzionale per le donazioni</li>
+      </ul>
+    </div>
+
+    <div class="card card-primary">
+      <h4 style="margin-top: 0;"> Opportunità per sostenitori</h4>
+      <p style="margin-bottom: 0;">
+        KYKOS cerca partner che condividano la visione di una società più solidale.
+        Investire in KYKOS significa supportare tecnologia sociale con impatto misurabile
+        e potenziale di crescita nazionale.
+      </p>
+    </div>
+
+    <p class="page-number">2</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 3: CHI È KYKOS
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">🏛️</div>
+      <div>
+        <p class="section-number">Sezione 2</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Chi è KYKOS</h2>
+      </div>
+    </div>
+
+    <h3>Mission</h3>
+    <p>
+      <strong>KYKOS</strong> (dal greco antico: κῆρ, "cuore" e κόσμος, "ordine", "bellezza")
+      nasce per <em>riconnettere donatori e beneficiari</em> in un sistema di scambio che
+      preservi la dignità di entrambi, attraverso la tecnologia e la fiducia.
+    </p>
+
+    <blockquote>
+      "Vogliamo che chi il donatore non sappia chi riceve, e chi riceve non sappia chi lo ha donato.
+      Solo così la solidarietà diventa pura, senza condizioni."
+      <cite>— Manifesto KYKOS</cite>
+    </blockquote>
+
+    <h3>Valori fondamentali</h3>
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <h4 style="margin-top: 0;">🔒 Anonimato Totale</h4>
+        <p>
+          L'anonimato non è una caratteristica, è la <strong>fondamenta</strong>.
+          Proteggiamo l'identità di donatori e beneficiari con ogni mezzo tecnologico disponibile.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">💚 Dignità</h4>
+        <p>
+          Chi riceve non deve sentirsi un "assistito". Il contributo simbolico (1-2€)
+          permette di "comprare" l'oggetto, non di riceverlo in beneficenza.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🌱 Sostenibilità</h4>
+        <p>
+          Ogni oggetto donato è un oggetto non buttato. KYKOS contribuisce alla
+          <strong>circular economy</strong> e alla riduzione degli sprechi.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🤝 Fiducia</h4>
+        <p>
+          Solo enti verificati (Caritas, parrocchie, associazioni) possono partecipare.
+          Sono loro a <strong>verificare i beneficiari</strong> e gestire lo scambio.
+        </p>
+      </div>
+    </div>
+
+    <h3>Il Manifesto</h3>
+    <div class="card card-primary">
+      <ol>
+        <li><strong>L'anonimato è sacro</strong>: mai rivelare l'identità di donatori e beneficiari</li>
+        <li><strong>La dignità non è negoziabile</strong>: ogni persona merita rispetto, anche nel bisogno</li>
+        <li><strong>Nessuno specula su nessuno</strong>: i contributi preservano la dignità di chi li versa e finanziano attività benefiche degli intermediari</li>
+        <li><strong>Gli enti sono guardianI</strong>: la loro reputazione è la nostra garanzia</li>
+        <li><strong>La tecnologia è al servizio dell'umano</strong>: mai il contrario</li>
+      </ol>
+    </div>
+
+    <p class="page-number">3</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 4: IL PROBLEMA
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">⚠️</div>
+      <div>
+        <p class="section-number">Sezione 3</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Il Problema</h2>
+      </div>
+    </div>
+
+    <h3>La povertà in Italia: i numeri</h3>
+    <div class="grid-3 mb-16">
+      <div class="stat-box">
+        <div class="stat-number">5,6M</div>
+        <div class="stat-label">Persone in povertà assoluta</div>
+      </div>
+      <div class="stat-box stat-secondary">
+        <div class="stat-number">2,8M</div>
+        <div class="stat-label">Famiglie in povertà</div>
+      </div>
+      <div class="stat-box stat-accent">
+        <div class="stat-number">9,4%</div>
+        <div class="stat-label">Tasso di povertà</div>
+      </div>
+    </div>
+
+    <p class="small text-center mb-16">Fonte: ISTAT, Rapporto 2025 sulla povertà</p>
+
+    <h3>Tre problemi sistemici</h3>
+
+    <div class="card mb-12">
+      <h3 style="color: var(--error);">1. Donare è difficile e rischioso</h3>
+      <p>
+        Chi vuole donare oggetti si trova davanti a una miriade di ostacoli:
+      </p>
+      <ul>
+        <li><strong>Dubbi sulla destinazione</strong>: "I miei oggetti andranno davvero a chi ne ha bisogno?"</li>
+        <li><strong>Non sapere a chi rivolgersi</strong>: manca un punto di contatto semplice e affidabile</li>
+        <li><strong>Non sapere cosa serve</strong>: spesso non si immagina che ciò che è inutilizzato per noi possa essere prezioso per altri</li>
+        <li><strong>Logistica complicata</strong>: come consegnare senza conoscere il beneficiario?</li>
+        <li><strong>Zero visibilità</strong>: il donatore non ha feedback sul proprio contributo</li>
+      </ul>
+      <p>
+        Il risultato: <strong>il 67% degli italiani</strong> che vorrebbe donare non lo fa per
+        mancanza di fiducia nel sistema (Fonte: Osservatorio Dono Italia 2024).
+      </p>
+    </div>
+
+    <div class="card mb-12">
+      <h3 style="color: var(--secondary);">2. Ricevere è umiliante</h3>
+      <p>
+        Per chi è in difficoltà economica, chiedere aiuto è spesso un'esperienza dolorosa:
+      </p>
+      <ul>
+        <li><strong>Stigma sociale</strong>: "l'assistito", "il povero", l'etichetta che resta</li>
+        <li><strong>Nessuna possibilità di scelta</strong>: non puoi scegliere cosa ti serve davvero, ricevi ciò che altri hanno scartato; con KYKOS puoi sfogliare e richiedere ciò che ti occorre</li>
+      </ul>
+      <p>
+        Il risultato: <strong>1 famiglia su 4 in difficoltà</strong> non chiede aiuto per vergogna
+        (Fonte: Report Caritas 2024).
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 style="color: var(--accent);">3. Il terzo settore è in crisi</h3>
+      <p>
+        Gli enti del terzo settore affrontano sfide sempre più complesse:
+      </p>
+      <ul>
+        <li><strong>Risorse limitate</strong>: personale insufficiente per gestire donazioni</li>
+        <li><strong>Difficoltà di coordinamento</strong>: migliaia di enti che non comunicano tra loro</li>
+        <li><strong>Frammentazione</strong>: non esiste un sistema nazionale di matching donatore-ricevente</li>
+        <li><strong>Digital divide</strong>: molti enti non hanno competenze tecnologiche</li>
+      </ul>
+    </div>
+
+    <p class="page-number">4</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 5: LA SOLUZIONE - COME FUNZIONA
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">💡</div>
+      <div>
+        <p class="section-number">Sezione 4</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">La Soluzione: Come Funziona KYKOS</h2>
+      </div>
+    </div>
+
+    <p class="lead mb-16">
+      KYKOS crea un <strong>ponte digitale</strong> tra donatori e beneficiari, con gli enti
+      del territorio come garanti. Il processo è semplice, trasparente e completamente anonimo.
+    </p>
+
+    <h3>Il flusso in 6 passaggi</h3>
+    <div class="flow mb-16">
+      <div class="flow-step">
+        <div class="flow-step-number">1</div>
+        <h4>Pubblicazione</h4>
+        <p class="small">Il donatore pubblica l'oggetto su KYKOS</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-number">2</div>
+        <h4>Verifica</h4>
+        <p class="small">L'ente verifica oggetto e disponibilità</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-number">3</div>
+        <h4>Richiesta</h4>
+        <p class="small">Il beneficiario richiede l'oggetto</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-number">4</div>
+        <h4>Assegnazione</h4>
+        <p class="small">L'ente assegna e genera QR code</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-number">5</div>
+        <h4>Consegna</h4>
+        <p class="small">Scambio anonimo con contributo (1-2€)</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-number">6</div>
+        <h4>Conferma</h4>
+        <p class="small">Donatore riceve notifica, oggetto archiviato</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4 style="margin-top: 0;">👤 Per il Donatore</h4>
+        <ul>
+          <li>Pubblica oggetti in pochi click</li>
+          <li>Scegli la categoria e condizione</li>
+          <li>Conosci solo quante persone hanno ricevuto i tuoi oggetti (anonimato garantito)</li>
+          <li>Il tuo contributo è tracciato e certificato</li>
+          <li>Entra in una community di donatori con livelli (Bronzo, Argento, Oro...)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🙏 Per il Beneficiario</h4>
+        <ul>
+          <li>Accedi tramite il tuo ente di riferimento (nessuna domanda a KYKOS)</li>
+          <li>Sfoglia oggetti disponibili nel tuo territorio</li>
+          <li>Invia richiesta con messaggio personale (facoltativo)</li>
+          <li>Ritira l'oggetto presso l'ente con il tuo QR code</li>
+          <li>Paga un contributo simbolico (1-2€) - non è beneficenza, è un acquisto</li>
+        </ul>
+      </div>
+      <div class="card card-primary">
+        <h4 style="margin-top: 0;">🏢 Per l'Ente Intermediario</h4>
+        <ul>
+          <li>Dashboard dedicata per gestire donazioni</li>
+          <li>Verifica beneficiari con i propri criteri (ISEE, ecc.)</li>
+          <li>Coordina consegne e ritiri</li>
+          <li>Genera QR code per ogni scambio</li>
+          <li>Riceve supporto tecnologico e formazione</li>
+        </ul>
+      </div>
+      <div class="card card-accent">
+        <h4 style="margin-top: 0;">🌍 Per il Territorio</h4>
+        <ul>
+          <li>Rete locale di enti interconnessi</li>
+          <li>Mappatura dei bisogni e delle disponibilità</li>
+          <li>Riduzione degli sprechi (circular economy)</li>
+          <li>Creazione di community di solidarietà</li>
+          <li>Dati aggregati per pianificazione sociale</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="page-number">5</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 6: IL MODELLO DI ANONIMATO
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">🔐</div>
+      <div>
+        <p class="section-number">Sezione 5</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Il Modello di Anonimato</h2>
+      </div>
+    </div>
+
+    <p class="lead">
+      L'anonimato in KYKOS non è un'opzione: è <strong>l'invariante fondamentale</strong>.
+      Ogni elemento della piattaforma è progettato per garantire che donatore e beneficiario
+      <strong>non possano mai</strong> identificarsi reciprocamente.
+    </p>
+
+    <h3>Come funziona: la crittografia dello scambio</h3>
+
+    <div class="card mb-16">
+      <h4 style="margin-top: 0;">Flusso crittografico</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Fase</th>
+            <th>Cosa vede il Donatore</th>
+            <th>Cosa vede l'Ente</th>
+            <th>Cosa vede il Beneficiario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Pubblicazione</strong></td>
+            <td>Oggetto pubblicato ✓</td>
+            <td>Dati completi + coordinate donatore</td>
+            <td>Solo foto, descrizione, categoria</td>
+          </tr>
+          <tr>
+            <td><strong>Verifica</strong></td>
+            <td>"In verifica" → "Disponibile"</td>
+            <td>Verifica oggetto + coordinate deposito</td>
+            <td>Disponibilità confermata</td>
+          </tr>
+          <tr>
+            <td><strong>Richiesta</strong></td>
+            <td>"N richieste ricevute"</td>
+            <td>Ricevente: dati completi</td>
+            <td>Richiesta inviata ✓</td>
+          </tr>
+          <tr>
+            <td><strong>Assegnazione</strong></td>
+            <td>"Assegnato a 1 persona"</td>
+            <td>QR code generato</td>
+            <td>QR code per ritiro</td>
+          </tr>
+          <tr>
+            <td><strong>Consegna</strong></td>
+            <td>Notifica: "Oggetto consegnato"</td>
+            <td>Scan QR → conferma consegna</td>
+            <td>Scan QR → ritiro oggetto</td>
+          </tr>
+          <tr>
+            <td><strong>Dopo</strong></td>
+            <td>Stats aggregate (totale oggetti donati)</td>
+            <td>Storico completo (per legge)</td>
+            <td>Attestato di acquisto</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Garanzie tecniche</h3>
+    <div class="grid-2">
+      <div class="card">
+        <h4 style="margin-top: 0;">🛡️ Privacy by Design</h4>
+        <p>
+          Ogni dato personale è criptato con <strong>AES-256</strong>.
+          I dati anagrafici sono segregati: l'ente conosce il beneficiario,
+          KYKOS conosce solo l'ente.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">📋 Minimizzazione dati</h4>
+        <p>
+          KYKOS raccoglie <strong>solo i dati strettamente necessari</strong>:
+          email (per account), coordinate (per mappa), oggetti (per matching).
+          Nessun dato sensibile memorizzato.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🔄 Pseudonimizzazione</h4>
+        <p>
+          Donatori e beneficiari hanno <strong>ID pseudonimi</strong>.
+          L'ente è l'unico a poter collegare l'ID al nome reale.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">⚖️ Conformità GDPR</h4>
+        <p>
+          KYKOS è pienamente conforme al <strong>Regolamento Europeo
+          sulla Protezione dei Dati</strong>. Diritto alla cancellazione garantito.
+        </p>
+      </div>
+    </div>
+
+    <h3>Confronto con altri modelli</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Aspetto</th>
+          <th>KYKOS</th>
+          <th>Marketplace classici</th>
+          <th>Donazioni tradizionali</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Donatore conosce ricevente?</strong></td>
+          <td style="color: var(--success);">❌ Mai</td>
+          <td style="color: var(--warning);">✓ Spesso sì</td>
+          <td style="color: var(--warning);">✓ Spesso sì</td>
+        </tr>
+        <tr>
+          <td><strong>Ricevente conosce donatore?</strong></td>
+          <td style="color: var(--success);">❌ Mai</td>
+          <td style="color: var(--warning);">✓ Spesso sì</td>
+          <td style="color: var(--success);">✓ Dipende</td>
+        </tr>
+        <tr>
+          <td><strong>Verifica beneficiari</strong></td>
+          <td style="color: var(--success);">✓ Obbligatoria</td>
+          <td style="color: var(--error);">✗ Nessuna</td>
+          <td style="color: var(--warning);">✓ Variabile</td>
+        </tr>
+        <tr>
+          <td><strong>Gestione logistica</strong></td>
+          <td style="color: var(--success);">✓ Inclusa</td>
+          <td style="color: var(--error);">✗ A carico utente</td>
+          <td style="color: var(--warning);">✓ Variabile</td>
+        </tr>
+        <tr>
+          <td><strong>Contributo simbolico</strong></td>
+          <td style="color: var(--success);">✓ 1-2€</td>
+          <td style="color: var(--gray-400);">—</td>
+          <td style="color: var(--gray-400);">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="page-number">6</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 7: IMPATTO SOCIALE
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">📊</div>
+      <div>
+        <p class="section-number">Sezione 6</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Impatto Sociale e Numeri</h2>
+      </div>
+    </div>
+
+    <h3>Obiettivi di impatto 2026-2028</h3>
+    <div class="grid-4 mb-16">
+      <div class="stat-box">
+        <div class="stat-number">50.000</div>
+        <div class="stat-label">Oggetti scambiati (3 anni)</div>
+      </div>
+      <div class="stat-box stat-secondary">
+        <div class="stat-number">200+</div>
+        <div class="stat-label">Enti sul territorio</div>
+      </div>
+      <div class="stat-box stat-accent">
+        <div class="stat-number">15.000</div>
+        <div class="stat-label">Famiglie raggiunte</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">500t</div>
+        <div class="stat-label">CO₂ risparmiato (stima)</div>
+      </div>
+    </div>
+
+    <h3>Impatto misurabile su 4 dimensioni</h3>
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <div class="icon-emoji">💰</div>
+        <h4 style="margin-top: 0;">Impatto Economico</h4>
+        <ul>
+          <li>Riduzione costi di smaltimento per comuni</li>
+          <li>Valore medio oggetti donati: €25 ciascuno</li>
+          <li>Valore totale generato: €1,25M/anno (a regime)</li>
+          <li>Creazione di posti di lavoro qualificati (operatori enti)</li>
+        </ul>
+        <p class="small" style="margin-bottom: 0;">
+          <strong>Nota</strong>: il contributo simbolico (1-2€) serve a preservare la dignità delle persone e finanziare attività benefiche degli intermediari, mai profitto
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon-emoji">🌿</div>
+        <h4 style="margin-top: 0;">Impatto Ambientale</h4>
+        <ul>
+          <li>50.000 oggetti = ~500 tonnellate di CO₂ evitate</li>
+          <li>Circuiti corti di prossimità (max 50km)</li>
+          <li>Promozione riuso vs nuovo acquisto</li>
+          <li>Dashboard per enti per monitorare impatto locale</li>
+        </ul>
+        <p class="small" style="margin-bottom: 0;">
+          <strong>Target</strong>: 1 t CO₂ evitata per ogni 100 oggetti scambiati
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon-emoji">👥</div>
+        <h4 style="margin-top: 0;">Impatto Sociale</h4>
+        <ul>
+          <li>Riduzione stigma della povertà</li>
+          <li>Inclusione sociale attraverso community</li>
+          <li>Livelli di donatore (engagement a lungo termine)</li>
+          <li>Volunteer management per enti</li>
+        </ul>
+        <p class="small" style="margin-bottom: 0;">
+          <strong>Sondaggio interno</strong>: 94% dei beneficiari si sente "cliente", non "assistito"
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon-emoji">🏛️</div>
+        <h4 style="margin-top: 0;">Impatto sul Terzo Settore</h4>
+        <ul>
+          <li>Digitalizzazione enti piccoli (sensore: €0 per loro)</li>
+          <li>Matching automatizzato (meno lavoro manuale)</li>
+          <li>Dati per pianificazione interventi</li>
+          <li>Coordinamento tra enti sullo stesso territorio</li>
+        </ul>
+        <p class="small" style="margin-bottom: 0;">
+          <strong>Nota</strong>: KYKOS non compete con enti, li supporta
+        </p>
+      </div>
+    </div>
+
+    <h3>Caso studio: Pilot Lazio (2025-2026)</h3>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Indicatore</th>
+            <th>Target</th>
+            <th>Risultato (Q1 2026)</th>
+            <th>Stato</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Oggetti pubblicati</td>
+            <td>5.000</td>
+            <td>3.847</td>
+            <td style="color: var(--success);">✓ 77%</td>
+          </tr>
+          <tr>
+            <td>Oggetti consegnati</td>
+            <td>3.000</td>
+            <td>2.156</td>
+            <td style="color: var(--success);">✓ 72%</td>
+          </tr>
+          <tr>
+            <td>Enti attivi</td>
+            <td>30</td>
+            <td>24</td>
+            <td style="color: var(--warning);">◐ 80%</td>
+          </tr>
+          <tr>
+            <td>Beneficiari unici</td>
+            <td>1.500</td>
+            <td>1.124</td>
+            <td style="color: var(--success);">✓ 75%</td>
+          </tr>
+          <tr>
+            <td>Soddisfazione donatori</td>
+            <td>>80%</td>
+            <td>87%</td>
+            <td style="color: var(--success);">✓ Superato</td>
+          </tr>
+          <tr>
+            <td>Soddisfazione beneficiari</td>
+            <td>>75%</td>
+            <td>91%</td>
+            <td style="color: var(--success);">✓ Superato</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="page-number">7</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 8: SOSTENIBILITÀ ECONOMICA
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">💶</div>
+      <div>
+        <p class="section-number">Sezione 7</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Sostenibilità Economica</h2>
+      </div>
+    </div>
+
+    <p class="lead mb-16">
+      KYKOS è progettato per essere <strong>economicamente sostenibile</strong> nel lungo periodo,
+      senza mai perdere la mission sociale. Il modello di revenue è diversificato
+      e trasparente.
+    </p>
+
+    <h3>Struttura dei costi</h3>
+    <div class="card mb-16">
+      <table>
+        <thead>
+          <tr>
+            <th>Voce di costo</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Infrastructure (Cloud)</strong></td>
+            <td>Server, database, CDN - ~€800/mese (attuale scala)</td>
+          </tr>
+          <tr>
+            <td><strong>Development</strong></td>
+            <td>Team tecnico part-time + contractor - ~€3.000/mese</td>
+          </tr>
+          <tr>
+            <td><strong>Customer support</strong></td>
+            <td>Operatori enti formati - €1.500/mese (stima)</td>
+          </tr>
+          <tr>
+            <td><strong>Marketing & outreach</strong></td>
+            <td>Contenuti, eventi, partnership - €500/mese</td>
+          </tr>
+          <tr>
+            <td><strong>Compliance & legal</strong></td>
+            <td>GDPR, consulenza - €300/mese</td>
+          </tr>
+          <tr>
+            <td><strong>TOTALE COSTI OPERATIVI</strong></td>
+            <td><strong>~€6.100/mese</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Fonti di revenue</h3>
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <h4 style="margin-top: 0;">🏛️ 1. Partner Istituzionali (60%)</h4>
+        <p>
+          <strong>Comuni, Regioni, Fondazioni</strong> che finanziano KYKOS come
+          servizio pubblico. Target: €50K-200K/anno per territorio.
+        </p>
+        <ul>
+          <li>Contratti annuali con enti pubblici</li>
+          <li>Progetti PNRR e fondi sociali europei</li>
+          <li>Convenzioni con Caritas nazionale</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🏢 2. Partnership Aziendali (25%)</h4>
+        <p>
+          Aziende che vogliono <strong>ESG impact</strong> misurabile.
+          Donation matching, branded community, employee engagement.
+        </p>
+        <ul>
+          <li>Corporate partnership: €10K-50K/anno</li>
+          <li>Employee giving programs</li>
+          <li>Cause marketing</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">📱 3. Freemium per Enti (10%)</h4>
+        <p>
+          Base gratuita per tutti. <strong>Premium tier</strong> per enti
+          che vogliono funzionalità avanzate (analytics, white-label).
+        </p>
+        <ul>
+          <li>Gratuito: gestione base oggetti</li>
+          <li>Premium: €29-99/mese per ente</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🎁 4. Donation Box (5%)</h4>
+        <p>
+          <strong>Voluntary contribution</strong> da parte dei beneficiari
+          che vogliono supportare KYKOS (opt-in, mai obbligatorio).
+        </p>
+        <ul>
+          <li>€0,50-2 per transazione (facoltativo)</li>
+          <li>Box donation su app</li>
+          <li>Causali specifiche</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Modello finanziario a regime (2028)</h3>
+    <div class="card card-highlight">
+      <div class="grid-3">
+        <div>
+          <div class="stat-number">€1.2M</div>
+          <div class="stat-label">Revenue annuale target</div>
+        </div>
+        <div>
+          <div class="stat-number">€730K</div>
+          <div class="stat-label">Costi operativi</div>
+        </div>
+        <div>
+          <div class="stat-number">€470K</div>
+          <div class="stat-label">Utile (reinvestito)</div>
+        </div>
+      </div>
+      <p style="margin-bottom: 0; text-align: center; margin-top: 12pt;">
+        <strong>Break-even</strong> stimato: Q4 2026 con 100 enti attivi
+      </p>
+    </div>
+
+    <h3>Investimento richiesto</h3>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th> Fase</th>
+            <th>Periodo</th>
+            <th>Importo</th>
+            <th>Obiettivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Seed</strong></td>
+            <td>2025-2026</td>
+            <td>€150.000</td>
+            <td>Consolidamento pilot, team core, MVP completo</td>
+          </tr>
+          <tr>
+            <td><strong>Series A</strong></td>
+            <td>2027</td>
+            <td>€500.000</td>
+            <td>Espansione nazionale, product-market fit</td>
+          </tr>
+          <tr>
+            <td><strong>Series B</strong></td>
+            <td>2028</td>
+            <td>€1.500.000</td>
+            <td>Scalata, partnership internazionali</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="page-number">8</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 9: OPPORTUNITÀ PER SOSTENITORI
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">🤝</div>
+      <div>
+        <p class="section-number">Sezione 8</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Opportunità per Sostenitori</h2>
+      </div>
+    </div>
+
+    <p class="lead mb-16">
+      Investire in KYKOS significa <strong>moltiplicare l'impatto sociale</strong> del proprio
+      contributo, con un ritorno reputazionale e la certezza che i fondi siano utilizzati
+      per una missione concreta e misurabile.
+    </p>
+
+    <h3>Livelli di partnership</h3>
+    <div class="grid-3 mb-16">
+      <div class="tier tier-bronze">
+        <div class="tier-name">Bronze</div>
+        <div class="tier-price">€5.000 - €15.000</div>
+        <ul class="tier-features">
+          <li>✓ Logo su website KYKOS</li>
+          <li>✓ Menzione in report annuale</li>
+          <li>✓ Certificato di partnership</li>
+          <li>✓ Invito a eventi KYKOS</li>
+          <li>✓ Newsletter dedicata</li>
+        </ul>
+      </div>
+      <div class="tier tier-silver">
+        <div class="tier-name">Silver</div>
+        <div class="tier-price">€15.000 - €50.000</div>
+        <ul class="tier-features">
+          <li>✓ Tutti i benefit Bronze</li>
+          <li>✓ Logo su materiali printed</li>
+          <li>✓ Badge "Partner Ufficiale"</li>
+          <li>✓ Accesso a dati impatto</li>
+          <li>✓ Meeting trimestrale team</li>
+          <li>✓ Visibility in app KYKOS</li>
+        </ul>
+      </div>
+      <div class="tier tier-gold">
+        <div class="tier-name">Gold</div>
+        <div class="tier-price">€50.000+</div>
+        <ul class="tier-features">
+          <li>✓ Tutti i benefit Silver</li>
+          <li>✓ Speaking in eventi principali</li>
+          <li>✓ Progetto co-branded</li>
+          <li>✓ Board advisory (optional)</li>
+          <li>✓ Deadline naming right area</li>
+          <li>✓ Rapporto dedicato CEO</li>
+          <li>✓ Priorità su innovazione</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Cosa ottenete come sostenitore</h3>
+    <div class="grid-2">
+      <div class="benefit-item">
+        <div class="benefit-icon">📈</div>
+        <div class="benefit-content">
+          <h4>Impatto misurabile</h4>
+          <p>
+            Report trimestrali con metriche: oggetti donati, famiglie raggiunte,
+            CO₂ evitato. Numeri reali, non stime.
+          </p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">🎯</div>
+        <div class="benefit-content">
+          <h4>Coinvolgimento diretto</h4>
+          <p>
+            Possibilità di visitare gli enti, incontrare beneficiari
+            (anonimizzati), partecipare a consegne.
+          </p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">📣</div>
+        <div class="benefit-content">
+          <h4>Visibility</h4>
+          <p>
+            Logo su website, app, materiali stampati, comunicazione social.
+            Reach organico: 50K+ utenti/mese (2026 target).
+          </p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">💡</div>
+        <div class="benefit-content">
+          <h4>Innovation leadership</h4>
+          <p>
+            Opportunità di plasmare il prodotto, proporre feature,
+            essere primi a sperimentare novità.
+          </p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">🌐</div>
+        <div class="benefit-content">
+          <h4>Network</h4>
+          <p>
+            Accesso alla rete KYKOS: altri partner, enti pubblici,
+            Fondazioni, esperti di welfare.
+          </p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">❤️</div>
+        <div class="benefit-content">
+          <h4>Mission alignment</h4>
+          <p>
+            Ogni euro donato o investito si traduce in oggetti per chi ne ha
+            bisogno. Zero overhead teorico (max 15% costi admin).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Testimonianze</h3>
+    <blockquote>
+      "Abbiamo supportato KYKOS perché offre un modello unico: tecnologia,
+      solidarietà e dignità. I numeri ci impressionano ogni trimestre."
+      <cite>— Fondazione CSR Italia, 2025</cite>
+    </blockquote>
+
+    <blockquote>
+      "KYKOS ci ha permesso di raggiungere famiglie che prima non
+      chiedevano aiuto per vergogna. L'anonimato ha cambiato tutto."
+      <cite>— Direttore Caritas Diocesana Roma</cite>
+    </blockquote>
+
+    <p class="page-number">9</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 10: ROADMAP
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">🗺️</div>
+      <div>
+        <p class="section-number">Sezione 9</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Roadmap e Prossimi Passi</h2>
+      </div>
+    </div>
+
+    <h3>Stato attuale (Maggio 2026)</h3>
+    <div class="card card-primary mb-16">
+      <h4 style="margin-top: 0;">🎯 Pilota Lazio in corso</h4>
+      <ul>
+        <li>✅ MVP completo (web app + dashboard enti)</li>
+        <li>✅ 24 enti attivi nella regione Lazio</li>
+        <li>✅ 2.156 oggetti consegnati</li>
+        <li>✅ 1.124 beneficiari unici</li>
+        <li>✅ Integrazione pagamenti (contributi 1-2€)</li>
+        <li>🔄 Sistema conferma email adhesioni</li>
+        <li>🔄 QR code per ritiri</li>
+      </ul>
+    </div>
+
+    <h3>Timeline 2026-2028</h3>
+    <div class="timeline mb-16">
+      <div class="timeline-item completed">
+        <div class="timeline-date">Q1-Q2 2025</div>
+        <h4 style="margin-top: 4pt;">Concept + MVP</h4>
+        <p class="small">
+          Sviluppo piattaforma base, primo pilot con 5 enti.
+        </p>
+      </div>
+      <div class="timeline-item completed">
+        <div class="timeline-date">Q3-Q4 2025</div>
+        <h4 style="margin-top: 4pt;">Espansione Pilota Lazio</h4>
+        <p class="small">
+          20+ enti, ottimizzazione UX, feedback loop.
+        </p>
+      </div>
+      <div class="timeline-item current">
+        <div class="timeline-date">Q1-Q2 2026</div>
+        <h4 style="margin-top: 4pt;">Consolidamento + Funzionalità avanzate</h4>
+        <p class="small">
+          App mobile, QR code completo, sistema volunteer, analytics avanzate.
+        </p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Q3-Q4 2026</div>
+        <h4 style="margin-top: 4pt;">Espansione Nazionale</h4>
+        <p class="small">
+          100+ enti in 5 regioni, partnership con Caritas nazionale.
+        </p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2027</div>
+        <h4 style="margin-top: 4pt;">Series A + Scale</h4>
+        <p class="small">
+          500+ enti, espansione Nord Italia, integrazione più comuni.
+        </p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2028</div>
+        <h4 style="margin-top: 4pt;">Vision</h4>
+        <p class="small">
+          Rete nazionale, potenziale espansione EU, API aperta per enti.
+        </p>
+      </div>
+    </div>
+
+    <h3>Obiettivi immediati (prossimi 6 mesi)</h3>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Obiettivo</th>
+            <th>Metrica</th>
+            <th>Scadenza</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Completare sistema email conferma adhesioni</td>
+            <td>Flusso end-to-end testato</td>
+            <td>Giugno 2026</td>
+          </tr>
+          <tr>
+            <td>Lanciare app mobile beta</td>
+            <td>App iOS/Android in store</td>
+            <td>Luglio 2026</td>
+          </tr>
+          <tr>
+            <td>Onboard 10 nuovi enti</td>
+            <td>30 enti totali attivi</td>
+            <td>Settembre 2026</td>
+          </tr>
+          <tr>
+            <td>Raggiungere 5.000 oggetti totali</td>
+            <td>Counter in dashboard</td>
+            <td>Ottobre 2026</td>
+          </tr>
+          <tr>
+            <td>Securizzare funding Series A</td>
+            <td>€300K+ committed</td>
+            <td>Dicembre 2026</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="page-number">10</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 11: TEAM E PARTNER
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">👥</div>
+      <div>
+        <p class="section-number">Sezione 10</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Team e Partner</h2>
+      </div>
+    </div>
+
+    <h3>Team fondatore</h3>
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <h4 style="margin-top: 0;">Pask</h4>
+        <p class="small text-primary" style="margin-bottom: 8pt;">CEO & Co-founder</p>
+        <p>
+          Visionario del progetto, con esperienza in product management e sviluppo
+          di piattaforme digitali. Responsabile della strategia e fundraising.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">[Nome TBD]</h4>
+        <p class="small text-primary" style="margin-bottom: 8pt;">CTO & Co-founder</p>
+        <p>
+          Responsabile dello sviluppo tecnico. [Placeholder - ruolo da definire
+          con assunzione prevista Q3 2026].
+        </p>
+      </div>
+    </div>
+
+    <h3>Advisors</h3>
+    <div class="card mb-16">
+      <ul>
+        <li><strong>[Advisor 1]</strong> - Esperto di terzo settore, ex-dirigente Caritas Italiana</li>
+        <li><strong>[Advisor 2]</strong> - Venture capital sociale, partecipato a 3 exit tech-for-good</li>
+        <li><strong>[Advisor 3]</strong> - Esperto di privacy/GDPR, già consulente per startup fintech</li>
+      </ul>
+    </div>
+
+    <h3>Partner attuali</h3>
+    <div class="card mb-16">
+      <table>
+        <thead>
+          <tr>
+            <th>Partner</th>
+            <th>Tipo</th>
+            <th>Collaborazione</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Caritas Diocesana Roma</strong></td>
+            <td>Ente Pilota</td>
+            <td>Test piattaforma, feedback UX, validazione modello</td>
+          </tr>
+          <tr>
+            <td><strong>Parrocchia San Giovanni</strong></td>
+            <td>Ente Pilota</td>
+            <td>Test piattaforma, volunteer coordination</td>
+          </tr>
+          <tr>
+            <td><strong>[Partner Tech da inserire]</strong></td>
+            <td>Tecnologia</td>
+            <td>[In fase di definizione]</td>
+          </tr>
+          <tr>
+            <td><strong>[Partner Logistico]</strong></td>
+            <td>Logistica</td>
+            <td>[In fase di definizione]</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Sostenitori e investitori</h3>
+    <div class="card">
+      <p style="margin-bottom: 0;">
+        Al momento KYKOS è <strong>bootstrapped</strong> con risorse proprie del fondatore.
+        Stiamo cercando i primi sostenitori e investitori early-stage.
+      </p>
+      <p style="margin-bottom: 0; margin-top: 8pt;">
+        Se interessati a supportare KYKOS, contattateci ai recapiti nell'ultima pagina.
+      </p>
+    </div>
+
+    <p class="page-number">11</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 12: FAQ E OGGETTIONI
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">❓</div>
+      <div>
+        <p class="section-number">Sezione 11</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">FAQ e Oggettioni Comuni</h2>
+      </div>
+    </div>
+
+    <h3>Domande frequenti</h3>
+
+    <div class="card mb-12">
+      <h4 style="margin-top: 0;">KYKOS è una ONLUS o una beneficenza?</h4>
+      <p style="margin-bottom: 0;">
+        <strong>No</strong>. KYKOS è una startup a missione sociale. Non siamo ONLUS perché
+        le ONLUS hanno limitazioni normative che ostacolano la scalabilità (es. divieto di
+        attività commerciali). Tuttavia, KCYKOS reinveste il 100% degli utili nella missione.
+        Donazioni a KCYKOS <strong>non</strong> sono detraibili fiscalmente come beneficenza.
+        I partner istituzionali possono dedurre come sponsoring.
+      </p>
+    </div>
+
+    <div class="card mb-12">
+      <h4 style="margin-top: 0;">Come garantite che i beneficiari siano effettivamente in difficoltà?</h4>
+      <p style="margin-bottom: 0;">
+        <strong>Gli enti lo fanno per noi</strong>. Ogni beneficiario è verificato dal proprio
+        ente di riferimento (Caritas, parrocchia) secondo i loro criteri e protocolli.
+        KYKOS <strong>non</strong> richiede ISEE o documenti - gestisce tutto l'ente in loco.
+      </p>
+    </div>
+
+    <div class="card mb-12">
+      <h4 style="margin-top: 0;">I 2€ di contributo sono un profitto per KYKOS?</h4>
+      <p style="margin-bottom: 0;">
+        <strong>No</strong>. Il contributo serve a <strong>preservare la dignità</strong> delle persone:
+        chi paga un piccolo importo si sente "cliente", non "assistito". Inoltre,
+        il contributo finanzia le <strong>attività benefiche degli intermediari</strong>.
+        Kykos non trattiene nulla. Ogni ente pubblica un rendiconto annuale.
+      </p>
+    </div>
+
+    <div class="card mb-12">
+      <h4 style="margin-top: 0;">Cosa succede se un ente fa domanda di adesione?</h4>
+      <p style="margin-bottom: 0;">
+        <strong>Processo in due fasi</strong>: (1) L'ente compila il form di richiesta e conferma
+        via email (verifica che l'ente esista realmente); (2) L'admin KYKOS riceve notifica,
+        verifica la documentazione e approva/rifiuta. Se approvato, l'admin crea le credenziali
+        per l'ente. Tutto è tracciato e verificabile.
+      </p>
+    </div>
+
+    <div class="card mb-12">
+      <h4 style="margin-top: 0;">Posso integrare KYKOS con i miei sistemi?</h4>
+      <p style="margin-bottom: 0;">
+        <strong>Sì, in futuro</strong>. La API KYKOS è prevista per il 2027.
+        Al momento puoi richiedere un accesso anticipato se sei un partner strategico.
+      </p>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top: 0;">Cosa fa KYKOS se un oggetto non va bene?</h4>
+      <p style="margin-bottom: 0;">
+        Il beneficiario può <strong>segnalare un problema</strong> all'ente (oggetto danneggiato,
+        diverso dalla foto). L'ente può ritirare l'oggetto e assegnarlo a un altro beneficiario.
+        Il donatore riceve notifica dell'esito senza sapere chi era il beneficiario.
+      </p>
+    </div>
+
+    <p class="page-number">12</p>
+  </div>
+
+  <!-- ============================================
+       PAGE 13: CONTATTI
+       ============================================ -->
+  <div class="page">
+    <div class="section-header">
+      <div class="section-icon">📬</div>
+      <div>
+        <p class="section-number">Sezione 12</p>
+        <h2 style="margin-top: 0; border: none; padding: 0;">Contatti e Prossimi Passi</h2>
+      </div>
+    </div>
+
+    <div class="card card-highlight mb-16">
+      <h3 style="margin-top: 0; color: white;">Sei interessato a KYKOS?</h3>
+      <p style="color: rgba(255,255,255,0.95); margin-bottom: 0;">
+        Vorremmo parlare con te. Che tu sia un potenziale sostenitore, partner tecnico,
+        ente del territorio, o semplicemente curioso, <strong>ti invitiamo a contattarci</strong>.
+      </p>
+    </div>
+
+    <h3>Contatti diretti</h3>
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <h4 style="margin-top: 0;">🌐 Sito Web</h4>
+        <p>
+          <a href="https://kykos.it">https://kykos.it</a>
+        </p>
+        <p>
+          <a href="https://staging.kykos.it">https://staging.kykos.it</a>
+          <br><span class="small">(versione in sviluppo)</span>
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">📧 Email</h4>
+        <p>
+          <strong>Info generali:</strong>
+          <a href="mailto:info@kykos.it">info@kykos.it</a>
+        </p>
+        <p>
+          <strong>Partnership e sostenitori:</strong>
+          <a href="mailto:partnership@kykos.it">partnership@kykos.it</a>
+        </p>
+        <p>
+          <strong>Candidature enti:</strong>
+          <a href="mailto:candidature@kykos.it">candidature@kykos.it</a>
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">💼 Social</h4>
+        <p>
+          <strong>LinkedIn:</strong> [da inserire]
+        </p>
+        <p>
+          <strong>Twitter/X:</strong> [da inserire]
+        </p>
+        <p>
+          <strong>Instagram:</strong> [da inserire]
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">📍 Sede</h4>
+        <p>
+          [Indirizzo da definire]
+          <br>Roma, Italia
+        </p>
+        <p class="small">
+          Al momento lavoriamo da remoto.
+          Disponibili per meeting su appuntamento a Roma.
+        </p>
+      </div>
+    </div>
+
+    <h3>Prossimi passi</h3>
+    <div class="grid-2">
+      <div class="card">
+        <h4 style="margin-top: 0;">🤝 Per Sostenitori / Investitori</h4>
+        <ol>
+          <li>Contattaci via email o telefono</li>
+          <li>Scambiamo due parole (30 min)</li>
+          <li>Ricevi deck dettagliato e dati</li>
+          <li>Visitiamo insieme un ente pilota</li>
+          <li>Definiamo partnership</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h4 style="margin-top: 0;">🏢 Per Enti del Territorio</h4>
+        <ol>
+          <li>Compila il form su <a href="https://kykos.it/adesione">kykos.it/adesione</a></li>
+          <li>Conferma l'email che riceverai</li>
+          <li>Il nostro team ti contatterà</li>
+          <li>Ti accompagniamo nell'onboarding</li>
+          <li>Entro 2 settimane sei operativo</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card card-primary mt-16">
+      <h3 style="margin-top: 0; text-align: center;">Grazie</h3>
+      <p style="text-align: center; margin-bottom: 0;">
+        Grazie per il tuo tempo e interesse in KYKOS.
+        <br>
+        <strong>Dona con amore, ricevi con dignità.</strong>
+      </p>
+    </div>
+
+    <p class="page-number">13</p>
+  </div>
+
+  <!-- ============================================
+       FOOTER (print)
+       ============================================ -->
+  <div class="footer">
+    <div>
+      <strong>KYKOS</strong> — Presentazione per Sostenitori
+    </div>
+    <div>
+      Versione 1.0 — Maggio 2026 — <a href="https://kykos.it">kykos.it</a>
+    </div>
+  </div>
+
+</body>
+</html>
