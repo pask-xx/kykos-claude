@@ -52,6 +52,8 @@ function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState<'enti' | 'adesioni'>('enti');
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('created') === 'true') {
@@ -86,6 +88,7 @@ function AdminDashboardContent() {
   const handleAdesioneAction = async () => {
     if (!confirmAction) return;
     setActionLoading(true);
+    setActionError(null);
     try {
       const res = await fetch(`/api/adesione?id=${confirmAction.id}&action=${confirmAction.action}`, { method: 'PATCH' });
       const data = await res.json();
@@ -93,12 +96,14 @@ function AdminDashboardContent() {
         const refreshData = await fetch('/api/adesione').then(r => r.json());
         setAdesioni(refreshData.requests || []);
         setConfirmAction(null);
+        setActionSuccess(true);
+        setTimeout(() => setActionSuccess(false), 3000);
       } else {
-        alert(data.error || 'Errore durante l\'operazione');
+        setActionError(data.error || 'Errore durante l\'operazione');
       }
     } catch (err) {
       console.error('Error:', err);
-      alert('Errore di connessione');
+      setActionError('Errore di connessione');
     } finally {
       setActionLoading(false);
     }
@@ -314,13 +319,13 @@ function AdminDashboardContent() {
                     {adesione.status === 'PENDING' && adesione.emailConfirmed && (
                       <div className="flex gap-2 ml-4">
                         <button
-                          onClick={() => setConfirmAction({ id: adesione.id, action: 'approve' })}
+                          onClick={() => { setConfirmAction({ id: adesione.id, action: 'approve' }); setActionError(null); }}
                           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
                         >
                           Approva
                         </button>
                         <button
-                          onClick={() => setConfirmAction({ id: adesione.id, action: 'reject' })}
+                          onClick={() => { setConfirmAction({ id: adesione.id, action: 'reject' }); setActionError(null); }}
                           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm"
                         >
                           Rifiuta
@@ -335,6 +340,13 @@ function AdminDashboardContent() {
         </div>
       )}
 
+      {actionSuccess && (
+        <div className="fixed top-4 right-4 z-50 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg shadow-lg flex items-center gap-3">
+          <span className="text-xl">✅</span>
+          <p>Operazione completata con successo!</p>
+        </div>
+      )}
+
       {/* Confirmation Modal */}
       {confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -346,9 +358,14 @@ function AdminDashboardContent() {
             <p className="text-gray-600 mb-6">
               Sei sicuro di voler {confirmAction.action === 'approve' ? 'approvare' : 'rifiutare'} questa richiesta di adesione?
             </p>
+            {actionError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {actionError}
+              </div>
+            )}
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => setConfirmAction(null)}
+                onClick={() => { setConfirmAction(null); setActionError(null); }}
                 disabled={actionLoading}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
               >
