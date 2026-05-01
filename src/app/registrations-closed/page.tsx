@@ -88,24 +88,17 @@ export default function RegistrationsClosedPage() {
 
           <div className="bg-amber-50 rounded-2xl border border-amber-200 p-8 mb-8">
             <h2 className="text-xl font-semibold text-amber-900 mb-4">
-              Conosci un ente che potrebbe aderire?
+              Conosci un ente che potrebbe essere interessato?
             </h2>
             <p className="text-amber-800 mb-4">
               Se conosci <strong>parrocchie, centri Caritas, associazioni</strong> o
-              altri enti del territorio che potrebbero essere interessati a far parte
-              della rete KYKOS, faccelo sapere!
+              altri enti del territorio, parlane loro di KYKOS! Più enti conosceranno
+              il progetto, prima potremo attivare le registrazioni.
             </p>
-            <p className="text-amber-700 text-sm mb-6">
-              Stiamo cercando enti che vogliano impegnarsi per la solidarietà
-              e ilbene della comunità.
+            <p className="text-amber-700 text-sm">
+              Condividi il sito <strong>kykos.app</strong> con chi potrebbe essere
+              interessato a entrare nella rete KYKOS.
             </p>
-            <a
-              href="mailto:info@kykos.it?subject=Segnalazione ente per KYKOS"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition"
-            >
-              <span>📧</span>
-              <span>Segnala un ente</span>
-            </a>
           </div>
 
           {/* Notify me section */}
