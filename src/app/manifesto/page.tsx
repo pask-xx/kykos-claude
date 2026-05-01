@@ -48,7 +48,7 @@ export default function ManifestoPage() {
             Il Manifesto di <span className="text-primary-600">KYKOS</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto italic">
-            &ldquo;Dona con dignità, ricevi con gratitudine&rdquo;
+            &ldquo;Dona con amore, ricevi con dignità&rdquo;
           </p>
           <div className="mt-6 flex items-center justify-center gap-2 text-gray-400">
             <span className="w-12 h-px bg-gray-300"></span>
@@ -348,7 +348,7 @@ export default function ManifestoPage() {
             <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
             <span className="text-xl font-bold text-white">KYKOS</span>
           </div>
-          <p className="text-sm italic mb-2">Dona con dignità, ricevi con gratitudine</p>
+          <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>
           <p className="text-xs mt-4 text-gray-500">© 2024 KYKOS. Tutti i diritti riservati.</p>
         </div>
       </footer>

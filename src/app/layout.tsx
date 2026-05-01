@@ -12,7 +12,7 @@ const sora = Sora({
 
 export const metadata: Metadata = {
   title: {
-    default: "KYKOS - Dona con dignità, ricevi con gratitudine",
+    default: "KYKOS - Dona con amore, ricevi con dignità",
     template: "%s | KYKOS",
   },
   description: "Piattaforma di donazione anonima di oggetti a persone bisognose. Chi dona non sa chi riceve, chi riceve non sa chi dona. Gestito da enti fidati come Caritas e parrocchie.",
@@ -32,20 +32,20 @@ export const metadata: Metadata = {
     locale: "it_IT",
     url: "https://kykos.app",
     siteName: "KYKOS",
-    title: "KYKOS - Dona con dignità, ricevi con gratitudine",
+    title: "KYKOS - Dona con amore, ricevi con dignità",
     description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "KYKOS - Dona con dignità",
+        alt: "KYKOS - Dona con amore",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "KYKOS - Dona con dignità, ricevi con gratitudine",
+    title: "KYKOS - Dona con amore, ricevi con dignità",
     description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
     images: ["/og-image.png"],
   },

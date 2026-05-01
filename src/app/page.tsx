@@ -10,7 +10,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "KYKOS",
-  "description": "Platform for anonymous donation of objects to people in need. Dona con dignità, ricevi con gratitudine.",
+  "description": "Platform for anonymous donation of objects to people in need. Dona con amore, ricevi con dignità.",
   "url": "https://kykos.app",
   "logo": "https://kykos.app/albero.svg",
   "sameAs": [],
@@ -292,7 +292,7 @@ export default function Home() {
             <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
             <span className="text-2xl font-bold text-white">KYKOS</span>
           </div>
-          <p className="text-sm italic mb-2">Dona con dignità, ricevi con gratitudine</p>
+          <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>
           <div className="flex justify-center gap-6 mt-6 text-sm">
             <Link href="/manifesto" className="hover:text-white transition">Manifesto</Link>
             <Link href="/auth/login" className="hover:text-white transition">Accedi</Link>

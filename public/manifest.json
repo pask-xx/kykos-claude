@@ -1,7 +1,7 @@
 {
   "name": "KYKOS",
   "short_name": "KYKOS",
-  "description": "Dona con dignità, ricevi con gratitudine",
+  "description": "Dona con amore, ricevi con dignità",
   "start_url": "/recipient/dashboard",
   "display": "standalone",
   "background_color": "#f9fafb",

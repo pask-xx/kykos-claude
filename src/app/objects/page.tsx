@@ -273,7 +273,7 @@ export default function BrowsePage() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 text-center text-gray-500">
-        <p>© 2024 KYKOS. Dona con dignità, ricevi con gratitudine</p>
+        <p>© 2024 KYKOS. Dona con amore, ricevi con dignità</p>
       </footer>
     </div>
   );

@@ -98,7 +98,7 @@ export async function sendConfirmationEmail(
           </p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -138,7 +138,7 @@ export async function sendRequestNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -180,7 +180,7 @@ export async function sendObjectAvailableNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -229,7 +229,7 @@ export async function sendQrCodeNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -299,7 +299,7 @@ export async function sendDeliveryQrNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -370,7 +370,7 @@ export async function sendPickupQrNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -409,7 +409,7 @@ export async function sendObjectReadyForPickupNotification(
             Recati presso l'ente intermediario per procedere con il ritiro.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -447,7 +447,7 @@ export async function sendDonationConfirmedNotification(
             Grazie per il tuo contributo!</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -564,7 +564,7 @@ export async function sendWelcomeEmail(
           <!-- Quote -->
           <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 24px; border-radius: 12px; margin: 32px 0; text-align: center;">
             <p style="color: #059669; font-size: 18px; font-style: italic; margin: 0; line-height: 1.6;">
-              "Dona con dignità, ricevi con gratitudine"
+              "Dona con amore, ricevi con dignità"
             </p>
           </div>
 
@@ -579,7 +579,7 @@ export async function sendWelcomeEmail(
         <!-- Footer -->
         <div style="background: #f9fafb; padding: 24px 32px; border-top: 1px solid #e5e7eb;">
           <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0; text-align: center;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             <a href="${APP_URL}/manifesto" style="color: #059669; text-decoration: none;">Leggi il manifesto completo</a>
           </p>
         </div>
@@ -619,7 +619,7 @@ export async function sendPasswordResetEmail(
           </p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -674,7 +674,7 @@ export async function sendOperatorCredentialsEmail(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -728,7 +728,7 @@ export async function sendIntermediaryCredentialsEmail(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -797,7 +797,7 @@ export async function sendGoodsDeliveryQrNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>
@@ -868,7 +868,7 @@ export async function sendGoodsPickupQrNotification(
           </div>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-            © ${new Date().getFullYear()} KYKOS. Dona con dignità, ricevi con gratitudine.<br>
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
             Non rispondere a questa email.
           </p>
         </div>

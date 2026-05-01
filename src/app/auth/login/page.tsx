@@ -126,7 +126,7 @@ export default function LoginPage() {
             <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
             <span className="text-4xl font-bold text-white">KYKOS</span>
           </Link>
-          <p className="text-primary-100 mt-3 text-lg">Dona con dignità, ricevi con gratitudine</p>
+          <p className="text-primary-100 mt-3 text-lg">Dona con amore, ricevi con dignità</p>
           <div className="mt-6">
             <InstallAppBanner />
           </div>

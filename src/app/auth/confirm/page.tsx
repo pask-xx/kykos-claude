@@ -198,7 +198,7 @@ export default function AuthConfirmPage() {
             <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
             <span className="text-4xl font-bold text-white">KYKOS</span>
           </Link>
-          <p className="text-secondary-100 mt-3 text-lg">Dona con dignità, ricevi con gratitudine</p>
+          <p className="text-secondary-100 mt-3 text-lg">Dona con amore, ricevi con dignità</p>
         </div>
 
         <div className="relative z-10 space-y-8">
