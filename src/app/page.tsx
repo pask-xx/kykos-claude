@@ -256,6 +256,30 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CTA Enti */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-8 md:p-12 border border-amber-200">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">🏢</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+              Sei un ente del territorio?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Unisciti al network KYKOS per gestire donazioni e aiutare chi ne ha bisogno nel tuo territorio. La procedura è semplice e gratuita.
+            </p>
+            <Link
+              href="/adesione"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 shadow-md transition"
+            >
+              <span>Richiedi adesione</span>
+              <span className="text-xl">→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="container mx-auto px-4 py-20">
         <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-3xl p-12 md:p-16 text-center shadow-xl">

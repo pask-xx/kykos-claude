@@ -15,7 +15,7 @@ interface EmailOptions {
   html: string;
 }
 
-async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> {
+export async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> {
   if (!resend) {
     console.warn('RESEND_API_KEY not configured, skipping email');
     return false;

@@ -140,6 +140,12 @@ enum VolunteerStatus {
   WITHDRAWN
 }
 
+enum AdesioneStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ================== MODELS ==================
 
 model User {
@@ -532,4 +538,26 @@ model VolunteerAssociation {
   @@unique([userId, organizationId])
   @@index([organizationId, status])
   @@map("volunteer_associations")
+}
+
+model AdesioneEnte {
+  id                String         @id @default(cuid())
+  denominazione     String
+  nomeReferente     String
+  cognomeReferente  String
+  telefono          String
+  email             String
+  indirizzo         String
+  civico            String
+  cap               String
+  citta             String
+  nota              String         @db.Text
+  website           String?
+  status            AdesioneStatus @default(PENDING)
+  emailConfirmed    Boolean        @default(false)
+  emailConfirmToken String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@map("adesione_enti")
 }
