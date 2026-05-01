@@ -4,6 +4,8 @@ import { sendEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
 
 const ADMIN_EMAIL = process.env.ADMIN_ADESIONI_EMAIL || 'candidature@kykos.it';
+const APP_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kykos.it';
+const LOGO_URL = `${APP_URL}/albero.svg`;
 
 interface AdesioneRequest {
   denominazione: string;
@@ -88,30 +90,41 @@ export async function POST(request: Request) {
         to: body.email,
         subject: 'KYKOS - Conferma la tua richiesta di adesione',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px; text-align: center;">
-              <h1 style="color: white; margin: 0;">KYKOS</h1>
-            </div>
-            <div style="padding: 32px;">
-              <h2 style="color: #059669; margin-top: 0;">Gentile ${body.nomeReferente},</h2>
-              <p>Abbiamo ricevuto la tua richiesta di adesione per l'ente <strong>${body.denominazione}</strong>.</p>
-              <p>Per confermare la richiesta, clicca sul pulsante qui sotto:</p>
-              <div style="text-align: center; margin: 32px 0;">
-                <a href="${confirmUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                  Conferma richiesta
-                </a>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+            <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
+                <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Conferma la tua richiesta</p>
               </div>
-              <p style="color: #6b7280; font-size: 14px;">Se non hai richiesto tu questa adesione, ignora questa email.</p>
-              <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 24px 0;">
-                <p style="margin: 0; color: #059669;"><strong>Dati della richiesta:</strong></p>
-                <p style="margin: 8px 0 0 0;">Ente: ${body.denominazione}</p>
-                <p style="margin: 4px 0;">Referente: ${body.nomeReferente} ${body.cognomeReferente}</p>
-                <p style="margin: 4px 0;">Email: ${body.email}</p>
-                <p style="margin: 4px 0;">Telefono: ${body.telefono}</p>
+              <div style="padding: 32px;">
+                <h2 style="color: #059669; margin-top: 0; font-size: 24px;">Gentile ${body.nomeReferente},</h2>
+                <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                  Abbiamo ricevuto la tua richiesta di adesione per l&apos;ente <strong>${body.denominazione}</strong>.
+                </p>
+                <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                  Per confermare la richiesta, clicca sul pulsante qui sotto:
+                </p>
+                <div style="text-align: center; margin: 32px 0;">
+                  <a href="${confirmUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    Conferma richiesta
+                  </a>
+                </div>
+                <div style="background: #f0fdf4; border-left: 4px solid #059669; padding: 16px; border-radius: 0 8px 8px 0; margin: 24px 0;">
+                  <p style="margin: 0; color: #059669; font-weight: 600;">Dati della richiesta:</p>
+                  <p style="margin: 8px 0 0 0; color: #374151; font-size: 14px;">Ente: ${body.denominazione}</p>
+                  <p style="margin: 4px 0; color: #374151; font-size: 14px;">Referente: ${body.nomeReferente} ${body.cognomeReferente}</p>
+                  <p style="margin: 4px 0; color: #374151; font-size: 14px;">Email: ${body.email}</p>
+                  <p style="margin: 4px 0; color: #374151; font-size: 14px;">Telefono: ${body.telefono}</p>
+                </div>
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                  Se non hai richiesto tu questa adesione, ignora questa email.
+                </p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+                <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                  © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+                  Non rispondere a questa email.
+                </p>
               </div>
-            </div>
-            <div style="background: #f9fafb; padding: 16px; text-align: center; color: #6b7280; font-size: 12px;">
-              <p style="margin: 0;">© ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.</p>
             </div>
           </div>
         `,
@@ -127,32 +140,39 @@ export async function POST(request: Request) {
         to: ADMIN_EMAIL,
         subject: `[KYKOS] Nuova richiesta di adesione - ${body.denominazione}`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 24px; text-align: center;">
-              <h1 style="color: white; margin: 0;">KYKOS - Nuova Adesione</h1>
-            </div>
-            <div style="padding: 32px;">
-              <h2 style="color: #dc2626; margin-top: 0;">Nuova richiesta di adesione ente</h2>
-              <div style="background: #fef2f2; padding: 16px; border-radius: 8px; border-left: 4px solid #dc2626;">
-                <p style="margin: 0;"><strong>Denominazione:</strong> ${body.denominazione}</p>
-                <p style="margin: 8px 0 0 0;"><strong>Referente:</strong> ${body.nomeReferente} ${body.cognomeReferente}</p>
-                <p style="margin: 4px 0;"><strong>Email:</strong> ${body.email}</p>
-                <p style="margin: 4px 0;"><strong>Telefono:</strong> ${body.telefono}</p>
-                <p style="margin: 4px 0;"><strong>Indirizzo:</strong> ${body.indirizzo}, ${body.civico} - ${body.cap} ${body.citta}</p>
-                ${body.website ? `<p style="margin: 4px 0;"><strong>Sito web:</strong> ${body.website}</p>` : ''}
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+            <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px; text-align: center;">
+                <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Nuova richiesta di adesione</p>
               </div>
-              ${body.nota ? `
-              <div style="margin-top: 16px;">
-                <p style="margin: 0;"><strong>Nota di presentazione:</strong></p>
-                <p style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-top: 8px;">${body.nota}</p>
+              <div style="padding: 32px;">
+                <h2 style="color: #dc2626; margin-top: 0; font-size: 24px;">Nuova richiesta di adesione ente</h2>
+                <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 0 8px 8px 0; margin: 24px 0;">
+                  <p style="margin: 0; color: #991b1b; font-size: 14px;"><strong>Denominazione:</strong> ${body.denominazione}</p>
+                  <p style="margin: 8px 0 0 0; color: #991b1b; font-size: 14px;"><strong>Referente:</strong> ${body.nomeReferente} ${body.cognomeReferente}</p>
+                  <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Email:</strong> ${body.email}</p>
+                  <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Telefono:</strong> ${body.telefono}</p>
+                  <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Indirizzo:</strong> ${body.indirizzo}, ${body.civico} - ${body.cap} ${body.citta}</p>
+                  ${body.website ? `<p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Sito web:</strong> ${body.website}</p>` : ''}
+                </div>
+                ${body.nota ? `
+                <div style="margin-top: 16px;">
+                  <p style="margin: 0; color: #374151; font-weight: 600;">Nota di presentazione:</p>
+                  <p style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-top: 8px; color: #6b7280; font-size: 14px;">${body.nota}</p>
+                </div>
+                ` : ''}
+                <div style="text-align: center; margin: 32px 0;">
+                  <a href="${APP_URL}/admin/dashboard" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    Gestisci in Dashboard
+                  </a>
+                </div>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+                <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                  © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+                  Non rispondere a questa email.
+                </p>
               </div>
-              ` : ''}
-              <div style="margin-top: 24px;">
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://kykos.it'}/admin/dashboard" style="background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Gestisci in Dashboard</a>
-              </div>
-            </div>
-            <div style="background: #f9fafb; padding: 16px; text-align: center; color: #6b7280; font-size: 12px;">
-              <p style="margin: 0;">© ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.</p>
             </div>
           </div>
         `,
