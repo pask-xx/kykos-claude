@@ -58,9 +58,12 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const action = searchParams.get('action'); // 'approve' or 'reject'
+    // Extract id from URL path and action from query params
+    const url = new URL(request.url);
+    // URL is /api/adesione/{id}?action=X
+    const pathParts = url.pathname.split('/');
+    const id = pathParts[pathParts.length - 1];
+    const action = url.searchParams.get('action');
 
     if (!id || !action) {
       return NextResponse.json({ error: 'ID e azione sono obbligatori' }, { status: 400 });
