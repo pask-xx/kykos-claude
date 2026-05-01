@@ -70,7 +70,7 @@ export default function RegistrationsClosedPage() {
             <p className="text-gray-600 mb-6">
               KYKOS connette chi vuole donare oggetti con chi ne ha bisogno,
               attraverso una rete di <strong>enti fidati</strong> che verificano
-              i riceventi e gestiscono lo scambio in sicurezza e anonimato.
+              i beneficiari e gestiscono lo scambio in sicurezza e anonimato.
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <span>🎁</span>
@@ -96,7 +96,7 @@ export default function RegistrationsClosedPage() {
               il progetto, prima potremo attivare le registrazioni.
             </p>
             <p className="text-amber-700 text-sm">
-              Condividi il sito <strong>kykos.app</strong> con chi potrebbe essere
+              Condividi il sito <strong>kykos.it</strong> con chi potrebbe essere
               interessato a entrare nella rete KYKOS.
             </p>
           </div>
