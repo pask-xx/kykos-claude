@@ -1,8 +1,10 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
+
+const STAGING_DOMAINS = ['staging.kykos.it', 'staging-kykos-claude.vercel.app'];
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -52,9 +54,23 @@ const faqJsonLd = {
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isStaging, setIsStaging] = useState(false);
+
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    const isStagingEnv = STAGING_DOMAINS.some(d => hostname.includes(d));
+    setIsStaging(isStagingEnv);
+  }, []);
 
   return (
     <>
+      {/* Staging Banner */}
+      {isStaging && (
+        <div className="bg-amber-400 text-amber-900 py-2 px-4 text-center text-sm font-medium">
+          ⚠️ AMBIENTE DI STAGING - Le modifiche sono in fase di test
+        </div>
+      )}
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLd, faqJsonLd]) }}
