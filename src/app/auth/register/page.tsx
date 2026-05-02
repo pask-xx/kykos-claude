@@ -647,6 +647,7 @@ export default function RegisterPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
+            <img src="/albero.svg" alt="KYKOS" className="h-14" />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </Link>
           <p className="text-secondary-100 mt-3 text-lg">Dona con amore, ricevi con dignità</p>
