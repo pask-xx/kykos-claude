@@ -69,7 +69,7 @@ export default function AderisciPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Se hai bisogno di aiuto</h3>
                 <p className="text-gray-600 text-sm">
-                  Il tuo ente di riferimento (Caritas, parrocchia, associazione) ti fornirà le credenziali per accedere come <strong>Beneficiario</strong>. Potrai richiedere oggetti donati.
+                  Il tuo ente di riferimento (Caritas, parrocchia, associazione) ti autorizzerà come <strong>Beneficiario</strong>. Potrai richiedere oggetti donati.
                 </p>
               </div>
             </div>
