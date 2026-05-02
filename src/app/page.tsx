@@ -313,7 +313,7 @@ export default function Home() {
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
+            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" style={{filter: 'brightness(0) invert(1)'}} />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
           </div>
           <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>
