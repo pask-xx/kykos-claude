@@ -81,8 +81,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 group">
-              <img src="/albero.svg" alt="KYKOS" className="w-12 h-12 transition-transform group-hover:scale-110" />
-              <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-12 transition-transform group-hover:scale-110" />
             </Link>
 
             {/* Desktop nav */}
@@ -149,7 +148,7 @@ export default function Home() {
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 md:py-28 text-center">
         <div className="inline-flex items-center justify-center w-32 h-32 bg-primary-100 rounded-full mb-8 shadow-xl">
-          <img src="/albero.svg" alt="KYKOS" className="w-24 h-24" />
+          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-24" />
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
           Dona con <span className="text-primary-600">amore</span>,
@@ -284,7 +283,7 @@ export default function Home() {
       <section className="container mx-auto px-4 py-20">
         <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-3xl p-12 md:p-16 text-center shadow-xl">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-            <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Unisciti alla rete KYKOS
@@ -313,8 +312,7 @@ export default function Home() {
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
-            <span className="text-2xl font-bold text-white">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
           </div>
           <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>
           <div className="flex justify-center gap-6 mt-6 text-sm">
