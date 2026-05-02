@@ -27,7 +27,7 @@ export default function AderisciPage() {
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
             <img src="/albero.svg" alt="KYKOS" className="h-10" />
-            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-12" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </Link>
         </div>
       </header>
