@@ -314,7 +314,7 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" style={{filter: 'brightness(0) invert(1)'}} />
-            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" style={{filter: 'hue-rotate(90deg) saturate(1.5)'}} />
           </div>
           <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>
           <div className="flex justify-center gap-6 mt-6 text-sm">
