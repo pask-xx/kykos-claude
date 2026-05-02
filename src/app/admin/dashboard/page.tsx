@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import useSWR from 'swr';
 
 interface Organization {
   id: string;
@@ -43,17 +44,32 @@ const ORG_TYPE_LABELS: Record<string, string> = {
   ASSOCIATION: 'Associazione',
 };
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
-  const [intermediaries, setIntermediaries] = useState<Organization[]>([]);
-  const [adesioni, setAdesioni] = useState<AdesioneEnte[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'enti' | 'adesioni'>('enti');
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState(false);
+
+  // SWR hooks for automatic polling (30 seconds)
+  const { data: intermediariesData, isLoading: intermediariesLoading, mutate: mutateIntermediaries } = useSWR<{ intermediaries: Organization[] }>(
+    '/api/admin/intermediaries',
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true }
+  );
+
+  const { data: adesioniData, isLoading: adesioniLoading, mutate: mutateAdesioni } = useSWR<{ requests: AdesioneEnte[] }>(
+    '/api/adesione',
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true }
+  );
+
+  const intermediaries = intermediariesData?.intermediaries || [];
+  const adesioni = adesioniData?.requests || [];
 
   useEffect(() => {
     if (searchParams.get('created') === 'true') {
@@ -64,22 +80,6 @@ function AdminDashboardContent() {
       setTimeout(() => setShowSuccess(false), 5000);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/admin/intermediaries').then(res => res.json()),
-      fetch('/api/adesione').then(res => res.json()),
-    ])
-      .then(([intermediariesData, adesioniData]) => {
-        setIntermediaries(intermediariesData.intermediaries || []);
-        setAdesioni(adesioniData.requests || []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error:', err);
-        setLoading(false);
-      });
-  }, []);
 
   const verifiedCount = intermediaries.filter(i => i.verified).length;
   const pendingCount = intermediaries.filter(i => !i.verified).length;
@@ -93,13 +93,14 @@ function AdminDashboardContent() {
       const res = await fetch(`/api/adesione/${confirmAction.id}?action=${confirmAction.action}`, { method: 'PATCH' });
       const data = await res.json();
       if (res.ok) {
+        // Revalidate both data sources
+        mutateAdesioni();
+        mutateIntermediaries();
+
         if (confirmAction.action === 'approve') {
           // Redirect to ente creation page
           window.location.href = `/admin/intermediaries/new?from=adesione&enteId=${confirmAction.id}`;
         } else {
-          // Just refresh the list for reject
-          const refreshData = await fetch('/api/adesione').then(r => r.json());
-          setAdesioni(refreshData.requests || []);
           setConfirmAction(null);
           setActionSuccess(true);
           setTimeout(() => setActionSuccess(false), 3000);
@@ -211,7 +212,7 @@ function AdminDashboardContent() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Gestione Enti</h2>
 
-          {loading ? (
+          {intermediariesLoading ? (
             <p className="text-gray-500 text-center py-8">Caricamento...</p>
           ) : intermediaries.length === 0 ? (
             <p className="text-gray-500 text-center py-8">Nessun ente registrato</p>
@@ -266,7 +267,7 @@ function AdminDashboardContent() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Richieste di Adesione</h2>
 
-          {loading ? (
+          {adesioniLoading ? (
             <p className="text-gray-500 text-center py-8">Caricamento...</p>
           ) : adesioni.length === 0 ? (
             <p className="text-gray-500 text-center py-8">Nessuna richiesta di adesione</p>
