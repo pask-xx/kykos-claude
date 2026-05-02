@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
+import InstallAppBanner from '@/components/InstallAppBanner';
 
 export default function AderisciPage() {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -25,6 +26,7 @@ export default function AderisciPage() {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
+            <img src="/albero.svg" alt="KYKOS" className="h-10" />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
           </Link>
         </div>
@@ -34,7 +36,7 @@ export default function AderisciPage() {
         {/* Hero */}
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">🤝</span>
+            <img src="/albero.svg" alt="KYKOS" className="w-12 h-12" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Unisciti a KYKOS
@@ -42,6 +44,11 @@ export default function AderisciPage() {
           <p className="text-lg text-gray-600 max-w-xl mx-auto">
             Dona con amore, ricevi con dignità. Unisciti alla rete di solidarietà che mette in contatto chi vuole donare con chi ha bisogno.
           </p>
+        </div>
+
+        {/* Install App Banner */}
+        <div className="mb-10">
+          <InstallAppBanner />
         </div>
 
         {/* How to Register */}
@@ -99,7 +106,8 @@ export default function AderisciPage() {
         {/* Print section - only shows when printing */}
         <div className="hidden print:block mt-12">
           <div className="flex items-center justify-center mb-8">
-            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-16 mr-4" />
+            <img src="/albero.svg" alt="KYKOS" className="h-16 mr-4" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-16" />
           </div>
           <div className="text-center mb-8">
             <p className="text-xl text-gray-600">Dona con amore, ricevi con dignità</p>
@@ -115,7 +123,7 @@ export default function AderisciPage() {
               </div>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="bg-white rounded-full p-1">
-                  <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
+                  <img src="/albero.svg" alt="KYKOS" className="h-8" />
                 </div>
               </div>
             </div>
