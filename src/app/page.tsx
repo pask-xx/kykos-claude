@@ -82,7 +82,7 @@ export default function Home() {
           <nav className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 group">
               <img src="/albero.svg" alt="KYKOS" className="w-12 h-12 transition-transform group-hover:scale-110" />
-              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
             </Link>
 
             {/* Desktop nav */}
