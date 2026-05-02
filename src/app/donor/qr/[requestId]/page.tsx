@@ -82,19 +82,6 @@ export default function DonorQRPage({ params }: { params: Promise<{ requestId: s
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/donor/dashboard" className="text-primary-600 font-medium">
-                Dashboard
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Link href="/donor/dashboard" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
