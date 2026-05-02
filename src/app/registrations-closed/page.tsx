@@ -40,7 +40,7 @@ export default function RegistrationsClosedPage() {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </Link>
         </div>
       </header>

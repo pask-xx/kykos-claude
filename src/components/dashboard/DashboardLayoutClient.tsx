@@ -41,7 +41,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
       {/* Mobile header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-center px-4 z-40">
         <Link href="/" className="flex items-center gap-3">
-          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
+          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
         </Link>
         {showNotificationBell && (
           <div className="absolute right-4">
@@ -53,7 +53,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
       {/* Desktop top bar */}
       <header className="hidden lg:flex fixed top-0 left-16 right-0 h-14 bg-white border-b border-gray-200 items-center justify-center px-6 z-40">
         <Link href="/" className="flex items-center gap-3">
-          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
+          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
         </Link>
         {showNotificationBell && (
           <div className="absolute right-20">

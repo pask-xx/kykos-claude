@@ -22,7 +22,7 @@ export default function ManifestoPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
             </Link>
             <nav className="flex items-center gap-4">
               <SessionDashboardLink />
