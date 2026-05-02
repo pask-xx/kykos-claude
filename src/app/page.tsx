@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
 
-const STAGING_DOMAINS = ['staging.kykos.it', 'staging-kykos-claude.vercel.app'];
+const STAGING_DOMAINS = ['staging.kykos.it'];
 
 const jsonLd = {
   "@context": "https://schema.org",
