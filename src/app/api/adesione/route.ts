@@ -93,7 +93,7 @@ export async function POST(request: Request) {
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
             <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
-                <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+                <img src="${LOGO_URL}" alt="KYKOS" width="64" height="64" style="height: 64px; width: 64px; margin-bottom: 16px;">
                 <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Conferma la tua richiesta</p>
               </div>
               <div style="padding: 32px;">
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
             <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px; text-align: center;">
-                <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+                <img src="${LOGO_URL}" alt="KYKOS" width="64" height="64" style="height: 64px; width: 64px; margin-bottom: 16px;">
                 <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Nuova richiesta di adesione</p>
               </div>
               <div style="padding: 32px;">

@@ -10,6 +10,10 @@ const JWT_SECRET = new TextEncoder().encode(
 const APP_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kykos.it';
 const LOGO_URL = `${APP_URL}/albero.svg`;
 
+// Build ente creation URL
+const getEnteCreationUrl = (enteId?: string) =>
+  enteId ? `${APP_URL}/admin/intermediaries/new?from=adesione&enteId=${enteId}` : `${APP_URL}/admin/intermediaries/new`;
+
 interface UserSession {
   userId: string;
   role: string;
@@ -31,39 +35,46 @@ async function getUserSession(): Promise<UserSession | null> {
   }
 }
 
-// GET all adhesion requests (for admin)
-export async function GET() {
+// GET single adhesion request by ID
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getUserSession();
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    const requests = await prisma.adesioneEnte.findMany({
-      orderBy: { createdAt: 'desc' },
+    const { id } = await params;
+    const adesione = await prisma.adesioneEnte.findUnique({
+      where: { id },
     });
 
-    return NextResponse.json({ requests });
+    if (!adesione) {
+      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+    }
+
+    return NextResponse.json({ adesione });
   } catch (error) {
-    console.error('Adesione list error:', error);
+    console.error('Adesione get error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
 
 // PATCH to approve/reject adhesion request
-export async function PATCH(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getUserSession();
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    // Extract id from URL path and action from query params
-    const url = new URL(request.url);
-    // URL is /api/adesione/{id}?action=X
-    const pathParts = url.pathname.split('/');
-    const id = pathParts[pathParts.length - 1];
-    const action = url.searchParams.get('action');
+    const { id } = await params;
+    const action = new URL(request.url).searchParams.get('action');
 
     if (!id || !action) {
       return NextResponse.json({ error: 'ID e azione sono obbligatori' }, { status: 400 });
@@ -100,22 +111,14 @@ export async function PATCH(request: Request) {
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
               <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
-                  <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+                  <img src="${LOGO_URL}" alt="KYKOS" width="64" height="64" style="height: 64px; width: 64px; margin-bottom: 16px;">
                   <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Adesione approvata!</p>
                 </div>
                 <div style="padding: 32px;">
                   <h2 style="color: #059669; margin-top: 0; font-size: 24px;">Gentile ${adesione.nomeReferente} ${adesione.cognomeReferente},</h2>
                   <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-                    La richiesta di adesione per <strong>${adesione.denominazione}</strong> è stata approvata!
+                    La richiesta di adesione per <strong>${adesione.denominazione}</strong> è stata approvata! Riceverai a breve le credenziali per accedere alla dashboard dell'ente.
                   </p>
-                  <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-                    Ora potrai creare l&apos;account dell&apos;ente dalla dashboard admin.
-                  </p>
-                  <div style="text-align: center; margin: 32px 0;">
-                    <a href="${APP_URL}/admin/dashboard" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                      Vai alla Dashboard
-                    </a>
-                  </div>
                   <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
                   <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
                     © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
@@ -147,7 +150,7 @@ export async function PATCH(request: Request) {
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
               <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px; text-align: center;">
-                  <img src="${LOGO_URL}" alt="KYKOS" style="height: 64px; margin-bottom: 16px;">
+                  <img src="${LOGO_URL}" alt="KYKOS" width="64" height="64" style="height: 64px; width: 64px; margin-bottom: 16px;">
                   <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Adesione non approvata</p>
                 </div>
                 <div style="padding: 32px;">

@@ -93,11 +93,17 @@ function AdminDashboardContent() {
       const res = await fetch(`/api/adesione/${confirmAction.id}?action=${confirmAction.action}`, { method: 'PATCH' });
       const data = await res.json();
       if (res.ok) {
-        const refreshData = await fetch('/api/adesione').then(r => r.json());
-        setAdesioni(refreshData.requests || []);
-        setConfirmAction(null);
-        setActionSuccess(true);
-        setTimeout(() => setActionSuccess(false), 3000);
+        if (confirmAction.action === 'approve') {
+          // Redirect to ente creation page
+          window.location.href = `/admin/intermediaries/new?from=adesione&enteId=${confirmAction.id}`;
+        } else {
+          // Just refresh the list for reject
+          const refreshData = await fetch('/api/adesione').then(r => r.json());
+          setAdesioni(refreshData.requests || []);
+          setConfirmAction(null);
+          setActionSuccess(true);
+          setTimeout(() => setActionSuccess(false), 3000);
+        }
       } else {
         setActionError(data.error || 'Errore durante l\'operazione');
       }

@@ -1,15 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import CitySelector from '@/components/geo/CitySelector';
 
-export default function NewIntermediaryPage() {
+function NewIntermediaryContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<{ tempPassword?: string; emailSent?: boolean } | null>(null);
+
+  // Check if came from adesione approval
+  const fromAdesione = searchParams.get('from') === 'adesione';
+  const enteId = searchParams.get('enteId');
 
   // User fields
   const [email, setEmail] = useState('');
@@ -34,6 +39,33 @@ export default function NewIntermediaryPage() {
   // Geocoding
   const [geocoding, setGeocoding] = useState(false);
   const [geocodingError, setGeocodingError] = useState('');
+
+  // Pre-fill from adesione if available
+  useEffect(() => {
+    if (fromAdesione && enteId) {
+      fetch(`/api/adesione/${enteId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.adesione) {
+            setOrgName(data.adesione.denominazione || '');
+            setEmail(data.adesione.email || '');
+            // Parse name from referente
+            const nomeParts = (data.adesione.nomeReferente || '').split(' ');
+            const cognomeParts = (data.adesione.cognomeReferente || '').split(' ');
+            if (firstName === '') setFirstName(data.adesione.nomeReferente || '');
+            if (lastName === '') setLastName(data.adesione.cognomeReferente || '');
+            setAddress(data.adesione.indirizzo || '');
+            setCap(data.adesione.cap || '');
+            setCity(data.adesione.citta || '');
+            setPhone(data.adesione.telefono || '');
+            if (data.adesione.website) {
+              // Could set additional fields if needed
+            }
+          }
+        })
+        .catch(console.error);
+    }
+  }, [fromAdesione, enteId]);
 
   const geocodeFromAddress = async () => {
     if (!address || !city) {
@@ -364,5 +396,21 @@ export default function NewIntermediaryPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <p className="text-gray-500">Caricamento...</p>
+    </div>
+  );
+}
+
+export default function NewIntermediaryPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <NewIntermediaryContent />
+    </Suspense>
   );
 }
