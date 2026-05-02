@@ -26,6 +26,7 @@ export default function AderisciPrintPage() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
       {/* Project Summary */}
       <div className="max-w-2xl mx-auto text-center mb-8">
+        <img src="/albero.svg" alt="KYKOS" className="w-20 h-20 mx-auto mb-4" />
         <h1 className="text-5xl font-bold text-primary-600 mb-3">KYKOS</h1>
         <p className="text-xl text-gray-500 mb-6">Dona con amore, ricevi con dignità</p>
         <p className="text-gray-600 leading-relaxed mb-8 text-lg">
