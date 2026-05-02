@@ -103,7 +103,7 @@ export default function AderisciPrintPage() {
       <style>{`
         @page {
           size: A4;
-          margin: 6mm;
+          margin: 3mm;
         }
         @media print {
           body { margin: 0; padding: 0; }
