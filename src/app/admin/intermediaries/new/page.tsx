@@ -49,14 +49,12 @@ function NewIntermediaryContent() {
           if (data.adesione) {
             setOrgName(data.adesione.denominazione || '');
             setEmail(data.adesione.email || '');
-            // Parse name from referente
-            const nomeParts = (data.adesione.nomeReferente || '').split(' ');
-            const cognomeParts = (data.adesione.cognomeReferente || '').split(' ');
-            if (firstName === '') setFirstName(data.adesione.nomeReferente || '');
-            if (lastName === '') setLastName(data.adesione.cognomeReferente || '');
+            setFirstName(data.adesione.nomeReferente || '');
+            setLastName(data.adesione.cognomeReferente || '');
             setAddress(data.adesione.indirizzo || '');
             setCap(data.adesione.cap || '');
             setCity(data.adesione.citta || '');
+            setProvince(data.adesione.provincia || '');
             setPhone(data.adesione.telefono || '');
             if (data.adesione.website) {
               // Could set additional fields if needed

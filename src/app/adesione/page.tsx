@@ -1,12 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
+interface Province {
+  id: string;
+  sigla: string;
+  name: string;
+}
+
+interface Comune {
+  id: string;
+  istat: string;
+  name: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
 
 export default function AdesionePage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Geo data
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [comuni, setComuni] = useState<Comune[]>([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(true);
+  const [loadingComuni, setLoadingComuni] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -19,13 +39,57 @@ export default function AdesionePage() {
     civico: '',
     cap: '',
     citta: '',
+    provincia: '',
     nota: '',
     website: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Fetch provinces on mount
+  useEffect(() => {
+    fetchProvinces();
+  }, []);
+
+  // Fetch comuni when provincia changes
+  useEffect(() => {
+    if (formData.provincia) {
+      fetchComuni(formData.provincia);
+    } else {
+      setComuni([]);
+    }
+  }, [formData.provincia]);
+
+  const fetchProvinces = async () => {
+    try {
+      const res = await fetch('/api/geo/provinces');
+      const data = await res.json();
+      setProvinces(data.provinces || []);
+    } catch (error) {
+      console.error('Error fetching provinces:', error);
+    } finally {
+      setLoadingProvinces(false);
+    }
+  };
+
+  const fetchComuni = async (sigla: string) => {
+    setLoadingComuni(true);
+    try {
+      const res = await fetch(`/api/geo/comunes?province=${encodeURIComponent(sigla)}`);
+      const data = await res.json();
+      setComuni(data.comuni || []);
+    } catch (error) {
+      console.error('Error fetching comuni:', error);
+    } finally {
+      setLoadingComuni(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'provincia') {
+      setFormData(prev => ({ ...prev, provincia: value, citta: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -276,7 +340,7 @@ export default function AdesionePage() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="cap" className="block text-sm font-medium text-gray-700 mb-1">
                     CAP <span className="text-red-500">*</span>
@@ -294,19 +358,54 @@ export default function AdesionePage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="citta" className="block text-sm font-medium text-gray-700 mb-1">
-                    Città <span className="text-red-500">*</span>
+                  <label htmlFor="provincia" className="block text-sm font-medium text-gray-700 mb-1">
+                    Provincia <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
+                    id="provincia"
+                    name="provincia"
+                    value={formData.provincia}
+                    onChange={handleChange}
+                    required
+                    disabled={loadingProvinces}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100"
+                  >
+                    <option value="">
+                      {loadingProvinces ? 'Caricamento...' : 'Seleziona provincia'}
+                    </option>
+                    {provinces.map((prov) => (
+                      <option key={prov.id} value={prov.sigla}>
+                        {prov.name} ({prov.sigla})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="citta" className="block text-sm font-medium text-gray-700 mb-1">
+                    Comune <span className="text-red-500">*</span>
+                  </label>
+                  <select
                     id="citta"
                     name="citta"
                     value={formData.citta}
                     onChange={handleChange}
                     required
-                    placeholder="Roma"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                    disabled={!formData.provincia || loadingComuni}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100"
+                  >
+                    <option value="">
+                      {!formData.provincia
+                        ? 'Seleziona prima la provincia'
+                        : loadingComuni
+                        ? 'Caricamento...'
+                        : 'Seleziona comune'}
+                    </option>
+                    {comuni.map((comune) => (
+                      <option key={comune.id} value={comune.name}>
+                        {comune.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

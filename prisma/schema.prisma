@@ -543,7 +543,7 @@ model VolunteerAssociation {
 model AdesioneEnte {
   id                String         @id @default(cuid())
   denominazione     String
-  nomeReferente     String
+  nomeReferente      String
   cognomeReferente  String
   telefono          String
   email             String
@@ -551,6 +551,7 @@ model AdesioneEnte {
   civico            String
   cap               String
   citta             String
+  provincia         String?
   nota              String         @db.Text
   website           String?
   status            AdesioneStatus @default(PENDING)

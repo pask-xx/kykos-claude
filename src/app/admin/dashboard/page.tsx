@@ -31,6 +31,7 @@ interface AdesioneEnte {
   civico: string;
   cap: string;
   citta: string;
+  provincia: string | null;
   nota: string | null;
   website: string | null;
   status: string;

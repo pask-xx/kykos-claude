@@ -17,6 +17,7 @@ interface AdesioneRequest {
   civico: string;
   cap: string;
   citta: string;
+  provincia?: string;
   nota: string;
   website?: string;
 }
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
         civico: body.civico,
         cap: body.cap,
         citta: body.citta,
+        provincia: body.provincia || null,
         nota: body.nota,
         website: body.website || null,
         status: 'PENDING',
@@ -153,7 +155,7 @@ export async function POST(request: Request) {
                   <p style="margin: 8px 0 0 0; color: #991b1b; font-size: 14px;"><strong>Referente:</strong> ${body.nomeReferente} ${body.cognomeReferente}</p>
                   <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Email:</strong> ${body.email}</p>
                   <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Telefono:</strong> ${body.telefono}</p>
-                  <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Indirizzo:</strong> ${body.indirizzo}, ${body.civico} - ${body.cap} ${body.citta}</p>
+                  <p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Indirizzo:</strong> ${body.indirizzo}, ${body.civico} - ${body.cap} ${body.citta}${body.provincia ? ` (${body.provincia})` : ''}</p>
                   ${body.website ? `<p style="margin: 4px 0; color: #991b1b; font-size: 14px;"><strong>Sito web:</strong> ${body.website}</p>` : ''}
                 </div>
                 ${body.nota ? `

@@ -72,7 +72,7 @@ export async function GET(request: Request) {
                   <p style="margin: 4px 0; color: #374151; font-size: 14px;">Referente: ${adesione.nomeReferente} ${adesione.cognomeReferente}</p>
                   <p style="margin: 4px 0; color: #374151; font-size: 14px;">Email: ${adesione.email}</p>
                   <p style="margin: 4px 0; color: #374151; font-size: 14px;">Telefono: ${adesione.telefono}</p>
-                  <p style="margin: 4px 0; color: #374151; font-size: 14px;">Indirizzo: ${adesione.indirizzo}, ${adesione.civico} - ${adesione.cap} ${adesione.citta}</p>
+                  <p style="margin: 4px 0; color: #374151; font-size: 14px;">Indirizzo: ${adesione.indirizzo}, ${adesione.civico} - ${adesione.cap} ${adesione.citta}${adesione.provincia ? ` (${adesione.provincia})` : ''}</p>
                   ${adesione.website ? `<p style="margin: 4px 0; color: #374151; font-size: 14px;">Sito web: ${adesione.website}</p>` : ''}
                 </div>
                 ${adesione.nota ? `
