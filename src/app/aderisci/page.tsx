@@ -25,8 +25,7 @@ export default function AderisciPage() {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
-            <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
           </Link>
         </div>
       </header>
@@ -100,8 +99,7 @@ export default function AderisciPage() {
         {/* Print section - only shows when printing */}
         <div className="hidden print:block mt-12">
           <div className="flex items-center justify-center mb-8">
-            <img src="/albero.svg" alt="KYKOS" className="w-16 h-16 mr-4" />
-            <h1 className="text-3xl font-bold text-gray-900">KYKOS</h1>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-16 mr-4" />
           </div>
           <div className="text-center mb-8">
             <p className="text-xl text-gray-600">Dona con amore, ricevi con dignità</p>
@@ -117,7 +115,7 @@ export default function AderisciPage() {
               </div>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="bg-white rounded-full p-1">
-                  <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
+                  <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
                 </div>
               </div>
             </div>

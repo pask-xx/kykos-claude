@@ -40,8 +40,7 @@ export default function RegistrationsClosedPage() {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
-            <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
           </Link>
         </div>
       </header>
@@ -163,8 +162,7 @@ export default function RegistrationsClosedPage() {
       <footer className="bg-gray-900 text-gray-400 py-8 mt-16">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
-            <span className="text-xl font-bold text-white">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
           </div>
           <p className="text-sm">Dona con amore, ricevi con dignità</p>
           <p className="text-xs mt-4 text-gray-500">© 2024-2026 KYKOS. Tutti i diritti riservati.</p>

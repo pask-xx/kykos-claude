@@ -189,8 +189,7 @@ export default function ResetPasswordPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
-            <span className="text-4xl font-bold text-white">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </Link>
         </div>
 
@@ -210,8 +209,7 @@ export default function ResetPasswordPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         {/* Mobile logo */}
         <div className="lg:hidden absolute top-4 left-4 flex items-center gap-3">
-          <img src="/albero.svg" alt="KYKOS" className="w-12 h-12" />
-          <span className="text-3xl font-bold text-primary-600">KYKOS</span>
+          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-12" />
         </div>
 
         <Suspense fallback={

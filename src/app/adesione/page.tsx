@@ -125,8 +125,7 @@ export default function AdesionePage() {
         <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <Link href="/" className="flex items-center gap-3">
-              <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
-              <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
             </Link>
           </div>
         </header>
@@ -170,8 +169,7 @@ export default function AdesionePage() {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
-            <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
           </Link>
         </div>
       </header>

@@ -22,8 +22,7 @@ export default function ManifestoPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
-              <span className="text-2xl font-bold text-primary-600">KYKOS</span>
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
             </Link>
             <nav className="flex items-center gap-4">
               <SessionDashboardLink />
@@ -42,7 +41,7 @@ export default function ManifestoPage() {
         {/* Hero */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-primary-100 rounded-full mb-8 shadow-lg">
-            <img src="/albero.svg" alt="KYKOS" className="w-16 h-16" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-16" />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
             Il Manifesto di <span className="text-primary-600">KYKOS</span>
@@ -315,7 +314,7 @@ export default function ManifestoPage() {
         {/* CTA */}
         <div className="text-center bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-3xl p-12 shadow-xl">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-            <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </div>
           <h2 className="text-3xl font-bold mb-4">
             Unisciti a KYKOS
@@ -345,7 +344,7 @@ export default function ManifestoPage() {
       <footer className="bg-gray-900 text-gray-400 py-10 mt-16">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
             <span className="text-xl font-bold text-white">KYKOS</span>
           </div>
           <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>

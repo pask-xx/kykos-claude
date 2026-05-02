@@ -48,8 +48,7 @@ export default function OperatorLoginPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
-            <span className="text-4xl font-bold text-white">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
           </Link>
           <p className="text-secondary-100 mt-3 text-lg">Area riservata operatori</p>
         </div>
@@ -85,8 +84,7 @@ export default function OperatorLoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden mb-8 flex items-center gap-3">
-            <img src="/albero.svg" alt="KYKOS" className="w-12 h-12" />
-            <span className="text-3xl font-bold text-secondary-600">KYKOS</span>
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-12" />
           </div>
 
           <div className="bg-white p-8 rounded-2xl shadow-sm border">
