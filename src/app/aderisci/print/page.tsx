@@ -27,8 +27,8 @@ export default function AderisciPrintPage() {
       {/* Main content container with subtle border */}
       <div className="max-w-2xl mx-auto text-center rounded-2xl border-2 border-primary-200 p-8 shadow-sm">
 
-        <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-20 mx-auto mb-4" />
-        <h1 className="text-5xl font-bold text-primary-600 mb-3">KYKOS</h1>
+        <img src="/albero.svg" alt="KYKOS" className="h-20 mx-auto mb-4" />
+        <img src="/LogoKykosTesto.svg" alt="KYKOS" className="mx-auto mb-3" style={{height: '60px'}} />
         <p className="text-xl text-gray-500 mb-6">Dona con amore, ricevi con dignità</p>
         <p className="text-gray-600 leading-relaxed mb-8 text-lg">
           La rete di solidarietà che mette in contatto chi vuole donare oggetti
@@ -86,7 +86,7 @@ export default function AderisciPrintPage() {
             </div>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-white rounded-full p-2 shadow-md">
-                <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-10" />
+                <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
               </div>
             </div>
           </div>
