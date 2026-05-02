@@ -82,6 +82,7 @@ export default function OperatorSidebar({
       >
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <Link href="/operator/dashboard" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
           </Link>
           <button
@@ -126,6 +127,7 @@ export default function OperatorSidebar({
       <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-shrink-0 flex-col fixed left-0 top-0 h-full">
         <div className="p-4 border-b border-gray-200">
           <Link href="/operator/dashboard" className="flex items-center gap-2">
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
           </Link>
           <p className="text-xs text-gray-500 mt-1 truncate">{organizationName}</p>
@@ -170,7 +172,8 @@ export default function OperatorSidebar({
           <span className="text-xl">☰</span>
         </button>
         <Link href="/operator/dashboard" className="flex items-center gap-2">
-          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
+          <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
+          <span className="text-xl font-bold text-primary-600">KYKOS</span>
         </Link>
         <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
       </header>

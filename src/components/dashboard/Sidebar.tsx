@@ -126,6 +126,7 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
         {/* Logo */}
         <div className="p-3 border-b border-gray-200 flex items-center justify-between">
           <Link href={getDashboardHref(role)} className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8 flex-shrink-0" />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
           </Link>
           <button
@@ -182,9 +183,9 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
         {/* Logo */}
         <div className={`p-3 border-b border-gray-200 flex items-center ${expanded ? 'justify-start' : 'justify-center'}`}>
           <Link href={getDashboardHref(role)} className="flex items-center gap-2">
-            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8 flex-shrink-0" />
+            <img src="/albero.svg" alt="KYKOS" className="w-8 h-8 flex-shrink-0" />
             {expanded && (
-              <span className="text-xl font-bold text-primary-600 whitespace-nowrap">KYKOS</span>
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
             )}
           </Link>
         </div>
