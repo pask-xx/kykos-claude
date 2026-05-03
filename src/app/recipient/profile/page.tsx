@@ -110,6 +110,22 @@ export default function RecipientProfilePage() {
 
       {/* Password Change */}
       <PasswordChangeForm />
+
+      {/* Danger Zone */}
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+        <h2 className="text-xl font-semibold text-red-900 mb-2 flex items-center gap-2">
+          <span>⚠️</span> Zona pericolosa
+        </h2>
+        <p className="text-red-700 text-sm mb-4">
+          Una volta disattivato, l&apos;account non potrà essere ripristinato.
+        </p>
+        <Link
+          href="/recipient/deactivate"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm"
+        >
+          Disattiva account
+        </Link>
+      </div>
     </div>
   );
 }
