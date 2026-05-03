@@ -51,8 +51,10 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
         return <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm rounded-full">Riservato</span>;
       case 'DONATED':
         return <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">Donato</span>;
-      case 'WITHDRAWN':
-        return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Ritirato</span>;
+      case 'DEPOSITED':
+        return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Depositato</span>;
+      case 'CANCELLED':
+        return <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">Cancellato</span>;
       default:
         return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">{status}</span>;
     }

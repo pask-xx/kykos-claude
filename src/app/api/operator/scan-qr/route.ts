@@ -105,8 +105,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'QR code non valido per questo donatore' }, { status: 400 });
       }
 
-      // Check if already delivered (WITHDRAWN or DONATED status)
-      if (req.object.status === 'WITHDRAWN' || req.object.status === 'DONATED') {
+      // Check if already delivered (DEPOSITED or DONATED status)
+      if (req.object.status === 'DEPOSITED' || req.object.status === 'DONATED') {
         return NextResponse.json({ error: 'QR code già utilizzato! La consegna è stata già registrata.' }, { status: 400 });
       }
 
@@ -114,12 +114,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Oggetto non disponibile per la consegna' }, { status: 400 });
       }
 
-      // Update object status to WITHDRAWN (object is at entity, waiting for pickup)
+      // Update object status to DEPOSITED (object is at entity, waiting for pickup)
       // Save deposit location if provided
       await prisma.object.update({
         where: { id: req.objectId },
         data: {
-          status: 'WITHDRAWN',
+          status: 'DEPOSITED',
           depositLocation: depositLocation || null,
         },
       });
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Oggetto già ritirato! Il beneficiario ha già completato il ritiro.' }, { status: 400 });
       }
 
-      if (req.object.status !== 'WITHDRAWN') {
+      if (req.object.status !== 'DEPOSITED') {
         return NextResponse.json({ error: 'Oggetto non ancora pronto per il ritiro' }, { status: 400 });
       }
 

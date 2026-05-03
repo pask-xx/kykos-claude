@@ -48,8 +48,8 @@ export default function IntermediaryObjectsPage() {
         return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservato</span>;
       case 'DONATED':
         return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Donato</span>;
-      case 'WITHDRAWN':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Ritirato</span>;
+      case 'DEPOSITED':
+        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
       default:
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
     }
@@ -94,7 +94,7 @@ export default function IntermediaryObjectsPage() {
           <option value="AVAILABLE">Disponibile</option>
           <option value="RESERVED">Riservato</option>
           <option value="DONATED">Donato</option>
-          <option value="WITHDRAWN">Ritirato</option>
+          <option value="DEPOSITED">Depositato</option>
         </select>
       </div>
 

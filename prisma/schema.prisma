@@ -61,9 +61,9 @@ enum Condition {
 enum ObjectStatus {
   AVAILABLE
   RESERVED
+  DEPOSITED
   DONATED
-  WITHDRAWN
-  BLOCKED
+  CANCELLED
 }
 
 enum RequestStatus {
@@ -71,6 +71,7 @@ enum RequestStatus {
   APPROVED
   REJECTED
   EXPIRED
+  CANCELLED
 }
 
 enum PaymentStatus {
@@ -96,7 +97,8 @@ enum NotificationType {
   OBJECT_AVAILABLE
   OBJECT_RESERVED
   OBJECT_DELIVERED
-  OBJECT_WITHDRAWN
+  OBJECT_DEPOSITED
+  OBJECT_CANCELLED
   REPORT_RECEIVED
   REPORT_RESOLVED
   MESSAGE_FROM_OPERATOR
@@ -124,6 +126,13 @@ enum GoodsRequestStatus {
   FULFILLED
   DELIVERED
   COMPLETED
+  CANCELLED
+}
+
+enum GoodsOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
   CANCELLED
 }
 
@@ -500,11 +509,11 @@ model GoodsRequest {
 }
 
 model GoodsOffer {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   message   String?
-  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    GoodsOfferStatus @default(PENDING)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   requestId String
   request   GoodsRequest @relation("GoodsOfferRequest", fields: [requestId], references: [id], onDelete: Cascade)

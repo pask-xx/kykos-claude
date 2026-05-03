@@ -76,10 +76,10 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  if (object.status !== 'WITHDRAWN') {
+  if (object.status !== 'DEPOSITED') {
     return (
       <div className="p-8 text-center">
-        <p>Questo oggetto non e&apos; in stato di ritiro</p>
+        <p>Questo oggetto non e&apos; in stato di deposito</p>
         <Link href="/operator/objects" className="text-primary-600 hover:underline">
           ← Torna alle disponibilità
         </Link>

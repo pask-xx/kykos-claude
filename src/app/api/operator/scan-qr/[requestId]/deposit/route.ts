@@ -94,15 +94,15 @@ export async function POST(
     }
 
     // Check object is in correct status
-    if (req.object.status !== 'RESERVED' && req.object.status !== 'WITHDRAWN') {
+    if (req.object.status !== 'RESERVED' && req.object.status !== 'DEPOSITED') {
       return NextResponse.json({ error: 'Stato oggetto non valido per questa operazione' }, { status: 400 });
     }
 
-    // Update object status to WITHDRAWN and save deposit location
+    // Update object status to DEPOSITED and save deposit location
     await prisma.object.update({
       where: { id: req.objectId },
       data: {
-        status: 'WITHDRAWN',
+        status: 'DEPOSITED',
         depositLocation: depositLocation,
         depositNotes: notes || null,
       },

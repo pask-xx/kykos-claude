@@ -140,8 +140,9 @@ export default function RecipientEntityRequestsPage() {
     const labels: Record<string, { label: string; color: string }> = {
       AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700' },
       RESERVED: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
-      WITHDRAWN: { label: 'Pronto', color: 'bg-blue-100 text-blue-700' },
+      DEPOSITED: { label: 'Pronto', color: 'bg-blue-100 text-blue-700' },
       DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700' },
+      CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700' },
     };
     const s = labels[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
     return <span className={`px-2 py-1 text-xs rounded ${s.color}`}>{s.label}</span>;

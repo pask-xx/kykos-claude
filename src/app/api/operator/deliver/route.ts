@@ -68,8 +68,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    if (object.status !== 'WITHDRAWN') {
-      return NextResponse.json({ error: 'Oggetto non e\' in stato di ritiro' }, { status: 400 });
+    if (object.status !== 'DEPOSITED') {
+      return NextResponse.json({ error: 'Oggetto non e\' in stato di deposito' }, { status: 400 });
     }
 
     // Mark as DONATED (final delivery)

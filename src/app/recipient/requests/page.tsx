@@ -34,9 +34,9 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 const objectStatusLabels: Record<string, { label: string; color: string; icon: string }> = {
   AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700', icon: '📦' },
   RESERVED: { label: 'In attesa consegna', color: 'bg-amber-100 text-amber-700', icon: '⏳' },
-  WITHDRAWN: { label: 'Pronto per ritiro', color: 'bg-blue-100 text-blue-700', icon: '📱' },
+  DEPOSITED: { label: 'Pronto per ritiro', color: 'bg-blue-100 text-blue-700', icon: '📱' },
   DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700', icon: '✅' },
-  BLOCKED: { label: 'Bloccato', color: 'bg-red-100 text-red-700', icon: '🚫' },
+  CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700', icon: '🚫' },
 };
 
 const categoryLabels: Record<string, string> = {
@@ -202,7 +202,7 @@ export default function RecipientRequestsPage() {
                       <span>{objStatus.icon}</span>
                       {objStatus.label}
                     </span>
-                    {request.object.status === 'WITHDRAWN' && (
+                    {request.object.status === 'DEPOSITED' && (
                       <Link
                         href={`/recipient/qr/${request.id}`}
                         className="inline-block px-3 py-1.5 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-xs"

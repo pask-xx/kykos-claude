@@ -69,8 +69,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    // Check object status - should be WITHDRAWN at entity
-    if (req.object.status !== 'WITHDRAWN') {
+    // Check object status - should be DEPOSITED at entity
+    if (req.object.status !== 'DEPOSITED') {
       return NextResponse.json({ error: 'Stato oggetto non valido per il ritiro' }, { status: 400 });
     }
 
