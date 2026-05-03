@@ -7,6 +7,7 @@ export type Condition = 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR' | 'POOR';
 export type ObjectStatus = 'AVAILABLE' | 'RESERVED' | 'DEPOSITED' | 'DONATED' | 'CANCELLED' | 'BLOCKED';
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
 export type GoodsOfferStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+export type GoodsRequestStatus = 'PENDING' | 'APPROVED' | 'FULFILLED' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 export type DonorLevel = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND';
 
@@ -146,5 +147,14 @@ export const GOODS_OFFER_STATUS_LABELS: Record<GoodsOfferStatus, string> = {
   PENDING: 'In attesa',
   ACCEPTED: 'Accettata',
   REJECTED: 'Rifiutata',
+  CANCELLED: 'Cancellata',
+};
+
+export const GOODS_REQUEST_STATUS_LABELS: Record<GoodsRequestStatus, string> = {
+  PENDING: 'In attesa',
+  APPROVED: 'Approvata',
+  FULFILLED: 'Soddisfatta',
+  DELIVERED: 'Depositata',
+  COMPLETED: 'Completata',
   CANCELLED: 'Cancellata',
 };
