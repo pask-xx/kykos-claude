@@ -4,7 +4,7 @@ export type OperatorRole = 'ADMIN' | 'GESTORE_RICHIESTE' | 'GESTORE_OGGETTI' | '
 export type OperatorPermission = 'RECIPIENT_AUTHORIZE' | 'OBJECT_RECEIVE' | 'OBJECT_DELIVER' | 'VOLUNTEER_MANAGE' | 'REQUEST_PROXY' | 'ORGANIZATION_ADMIN';
 export type Category = 'FURNITURE' | 'ELECTRONICS' | 'CLOTHING' | 'BOOKS' | 'KITCHEN' | 'SPORTS' | 'TOYS' | 'OTHER';
 export type Condition = 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR' | 'POOR';
-export type ObjectStatus = 'AVAILABLE' | 'RESERVED' | 'DEPOSITED' | 'DONATED' | 'CANCELLED';
+export type ObjectStatus = 'AVAILABLE' | 'RESERVED' | 'DEPOSITED' | 'DONATED' | 'CANCELLED' | 'BLOCKED';
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
 export type GoodsOfferStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
@@ -139,6 +139,7 @@ export const OBJECT_STATUS_LABELS: Record<ObjectStatus, string> = {
   DEPOSITED: 'Depositato',
   DONATED: 'Donato',
   CANCELLED: 'Cancellato',
+  BLOCKED: 'Bloccato',
 };
 
 export const GOODS_OFFER_STATUS_LABELS: Record<GoodsOfferStatus, string> = {

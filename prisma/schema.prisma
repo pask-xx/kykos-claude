@@ -64,6 +64,7 @@ enum ObjectStatus {
   DEPOSITED
   DONATED
   CANCELLED
+  BLOCKED
 }
 
 enum RequestStatus {
