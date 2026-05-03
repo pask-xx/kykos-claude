@@ -29,9 +29,19 @@ CREATE TYPE "GoodsOfferStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'CANC
 COMMIT;
 
 -- Step 5: Update GoodsOffer status column from String to GoodsOfferStatus
+-- First drop the text default
 BEGIN;
-ALTER TABLE "goods_offers" ALTER COLUMN "status" TYPE "GoodsOfferStatus" USING "status"::"GoodsOfferStatus";
-ALTER TABLE "goods_offers" ALTER COLUMN "status" SET DEFAULT 'PENDING';
+ALTER TABLE "goods_offers" ALTER COLUMN "status" DROP DEFAULT;
+COMMIT;
+
+-- Then change the type with explicit casting
+BEGIN;
+ALTER TABLE "goods_offers" ALTER COLUMN "status" TYPE "GoodsOfferStatus" USING CASE WHEN "status"::text = 'PENDING' THEN 'PENDING'::"GoodsOfferStatus" WHEN "status"::text = 'ACCEPTED' THEN 'ACCEPTED'::"GoodsOfferStatus" WHEN "status"::text = 'REJECTED' THEN 'REJECTED'::"GoodsOfferStatus" ELSE 'CANCELLED'::"GoodsOfferStatus" END;
+COMMIT;
+
+-- Finally set the new default
+BEGIN;
+ALTER TABLE "goods_offers" ALTER COLUMN "status" SET DEFAULT 'PENDING'::"GoodsOfferStatus";
 COMMIT;
 
 -- Step 6: Update NotificationType enum (replace OBJECT_WITHDRAWN with OBJECT_DEPOSITED and OBJECT_CANCELLED)
