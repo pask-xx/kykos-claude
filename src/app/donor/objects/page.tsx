@@ -10,7 +10,7 @@ interface Object {
   category: string;
   condition: string;
   status: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   createdAt: string;
 }
 
@@ -81,8 +81,8 @@ export default function DonorObjectsPage() {
           {objects.map((obj) => (
             <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
               <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                {obj.imageUrl ? (
-                  <img src={obj.imageUrl} alt={obj.title} className="object-cover w-full h-full" />
+                {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                  <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
                 ) : (
                   <span className="text-5xl">📦</span>
                 )}
