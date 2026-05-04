@@ -77,6 +77,9 @@ function RegisterForm() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [secret, setSecret] = useState('');
+
+  const isStagingSecretEnabled = process.env.NEXT_PUBLIC_STAGING_REGISTRATION_SECRET_ENABLED === 'true';
 
   useEffect(() => {
     if (isOAuth && oauthName) {
@@ -171,6 +174,11 @@ function RegisterForm() {
       }
     }
 
+    if (isStagingSecretEnabled && !secret) {
+      setError('Inserisci il codice di registrazione');
+      return;
+    }
+
     if (role === 'RECIPIENT') {
       if (!firstName || !lastName || !birthDate || !fiscalCode || !address || !cap || !city || !houseNumber) {
         setError('Tutti i campi anagrafici sono obbligatori per i riceventi');
@@ -216,6 +224,10 @@ function RegisterForm() {
       if (role === 'RECIPIENT') {
         payload.referenceEntityId = referenceEntityId;
         payload.isee = isee;
+      }
+
+      if (secret) {
+        payload.secret = secret;
       }
 
       // Use user-provided coordinates if available, otherwise fall back to city coordinates
@@ -266,6 +278,26 @@ function RegisterForm() {
 
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Crea un account</h2>
         <p className="text-gray-600 mb-6">Scegli come vuoi partecipare</p>
+
+        {isStagingSecretEnabled && (
+          <div className="mb-4">
+            <label htmlFor="secret" className="block text-sm font-medium text-gray-700 mb-2">
+              Codice di registrazione *
+            </label>
+            <input
+              id="secret"
+              type="password"
+              value={secret}
+              onChange={(e) => setSecret(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              maxLength={4}
+              pattern="\d{4}"
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-center text-2xl tracking-widest font-mono"
+              placeholder="••••"
+            />
+            <p className="text-xs text-gray-500 mt-1">Richiesto per completare la registrazione</p>
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">

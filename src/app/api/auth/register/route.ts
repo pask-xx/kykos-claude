@@ -41,7 +41,17 @@ export async function POST(request: Request) {
       oauthProvider,
       latitude,
       longitude,
+      secret,
     } = await request.json();
+
+    // Staging secret gate: if STAGING_REGISTRATION_SECRET is set, require the secret
+    const stagingSecret = process.env.STAGING_REGISTRATION_SECRET;
+    if (stagingSecret && secret !== stagingSecret) {
+      return NextResponse.json(
+        { error: 'Codice di registrazione non valido' },
+        { status: 403 }
+      );
+    }
 
     const isOAuth = oauthProvider === 'google';
 
