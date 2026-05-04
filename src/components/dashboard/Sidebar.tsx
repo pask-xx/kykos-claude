@@ -4,11 +4,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import LogoutForm from '@/components/LogoutForm';
+import ManifestoModal from '@/components/ManifestoModal';
 
 interface NavItem {
   href: string;
   label: string;
   icon: string;
+  isManifesto?: boolean;
 }
 
 const recipientNavBase: NavItem[] = [
@@ -16,7 +18,7 @@ const recipientNavBase: NavItem[] = [
   { href: '/recipient/objects', label: 'Cerca disponibilità', icon: '📦' },
   { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: '🎁' },
   { href: '/recipient/requests-entity/requests', label: 'Richieste', icon: '📝' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
@@ -25,7 +27,7 @@ const donorNavBase: NavItem[] = [
   { href: '/donor/objects', label: 'Le mie disponibilità', icon: '📦' },
   { href: '/donor/goods-requests', label: 'Offerte beni', icon: '🎁' },
   { href: '/donor/statistics', label: 'Statistiche', icon: '📊' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
   { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
@@ -35,14 +37,14 @@ const intermediaryNav: NavItem[] = [
   { href: '/intermediary/objects', label: 'Disponibilità', icon: '📦' },
   { href: '/intermediary/recipients', label: 'Beneficiari', icon: '👥' },
   { href: '/intermediary/operators', label: 'Operatori', icon: '👤' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
   { href: '/intermediary/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
 const adminNav: NavItem[] = [
   { href: '/admin/dashboard', label: 'Enti', icon: '🏢' },
   { href: '/admin/intermediaries/new', label: 'Nuovo Ente', icon: '➕' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜' },
+  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
 ];
 
 interface SidebarProps {
@@ -82,6 +84,7 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showManifesto, setShowManifesto] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const navItems = buildNavItems(role, hasApprovedVolunteer);
@@ -141,6 +144,23 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+
+            if (item.isManifesto) {
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setShowManifesto(true);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
+                >
+                  <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.href}
@@ -194,6 +214,23 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+
+            if (item.isManifesto) {
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => setShowManifesto(true)}
+                  className={`w-full flex items-center gap-3 px-2 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 ${expanded ? 'justify-start' : 'justify-center'}`}
+                  title={!expanded ? item.label : undefined}
+                >
+                  <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  {expanded && (
+                    <span className="font-medium truncate">{item.label}</span>
+                  )}
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.href}
@@ -232,6 +269,9 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
           )}
         </div>
       </aside>
+
+      {/* Manifesto Modal */}
+      {showManifesto && <ManifestoModal onClose={() => setShowManifesto(false)} />}
     </>
   );
 }
