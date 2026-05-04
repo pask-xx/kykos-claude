@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get('authorization');
     const expectedSecret = process.env.ADMIN_SETUP_SECRET;
 
+    console.log('[ADMIN_SETUP] ALL HEADERS:', JSON.stringify(Object.fromEntries(request.headers.entries())));
     console.log('[ADMIN_SETUP] authHeader:', authHeader);
     console.log('[ADMIN_SETUP] expectedSecret:', expectedSecret);
 
