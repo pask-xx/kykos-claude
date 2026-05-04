@@ -29,7 +29,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
     : '/api/notifications';
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50">
+    <div className="min-h-[100svh] bg-gray-50">
       {/* Fixed floating sidebar */}
       <Sidebar
         role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN'}
@@ -65,7 +65,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
       </header>
 
       {/* Main content */}
-      <main className="min-h-[100dvh] lg:pl-16 pt-14 lg:pt-14">
+      <main className="min-h-[100svh] lg:pl-16 pt-14 lg:pt-14">
         <div className="px-6 py-6">
           <div className="hidden lg:block">
             <InstallAppBanner />
