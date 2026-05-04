@@ -8,6 +8,9 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get('authorization');
     const expectedSecret = process.env.ADMIN_SETUP_SECRET;
 
+    console.log('[ADMIN_SETUP] authHeader:', authHeader);
+    console.log('[ADMIN_SETUP] expectedSecret:', expectedSecret);
+
     if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
