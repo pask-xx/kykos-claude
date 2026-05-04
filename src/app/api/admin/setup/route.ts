@@ -5,14 +5,14 @@ import { supabaseAdmin } from '@/lib/supabase';
 export async function POST(request: Request) {
   try {
     // Verify admin setup secret
-    const authHeader = request.headers.get('authorization');
+    // Use custom header X-Admin-Secret instead of Authorization (Vercel proxy modifies Authorization)
+    const adminSecret = request.headers.get('x-admin-secret');
     const expectedSecret = process.env.ADMIN_SETUP_SECRET;
 
-    console.log('[ADMIN_SETUP] ALL HEADERS:', JSON.stringify(Object.fromEntries(request.headers.entries())));
-    console.log('[ADMIN_SETUP] authHeader:', authHeader);
+    console.log('[ADMIN_SETUP] adminSecret:', adminSecret);
     console.log('[ADMIN_SETUP] expectedSecret:', expectedSecret);
 
-    if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
+    if (!expectedSecret || adminSecret !== expectedSecret) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
