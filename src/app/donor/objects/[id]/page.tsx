@@ -225,7 +225,7 @@ export default function DonorObjectDetailPage() {
               <div className="space-y-2">
                 {object.requests.map((req) => (
                   <div key={req.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">{req.recipient.name}</span>
+                    <span className="text-gray-700">Richiedente</span>
                     <span className={`px-2 py-1 text-xs rounded ${
                       req.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
                       req.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
