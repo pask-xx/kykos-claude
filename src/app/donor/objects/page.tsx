@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Object {
   id: string;
@@ -17,6 +18,7 @@ interface Object {
 export default function DonorObjectsPage() {
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'available'>('available');
 
   useEffect(() => {
     fetchObjects();
@@ -33,6 +35,10 @@ export default function DonorObjectsPage() {
       setLoading(false);
     }
   };
+
+  const filteredObjects = filter === 'available'
+    ? objects.filter(obj => obj.status === 'AVAILABLE')
+    : objects;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -67,19 +73,29 @@ export default function DonorObjectsPage() {
         <div className="text-center py-12">
           <p className="text-gray-500">Caricamento...</p>
         </div>
-      ) : objects.length === 0 ? (
+      ) : filteredObjects.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
           <span className="text-5xl mb-4 block">📦</span>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna disponibilità</h2>
-          <p className="text-gray-500 mb-6">Non hai ancora pubblicato disponibilità.</p>
-          <Link href="/donor/objects/new" className="text-primary-600 hover:text-primary-700 font-medium">
-            Pubblica il tuo primo oggetto →
-          </Link>
+          <p className="text-gray-500 mb-6">
+            {filter === 'available'
+              ? 'Non hai oggetti disponibili al momento.'
+              : 'Non hai ancora pubblicato disponibilità.'}
+          </p>
+          {filter === 'all' && (
+            <Link href="/donor/objects/new" className="text-primary-600 hover:text-primary-700 font-medium">
+              Pubblica il tuo primo oggetto →
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {objects.map((obj) => (
-            <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+          {filteredObjects.map((obj) => (
+            <Link
+              key={obj.id}
+              href={`/donor/objects/${obj.id}`}
+              className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+            >
               <div className="aspect-square bg-gray-100 flex items-center justify-center">
                 {obj.imageUrls && obj.imageUrls.length > 0 ? (
                   <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
@@ -99,7 +115,7 @@ export default function DonorObjectsPage() {
                   {obj.description || 'Nessuna descrizione'}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
