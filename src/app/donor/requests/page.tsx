@@ -3,20 +3,23 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-interface ObjectRequest {
+interface ObjectWithRequests {
   id: string;
-  objectId: string;
+  title: string;
+  description: string | null;
+  category: string;
+  condition: string;
   status: string;
+  imageUrls: string[];
   createdAt: string;
-  object: {
+  requests: Array<{
     id: string;
-    title: string;
-    imageUrls: string[];
     status: string;
-  };
-  recipient: {
-    name: string;
-  };
+    createdAt: string;
+    recipient: {
+      name: string;
+    };
+  }>;
 }
 
 interface GoodsOffer {
@@ -33,7 +36,7 @@ interface GoodsOffer {
 }
 
 export default function DonorRequestsPage() {
-  const [objectRequests, setObjectRequests] = useState<ObjectRequest[]>([]);
+  const [objects, setObjects] = useState<ObjectWithRequests[]>([]);
   const [goodsOffers, setGoodsOffers] = useState<GoodsOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,8 +49,8 @@ export default function DonorRequestsPage() {
   const fetchData = async () => {
     console.log('Fetching donor requests data...');
 
-    let objects = [];
-    let offers = [];
+    let fetchedObjects: ObjectWithRequests[] = [];
+    let fetchedOffers: GoodsOffer[] = [];
 
     try {
       console.log('Fetching objects...');
@@ -59,7 +62,7 @@ export default function DonorRequestsPage() {
         console.log('Objects response text:', text.substring(0, 500));
         try {
           const data = JSON.parse(text);
-          objects = data.objects || [];
+          fetchedObjects = data.objects || [];
         } catch (e) {
           console.error('Failed to parse objects JSON:', e);
         }
@@ -78,7 +81,7 @@ export default function DonorRequestsPage() {
         console.log('Goods offers response text:', text.substring(0, 500));
         try {
           const data = JSON.parse(text);
-          offers = data.offers || [];
+          fetchedOffers = data.offers || [];
         } catch (e) {
           console.error('Failed to parse goods offers JSON:', e);
         }
@@ -87,9 +90,9 @@ export default function DonorRequestsPage() {
       console.error('Error fetching goods offers:', e);
     }
 
-    console.log('Setting state with objects:', objects.length, 'offers:', offers.length);
-    setObjectRequests(objects);
-    setGoodsOffers(offers);
+    console.log('Setting state with objects:', fetchedObjects.length, 'offers:', fetchedOffers.length);
+    setObjects(fetchedObjects);
+    setGoodsOffers(fetchedOffers);
     setLoading(false);
   };
 
@@ -149,7 +152,7 @@ export default function DonorRequestsPage() {
             tab === 'objects' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Oggetti ({objectRequests.length})
+          Oggetti ({objects.length})
         </button>
         <button
           onClick={() => setTab('goods')}
@@ -163,7 +166,7 @@ export default function DonorRequestsPage() {
 
       {/* Objects Tab */}
       {tab === 'objects' && (
-        objectRequests.length === 0 ? (
+        objects.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
             <span className="text-5xl mb-4 block">📦</span>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna donazione di oggetti</h2>
@@ -171,27 +174,29 @@ export default function DonorRequestsPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {objectRequests.map((req) => (
+            {objects.map((obj) => (
               <Link
-                key={req.id}
-                href={`/donor/objects/${req.object.id}`}
+                key={obj.id}
+                href={`/donor/objects/${obj.id}`}
                 className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  {req.object.imageUrls && req.object.imageUrls.length > 0 ? (
-                    <img src={req.object.imageUrls[0]} alt={req.object.title} className="object-cover w-full h-full" />
+                  {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                    <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
                   ) : (
                     <span className="text-5xl">📦</span>
                   )}
                 </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    {getObjectStatusBadge(req.object.status)}
+                    {getObjectStatusBadge(obj.status)}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{req.object.title}</h3>
-                  <p className="text-sm text-gray-500">
-                    Richiesta da {req.recipient.name} • {new Date(req.createdAt).toLocaleDateString('it-IT')}
-                  </p>
+                  <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
+                  {obj.requests && obj.requests.length > 0 && (
+                    <p className="text-sm text-gray-500">
+                      Richiesta da {obj.requests[0].recipient.name} • {new Date(obj.requests[0].createdAt).toLocaleDateString('it-IT')}
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}
@@ -217,7 +222,7 @@ export default function DonorRequestsPage() {
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{offer.title}</h3>
                   <p className="text-sm text-gray-500">
-                    Per {offer.request.beneficiary.name} • {new Date(offer.createdAt).toLocaleDateString('it-IT')}
+                    Per {offer.request?.beneficiary?.name || 'N/A'} • {new Date(offer.createdAt).toLocaleDateString('it-IT')}
                   </p>
                 </div>
               </div>
