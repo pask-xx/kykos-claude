@@ -306,13 +306,20 @@ export default function ObjectDetailPage() {
                       placeholder="Scrivi un breve messaggio all'ente..."
                     />
                   </div>
-                  <button
-                    onClick={handleRequest}
-                    disabled={requesting}
-                    className="w-full py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  <ConfirmDialog
+                    title="Conferma richiesta"
+                    message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
+                    confirmLabel="Sì, richiedi"
+                    variant="primary"
+                    onConfirm={handleRequest}
                   >
-                    {requesting ? 'Invio in corso...' : 'Richiedi questo oggetto'}
-                  </button>
+                    <button
+                      disabled={requesting}
+                      className="w-full py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {requesting ? 'Invio in corso...' : 'Richiedi questo oggetto'}
+                    </button>
+                  </ConfirmDialog>
                 </div>
               )}
 
