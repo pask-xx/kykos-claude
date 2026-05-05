@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { NotificationType, RecipientType } from '@prisma/client';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
-import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
+import { generateAndUploadQrCodeWithLogoWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -311,7 +311,7 @@ export async function PATCH(request: Request) {
       // Send delivery QR code email to fulfiller (donor)
       try {
         const deliverQrData = generateDeliverQrCode(requestId, offerData.offeredById);
-        const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `goods-deliver-${requestId}.png`);
+        const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `goods-deliver-${requestId}.png`);
 
         await sendGoodsDeliveryQrNotification(
           offerData.offeredBy.email,
