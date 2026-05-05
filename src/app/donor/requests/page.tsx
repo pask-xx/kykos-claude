@@ -266,14 +266,16 @@ export default function DonorRequestsPage() {
                     </div>
                   )}
                 </div>
-                <div className="bg-green-50 px-4 py-3 border-t border-green-100">
-                  <Link
-                    href={`/donor/qr-goods/${offer.requestId}`}
-                    className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
-                  >
-                    📱 Vedi QR Code per consegna
-                  </Link>
-                </div>
+                {offer.status === 'ACCEPTED' && (
+                  <div className="bg-green-50 px-4 py-3 border-t border-green-100">
+                    <Link
+                      href={`/donor/qr-goods/${offer.requestId}`}
+                      className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+                    >
+                      📱 Vedi QR Code per consegna
+                    </Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>
