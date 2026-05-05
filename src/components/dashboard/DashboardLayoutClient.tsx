@@ -22,11 +22,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
   if (!user) return null;
 
   const showNotificationBell = ['RECIPIENT', 'DONOR', 'INTERMEDIARY'].includes(user.role);
-  const notificationApiPath = user?.role === 'DONOR'
-    ? '/api/donor/notifications'
-    : user?.role === 'INTERMEDIARY'
-    ? '/api/operator/notifications'
-    : '/api/notifications';
+  const notificationApiPath = '/api/notifications';
 
   return (
     <div className="min-h-[100svh] bg-gray-50">
