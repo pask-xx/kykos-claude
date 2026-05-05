@@ -147,7 +147,7 @@ export async function sendRequestNotification(
   `;
 
   await sendEmail({ to: toEmail, subject, html });
-  await createNotificationForUser(donorId, 'Nuova richiesta!', `${recipientName} ha richiesto "${objectTitle}"`, NotificationType.OBJECT_RESERVED, '/donor/objects');
+  await createNotificationForUser(donorId, 'Nuova richiesta!', `Hai una nuova richiesta per "${objectTitle}"`, NotificationType.OBJECT_RESERVED, '/donor/objects');
   return true;
 }
 
