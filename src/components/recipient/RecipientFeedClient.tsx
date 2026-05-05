@@ -366,7 +366,7 @@ export default function RecipientFeedClient() {
                   title="Conferma richiesta"
                   message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
                   confirmLabel="Sì, richiedi"
-                  variant="primary"
+                  variant="warning"
                   onConfirm={() => handleRequest(obj.id)}
                 >
                   <button
