@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, RequestStatus, Category, Condition } from '@/types';
 
 interface ObjectDetails {
@@ -310,7 +311,7 @@ export default function ObjectDetailPage() {
                     title="Conferma richiesta"
                     message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
                     confirmLabel="Sì, richiedi"
-                    variant="primary"
+                    variant="warning"
                     onConfirm={handleRequest}
                   >
                     <button
