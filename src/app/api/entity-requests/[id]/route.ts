@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { NotificationType, RecipientType } from '@prisma/client';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
-import { generateAndUploadQrCodeWithLogoWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
+import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
