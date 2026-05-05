@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Object {
   id: string;
@@ -27,6 +28,12 @@ export default function RecipientFeedClient() {
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string; index: number } | null>(null);
+  const [confirmRequestId, setConfirmRequestId] = useState<string | null>(null);
+  const [requestMessage, setRequestMessage] = useState<string>('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportObjectId, setReportObjectId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reporting, setReporting] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -120,7 +127,7 @@ export default function RecipientFeedClient() {
       const res = await fetch('/api/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectId }),
+        body: JSON.stringify({ objectId, message: requestMessage }),
       });
 
       if (res.ok) {
@@ -136,6 +143,35 @@ export default function RecipientFeedClient() {
       setError('Errore di connessione');
     } finally {
       setRequestingId(null);
+      setConfirmRequestId(null);
+      setRequestMessage('');
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason.trim() || !reportObjectId) return;
+
+    setReporting(true);
+    try {
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objectId: reportObjectId, reason: reportReason }),
+      });
+
+      if (res.ok) {
+        setShowReportModal(false);
+        setReportReason('');
+        setReportObjectId(null);
+        alert('Segnalazione inviata! Grazie per averci aiutato.');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nella segnalazione');
+      }
+    } catch {
+      setError('Errore di connessione');
+    } finally {
+      setReporting(false);
     }
   };
 
@@ -308,17 +344,53 @@ export default function RecipientFeedClient() {
                 </div>
               </div>
 
-              {/* Request Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRequest(obj.id);
-                }}
-                disabled={requestingId === obj.id}
-                className="w-full py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {requestingId === obj.id ? 'Invio...' : 'Richiedi'}
-              </button>
+              {/* Message Input */}
+              <div className="mb-4">
+                <label htmlFor={`message-${obj.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                  Messaggio opzionale (presentati brevemente)
+                </label>
+                <textarea
+                  id={`message-${obj.id}`}
+                  value={confirmRequestId === obj.id ? requestMessage : ''}
+                  onChange={(e) => setRequestMessage(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-sm"
+                  placeholder="Scrivi un messaggio all'ente..."
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <ConfirmDialog
+                  title="Conferma richiesta"
+                  message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
+                  confirmLabel="Sì, richiedi"
+                  variant="primary"
+                  onConfirm={() => handleRequest(obj.id)}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmRequestId(obj.id);
+                    }}
+                    disabled={requestingId === obj.id}
+                    className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {requestingId === obj.id ? 'Invio...' : 'Richiedi questo oggetto'}
+                  </button>
+                </ConfirmDialog>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setReportObjectId(obj.id);
+                    setShowReportModal(true);
+                  }}
+                  className="px-4 py-3 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-700 transition"
+                >
+                  ⚠️ Segnala
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -406,6 +478,54 @@ export default function RecipientFeedClient() {
             }
             return null;
           })()}
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Segnala problema</h2>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Segnala questo annuncio. Verrà esaminato e potrebbe essere rimosso se non rispetta le linee guida.
+            </p>
+            <div className="mb-4">
+              <label htmlFor="reportReason" className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo della segnalazione *
+              </label>
+              <textarea
+                id="reportReason"
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+                placeholder="Descrivi il problema..."
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="flex-1 py-2 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleReport}
+                disabled={reporting}
+                className="flex-1 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {reporting ? 'Invio...' : 'Invia segnalazione'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
