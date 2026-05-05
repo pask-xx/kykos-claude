@@ -36,22 +36,17 @@ export async function generateQrCodeWithLogo(data: string): Promise<string> {
   // Load QR image
   let composite = await sharp(qrBuffer).toBuffer();
 
-  // Create white circle overlay (80x80)
-  const circleSize = 80;
-  const circleBuffer = await sharp({
-    create: {
-      width: circleSize,
-      height: circleSize,
-      channels: 4,
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
-    },
-  })
-    .circle()
-    .toBuffer();
+  // Create white circle using SVG mask (sharp doesn't have .circle())
+  const circleSvg = `
+    <svg width="80" height="80">
+      <circle cx="40" cy="40" r="40" fill="white"/>
+    </svg>
+  `;
+  const circleBuffer = Buffer.from(circleSvg);
 
   // Center coordinates for 300x300 QR
   const qrSize = 300;
-  const offset = (qrSize - circleSize) / 2;
+  const offset = (qrSize - 80) / 2;
 
   // Composite white circle in center
   composite = await sharp(composite)
