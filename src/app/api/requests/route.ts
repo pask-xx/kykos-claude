@@ -120,10 +120,12 @@ export async function POST(request: Request) {
       }
     }
 
-    // Notify donor via email and in-app
-    const donorEmail = req.object.donor.email;
-    const donorName = req.object.donor.name;
-    await sendRequestNotification(donorEmail, req.object.donorId, donorName, object.title, object.id);
+    // Notify donor via email and in-app (only when NOT auto-approved - when auto-approved, QR email is sent)
+    if (!shouldAutoApprove) {
+      const donorEmail = req.object.donor.email;
+      const donorName = req.object.donor.name;
+      await sendRequestNotification(donorEmail, req.object.donorId, donorName, object.title, object.id);
+    }
 
     return NextResponse.json({ request: req, autoApproved: shouldAutoApprove });
   } catch (error) {
