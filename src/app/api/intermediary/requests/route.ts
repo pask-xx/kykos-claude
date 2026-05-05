@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { sendDeliveryQrNotification, sendPickupQrNotification, sendDonationConfirmedNotification } from '@/lib/email';
-import { generateAndUploadQrCode, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
 
 export async function GET() {
   try {
