@@ -64,8 +64,8 @@ export async function GET(
     // Generate QR codes
     const deliverQrData = generateDeliverQrCode(requestId, goodsRequest.fulfilledById!, 'goods');
     const pickupQrData = generatePickupQrCode(requestId, goodsRequest.beneficiaryId, 'goods');
-    const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `goods-deliver-${requestId}.png`);
-    const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `goods-pickup-${requestId}.png`);
+    const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `goods-deliver-${requestId}.png`);
+    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `goods-pickup-${requestId}.png`);
 
     return NextResponse.json({
       goodsRequest: {

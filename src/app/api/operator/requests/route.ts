@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
-import { generateDeliverQrCode, generatePickupQrCode, generateAndUploadQrCode } from '@/lib/qrcode';
+import { generateDeliverQrCode, generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 import { sendDeliveryQrNotification } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -148,7 +148,8 @@ export async function PATCH(request: Request) {
       // Generate QR codes
       const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
       const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-      const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
+      const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`);
+      const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
 
       // Update request, object and create donation in transaction
       await prisma.$transaction(async (tx) => {

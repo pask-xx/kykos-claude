@@ -96,8 +96,8 @@ export async function PATCH(request: Request) {
       // Generate both QR codes
       const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
       const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-      const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
-      const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
+      const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`);
+      const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
 
       // Approve and create donation
       await prisma.$transaction(async (tx) => {
