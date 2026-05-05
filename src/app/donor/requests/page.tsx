@@ -36,6 +36,7 @@ export default function DonorRequestsPage() {
   const [objectRequests, setObjectRequests] = useState<ObjectRequest[]>([]);
   const [goodsOffers, setGoodsOffers] = useState<GoodsOffer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'objects' | 'goods'>('objects');
 
   useEffect(() => {
@@ -43,40 +44,53 @@ export default function DonorRequestsPage() {
   }, []);
 
   const fetchData = async () => {
-    try {
-      const [objectsRes, goodsRes] = await Promise.all([
-        fetch('/api/donor/objects?filter=requests'),
-        fetch('/api/donor/goods-offers'),
-      ]);
+    console.log('Fetching donor requests data...');
 
-      let objects = [];
-      let offers = [];
+    let objects = [];
+    let offers = [];
+
+    try {
+      console.log('Fetching objects...');
+      const objectsRes = await fetch('/api/donor/objects?filter=requests');
+      console.log('Objects response status:', objectsRes.status);
 
       if (objectsRes.ok) {
+        const text = await objectsRes.text();
+        console.log('Objects response text:', text.substring(0, 500));
         try {
-          const objectsData = await objectsRes.json();
-          objects = objectsData.objects || [];
-        } catch {
-          console.error('Failed to parse objects response');
+          const data = JSON.parse(text);
+          objects = data.objects || [];
+        } catch (e) {
+          console.error('Failed to parse objects JSON:', e);
         }
       }
+    } catch (e) {
+      console.error('Error fetching objects:', e);
+    }
+
+    try {
+      console.log('Fetching goods offers...');
+      const goodsRes = await fetch('/api/donor/goods-offers');
+      console.log('Goods offers response status:', goodsRes.status);
 
       if (goodsRes.ok) {
+        const text = await goodsRes.text();
+        console.log('Goods offers response text:', text.substring(0, 500));
         try {
-          const goodsData = await goodsRes.json();
-          offers = goodsData.offers || [];
-        } catch {
-          console.error('Failed to parse goods offers response');
+          const data = JSON.parse(text);
+          offers = data.offers || [];
+        } catch (e) {
+          console.error('Failed to parse goods offers JSON:', e);
         }
       }
-
-      setObjectRequests(objects);
-      setGoodsOffers(offers);
-    } catch (err) {
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error('Error fetching goods offers:', e);
     }
+
+    console.log('Setting state with objects:', objects.length, 'offers:', offers.length);
+    setObjectRequests(objects);
+    setGoodsOffers(offers);
+    setLoading(false);
   };
 
   const getStatusBadge = (status: string) => {
