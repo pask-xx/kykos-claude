@@ -37,8 +37,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
+    console.log('Fetching notifications for user:', session.userId, 'role:', session.role);
+
     const notifications = await getNotifications(session.userId, RecipientType.USER);
     const unreadCount = await getUnreadCount(session.userId, RecipientType.USER);
+
+    console.log('Found notifications:', notifications.length, 'unread:', unreadCount);
 
     return NextResponse.json({ notifications, unreadCount });
   } catch (error) {
