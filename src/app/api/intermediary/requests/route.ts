@@ -94,8 +94,8 @@ export async function PATCH(request: Request) {
 
     if (action === 'approve') {
       // Generate both QR codes
-      const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId);
-      const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+      const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
+      const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
       const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
       const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
 

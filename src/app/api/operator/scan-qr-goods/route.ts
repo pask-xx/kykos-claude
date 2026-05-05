@@ -62,6 +62,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'QR code non valido' }, { status: 400 });
     }
 
+    // Only handle goods type QR codes in this endpoint
+    if (parsed.subType !== 'goods') {
+      return NextResponse.json({ error: 'Tipo QR non supportato in questo endpoint' }, { status: 400 });
+    }
+
     // Only handle deliver type for goods requests (pickup is handled separately)
     if (parsed.type !== 'deliver') {
       return NextResponse.json({ error: 'Tipo QR non supportato per goods requests' }, { status: 400 });
@@ -137,7 +142,7 @@ export async function POST(request: Request) {
     });
 
     // Generate pickup QR and send to beneficiary
-    const pickupQrData = generatePickupQrCode(requestId, goodsRequest.beneficiaryId);
+    const pickupQrData = generatePickupQrCode(requestId, goodsRequest.beneficiaryId, 'goods');
     const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `goods-pickup-${requestId}.png`);
 
     await sendGoodsPickupQrNotification(

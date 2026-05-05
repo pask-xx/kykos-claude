@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
       // Generate and send delivery QR code to donor
       try {
-        const qrData = generateDeliverQrCode(req.id, req.object.donorId);
+        const qrData = generateDeliverQrCode(req.id, req.object.donorId, 'object');
         const qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, `object-deliver-${req.id}.png`);
 
         await sendDeliveryQrNotification(

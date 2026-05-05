@@ -109,7 +109,7 @@ export async function POST(
     });
 
     // Generate pickup QR and send to beneficiary
-    const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+    const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
     const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
 
     await sendPickupQrNotification(

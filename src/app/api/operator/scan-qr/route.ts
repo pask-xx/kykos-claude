@@ -65,7 +65,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'QR code non valido' }, { status: 400 });
     }
 
-    const { type, requestId, userId } = parsed;
+    const { type, subType, requestId, userId } = parsed;
+
+    // Only handle object type QR codes in this endpoint
+    if (subType !== 'object') {
+      return NextResponse.json({ error: 'Tipo QR non supportato in questo endpoint' }, { status: 400 });
+    }
 
     const req = await prisma.request.findUnique({
       where: { id: requestId },
@@ -126,7 +131,7 @@ export async function POST(request: Request) {
       });
 
       // Generate pickup QR and send to beneficiary
-      const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+      const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
       const pickupQrImage = await generateAndUploadQrCode(pickupQrData, `pickup-${requestId}.png`);
       await sendPickupQrNotification(
         req.recipient.email,

@@ -136,15 +136,15 @@ export async function generateAndUploadQrCodeWithLogo(data: string, filename: st
   return urlData.publicUrl;
 }
 
-export function generateDeliverQrCode(requestId: string, donorId: string): string {
-  return `kykos:deliver:${requestId}:${donorId}`;
+export function generateDeliverQrCode(requestId: string, userId: string, type: 'object' | 'goods' = 'object'): string {
+  return `kykos:${type}:deliver:${requestId}:${userId}`;
 }
 
-export function generatePickupQrCode(requestId: string, beneficiaryId: string): string {
-  return `kykos:pickup:${requestId}:${beneficiaryId}`;
+export function generatePickupQrCode(requestId: string, userId: string, type: 'object' | 'goods' = 'object'): string {
+  return `kykos:${type}:pickup:${requestId}:${userId}`;
 }
 
-export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; requestId: string; userId: string } | null {
+export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; subType: 'object' | 'goods'; requestId: string; userId: string } | null {
   if (typeof data !== 'string') {
     console.log('parseQrCodeData: data is not a string, got:', typeof data);
     return null;
@@ -152,16 +152,24 @@ export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; req
 
   console.log('parseQrCodeData: parsing', data);
 
-  const deliverMatch = data.match(/^kykos:deliver:(.+):(.+)$/);
-  if (deliverMatch) {
-    console.log('parseQrCodeData: matched deliver, requestId=', deliverMatch[1], 'userId=', deliverMatch[2]);
-    return { type: 'deliver', requestId: deliverMatch[1], userId: deliverMatch[2] };
+  // New format: kykos:{subType}:deliver/pickup:requestId:userId
+  const newMatch = data.match(/^kykos:(object|goods):(deliver|pickup):(.+):(.+)$/);
+  if (newMatch) {
+    console.log('parseQrCodeData: matched new format, subType=', newMatch[1], 'action=', newMatch[2], 'requestId=', newMatch[3], 'userId=', newMatch[4]);
+    return { type: newMatch[2] as 'deliver' | 'pickup', subType: newMatch[1] as 'object' | 'goods', requestId: newMatch[3], userId: newMatch[4] };
   }
 
-  const pickupMatch = data.match(/^kykos:pickup:(.+):(.+)$/);
-  if (pickupMatch) {
-    console.log('parseQrCodeData: matched pickup, requestId=', pickupMatch[1], 'userId=', pickupMatch[2]);
-    return { type: 'pickup', requestId: pickupMatch[1], userId: pickupMatch[2] };
+  // Legacy format: kykos:deliver/pickup:requestId:userId (treated as object type for backward compatibility)
+  const legacyDeliverMatch = data.match(/^kykos:deliver:(.+):(.+)$/);
+  if (legacyDeliverMatch) {
+    console.log('parseQrCodeData: matched legacy deliver, requestId=', legacyDeliverMatch[1], 'userId=', legacyDeliverMatch[2]);
+    return { type: 'deliver', subType: 'object', requestId: legacyDeliverMatch[1], userId: legacyDeliverMatch[2] };
+  }
+
+  const legacyPickupMatch = data.match(/^kykos:pickup:(.+):(.+)$/);
+  if (legacyPickupMatch) {
+    console.log('parseQrCodeData: matched legacy pickup, requestId=', legacyPickupMatch[1], 'userId=', legacyPickupMatch[2]);
+    return { type: 'pickup', subType: 'object', requestId: legacyPickupMatch[1], userId: legacyPickupMatch[2] };
   }
 
   console.log('parseQrCodeData: no match found, data length:', data.length);

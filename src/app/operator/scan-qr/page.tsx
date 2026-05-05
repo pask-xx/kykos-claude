@@ -88,23 +88,47 @@ export default function ScanQrPage() {
         setScanning(false);
         setShowCamera(false);
 
-        // Check if it's a deliver QR (format: kykos:deliver:requestId:donorId)
-        if (qrData.startsWith('kykos:deliver:')) {
-          // Parse to get requestId
+        // New format: kykos:{subType}:deliver/pickup:requestId:userId
+        if (qrData.startsWith('kykos:object:deliver:')) {
           const parts = qrData.split(':');
-          const requestId = parts[2];
-          // Navigate to goods-deposit page (handles both object donations and goods requests)
+          const requestId = parts[3];
+          router.push(`/operator/deposit/${requestId}`);
+          return;
+        }
+
+        if (qrData.startsWith('kykos:object:pickup:')) {
+          const parts = qrData.split(':');
+          const requestId = parts[3];
+          router.push(`/operator/pickup/${requestId}`);
+          return;
+        }
+
+        if (qrData.startsWith('kykos:goods:deliver:')) {
+          const parts = qrData.split(':');
+          const requestId = parts[3];
           router.push(`/operator/goods-deposit/${requestId}`);
           return;
         }
 
-        // Check if it's a pickup QR (format: kykos:pickup:requestId:beneficiaryId)
-        if (qrData.startsWith('kykos:pickup:')) {
-          // Parse to get requestId
+        if (qrData.startsWith('kykos:goods:pickup:')) {
+          const parts = qrData.split(':');
+          const requestId = parts[3];
+          router.push(`/operator/goods-pickup/${requestId}`);
+          return;
+        }
+
+        // Legacy format (without subType) - treat as object for backward compatibility
+        if (qrData.startsWith('kykos:deliver:')) {
           const parts = qrData.split(':');
           const requestId = parts[2];
-          // Navigate to goods-pickup page (handles both object donations and goods requests)
-          router.push(`/operator/goods-pickup/${requestId}`);
+          router.push(`/operator/deposit/${requestId}`);
+          return;
+        }
+
+        if (qrData.startsWith('kykos:pickup:')) {
+          const parts = qrData.split(':');
+          const requestId = parts[2];
+          router.push(`/operator/pickup/${requestId}`);
           return;
         }
 
@@ -120,10 +144,10 @@ export default function ScanQrPage() {
             return;
           }
         } catch {
-          // Not JSON, continue to processScan
+          // Not JSON, continue to error
         }
 
-        processScan(qrData);
+        setError('QR code non riconosciuto');
       }, {
         returnDetailedScanResult: true,
         highlightScanRegion: true,

@@ -146,8 +146,8 @@ export async function PATCH(request: Request) {
       });
 
       // Generate QR codes
-      const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId);
-      const pickupQrData = generatePickupQrCode(requestId, req.recipientId);
+      const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
+      const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
       const deliverQrImage = await generateAndUploadQrCode(deliverQrData, `deliver-${requestId}.png`);
 
       // Update request, object and create donation in transaction
