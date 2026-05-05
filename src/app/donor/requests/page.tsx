@@ -188,30 +188,39 @@ export default function DonorRequestsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {objects.map((obj) => (
-              <Link
-                key={obj.id}
-                href={`/donor/objects/${obj.id}`}
-                className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                    <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                  ) : (
-                    <span className="text-5xl">📦</span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    {getObjectStatusBadge(obj.status)}
+              <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                <Link
+                  href={`/donor/objects/${obj.id}`}
+                  className="block"
+                >
+                  <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                    {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                      <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-5xl">📦</span>
+                    )}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                  {obj.requests && obj.requests.length > 0 && (
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      {getObjectStatusBadge(obj.status)}
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
                     <p className="text-sm text-gray-500">
-                      Richiesta da {obj.requests[0].recipient.name} • {new Date(obj.requests[0].createdAt).toLocaleDateString('it-IT')}
+                      {new Date(obj.createdAt).toLocaleDateString('it-IT')}
                     </p>
-                  )}
-                </div>
-              </Link>
+                  </div>
+                </Link>
+                {['RESERVED', 'DEPOSITED'].includes(obj.status) && obj.requests && obj.requests.length > 0 && (
+                  <div className="px-4 pb-4">
+                    <Link
+                      href={`/donor/delivery-qr/${obj.requests[0].id}`}
+                      className="block w-full text-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm"
+                    >
+                      📱 QR Code per consegna
+                    </Link>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )
