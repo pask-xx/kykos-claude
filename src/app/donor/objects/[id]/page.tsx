@@ -242,6 +242,24 @@ export default function DonorObjectDetailPage() {
             </div>
           )}
 
+          {/* QR Code for delivery */}
+          {['RESERVED', 'DEPOSITED'].includes(object.status) && object.requests.length > 0 && (
+            <div className="mb-6 border-t pt-6">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">QR Code per la consegna</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Usa questo QR code per consegnare l'oggetto all'ente. Mostralo quando arrivi con la donazione.
+              </p>
+              <div className="flex gap-3">
+                <a
+                  href={`/donor/delivery-qr/${object.requests[0].id}`}
+                  className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-center"
+                >
+                  📱 Visualizza QR Code
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           {canDelete && (
             <div className="border-t pt-6">
