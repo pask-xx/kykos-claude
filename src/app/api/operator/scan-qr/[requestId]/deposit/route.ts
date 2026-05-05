@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { parseQrCodeData } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
-import { generatePickupQrCode, generateAndUploadQrCode } from '@/lib/qrcode';
+import { generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'

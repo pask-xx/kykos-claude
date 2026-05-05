@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { parseQrCodeData, generatePickupQrCode, generateAndUploadQrCode } from '@/lib/qrcode';
+import { parseQrCodeData, generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
 import { hasPermission } from '@/lib/permissions';
 
