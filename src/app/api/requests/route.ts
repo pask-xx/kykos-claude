@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { sendRequestNotification } from '@/lib/email';
+import { sendRequestNotification, sendDeliveryQrNotification } from '@/lib/email';
+import { generateAndUploadQrCode, generateDeliverQrCode } from '@/lib/qrcode';
 
 export async function POST(request: Request) {
   try {
@@ -91,6 +92,32 @@ export async function POST(request: Request) {
         where: { id: objectId },
         data: { status: 'RESERVED' },
       });
+
+      // Generate and send delivery QR code to donor
+      try {
+        const qrData = generateDeliverQrCode(req.id, req.object.donorId);
+        const qrImageUrl = await generateAndUploadQrCode(qrData, `object-deliver-${req.id}.png`);
+
+        await sendDeliveryQrNotification(
+          req.object.donor.email,
+          req.object.donorId,
+          req.object.donor.name,
+          object.title,
+          qrData,
+          qrImageUrl,
+          object.intermediary.name,
+          object.intermediary.address,
+          object.intermediary.houseNumber,
+          object.intermediary.cap,
+          object.intermediary.city,
+          object.intermediary.province,
+          object.intermediary.phone,
+          object.intermediary.email,
+          object.intermediary.hoursInfo
+        );
+      } catch (qrError) {
+        console.error('Error generating/sending delivery QR:', qrError);
+      }
     }
 
     // Notify donor via email and in-app
