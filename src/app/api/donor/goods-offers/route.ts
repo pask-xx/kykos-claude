@@ -16,11 +16,10 @@ export async function GET() {
       },
       include: {
         request: {
-          select: {
-            id: true,
-            title: true,
-            category: true,
-            status: true,
+          include: {
+            beneficiary: {
+              select: { name: true },
+            },
           },
         },
       },
