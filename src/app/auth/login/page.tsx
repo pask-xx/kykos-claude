@@ -172,6 +172,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden mb-8 flex items-center gap-3">
+            <img src="/albero.svg" alt="KYKOS" className="h-12" />
             <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-12" />
           </div>
 
