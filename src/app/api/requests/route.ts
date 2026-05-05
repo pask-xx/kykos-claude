@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { sendRequestNotification, sendDeliveryQrNotification } from '@/lib/email';
-import { generateAndUploadQrCode, generateDeliverQrCode } from '@/lib/qrcode';
+import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 
 export async function POST(request: Request) {
   try {
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       // Generate and send delivery QR code to donor
       try {
         const qrData = generateDeliverQrCode(req.id, req.object.donorId);
-        const qrImageUrl = await generateAndUploadQrCode(qrData, `object-deliver-${req.id}.png`);
+        const qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, `object-deliver-${req.id}.png`);
 
         await sendDeliveryQrNotification(
           req.object.donor.email,
