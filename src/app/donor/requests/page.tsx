@@ -48,10 +48,30 @@ export default function DonorRequestsPage() {
         fetch('/api/donor/objects?filter=requests'),
         fetch('/api/donor/goods-offers'),
       ]);
-      const objectsData = await objectsRes.json();
-      const goodsData = await goodsRes.json();
-      setObjectRequests(objectsData.objects || []);
-      setGoodsOffers(goodsData.offers || []);
+
+      let objects = [];
+      let offers = [];
+
+      if (objectsRes.ok) {
+        try {
+          const objectsData = await objectsRes.json();
+          objects = objectsData.objects || [];
+        } catch {
+          console.error('Failed to parse objects response');
+        }
+      }
+
+      if (goodsRes.ok) {
+        try {
+          const goodsData = await goodsRes.json();
+          offers = goodsData.offers || [];
+        } catch {
+          console.error('Failed to parse goods offers response');
+        }
+      }
+
+      setObjectRequests(objects);
+      setGoodsOffers(offers);
     } catch (err) {
       console.error('Error:', err);
     } finally {
