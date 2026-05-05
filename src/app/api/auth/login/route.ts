@@ -14,9 +14,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Authenticate with Supabase Auth
+    // Authenticate with Supabase Auth (case insensitive for email)
     const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-      email,
+      email: email.toLowerCase(),
       password,
     });
 
@@ -27,9 +27,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find or create user in KYKOS DB
+    // Find or create user in KYKOS DB (email already lowercase from auth)
+    const normalizedEmail = email.toLowerCase();
     let user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     // If user doesn't exist but has Supabase auth, they might need to complete registration
