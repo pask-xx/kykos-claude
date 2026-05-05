@@ -60,6 +60,7 @@ export async function POST(request: Request) {
     }
 
     const parsed = parseQrCodeData(qrData);
+    console.log('Parsed QR result:', parsed);
     if (!parsed) {
       return NextResponse.json({ error: 'QR code non valido' }, { status: 400 });
     }

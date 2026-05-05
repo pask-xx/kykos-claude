@@ -145,17 +145,25 @@ export function generatePickupQrCode(requestId: string, beneficiaryId: string): 
 }
 
 export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; requestId: string; userId: string } | null {
-  if (typeof data !== 'string') return null;
+  if (typeof data !== 'string') {
+    console.log('parseQrCodeData: data is not a string, got:', typeof data);
+    return null;
+  }
+
+  console.log('parseQrCodeData: parsing', data);
 
   const deliverMatch = data.match(/^kykos:deliver:(.+):(.+)$/);
   if (deliverMatch) {
+    console.log('parseQrCodeData: matched deliver, requestId=', deliverMatch[1], 'userId=', deliverMatch[2]);
     return { type: 'deliver', requestId: deliverMatch[1], userId: deliverMatch[2] };
   }
 
   const pickupMatch = data.match(/^kykos:pickup:(.+):(.+)$/);
   if (pickupMatch) {
+    console.log('parseQrCodeData: matched pickup, requestId=', pickupMatch[1], 'userId=', pickupMatch[2]);
     return { type: 'pickup', requestId: pickupMatch[1], userId: pickupMatch[2] };
   }
 
+  console.log('parseQrCodeData: no match found, data length:', data.length);
   return null;
 }
