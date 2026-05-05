@@ -279,8 +279,9 @@ export default function RecipientEntityRequestsPage() {
         ) : (
           <div className="grid gap-4">
             {objectRequests.map((request) => (
-              <div
+              <Link
                 key={request.id}
+                href={`/recipient/objects/${request.object.id}`}
                 className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition"
               >
                 <div className="flex gap-4">
@@ -306,7 +307,7 @@ export default function RecipientEntityRequestsPage() {
                     )}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )
