@@ -181,22 +181,6 @@ export default function ObjectDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/recipient/objects" className="text-2xl font-bold text-primary-600">KYKOS</Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/recipient/dashboard" className="text-gray-600 hover:text-primary-600 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/recipient/objects" className="text-gray-600 hover:text-primary-600 font-medium">
-                Oggetti
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <Link href="/recipient/objects" className="text-gray-500 hover:text-gray-700 text-sm mb-4 inline-block">
           ← Torna agli oggetti
