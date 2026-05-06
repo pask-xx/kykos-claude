@@ -370,10 +370,6 @@ export default function RecipientFeedClient() {
                   onConfirm={() => handleRequest(obj.id)}
                 >
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmRequestId(obj.id);
-                    }}
                     disabled={requestingId === obj.id}
                     className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
