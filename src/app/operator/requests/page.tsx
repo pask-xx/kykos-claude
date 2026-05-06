@@ -15,6 +15,7 @@ interface Request {
     imageUrls: string[];
     category: string;
     condition: string;
+    status: string;
   };
   recipient: {
     id: string;
@@ -22,6 +23,25 @@ interface Request {
     email: string;
   };
 }
+
+const categoryLabels: Record<string, string> = {
+  FURNITURE: 'Arredamento',
+  ELECTRONICS: 'Elettronica',
+  CLOTHING: 'Abbigliamento',
+  BOOKS: 'Libri',
+  KITCHEN: 'Cucina',
+  SPORTS: 'Sport',
+  TOYS: 'Giocattoli',
+  OTHER: 'Altro',
+};
+
+const conditionLabels: Record<string, string> = {
+  NEW: 'Nuovo',
+  LIKE_NEW: 'Come nuovo',
+  GOOD: 'Buono',
+  FAIR: 'Discreto',
+  POOR: 'Usurato',
+};
 
 export default function OperatorRequestsPage() {
   const searchParams = useSearchParams();
@@ -80,6 +100,19 @@ export default function OperatorRequestsPage() {
         return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Rifiutata</span>;
       default:
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>
+    }
+  };
+
+  const getObjectStatusBadge = (status: string) => {
+    switch (status) {
+      case 'RESERVED':
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Riservato</span>;
+      case 'DEPOSITED':
+        return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Depositato</span>;
+      case 'DONATED':
+        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Donato</span>;
+      default:
+        return null;
     }
   };
 
@@ -167,10 +200,11 @@ export default function OperatorRequestsPage() {
               {/* Row 2: Category + Condition */}
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
-                  {req.object.category}
+                  {categoryLabels[req.object.category] || req.object.category}
                 </span>
                 <span>•</span>
-                <span>{req.object.condition}</span>
+                <span>{conditionLabels[req.object.condition] || req.object.condition}</span>
+                {getObjectStatusBadge(req.object.status)}
               </div>
 
               {/* Row 3: Beneficiary + Status */}

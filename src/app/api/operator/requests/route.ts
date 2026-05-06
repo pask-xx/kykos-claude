@@ -62,6 +62,7 @@ export async function GET() {
             imageUrls: true,
             category: true,
             condition: true,
+            status: true,
           },
         },
         recipient: {
