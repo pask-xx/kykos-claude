@@ -107,7 +107,7 @@ export default async function RecipientToDeliverAndPickupPage() {
                     <p className="text-xs text-blue-600">QR Code pronto</p>
                   </div>
                   <Link
-                    href={`/recipient/qr/${donation.object.id}`}
+                    href={`/recipient/qr/${donation.requestId}`}
                     className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium flex-shrink-0"
                   >
                     📱 QR Code
@@ -139,7 +139,7 @@ export default async function RecipientToDeliverAndPickupPage() {
                     <p className="text-xs text-green-600">Pronto per il ritiro</p>
                   </div>
                   <Link
-                    href={`/recipient/qr/${req.object.id}`}
+                    href={`/recipient/qr/${req.id}`}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex-shrink-0"
                   >
                     📱 QR Ritiro
