@@ -171,9 +171,9 @@ export default function OperatorSidebar({
         >
           <span className="text-xl">☰</span>
         </button>
-        <Link href="/operator/dashboard" className="flex items-center gap-2">
-          <img src="/albero.svg" alt="KYKOS" className="w-8 h-8" />
-          <span className="text-xl font-bold text-primary-600">KYKOS</span>
+        <Link href="/operator/dashboard" className="flex items-center gap-3">
+          <img src="/albero.svg" alt="KYKOS" className="h-14" />
+          <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
         </Link>
         <NotificationBell apiPath="/api/operator/notifications" bellSize="sm" />
       </header>
