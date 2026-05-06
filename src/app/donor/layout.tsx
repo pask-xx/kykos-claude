@@ -34,6 +34,24 @@ export default async function DonorLayout({ children }: { children: React.ReactN
     select: { id: true },
   }).then(result => !!result);
 
+  // Count pending deliveries (object donations with RESERVED status + goods offers with ACCEPTED status)
+  const [reservedObjectsCount, acceptedGoodsCount] = await Promise.all([
+    prisma.donation.count({
+      where: {
+        donorId: session.id,
+        object: { status: 'RESERVED' },
+      },
+    }),
+    prisma.goodsOffer.count({
+      where: {
+        offeredById: session.id,
+        status: 'ACCEPTED',
+      },
+    }),
+  ]);
+
+  const pendingDeliveryCount = reservedObjectsCount + acceptedGoodsCount;
+
   const userData = user ? {
     id: user.id,
     email: user.email,
@@ -42,7 +60,7 @@ export default async function DonorLayout({ children }: { children: React.ReactN
   } : null;
 
   return (
-    <DashboardLayoutClient user={userData} hasApprovedVolunteer={hasApprovedVolunteer}>
+    <DashboardLayoutClient user={userData} hasApprovedVolunteer={hasApprovedVolunteer} pendingDeliveryCount={pendingDeliveryCount}>
       {children}
     </DashboardLayoutClient>
   );

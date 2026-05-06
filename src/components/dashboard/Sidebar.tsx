@@ -11,6 +11,7 @@ interface NavItem {
   label: string;
   icon: string;
   isManifesto?: boolean;
+  badge?: number;
 }
 
 const recipientNavBase: NavItem[] = [
@@ -52,6 +53,7 @@ interface SidebarProps {
   userName: string;
   userEmail: string;
   hasApprovedVolunteer?: boolean;
+  pendingDeliveryCount?: number;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -65,7 +67,7 @@ function getDashboardHref(role: string): string {
   return `/${role.toLowerCase()}/dashboard`;
 }
 
-function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', hasApprovedVolunteer: boolean): NavItem[] {
+function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', hasApprovedVolunteer: boolean, pendingDeliveryCount: number = 0): NavItem[] {
   const volunteerItem: NavItem = hasApprovedVolunteer
     ? { href: '/volunteer', label: 'Volontariato', icon: '🤝' }
     : { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' };
@@ -74,20 +76,26 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
     return [...recipientNavBase, volunteerItem];
   }
   if (role === 'DONOR') {
-    return [...donorNavBase, volunteerItem];
+    const toDeliverItem: NavItem = {
+      href: '/donor/to-deliver',
+      label: 'Da consegnare',
+      icon: '📦',
+      badge: pendingDeliveryCount,
+    };
+    return [...donorNavBase, toDeliverItem, volunteerItem];
   }
   // For INTERMEDIARY and ADMIN, return as-is (no volunteer item in nav)
   return role === 'INTERMEDIARY' ? intermediaryNav : adminNav;
 }
 
-export default function Sidebar({ role, userName, userEmail, hasApprovedVolunteer = false }: SidebarProps) {
+export default function Sidebar({ role, userName, userEmail, hasApprovedVolunteer = false, pendingDeliveryCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showManifesto, setShowManifesto] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navItems = buildNavItems(role, hasApprovedVolunteer);
+  const navItems = buildNavItems(role, hasApprovedVolunteer, pendingDeliveryCount);
 
   const handleMouseEnter = useCallback(() => {
     if (timeoutRef.current) {
@@ -156,6 +164,11 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
                 >
                   <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
                   <span className="font-medium">{item.label}</span>
                 </button>
               );
@@ -166,13 +179,18 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                className={`relative flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-primary-50 text-primary-700'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <span className="text-xl flex-shrink-0">{item.icon}</span>
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
                 <span className="font-medium">{item.label}</span>
               </Link>
             );
@@ -223,6 +241,11 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
                   className={`w-full flex items-center gap-3 px-2 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 ${expanded ? 'justify-start' : 'justify-center'}`}
                   title={!expanded ? item.label : undefined}
                 >
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
                   <span className="text-xl flex-shrink-0">{item.icon}</span>
                   {expanded && (
                     <span className="font-medium truncate">{item.label}</span>
@@ -235,7 +258,7 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-2 py-3 rounded-lg transition-colors ${
+                className={`relative flex items-center gap-3 px-2 py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-primary-50 text-primary-700'
                     : 'text-gray-600 hover:bg-gray-50'
