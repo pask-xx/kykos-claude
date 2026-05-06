@@ -35,6 +35,30 @@ export default async function RecipientLayout({ children }: { children: React.Re
     select: { id: true },
   }).then(result => !!result);
 
+  // Count pending: Consegne (donations with RESERVED) + Ritiri (requests with DEPOSITED + goodsRequests DELIVERED)
+  const [deliveriesCount, objectPickupsCount, goodsPickupsCount] = await Promise.all([
+    prisma.donation.count({
+      where: {
+        donorId: session.id,
+        object: { status: 'RESERVED' },
+      },
+    }),
+    prisma.request.count({
+      where: {
+        recipientId: session.id,
+        object: { status: 'DEPOSITED' },
+      },
+    }),
+    prisma.goodsRequest.count({
+      where: {
+        beneficiaryId: session.id,
+        status: 'DELIVERED',
+      },
+    }),
+  ]);
+
+  const pendingDeliveryCount = deliveriesCount + objectPickupsCount + goodsPickupsCount;
+
   const userData = user ? {
     id: user.id,
     email: user.email,
@@ -43,7 +67,7 @@ export default async function RecipientLayout({ children }: { children: React.Re
   } : null;
 
   return (
-    <DashboardLayoutClient user={userData} hasApprovedVolunteer={hasApprovedVolunteer}>
+    <DashboardLayoutClient user={userData} hasApprovedVolunteer={hasApprovedVolunteer} pendingDeliveryCount={pendingDeliveryCount}>
       {children}
     </DashboardLayoutClient>
   );

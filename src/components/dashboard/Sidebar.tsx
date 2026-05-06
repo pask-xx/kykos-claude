@@ -73,7 +73,13 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
     : { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' };
 
   if (role === 'RECIPIENT') {
-    return [...recipientNavBase, volunteerItem];
+    const toDeliverItem: NavItem = {
+      href: '/recipient/to-deliver-and-pickup',
+      label: 'Consegne e Ritiri',
+      icon: '📦',
+      badge: pendingDeliveryCount,
+    };
+    return [...recipientNavBase, toDeliverItem, volunteerItem];
   }
   if (role === 'DONOR') {
     const toDeliverItem: NavItem = {
