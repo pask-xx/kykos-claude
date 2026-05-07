@@ -178,11 +178,6 @@ export default function PickupLocationPage() {
   }, [showVerifyScanner, cameraId]);
 
   const handleCompletePickup = async () => {
-    if (!verified) {
-      setError('Devi verificare l\'oggetto prima di confermare il ritiro');
-      return;
-    }
-
     setCompleting(true);
     try {
       const res = await fetch(`/api/operator/scan-qr/pickup`, {
@@ -327,37 +322,31 @@ export default function PickupLocationPage() {
                 </div>
               )}
 
-              {/* Verification Section */}
+              {/* Verification Section (Optional) */}
               <div className="border-2 border-dashed rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-medium text-gray-700">Verifica oggetto</span>
+                  <span className="font-medium text-gray-700">Verifica oggetto (opzionale)</span>
                   {verified ? (
                     <span className="text-green-600 font-semibold flex items-center gap-1">
                       ✓ Verificato
                     </span>
-                  ) : (
-                    <span className="text-amber-600 font-semibold">Da verificare</span>
-                  )}
+                  ) : null}
                 </div>
 
-                {!verified && (
-                  <>
-                    <p className="text-sm text-gray-500 mb-3">
-                      Scansiona il QR code sull&apos;oggetto per verificare che sia quello corretto
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setShowVerifyScanner(!showVerifyScanner)}
-                      className={`w-full py-3 rounded-lg font-medium ${
-                        showVerifyScanner
-                          ? 'bg-gray-200 text-gray-700'
-                          : 'bg-primary-600 text-white hover:bg-primary-700'
-                      }`}
-                    >
-                      📷 {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
-                    </button>
-                  </>
-                )}
+                <p className="text-sm text-gray-500 mb-3">
+                  Puoi scansionare il QR code sull&apos;oggetto per verificare che sia quello corretto
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowVerifyScanner(!showVerifyScanner)}
+                  className={`w-full py-3 rounded-lg font-medium ${
+                    showVerifyScanner
+                      ? 'bg-gray-200 text-gray-700'
+                      : 'bg-primary-600 text-white hover:bg-primary-700'
+                  }`}
+                >
+                  📷 {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
+                </button>
 
                 {showVerifyScanner && (
                   <div className="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
@@ -395,21 +384,14 @@ export default function PickupLocationPage() {
               <div className="space-y-4">
                 <button
                   onClick={handleCompletePickup}
-                  disabled={completing || !verified}
-                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={completing}
+                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50"
                 >
                   {completing ? 'Elaborazione...' : 'Conferma Ritiro Completato'}
                 </button>
-                {!verified && (
-                  <p className="text-xs text-gray-500 text-center">
-                    Devi verificare l&apos;oggetto prima di confermare
-                  </p>
-                )}
-                {verified && (
-                  <p className="text-xs text-green-600 text-center">
-                    ✓ Oggetto verificato, puoi confermare il ritiro
-                  </p>
-                )}
+                <p className="text-xs text-gray-500 text-center">
+                  Puoi verificare l&apos;oggetto con il QR code oppure procedere direttamente
+                </p>
               </div>
             </>
           )}
