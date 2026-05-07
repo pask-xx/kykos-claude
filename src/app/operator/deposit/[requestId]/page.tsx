@@ -187,36 +187,38 @@ export default function DepositLocationPage() {
             * { margin: 0; padding: 0; box-sizing: border-box; }
             html, body { width: 50mm; height: ${labelHeight}; }
             .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
-            .qr-row { display: flex; gap: 2mm; margin-bottom: 1mm; }
+            .top-row { display: flex; gap: 2mm; }
             .qr-area { width: 23mm; height: 23mm; flex-shrink: 0; }
             .qr-area img { width: 23mm; height: 23mm; }
+            .info-box { width: 23mm; display: flex; flex-direction: column; gap: 1mm; }
             .logo-row { display: flex; align-items: center; gap: 1mm; }
             .logo-row img { height: 5mm; width: auto; }
-            .logo-row span { font-size: 4mm; font-weight: bold; color: #374151; }
-            .content-row { width: 100%; }
-            .data { font-size: 3mm; line-height: 1.3; }
-            .data-name { color: #4b5563; font-weight: bold; }
-            .data-item { color: #6b7280; font-size: 2.5mm; }
-            .data-date { color: #9ca3af; font-size: 2.5mm; }
+            .info-text { font-size: 3mm; line-height: 1.3; color: #4b5563; }
+            .info-name { font-weight: bold; color: #1f2937; }
+            .info-date { color: #9ca3af; font-size: 2.5mm; }
+            .item-row { width: 100%; }
+            .item-text { font-size: 2.5mm; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           </style>
         </head>
         <body>
           <div class="label">
-            <div class="qr-row">
+            <div class="top-row">
               <div class="qr-area">
                 <img src="${qrUrl}" alt="QR" />
               </div>
-              <div class="logo-row">
-                <img src="${alberoUrl}" alt="logo" />
-                <img src="${logoTextUrl}" alt="Kykos" />
+              <div class="info-box">
+                <div class="logo-row">
+                  <img src="${alberoUrl}" alt="logo" />
+                  <img src="${logoTextUrl}" alt="Kykos" />
+                </div>
+                <div class="info-text">
+                  <div class="info-name">${labelData.recipientName}</div>
+                  <div class="info-date">Ritiro: ${labelData.depositDate}</div>
+                </div>
               </div>
             </div>
-            <div class="content-row">
-              <div class="data">
-                <div class="data-name">${labelData.recipientName}</div>
-                <div class="data-item">${labelData.itemDescription.slice(0, 30)}</div>
-                <div class="data-date">Ritiro: ${labelData.depositDate}</div>
-              </div>
+            <div class="item-row">
+              <div class="item-text">${labelData.itemDescription}</div>
             </div>
           </div>
         </body>
@@ -373,11 +375,11 @@ export default function DepositLocationPage() {
                     height: labelData.labelSize === '50x40' ? '152px' : '114px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '6px',
+                    gap: '4px',
                     margin: '0 auto',
                   }}
                 >
-                  {/* Top row: QR and logos */}
+                  {/* Top row: QR + info box */}
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {/* QR Code */}
                     <div
@@ -390,18 +392,20 @@ export default function DepositLocationPage() {
                         style={{ width: '87px', height: '87px' }}
                       />
                     </div>
-                    {/* Logos */}
-                    <div className="flex items-center gap-1" style={{ flex: 1 }}>
-                      <img src="/albero.svg" alt="logo" className="w-8 h-8" />
-                      <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-6 w-auto" />
+                    {/* Info box: logos + name + date */}
+                    <div className="flex-1 flex flex-col justify-between min-w-0">
+                      <div className="flex items-center gap-1">
+                        <img src="/albero.svg" alt="logo" className="w-7 h-7" />
+                        <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-5 w-auto" />
+                      </div>
+                      <div className="text-xs">
+                        <div className="font-medium text-gray-800 truncate">{labelData.recipientName}</div>
+                        <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
+                      </div>
                     </div>
                   </div>
-                  {/* Content row: full width */}
-                  <div className="text-xs space-y-0.5" style={{ flex: 1 }}>
-                    <div className="text-gray-600 truncate font-medium">{labelData.recipientName}</div>
-                    <div className="text-gray-500 truncate text-[10px]">{labelData.itemDescription}</div>
-                    <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
-                  </div>
+                  {/* Item description: full width */}
+                  <div className="text-xs text-gray-500 truncate px-1">{labelData.itemDescription}</div>
                 </div>
 
                 {/* Actions */}
