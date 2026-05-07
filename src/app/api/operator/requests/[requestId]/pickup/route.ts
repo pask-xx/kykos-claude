@@ -50,6 +50,7 @@ export async function GET(
             depositLocation: true,
             depositNotes: true,
             status: true,
+            donorId: true,
             intermediary: {
               select: {
                 printLabel: true,
@@ -80,6 +81,7 @@ export async function GET(
       depositLocation: req.object.depositLocation,
       depositNotes: req.object.depositNotes || null,
       objectId: req.object.id,
+      donorId: req.object.donorId,
       recipientId: req.recipient.id,
       recipientName: req.recipient.name,
       objectStatus: req.object.status,

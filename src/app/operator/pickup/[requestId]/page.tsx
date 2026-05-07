@@ -9,6 +9,7 @@ interface PickupData {
   depositLocation: string;
   depositNotes: string | null;
   objectId: string;
+  donorId: string;
   recipientId: string;
   recipientName: string;
   showVerifyPrompt: boolean;
@@ -97,6 +98,7 @@ export default function PickupLocationPage() {
           depositLocation: data.depositLocation,
           depositNotes: data.depositNotes || null,
           objectId: data.objectId,
+          donorId: data.donorId,
           recipientId: data.recipientId,
           recipientName: data.recipientName,
           showVerifyPrompt: data.showVerifyPrompt ?? false,
@@ -129,7 +131,7 @@ export default function PickupLocationPage() {
 
         console.log('QR scanned for verification:', data);
         console.log('Expected requestId:', requestId);
-        console.log('Expected objectId (as donorId):', pickupData?.objectId);
+        console.log('Expected donorId:', pickupData?.donorId);
 
         // Verify this is the correct object's deliver QR
         // Format: kykos:object:deliver:{requestId}:{userId}
@@ -140,8 +142,8 @@ export default function PickupLocationPage() {
 
           console.log('QR parts - requestId:', qrRequestId, 'userId:', qrUserId);
 
-          // Verify requestId matches and userId matches objectId (stored as donorId)
-          if (qrRequestId === requestId && pickupData && qrUserId === pickupData.objectId) {
+          // Verify requestId matches and userId matches donorId
+          if (qrRequestId === requestId && pickupData && qrUserId === pickupData.donorId) {
             setVerified(true);
             setVerifyError(null);
           } else {
