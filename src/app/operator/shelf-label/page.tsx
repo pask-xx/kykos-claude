@@ -132,9 +132,9 @@ export default function ShelfLabelPage() {
               <input
                 type="text"
                 value={stanza}
-                onChange={(e) => setStanza(e.target.value)}
-                placeholder="Es. A, B, Magazzino"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                onChange={(e) => setStanza(e.target.value.toUpperCase())}
+                placeholder="Es. A, B, MAGAZZINO"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
               />
             </div>
 
@@ -143,9 +143,9 @@ export default function ShelfLabelPage() {
               <input
                 type="text"
                 value={scaffale}
-                onChange={(e) => setScaffale(e.target.value)}
+                onChange={(e) => setScaffale(e.target.value.toUpperCase())}
                 placeholder="Es. 1, 2, A-12"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
               />
             </div>
 
@@ -154,9 +154,9 @@ export default function ShelfLabelPage() {
               <input
                 type="text"
                 value={piano}
-                onChange={(e) => setPiano(e.target.value)}
-                placeholder="Es. 1, 2, Terra, Seminterrato"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                onChange={(e) => setPiano(e.target.value.toUpperCase())}
+                placeholder="Es. 1, 2, 3"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
               />
             </div>
           </div>
