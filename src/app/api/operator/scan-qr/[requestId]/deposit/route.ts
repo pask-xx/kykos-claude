@@ -134,6 +134,13 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.',
+      labelData: {
+        requestId: req.id,
+        recipientName: req.recipient.name,
+        itemDescription: req.object.title,
+        depositDate: new Date().toISOString().split('T')[0],
+        qrData: pickupQrData,
+      },
     });
   } catch (error) {
     console.error('Deposit location error:', error);

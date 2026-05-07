@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 
 interface GoodsPickupData {
   title: string;
+  beneficiaryId: string;
   beneficiaryName: string;
   fulfilledByName: string;
   depositLocation: string | null;
@@ -34,6 +35,7 @@ export default function GoodsPickupPage() {
         if (data.goodsRequest) {
           setGoodsData({
             title: data.goodsRequest.title,
+            beneficiaryId: data.goodsRequest.beneficiary?.id || '',
             beneficiaryName: data.goodsRequest.beneficiary?.name || 'Beneficiario',
             fulfilledByName: data.goodsRequest.fulfilledBy?.name || 'Donatore',
             depositLocation: data.goodsRequest.depositLocation || null,
@@ -55,7 +57,6 @@ export default function GoodsPickupPage() {
     setCompleting(true);
     try {
       // For goods requests, completing pickup means marking the request as fully fulfilled
-      // We don't have a specific endpoint yet, so we'll just mark it
       const res = await fetch(`/api/entity-requests/${requestId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },

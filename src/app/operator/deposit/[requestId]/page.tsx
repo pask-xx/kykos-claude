@@ -4,6 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import QrScanner from 'qr-scanner';
 
+interface LabelData {
+  requestId: string;
+  recipientName: string;
+  itemDescription: string;
+  depositDate: string;
+  qrData: string;
+}
+
 export default function DepositLocationPage() {
   const router = useRouter();
   const params = useParams();
@@ -17,9 +25,12 @@ export default function DepositLocationPage() {
   const [cameraId, setCameraId] = useState<string>('');
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [labelData, setLabelData] = useState<LabelData | null>(null);
+  const [showLabelDialog, setShowLabelDialog] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
+  const labelRef = useRef<HTMLDivElement | null>(null);
 
   const isBackCamera = (label: string) => {
     const l = label.toLowerCase();
@@ -132,10 +143,12 @@ export default function DepositLocationPage() {
         }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        router.push('/operator/scan-qr?success=deposit');
+        setLabelData(data.labelData);
+        setShowLabelDialog(true);
       } else {
-        const data = await res.json();
         setError(data.error || 'Errore durante il salvataggio');
       }
     } catch (err) {
@@ -143,6 +156,34 @@ export default function DepositLocationPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handlePrintLabel = () => {
+    const printContent = labelRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open('', '', 'width=300,height=200');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Stampa Etichetta</title>
+          <style>
+            @page { size: 50mm 30mm; margin: 0; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { width: 50mm; height: 30mm; }
+          </style>
+        </head>
+        <body>${printContent.innerHTML}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const handleSkipLabel = () => {
+    router.push('/operator/scan-qr?success=deposit');
   };
 
   return (
@@ -268,6 +309,71 @@ export default function DepositLocationPage() {
               {saving ? 'Salvataggio...' : 'Conferma posizione'}
             </button>
           </div>
+
+          {/* Label Print Dialog */}
+          {showLabelDialog && labelData && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">🖨️</div>
+                  <h2 className="text-xl font-bold text-gray-900">Stampa Etichetta</h2>
+                  <p className="text-sm text-gray-500">Applicare l'etichetta sull'oggetto</p>
+                </div>
+
+                {/* Label Preview */}
+                <div
+                  ref={labelRef}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-3 bg-white"
+                  style={{ width: '190px', height: '114px', display: 'flex', gap: '8px', margin: '0 auto' }}
+                >
+                  {/* QR Code placeholder - will be rendered by API */}
+                  <div
+                    className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
+                    style={{ width: '87px', height: '87px' }}
+                  >
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData.qrData)}&color=059669`}
+                      alt="QR Code"
+                      style={{ width: '87px', height: '87px' }}
+                    />
+                  </div>
+                  {/* Label Info */}
+                  <div className="flex-1 flex flex-col justify-between min-w-0">
+                    {/* Header with logo */}
+                    <div className="flex items-center gap-1">
+                      <img src="/albero.svg" alt="logo" className="w-6 h-6" />
+                      <span className="text-xs font-bold text-gray-700">Kykos</span>
+                    </div>
+                    {/* Data */}
+                    <div className="text-xs space-y-0.5">
+                      <div className="font-semibold text-gray-800">#{labelData.requestId.slice(0, 8)}</div>
+                      <div className="text-gray-600 truncate">{labelData.recipientName}</div>
+                      <div className="text-gray-500 truncate text-[10px]">{labelData.itemDescription}</div>
+                      <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleSkipLabel}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                  >
+                    Salta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePrintLabel}
+                    className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+                  >
+                    Stampa
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

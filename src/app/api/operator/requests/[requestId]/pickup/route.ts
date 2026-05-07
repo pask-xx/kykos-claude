@@ -74,6 +74,7 @@ export async function GET(
       depositLocation: req.object.depositLocation,
       depositNotes: req.object.depositNotes || null,
       objectId: req.object.id,
+      recipientId: req.recipient.id,
       recipientName: req.recipient.name,
       objectStatus: req.object.status,
     });

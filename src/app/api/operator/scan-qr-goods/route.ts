@@ -184,6 +184,13 @@ export async function POST(request: Request) {
         requestTitle: goodsRequest.title,
         fulfillerName: goodsRequest.fulfilledBy?.name || 'Donatore',
       },
+      labelData: {
+        requestId: goodsRequest.id,
+        recipientName: goodsRequest.beneficiary.name,
+        itemDescription: goodsRequest.title,
+        depositDate: new Date().toISOString().split('T')[0],
+        qrData: pickupQrData,
+      },
     });
   } catch (error) {
     console.error('Goods QR scan error:', error);

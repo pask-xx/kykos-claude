@@ -3,19 +3,22 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
+interface PickupData {
+  title: string;
+  depositLocation: string;
+  depositNotes: string | null;
+  objectId: string;
+  recipientId: string;
+  recipientName: string;
+}
+
 export default function PickupLocationPage() {
   const router = useRouter();
   const params = useParams();
   const requestId = params.requestId as string;
 
   const [loading, setLoading] = useState(true);
-  const [objectData, setObjectData] = useState<{
-    title: string;
-    depositLocation: string;
-    depositNotes: string | null;
-    objectId: string;
-    recipientName: string;
-  } | null>(null);
+  const [pickupData, setPickupData] = useState<PickupData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -29,11 +32,12 @@ export default function PickupLocationPage() {
       const res = await fetch(`/api/operator/requests/${requestId}/pickup`);
       if (res.ok) {
         const data = await res.json();
-        setObjectData({
+        setPickupData({
           title: data.title,
           depositLocation: data.depositLocation,
           depositNotes: data.depositNotes || null,
           objectId: data.objectId,
+          recipientId: data.recipientId,
           recipientName: data.recipientName,
         });
       } else {
@@ -77,7 +81,7 @@ export default function PickupLocationPage() {
     );
   }
 
-  if (error && !objectData) {
+  if (error && !pickupData) {
     return (
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white shadow-sm">
@@ -150,18 +154,18 @@ export default function PickupLocationPage() {
             </div>
           )}
 
-          {objectData && (
+          {pickupData && (
             <>
               {/* Object Info */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h2 className="font-semibold text-gray-900 mb-2">{objectData.title}</h2>
+                <h2 className="font-semibold text-gray-900 mb-2">{pickupData.title}</h2>
                 <p className="text-sm text-gray-600">
-                  Per: <strong>{objectData.recipientName}</strong>
+                  Per: <strong>{pickupData.recipientName}</strong>
                 </p>
               </div>
 
               {/* Deposit Location */}
-              {objectData.depositLocation ? (
+              {pickupData.depositLocation ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                   <div className="flex items-center justify-center mb-4">
                     <span className="text-4xl">📍</span>
@@ -170,11 +174,11 @@ export default function PickupLocationPage() {
                     Posizione oggetto
                   </h3>
                   <p className="text-2xl font-bold text-center text-green-900">
-                    {objectData.depositLocation}
+                    {pickupData.depositLocation}
                   </p>
-                  {objectData.depositNotes && (
+                  {pickupData.depositNotes && (
                     <p className="text-sm text-center text-green-700 mt-2">
-                      Note: {objectData.depositNotes}
+                      Note: {pickupData.depositNotes}
                     </p>
                   )}
                   <p className="text-sm text-center text-green-600 mt-2">
