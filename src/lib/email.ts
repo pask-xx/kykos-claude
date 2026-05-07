@@ -80,7 +80,7 @@ export async function sendConfirmationEmail(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Verifica il tuo indirizzo email</p>
         </div>
         <div style="padding: 32px; text-align: center;">
@@ -124,7 +124,7 @@ export async function sendRequestNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Nuova richiesta!</p>
         </div>
         <div style="padding: 32px;">
@@ -167,7 +167,7 @@ export async function sendObjectAvailableNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Il tuo oggetto è disponibile!</p>
         </div>
         <div style="padding: 32px;">
@@ -212,7 +212,7 @@ export async function sendQrCodeNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">QR Code per il ritiro</p>
         </div>
         <div style="padding: 32px;">
@@ -270,7 +270,7 @@ export async function sendDeliveryQrNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">QR Code per la consegna</p>
         </div>
         <div style="padding: 32px;">
@@ -342,7 +342,7 @@ export async function sendPickupQrNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">QR Code per il ritiro</p>
         </div>
         <div style="padding: 32px;">
@@ -403,7 +403,7 @@ export async function sendObjectReadyForPickupNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Oggetto pronto per il ritiro!</p>
         </div>
         <div style="padding: 32px;">
@@ -442,7 +442,7 @@ export async function sendDonationConfirmedNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Donazione completata!</p>
         </div>
         <div style="padding: 32px;">
@@ -609,7 +609,7 @@ export async function sendPasswordResetEmail(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Reimposta la tua password</p>
         </div>
         <div style="padding: 32px;">
@@ -653,7 +653,7 @@ export async function sendOperatorCredentialsEmail(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Credenziali account operatore</p>
         </div>
         <div style="padding: 32px;">
@@ -708,7 +708,7 @@ export async function sendIntermediaryCredentialsEmail(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Account ente creato</p>
         </div>
         <div style="padding: 32px;">
@@ -775,7 +775,7 @@ export async function sendGoodsDeliveryQrNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">QR Code per la consegna</p>
         </div>
         <div style="padding: 32px;">
@@ -847,7 +847,7 @@ export async function sendGoodsPickupQrNotification(
       <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 32px; text-align: center;">
           <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
-          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 40px; margin-left: 12px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
           <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">QR Code per il ritiro</p>
         </div>
         <div style="padding: 32px;">
