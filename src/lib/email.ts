@@ -500,7 +500,7 @@ export async function sendWelcomeEmail(
       <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 32px; text-align: center;">
-          <img src="${LOGO_URL}" alt="KYKOS" style="height: 72px; margin-bottom: 20px;">
+          <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 72px; margin-bottom: 20px;">
           <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">${roleData.title}</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 12px 0 0; font-size: 16px;">${roleData.subtitle}</p>
         </div>
