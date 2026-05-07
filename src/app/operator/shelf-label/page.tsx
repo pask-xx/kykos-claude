@@ -66,8 +66,9 @@ export default function ShelfLabelPage() {
             .info-box { width: 23mm; display: flex; flex-direction: column; gap: 1mm; }
             .logo-row { display: flex; align-items: center; gap: 1mm; }
             .logo-row img { height: 5mm; width: auto; }
-            .shelf-data { font-size: 3mm; line-height: 1.4; color: #1f2937; }
-            .shelf-label { font-size: 2mm; color: #9ca3af; text-transform: uppercase; }
+            .shelf-data { font-size: 3.5mm; line-height: 1.5; color: #1f2937; }
+            .shelf-row { display: flex; align-items: baseline; gap: 1mm; }
+            .shelf-icon { font-size: 2.5mm; color: #6b7280; }
           </style>
         </head>
         <body>
@@ -82,9 +83,9 @@ export default function ShelfLabelPage() {
                   <img src="${logoTextUrl}" alt="Kykos" />
                 </div>
                 <div class="shelf-data">
-                  <div><span class="shelf-label">Stanza</span><br>${stanza}</div>
-                  <div><span class="shelf-label">Scaffale</span><br>${scaffale}</div>
-                  <div><span class="shelf-label">Piano</span><br>${piano}</div>
+                  <div class="shelf-row"><span class="shelf-icon">🚪</span>${stanza}</div>
+                  <div class="shelf-row"><span class="shelf-icon">📚</span>${scaffale}</div>
+                  <div class="shelf-row"><span class="shelf-icon">📋</span>${piano}</div>
                 </div>
               </div>
             </div>
@@ -195,12 +196,18 @@ export default function ShelfLabelPage() {
                       <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-6 w-auto" />
                     </div>
                     <div className="text-xs space-y-1">
-                      <div className="text-gray-400 text-[10px] uppercase">Stanza</div>
-                      <div className="font-medium text-gray-800">{stanza}</div>
-                      <div className="text-gray-400 text-[10px] uppercase">Scaffale</div>
-                      <div className="font-medium text-gray-800">{scaffale}</div>
-                      <div className="text-gray-400 text-[10px] uppercase">Piano</div>
-                      <div className="font-medium text-gray-800">{piano}</div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400">🚪</span>
+                        <span className="font-medium text-gray-800">{stanza}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400">📚</span>
+                        <span className="font-medium text-gray-800">{scaffale}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400">📋</span>
+                        <span className="font-medium text-gray-800">{piano}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
