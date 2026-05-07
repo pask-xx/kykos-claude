@@ -148,8 +148,9 @@ export default function DepositLocationPage() {
 
       if (res.ok) {
         if (data.showLabelDialog && data.labelData) {
-          setLabelData(data.labelData);
-          setShowLabelDialog(true);
+          // Navigate to dedicated print-label page
+          sessionStorage.setItem('labelData', JSON.stringify(data.labelData));
+          router.push(`/operator/print-label/${requestId}`);
         } else {
           router.push('/operator/scan-qr?success=deposit');
         }
