@@ -245,8 +245,8 @@ model Organization {
   autoApproveGoodsRequests  Boolean  @default(true)  // Richieste beni
   autoApproveServicesRequests Boolean @default(false) // Richieste servizi
   hoursInfo           String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions
-  printLabel          Boolean  @default(false) // Abilita stampa etichetta
-  labelSize           String   @default("50x30") // Formato etichetta: "50x30" o "50x40"
+  printLabel          Boolean  @default(false) @map("printlabel")
+  labelSize           String   @default("50x30") @map("labelsize")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
