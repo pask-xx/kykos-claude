@@ -2,175 +2,146 @@
 
 ## Panoramica
 
-Stampare un'etichetta adesiva (50×30 mm) da applicare all'oggetto consegnato presso l'ente.
-L'etichetta contiene un QR code che, in fase di ritiro, consente all'operatore di verificare l'identità dell'oggetto e visualizzare informazioni utili sulla transazione.
+Stampare un'etichetta adesiva (50×30 mm o 50×40 mm) da applicare all'oggetto consegnato presso l'ente.
+L'etichetta contiene un QR code che, in fase di ritiro, consente all'operatore di verificare l'identità dell'oggetto.
+
+---
+
+## Configurazione
+
+L'ente può configurare la stampa etichetta dalla pagina `/operator/organization`:
+
+| Opzione | Descrizione |
+|---------|-------------|
+| **Stampa etichetta** | Flag yes/no per abilitare la stampa |
+| **Formato** | `50x30` (standard) o `50x40` (grande) |
 
 ---
 
 ## Layout Etichetta
 
+### Formato 50×30 mm
+
 ```
-┌────────────────────────────────────────┐
-│ ┌──────┐  ┌─────────────────────────┐ │
-│ │      │  │ 🏔️ Albero   LogoKykos    │ │
-│ │ QR   │  │─────────────────────────│ │
-│ │ 23×23│  │ ID: #req-8f3a9          │ │
-│ │ mm   │  │ Per: Mario Rossi        │ │
-│ │      │  │ Contenuto: Scatola vestiti│ │
-│ │      │  │ Ritiro: 2026-05-10       │ │
-│ │      │  │ Stato: PRONTO            │ │
-│ └──────┘  └─────────────────────────┘ │
-└────────────────────────────────────────┘
-  23mm                    27mm
-  ← ← ← ← ← ← 50mm → → → → → →
-           30mm
+┌────────────────────────────────────────────────┐
+│ ┌────────┐  ┌────────────────────────────────┐ │
+│ │        │  │ 🏔️        LogoKykos             │ │
+│ │   QR   │  │                                │ │
+│ │ 23×23  │  │                                │ │
+│ │  mm    │  │                                │ │
+│ │        │  └────────────────────────────────┘ │
+│ └────────┘  ┌────────────────────────────────┐ │
+│             │ Mario Rossi                     │ │
+│             │ Scatola vestiti                  │ │
+│             │ Ritiro: 2026-05-10              │ │
+└────────────────────────────────────────────────┘
 ```
 
-| Elemento | Dimensioni | Posizione |
-|----------|------------|-----------|
-| QR Code | 23×23 mm | Left, top-aligned (2mm margin) |
-| Area destra (header) | 27 mm width | Right of QR, starts at top |
-| Area destra (body) | 27 mm width | Below header, full remaining height |
-| Margini stampa | 2 mm per lato | Safe zone interna |
+### Formato 50×40 mm
+
+```
+┌────────────────────────────────────────────────┐
+│ ┌────────┐  ┌────────────────────────────────┐ │
+│ │        │  │ 🏔️        LogoKykos             │ │
+│ │   QR   │  │                                │ │
+│ │ 23×23  │  │                                │ │
+│ │  mm    │  │                                │ │
+│ │        │  │                                │ │
+│ │        │  └────────────────────────────────┘ │
+│ └────────┘  ┌────────────────────────────────┐ │
+│             │ Mario Rossi                     │ │
+│             │ Scatola vestiti                  │ │
+│             │ Ritiro: 2026-05-10              │ │
+└────────────────────────────────────────────────┘
+```
+
+### Elementi etichetta
+
+| Elemento | Note |
+|----------|------|
+| QR Code | 23×23 mm, posizionato in alto a sinistra |
+| Loghi | Albero SVG + LogoKykosTesto, ingranditi |
+| Contenuto | Nome beneficiario, descrizione oggetto, data ritiro — full width sotto QR |
+
+**Modifiche rispetto alla versione precedente:**
+- Rimosso l'ID richiesta
+- Loghi leggermente più grandi
+- Contenuto testuale spostato in basso, sotto il QR, per tutta la larghezza
 
 ---
 
 ## Contenuto QR Code
 
-**Stringa da codificare** (esistente):
+**Stringa per QR di consegna (deliver):**
+```
+kykos:object:deliver:{requestId}:{donorId}
+```
+
+**Stringa per QR di ritiro (pickup):**
 ```
 kykos:object:pickup:{requestId}:{recipientId}
 ```
 
-Questo formato è già supportato dal sistema — il QR pickup contiene requestId e userId, e in fase di scansione il sistema determina automaticamente se è un'operazione di consegna (deliver) o ritiro (pickup).
+---
+
+## Flusso Operativo
+
+### Flusso Consegna (Deposit)
+
+```
+1. Operatore scansiona QR oggetto → /operator/deposit/[requestId]
+2. Operatore registra posizione deposito
+3. Se printLabel = true:
+   → Mostra dialog opzionale stampa etichetta
+   → L'operatore può Stampa o Salta
+4. Redirect a /operator/scan-qr?success=deposit
+```
+
+### Flusso Ritiro (Pickup)
+
+```
+1. Operatore scansiona QR ritiro → /operator/pickup/[requestId]
+2. Sistema mostra info oggetto e posizione
+3. Se printLabel = true:
+   → Mostra sezione verifica QR (scansiona QR sull'etichetta)
+   → L'operatore può scansionare o procedere senza verifica
+4. Operatore conferma ritiro completato
+5. Redirect a /operator/scan-qr?success=pickup
+```
 
 ---
 
-## Contenuto Testo Etichetta
+## Modifiche alle Pagine
 
-### Header (max 10mm height)
-- Icona albero SVG (8×8 mm)
-- Nome "Kykos" accanto al logo
+### `/operator/organization/page.tsx` ✅
+- Aggiunta sezione "Stampa etichetta" con toggle on/off
+- Selezione formato: 50x30 o 50x40
 
-### Body — Dati Transazione
+### `/operator/deposit/[requestId]/page.tsx` ✅
+- Se `showLabelDialog = true`: mostra dialog stampa etichetta
+- Se `showLabelDialog = false`: redirect diretto a scan-qr
 
-| Campo | Fonte | Formato |
-|-------|-------|---------|
-| ID Richiesta | `requestId` | `#req-xxxx` (primi 8 chars) |
-| Destinatario | `recipient.name` | Nome completo |
-| Contenuto | `object.title` / `goodsRequest.title` | Troncato a 20 chars |
-| Data Ritiro | `depositDate` o `createdAt + 7gg` | `YYYY-MM-DD` |
-
----
-
-## Integrazione UI
-
-### Momento di Stampa
-Step opzionale dopo il salvataggio della posizione di deposito.
-
-**Flusso attuale:**
-```
-Scansione QR → Registro Posizione → Salvataggio → (redirect a scan-qr)
-```
-
-**Flusso modificato:**
-```
-Scansione QR → Registro Posizione → Salvataggio → [Step opzionale stampa etichetta] → (redirect a scan-qr)
-```
-
-### Pagine da modificare
-
-1. **`/operator/deposit/[requestId]/page.tsx`** (oggetti) ✅
-   - Flusso: Scan QR consegna → Registra posizione → Stampa etichetta (opzionale) → scan-qr
-
-2. **`/operator/goods-deposit/[requestId]/page.tsx`** (beni) ✅
-   - Flusso: Scan QR consegna beni → Registra posizione → Stampa etichetta (opzionale) → scan-qr
-
-3. **`/operator/pickup/[requestId]/page.tsx`** (ritiro oggetti) ✅
-   - Flusso: Scan QR ritiro → Leggi posizione oggetto → Verifica con scan QR oggetto → Conferma ritiro
-   - Obbligatoria verifica con scansione QRcode oggetto prima di confermare
-
-4. **`/operator/goods-pickup/[requestId]/page.tsx`** (ritiro beni)
-   - Flusso: Scan QR ritiro → Leggi posizione bene → Conferma ritiro
-   - Non prevede stampa etichetta
-
-### Comportamento Dialog Stampa
-
-```
-┌──────────────────────────────────────────┐
-│        🖨️ Stampa Etichetta               │
-├──────────────────────────────────────────┤
-│                                          │
-│  [Anteprima etichetta 50×30mm]           │
-│                                          │
-│  □ Stampa automaticamente                │
-│                                          │
-├──────────────────────────────────────────┤
-│  [Stampa]              [Salta >>]       │
-└──────────────────────────────────────────┘
-```
-
-- **Stampa**: apre finestra dialog stampante
-- **Salta**: ignora e continua al redirect
-
----
-
-## Specifiche Tecniche
-
-### Generazione QR
-
-Usare la funzione esistente `generateQrCodeDataUrl` o crearne una versione per label con:
-- QR size: 150px (per qualità di stampa 203dpi)
-- Colore: `#059669` (verde KYKOS)
-- Background: bianco
-
-### Composizione Etichetta
-
-L'etichetta viene composta lato client usando:
-- Canvas HTML per assemblare QR + testi
-- `window.print()` con CSS `@media print` per stampare solo l'area del label
-
-### Dati Necessari dall'API
-
-L'endpoint di deposit deve restituire anche:
-```typescript
-{
-  success: true,
-  labelData: {
-    requestId: string,
-    recipientName: string,
-    itemDescription: string,
-    depositDate: string,
-    status: string,
-    qrData: string  // la stringa encoded per il QR
-  }
-}
-```
+### `/operator/pickup/[requestId]/page.tsx` ✅
+- Se `showVerifyPrompt = true`: mostra sezione verifica QR
+- Se `showVerifyPrompt = false`: nasconde sezione verifica
 
 ---
 
 ## API Changes
 
+### `PATCH /api/operator/organization` ✅
+Accetta `printLabel: boolean` e `labelSize: string`
+
 ### `POST /api/operator/scan-qr/[requestId]/deposit` ✅
+Restituisce `showLabelDialog: boolean` e `labelData: { labelSize: string, ... }`
 
-Restituisce `labelData` nella response.
-
-### `POST /api/operator/scan-qr-goods` ✅
-
-Restituisce `labelData` nella response.
-
----
-
-## Priorità Implementazione
-
-1. **Fase 1**: Modificare deposit page per mostrare dialog stampa (core feature)
-2. **Fase 2**: Stessa integrazione in goods-deposit
-3. **Fase 3**: Integrazione nella pagina ritiro per verifica oggetto
+### `GET /api/operator/requests/[requestId]/pickup` ✅
+Restituisce `showVerifyPrompt: boolean` e `labelSize: string`
 
 ---
 
 ## Note
 
-- L'etichetta è **opzionale** — l'operatore può saltare la stampa
-- Il QR code esistente per pickup funziona già come verifica — questa etichetta aggiunge solo supporto cartaceo per oggetti senza display
+- L'etichetta è **opzionale** — l'operatore può saltare la stampa o procedere senza verifica
+- Il QR code di verifica serve per confermare che l'etichetta applicata corrisponde all'oggetto corretto
 - Il logo `LogoKykosTesto.svg` è già disponibile in `/public/`

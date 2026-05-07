@@ -50,6 +50,12 @@ export async function GET(
             depositLocation: true,
             depositNotes: true,
             status: true,
+            intermediary: {
+              select: {
+                printLabel: true,
+                labelSize: true,
+              },
+            },
           },
         },
         recipient: {
@@ -77,6 +83,8 @@ export async function GET(
       recipientId: req.recipient.id,
       recipientName: req.recipient.name,
       objectStatus: req.object.status,
+      showVerifyPrompt: req.object.intermediary.printLabel,
+      labelSize: req.object.intermediary.labelSize,
     });
   } catch (error) {
     console.error('Pickup info error:', error);

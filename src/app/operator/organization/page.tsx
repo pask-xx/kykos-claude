@@ -13,6 +13,8 @@ interface OrganizationData {
   autoApproveGoodsRequests: boolean;
   autoApproveServicesRequests: boolean;
   hoursInfo: string | null;
+  printLabel: boolean;
+  labelSize: string;
 }
 
 export default function OrganizationSettingsPage() {
@@ -26,6 +28,8 @@ export default function OrganizationSettingsPage() {
   const [autoApproveRequests, setAutoApproveRequests] = useState(false);
   const [autoApproveGoodsRequests, setAutoApproveGoodsRequests] = useState(true);
   const [autoApproveServicesRequests, setAutoApproveServicesRequests] = useState(false);
+  const [printLabel, setPrintLabel] = useState(false);
+  const [labelSize, setLabelSize] = useState('50x30');
 
   useEffect(() => {
     fetchData();
@@ -60,6 +64,8 @@ export default function OrganizationSettingsPage() {
           setAutoApproveRequests(orgData.organization.autoApproveRequests || false);
           setAutoApproveGoodsRequests(orgData.organization.autoApproveGoodsRequests ?? true);
           setAutoApproveServicesRequests(orgData.organization.autoApproveServicesRequests ?? false);
+          setPrintLabel(orgData.organization.printLabel ?? false);
+          setLabelSize(orgData.organization.labelSize ?? '50x30');
         }
       }
     } catch (err) {
@@ -83,6 +89,8 @@ export default function OrganizationSettingsPage() {
           autoApproveRequests,
           autoApproveGoodsRequests,
           autoApproveServicesRequests,
+          printLabel,
+          labelSize,
         }),
       });
 
@@ -133,6 +141,60 @@ export default function OrganizationSettingsPage() {
       if (field === 'autoApproveRequests') setAutoApproveRequests(!checked);
       if (field === 'autoApproveGoodsRequests') setAutoApproveGoodsRequests(!checked);
       if (field === 'autoApproveServicesRequests') setAutoApproveServicesRequests(!checked);
+      setError('Errore di rete');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePrintLabelToggle = async (checked: boolean) => {
+    setPrintLabel(checked);
+    setSaving(true);
+
+    try {
+      const res = await fetch('/api/operator/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ printLabel: checked }),
+      });
+
+      if (res.ok) {
+        setSuccess(`Stampa etichetta: ${checked ? 'attivata' : 'disattivata'}`);
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setPrintLabel(!checked);
+        const data = await res.json();
+        setError(data.error || 'Errore');
+      }
+    } catch (err) {
+      setPrintLabel(!checked);
+      setError('Errore di rete');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLabelSizeChange = async (size: string) => {
+    setLabelSize(size);
+    setSaving(true);
+
+    try {
+      const res = await fetch('/api/operator/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ labelSize: size }),
+      });
+
+      if (res.ok) {
+        setSuccess(`Formato etichetta: ${size}`);
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setLabelSize(size === '50x30' ? '50x40' : '50x30');
+        const data = await res.json();
+        setError(data.error || 'Errore');
+      }
+    } catch (err) {
+      setLabelSize(size === '50x30' ? '50x40' : '50x30');
       setError('Errore di rete');
     } finally {
       setSaving(false);
@@ -266,6 +328,69 @@ export default function OrganizationSettingsPage() {
               />
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span>🖨️</span> Stampa etichetta
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Abilita la stampa dell&apos;etichetta con QR code da applicare sugli oggetti consegnati al centro.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-900">Stampa etichetta</p>
+              <p className="text-sm text-gray-500">Proponi la stampa durante le operazioni di consegna e ritiro</p>
+            </div>
+            <button
+              onClick={() => handlePrintLabelToggle(!printLabel)}
+              disabled={saving}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                printLabel ? 'bg-green-500' : 'bg-gray-300'
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  printLabel ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {printLabel && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="font-medium text-gray-900 mb-3">Formato etichetta</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleLabelSizeChange('50x30')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-colors ${
+                    labelSize === '50x30'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">📄</div>
+                  <div className="font-medium text-gray-900">50×30 mm</div>
+                  <div className="text-xs text-gray-500">Formato standard</div>
+                </button>
+                <button
+                  onClick={() => handleLabelSizeChange('50x40')}
+                  className={`flex-1 p-4 rounded-lg border-2 transition-colors ${
+                    labelSize === '50x40'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">📋</div>
+                  <div className="font-medium text-gray-900">50×40 mm</div>
+                  <div className="text-xs text-gray-500">Formato grande</div>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

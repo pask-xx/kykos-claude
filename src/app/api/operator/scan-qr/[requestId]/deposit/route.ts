@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { parseQrCodeData } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
-import { generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
+import { generatePickupQrCode, generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -71,6 +71,8 @@ export async function POST(
                 phone: true,
                 email: true,
                 hoursInfo: true,
+                printLabel: true,
+                labelSize: true,
               },
             },
           },
@@ -136,14 +138,18 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.',
-      labelData: {
+      message: req.object.intermediary.printLabel
+        ? 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.'
+        : 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.',
+      showLabelDialog: req.object.intermediary.printLabel,
+      labelData: req.object.intermediary.printLabel ? {
         requestId: req.id,
         recipientName: req.recipient.name,
         itemDescription: req.object.title,
         depositDate: new Date().toISOString().split('T')[0],
         qrData: deliverQrData,
-      },
+        labelSize: req.object.intermediary.labelSize,
+      } : null,
     });
   } catch (error) {
     console.error('Deposit location error:', error);

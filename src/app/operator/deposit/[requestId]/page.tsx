@@ -10,6 +10,7 @@ interface LabelData {
   itemDescription: string;
   depositDate: string;
   qrData: string;
+  labelSize: string;
 }
 
 export default function DepositLocationPage() {
@@ -146,8 +147,12 @@ export default function DepositLocationPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setLabelData(data.labelData);
-        setShowLabelDialog(true);
+        if (data.showLabelDialog && data.labelData) {
+          setLabelData(data.labelData);
+          setShowLabelDialog(true);
+        } else {
+          router.push('/operator/scan-qr?success=deposit');
+        }
       } else {
         setError(data.error || 'Errore durante il salvataggio');
       }
@@ -159,15 +164,17 @@ export default function DepositLocationPage() {
   };
 
   const handlePrintLabel = () => {
-    const printContent = labelRef.current;
-    if (!printContent) return;
+    if (!labelData) return;
 
     const baseUrl = window.location.origin;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData!.qrData)}&color=059669`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData.qrData)}&color=059669`;
     const alberoUrl = `${baseUrl}/albero.svg`;
     const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
 
-    const printWindow = window.open('', '', 'width=400,height=300');
+    const isLarge = labelData.labelSize === '50x40';
+    const labelHeight = isLarge ? '40mm' : '30mm';
+
+    const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
     printWindow.document.write(`
@@ -176,38 +183,39 @@ export default function DepositLocationPage() {
         <head>
           <title>Stampa Etichetta</title>
           <style>
-            @page { size: 50mm 30mm; margin: 0; }
+            @page { size: 50mm ${labelHeight}; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body { width: 50mm; height: 30mm; }
-            .label { width: 50mm; height: 30mm; display: flex; gap: 2mm; padding: 2mm; background: white; }
-            .qr-area { width: 23mm; height: 26mm; flex-shrink: 0; }
+            html, body { width: 50mm; height: ${labelHeight}; }
+            .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
+            .qr-row { display: flex; gap: 2mm; margin-bottom: 1mm; }
+            .qr-area { width: 23mm; height: 23mm; flex-shrink: 0; }
             .qr-area img { width: 23mm; height: 23mm; }
-            .info-area { width: 23mm; height: 26mm; display: flex; flex-direction: column; justify-content: space-between; }
             .logo-row { display: flex; align-items: center; gap: 1mm; }
-            .logo-row img { height: 4mm; width: auto; }
+            .logo-row img { height: 5mm; width: auto; }
             .logo-row span { font-size: 4mm; font-weight: bold; color: #374151; }
+            .content-row { width: 100%; }
             .data { font-size: 3mm; line-height: 1.3; }
-            .data-id { font-weight: bold; }
-            .data-name { color: #4b5563; }
+            .data-name { color: #4b5563; font-weight: bold; }
             .data-item { color: #6b7280; font-size: 2.5mm; }
             .data-date { color: #9ca3af; font-size: 2.5mm; }
           </style>
         </head>
         <body>
           <div class="label">
-            <div class="qr-area">
-              <img src="${qrUrl}" alt="QR" />
-            </div>
-            <div class="info-area">
+            <div class="qr-row">
+              <div class="qr-area">
+                <img src="${qrUrl}" alt="QR" />
+              </div>
               <div class="logo-row">
                 <img src="${alberoUrl}" alt="logo" />
                 <img src="${logoTextUrl}" alt="Kykos" />
               </div>
+            </div>
+            <div class="content-row">
               <div class="data">
-                <div class="data-id">#${labelData!.requestId.slice(0, 8)}</div>
-                <div class="data-name">${labelData!.recipientName}</div>
-                <div class="data-item">${labelData!.itemDescription.slice(0, 20)}</div>
-                <div class="data-date">Ritiro: ${labelData!.depositDate}</div>
+                <div class="data-name">${labelData.recipientName}</div>
+                <div class="data-item">${labelData.itemDescription.slice(0, 30)}</div>
+                <div class="data-date">Ritiro: ${labelData.depositDate}</div>
               </div>
             </div>
           </div>
@@ -353,40 +361,46 @@ export default function DepositLocationPage() {
                 <div className="text-center">
                   <div className="text-4xl mb-2">🖨️</div>
                   <h2 className="text-xl font-bold text-gray-900">Stampa Etichetta</h2>
-                  <p className="text-sm text-gray-500">Applicare l'etichetta sull'oggetto</p>
+                  <p className="text-sm text-gray-500">Applicare l&apos;etichetta sull&apos;oggetto</p>
                 </div>
 
                 {/* Label Preview */}
                 <div
                   ref={labelRef}
                   className="border-2 border-dashed border-gray-300 rounded-lg p-3 bg-white"
-                  style={{ width: '190px', height: '114px', display: 'flex', gap: '8px', margin: '0 auto' }}
+                  style={{
+                    width: '190px',
+                    height: labelData.labelSize === '50x40' ? '152px' : '114px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                    margin: '0 auto',
+                  }}
                 >
-                  {/* QR Code placeholder - will be rendered by API */}
-                  <div
-                    className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
-                    style={{ width: '87px', height: '87px' }}
-                  >
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData.qrData)}&color=059669`}
-                      alt="QR Code"
+                  {/* Top row: QR and logos */}
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {/* QR Code */}
+                    <div
+                      className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
                       style={{ width: '87px', height: '87px' }}
-                    />
+                    >
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData.qrData)}&color=059669`}
+                        alt="QR Code"
+                        style={{ width: '87px', height: '87px' }}
+                      />
+                    </div>
+                    {/* Logos */}
+                    <div className="flex items-center gap-1" style={{ flex: 1 }}>
+                      <img src="/albero.svg" alt="logo" className="w-8 h-8" />
+                      <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-6 w-auto" />
+                    </div>
                   </div>
-                  {/* Label Info */}
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
-                    {/* Header with logo */}
-                    <div className="flex items-center gap-1">
-                      <img src="/albero.svg" alt="logo" className="w-6 h-6" />
-                      <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-5 w-auto" />
-                    </div>
-                    {/* Data */}
-                    <div className="text-xs space-y-0.5">
-                      <div className="font-semibold text-gray-800">#{labelData.requestId.slice(0, 8)}</div>
-                      <div className="text-gray-600 truncate">{labelData.recipientName}</div>
-                      <div className="text-gray-500 truncate text-[10px]">{labelData.itemDescription}</div>
-                      <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
-                    </div>
+                  {/* Content row: full width */}
+                  <div className="text-xs space-y-0.5" style={{ flex: 1 }}>
+                    <div className="text-gray-600 truncate font-medium">{labelData.recipientName}</div>
+                    <div className="text-gray-500 truncate text-[10px]">{labelData.itemDescription}</div>
+                    <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
                   </div>
                 </div>
 

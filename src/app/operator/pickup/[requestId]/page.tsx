@@ -11,6 +11,8 @@ interface PickupData {
   objectId: string;
   recipientId: string;
   recipientName: string;
+  showVerifyPrompt: boolean;
+  labelSize: string;
 }
 
 interface CameraDevice {
@@ -97,6 +99,8 @@ export default function PickupLocationPage() {
           objectId: data.objectId,
           recipientId: data.recipientId,
           recipientName: data.recipientName,
+          showVerifyPrompt: data.showVerifyPrompt ?? false,
+          labelSize: data.labelSize || '50x30',
         });
       } else {
         const data = await res.json();
@@ -322,63 +326,65 @@ export default function PickupLocationPage() {
                 </div>
               )}
 
-              {/* Verification Section (Optional) */}
-              <div className="border-2 border-dashed rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-medium text-gray-700">Verifica oggetto (opzionale)</span>
-                  {verified ? (
-                    <span className="text-green-600 font-semibold flex items-center gap-1">
-                      ✓ Verificato
-                    </span>
-                  ) : null}
-                </div>
-
-                <p className="text-sm text-gray-500 mb-3">
-                  Puoi scansionare il QR code sull&apos;oggetto per verificare che sia quello corretto
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setShowVerifyScanner(!showVerifyScanner)}
-                  className={`w-full py-3 rounded-lg font-medium ${
-                    showVerifyScanner
-                      ? 'bg-gray-200 text-gray-700'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  }`}
-                >
-                  📷 {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
-                </button>
-
-                {showVerifyScanner && (
-                  <div className="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <label className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
-                      <select
-                        value={cameraId}
-                        onChange={(e) => setCameraId(e.target.value)}
-                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
-                      >
-                        {cameras.map((cam) => (
-                          <option key={cam.id} value={cam.id}>
-                            {cam.label} ({isBackCamera(cam.label) ? 'Posteriore' : isFrontCamera(cam.label) ? 'Frontale' : 'Altra'})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '200px' }}>
-                      <video
-                        ref={videoRef}
-                        className="w-full h-48 object-cover"
-                        playsInline
-                        muted
-                      />
-                    </div>
+              {/* Verification Section (only if printLabel is enabled) */}
+              {pickupData?.showVerifyPrompt && (
+                <div className="border-2 border-dashed rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-gray-700">Verifica oggetto</span>
+                    {verified ? (
+                      <span className="text-green-600 font-semibold flex items-center gap-1">
+                        ✓ Verificato
+                      </span>
+                    ) : null}
                   </div>
-                )}
 
-                {verifyError && (
-                  <p className="mt-2 text-sm text-red-600">{verifyError}</p>
-                )}
-              </div>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Scansiona il QR code sull&apos;etichetta per verificare che sia quello corretto
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowVerifyScanner(!showVerifyScanner)}
+                    className={`w-full py-3 rounded-lg font-medium ${
+                      showVerifyScanner
+                        ? 'bg-gray-200 text-gray-700'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
+                    }`}
+                  >
+                    📷 {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
+                  </button>
+
+                  {showVerifyScanner && (
+                    <div className="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <label className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
+                        <select
+                          value={cameraId}
+                          onChange={(e) => setCameraId(e.target.value)}
+                          className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                        >
+                          {cameras.map((cam) => (
+                            <option key={cam.id} value={cam.id}>
+                              {cam.label} ({isBackCamera(cam.label) ? 'Posteriore' : isFrontCamera(cam.label) ? 'Frontale' : 'Altra'})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '200px' }}>
+                        <video
+                          ref={videoRef}
+                          className="w-full h-48 object-cover"
+                          playsInline
+                          muted
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {verifyError && (
+                    <p className="mt-2 text-sm text-red-600">{verifyError}</p>
+                  )}
+                </div>
+              )}
 
               {/* Complete Pickup Button */}
               <div className="space-y-4">
@@ -389,9 +395,11 @@ export default function PickupLocationPage() {
                 >
                   {completing ? 'Elaborazione...' : 'Conferma Ritiro Completato'}
                 </button>
-                <p className="text-xs text-gray-500 text-center">
-                  Puoi verificare l&apos;oggetto con il QR code oppure procedere direttamente
-                </p>
+                {pickupData?.showVerifyPrompt && (
+                  <p className="text-xs text-gray-500 text-center">
+                    Puoi verificare l&apos;oggetto con il QR code oppure procedere direttamente
+                  </p>
+                )}
               </div>
             </>
           )}
