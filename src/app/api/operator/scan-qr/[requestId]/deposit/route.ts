@@ -108,9 +108,12 @@ export async function POST(
       },
     });
 
-    // Generate pickup QR and send to beneficiary
+    // Generate pickup QR for recipient notification
     const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
     const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+
+    // Generate DELIVER QR for object label (for pickup verification)
+    const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
 
     await sendPickupQrNotification(
       req.recipient.email,
@@ -139,7 +142,7 @@ export async function POST(
         recipientName: req.recipient.name,
         itemDescription: req.object.title,
         depositDate: new Date().toISOString().split('T')[0],
-        qrData: pickupQrData,
+        qrData: deliverQrData,
       },
     });
   } catch (error) {

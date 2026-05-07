@@ -123,6 +123,10 @@ export default function PickupLocationPage() {
         scanner.stop();
         setShowVerifyScanner(false);
 
+        console.log('QR scanned for verification:', data);
+        console.log('Expected requestId:', requestId);
+        console.log('Expected objectId (as donorId):', pickupData?.objectId);
+
         // Verify this is the correct object's deliver QR
         // Format: kykos:object:deliver:{requestId}:{userId}
         if (data.startsWith('kykos:object:deliver:')) {
@@ -130,15 +134,17 @@ export default function PickupLocationPage() {
           const qrRequestId = parts[3];
           const qrUserId = parts[4];
 
-          // Verify requestId matches and userId matches donor
+          console.log('QR parts - requestId:', qrRequestId, 'userId:', qrUserId);
+
+          // Verify requestId matches and userId matches objectId (stored as donorId)
           if (qrRequestId === requestId && pickupData && qrUserId === pickupData.objectId) {
             setVerified(true);
             setVerifyError(null);
           } else {
-            setVerifyError('QR code non corrisponde a questo oggetto');
+            setVerifyError(`QR code non corrisponde. Ricevuto: requestId=${qrRequestId}, userId=${qrUserId}`);
           }
         } else {
-          setVerifyError('QR code non valido per la verifica oggetto');
+          setVerifyError('QR code non valido per la verifica oggetto. Formato atteso: kykos:object:deliver:...');
         }
       }, {
         returnDetailedScanResult: true,
