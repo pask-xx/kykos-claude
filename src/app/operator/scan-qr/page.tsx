@@ -341,17 +341,6 @@ export default function ScanQrPage() {
           <li>5. Il sistema riconosce automaticamente se è una consegna o un ritiro</li>
         </ol>
       </div>
-
-      {/* Shelf Label Button */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border text-center">
-        <p className="text-sm text-gray-500 mb-3">Hai bisogno di etichettare uno scaffale?</p>
-        <button
-          onClick={() => router.push('/operator/shelf-label')}
-          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium"
-        >
-          🏷️ Crea etichetta scaffale
-        </button>
-      </div>
     </div>
   );
 }

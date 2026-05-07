@@ -414,6 +414,21 @@ export default function OrganizationSettingsPage() {
           {saving ? 'Salvataggio...' : 'Salva'}
         </button>
       </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span>🏷️</span> Etichette scaffale
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Crea etichette per contrassegnare gli spazi di deposito nella tua struttura.
+        </p>
+        <button
+          onClick={() => router.push('/operator/shelf-label')}
+          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium"
+        >
+          🏷️ Crea etichetta scaffale
+        </button>
+      </div>
     </div>
   );
 }
