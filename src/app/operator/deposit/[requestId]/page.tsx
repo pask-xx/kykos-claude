@@ -162,20 +162,56 @@ export default function DepositLocationPage() {
     const printContent = labelRef.current;
     if (!printContent) return;
 
-    const printWindow = window.open('', '', 'width=300,height=200');
+    const baseUrl = window.location.origin;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData!.qrData)}&color=059669`;
+    const alberoUrl = `${baseUrl}/albero.svg`;
+    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+
+    const printWindow = window.open('', '', 'width=400,height=300');
     if (!printWindow) return;
 
     printWindow.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
           <title>Stampa Etichetta</title>
           <style>
             @page { size: 50mm 30mm; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { width: 50mm; height: 30mm; }
+            html, body { width: 50mm; height: 30mm; }
+            .label { width: 50mm; height: 30mm; display: flex; gap: 2mm; padding: 2mm; background: white; }
+            .qr-area { width: 23mm; height: 26mm; flex-shrink: 0; }
+            .qr-area img { width: 23mm; height: 23mm; }
+            .info-area { width: 23mm; height: 26mm; display: flex; flex-direction: column; justify-content: space-between; }
+            .logo-row { display: flex; align-items: center; gap: 1mm; }
+            .logo-row img { height: 4mm; width: auto; }
+            .logo-row span { font-size: 4mm; font-weight: bold; color: #374151; }
+            .data { font-size: 3mm; line-height: 1.3; }
+            .data-id { font-weight: bold; }
+            .data-name { color: #4b5563; }
+            .data-item { color: #6b7280; font-size: 2.5mm; }
+            .data-date { color: #9ca3af; font-size: 2.5mm; }
           </style>
         </head>
-        <body>${printContent.innerHTML}</body>
+        <body>
+          <div class="label">
+            <div class="qr-area">
+              <img src="${qrUrl}" alt="QR" />
+            </div>
+            <div class="info-area">
+              <div class="logo-row">
+                <img src="${alberoUrl}" alt="logo" />
+                <img src="${logoTextUrl}" alt="Kykos" />
+              </div>
+              <div class="data">
+                <div class="data-id">#${labelData!.requestId.slice(0, 8)}</div>
+                <div class="data-name">${labelData!.recipientName}</div>
+                <div class="data-item">${labelData!.itemDescription.slice(0, 20)}</div>
+                <div class="data-date">Ritiro: ${labelData!.depositDate}</div>
+              </div>
+            </div>
+          </div>
+        </body>
       </html>
     `);
     printWindow.document.close();
@@ -342,7 +378,7 @@ export default function DepositLocationPage() {
                     {/* Header with logo */}
                     <div className="flex items-center gap-1">
                       <img src="/albero.svg" alt="logo" className="w-6 h-6" />
-                      <span className="text-xs font-bold text-gray-700">Kykos</span>
+                      <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-5 w-auto" />
                     </div>
                     {/* Data */}
                     <div className="text-xs space-y-0.5">
