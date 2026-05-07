@@ -19,9 +19,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find operator by username (username is unique across all organizations)
-    const operator = await prisma.operator.findUnique({
-      where: { username },
+    // Find operator by username (case-insensitive)
+    const operator = await prisma.operator.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: 'insensitive',
+        },
+      },
       include: {
         organization: true,
       },
