@@ -86,9 +86,9 @@ Scansione QR → Registro Posizione → Salvataggio → [Step opzionale stampa e
 2. **`/operator/goods-deposit/[requestId]/page.tsx`** (beni) ✅
    - Flusso: Scan QR consegna beni → Registra posizione → Stampa etichetta (opzionale) → scan-qr
 
-3. **`/operator/pickup/[requestId]/page.tsx`** (ritiro oggetti)
+3. **`/operator/pickup/[requestId]/page.tsx`** (ritiro oggetti) ✅
    - Flusso: Scan QR ritiro → Leggi posizione oggetto → Verifica con scan QR oggetto → Conferma ritiro
-   - Non prevede stampa etichetta
+   - Obbligatoria verifica con scansione QRcode oggetto prima di confermare
 
 4. **`/operator/goods-pickup/[requestId]/page.tsx`** (ritiro beni)
    - Flusso: Scan QR ritiro → Leggi posizione bene → Conferma ritiro

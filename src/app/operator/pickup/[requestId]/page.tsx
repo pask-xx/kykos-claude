@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import QrScanner from 'qr-scanner';
 
 interface PickupData {
   title: string;
@@ -10,6 +11,12 @@ interface PickupData {
   objectId: string;
   recipientId: string;
   recipientName: string;
+}
+
+interface CameraDevice {
+  id: string;
+  label: string;
+  kind: 'videoinput';
 }
 
 export default function PickupLocationPage() {
@@ -22,10 +29,61 @@ export default function PickupLocationPage() {
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [showVerifyScanner, setShowVerifyScanner] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [cameraId, setCameraId] = useState<string>('');
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const scannerRef = useRef<QrScanner | null>(null);
+
+  const isBackCamera = (label: string) => {
+    const l = label.toLowerCase();
+    return l.includes('back') || l.includes('rear') || l.includes('environment') ||
+           l.includes('posteriore') || l.includes('retro');
+  };
+  const isFrontCamera = (label: string) => {
+    const l = label.toLowerCase();
+    return l.includes('front') || l.includes('face') ||
+           l.includes('anteriore') || l.includes('frontale');
+  };
 
   useEffect(() => {
     fetchRequestData();
+    getCameras();
+
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop();
+        scannerRef.current = null;
+      }
+    };
   }, [requestId]);
+
+  const getCameras = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(t => t.stop());
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices
+        .filter(d => d.kind === 'videoinput')
+        .map(d => ({
+          id: d.deviceId,
+          label: d.label || `Camera ${d.deviceId.slice(0, 8)}`,
+          kind: 'videoinput' as const,
+        }));
+
+      setCameras(videoDevices);
+
+      const backCamera = videoDevices.find(c => isBackCamera(c.label));
+      if (backCamera) setCameraId(backCamera.id);
+      else if (videoDevices.length > 0) setCameraId(videoDevices[0].id);
+    } catch (err) {
+      console.error('Error getting cameras:', err);
+    }
+  };
 
   const fetchRequestData = async () => {
     try {
@@ -51,7 +109,74 @@ export default function PickupLocationPage() {
     }
   };
 
+  const startVerifyScanner = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      }
+
+      const scanner = new QrScanner(videoRef.current, (scanResult) => {
+        const data = typeof scanResult === 'string' ? scanResult : scanResult.data;
+        scanner.stop();
+        setShowVerifyScanner(false);
+
+        // Verify this is the correct object's deliver QR
+        // Format: kykos:object:deliver:{requestId}:{userId}
+        if (data.startsWith('kykos:object:deliver:')) {
+          const parts = data.split(':');
+          const qrRequestId = parts[3];
+          const qrUserId = parts[4];
+
+          // Verify requestId matches and userId matches donor
+          if (qrRequestId === requestId && pickupData && qrUserId === pickupData.objectId) {
+            setVerified(true);
+            setVerifyError(null);
+          } else {
+            setVerifyError('QR code non corrisponde a questo oggetto');
+          }
+        } else {
+          setVerifyError('QR code non valido per la verifica oggetto');
+        }
+      }, {
+        returnDetailedScanResult: true,
+        highlightScanRegion: true,
+        maxScansPerSecond: 5,
+      });
+
+      scannerRef.current = scanner;
+      await scanner.setCamera(cameraId);
+      await scanner.start();
+    } catch (err) {
+      console.error('Scanner error:', err);
+      setVerifyError('Errore nell\'avvio della fotocamera');
+    }
+  };
+
+  const stopVerifyScanner = async () => {
+    if (scannerRef.current) {
+      await scannerRef.current.stop();
+      scannerRef.current = null;
+    }
+    setShowVerifyScanner(false);
+  };
+
+  useEffect(() => {
+    if (showVerifyScanner && videoRef.current && cameraId) {
+      startVerifyScanner();
+    } else {
+      stopVerifyScanner();
+    }
+  }, [showVerifyScanner, cameraId]);
+
   const handleCompletePickup = async () => {
+    if (!verified) {
+      setError('Devi verificare l\'oggetto prima di confermare il ritiro');
+      return;
+    }
+
     setCompleting(true);
     try {
       const res = await fetch(`/api/operator/scan-qr/pickup`, {
@@ -181,9 +306,6 @@ export default function PickupLocationPage() {
                       Note: {pickupData.depositNotes}
                     </p>
                   )}
-                  <p className="text-sm text-center text-green-600 mt-2">
-                    Comunica questa posizione al beneficiario per il ritiro
-                  </p>
                 </div>
               ) : (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
@@ -199,18 +321,89 @@ export default function PickupLocationPage() {
                 </div>
               )}
 
+              {/* Verification Section */}
+              <div className="border-2 border-dashed rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-medium text-gray-700">Verifica oggetto</span>
+                  {verified ? (
+                    <span className="text-green-600 font-semibold flex items-center gap-1">
+                      ✓ Verificato
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 font-semibold">Da verificare</span>
+                  )}
+                </div>
+
+                {!verified && (
+                  <>
+                    <p className="text-sm text-gray-500 mb-3">
+                      Scansiona il QR code sull&apos;oggetto per verificare che sia quello corretto
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowVerifyScanner(!showVerifyScanner)}
+                      className={`w-full py-3 rounded-lg font-medium ${
+                        showVerifyScanner
+                          ? 'bg-gray-200 text-gray-700'
+                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                      }`}
+                    >
+                      📷 {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
+                    </button>
+                  </>
+                )}
+
+                {showVerifyScanner && (
+                  <div className="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
+                      <select
+                        value={cameraId}
+                        onChange={(e) => setCameraId(e.target.value)}
+                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                      >
+                        {cameras.map((cam) => (
+                          <option key={cam.id} value={cam.id}>
+                            {cam.label} ({isBackCamera(cam.label) ? 'Posteriore' : isFrontCamera(cam.label) ? 'Frontale' : 'Altra'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '200px' }}>
+                      <video
+                        ref={videoRef}
+                        className="w-full h-48 object-cover"
+                        playsInline
+                        muted
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {verifyError && (
+                  <p className="mt-2 text-sm text-red-600">{verifyError}</p>
+                )}
+              </div>
+
               {/* Complete Pickup Button */}
               <div className="space-y-4">
                 <button
                   onClick={handleCompletePickup}
-                  disabled={completing}
-                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50"
+                  disabled={completing || !verified}
+                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {completing ? 'Elaborazione...' : 'Conferma Ritiro Completato'}
                 </button>
-                <p className="text-xs text-gray-500 text-center">
-                  Cliccando confermi che il beneficiario ha ritirato l&apos;oggetto
-                </p>
+                {!verified && (
+                  <p className="text-xs text-gray-500 text-center">
+                    Devi verificare l&apos;oggetto prima di confermare
+                  </p>
+                )}
+                {verified && (
+                  <p className="text-xs text-green-600 text-center">
+                    ✓ Oggetto verificato, puoi confermare il ritiro
+                  </p>
+                )}
               </div>
             </>
           )}
