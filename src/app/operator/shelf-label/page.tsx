@@ -1,39 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 
-async function fetchAsDataUri(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function svgToPngDataUri(svgDataUri: string, width: number, height: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      reject(new Error('Could not get canvas context'));
-      return;
-    }
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = reject;
-    img.src = svgDataUri;
-  });
-}
+const LOGO_ALBERO = 'https://mgfehedinbulejagvqus.supabase.co/storage/v1/object/public/labels/labels/albero.png';
+const LOGO_TEXT = 'https://mgfehedinbulejagvqus.supabase.co/storage/v1/object/public/labels/labels/LogoKykosTesto.png';
 
 export default function ShelfLabelPage() {
   const router = useRouter();
@@ -84,16 +56,11 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const [logoAlberoSvg, logoTextSvg, qrBase64] = await Promise.all([
-      fetchAsDataUri('/albero.svg'),
-      fetchAsDataUri('/LogoKykosTesto.svg'),
-      qrDataUrl,
-    ]);
-
-    const [logoAlbero, logoText] = await Promise.all([
-      svgToPngDataUri(logoAlberoSvg, 80, 80),
-      svgToPngDataUri(logoTextSvg, 200, 50),
-    ]);
+    const qrBase64 = await QRCode.toDataURL(qrData, {
+      width: 150,
+      margin: 0,
+      color: { dark: '#059669', light: '#ffffff' },
+    });
 
     const labelHeight = isLarge ? '40mm' : '30mm';
     const qrSize = isLarge ? 18 : 16;
@@ -129,8 +96,8 @@ html, body { width: 50mm; height: ${labelHeight}; }
     </div>
     <div class="info-box">
       <div class="logo-row">
-        <img src="${logoAlbero}" alt="logo" />
-        <img src="${logoText}" alt="Kykos" />
+        <img src="${LOGO_ALBERO}" alt="logo" />
+        <img src="${LOGO_TEXT}" alt="Kykos" />
       </div>
       <div class="shelf-data">
         <div class="shelf-row"><span class="shelf-icon">S</span>${stanza}</div>
@@ -175,7 +142,6 @@ html, body { width: 50mm; height: ${labelHeight}; }
             <p className="text-gray-500 mt-2">Crea un&apos;etichetta per contrassegnare uno spazio</p>
           </div>
 
-          {/* Form Fields */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Stanza *</label>
@@ -211,7 +177,6 @@ html, body { width: 50mm; height: ${labelHeight}; }
             </div>
           </div>
 
-          {/* Preview */}
           {isValid && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2 text-center">Anteprima</p>
@@ -225,20 +190,13 @@ html, body { width: 50mm; height: ${labelHeight}; }
                   gap: '6px',
                 }}
               >
-                {/* Top row: QR + info */}
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  {/* QR Code */}
                   <div
                     className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
                     style={{ width: '100px', height: '100px' }}
                   >
-                    <img
-                      src={qrDataUrl || ''}
-                      alt="QR Code"
-                      style={{ width: '70px', height: '70px' }}
-                    />
+                    {qrDataUrl && <img src={qrDataUrl} alt="QR Code" style={{ width: '70px', height: '70px' }} />}
                   </div>
-                  {/* Info box */}
                   <div className="flex-1 flex flex-col justify-between min-w-0">
                     <div className="flex items-center gap-1">
                       <img src="/albero.svg" alt="logo" className="w-8 h-8" />
@@ -264,7 +222,6 @@ html, body { width: 50mm; height: ${labelHeight}; }
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex gap-3">
             <button
               onClick={() => router.push('/operator/scan-qr')}
