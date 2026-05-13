@@ -81,12 +81,14 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const [logoAlbero, logoText] = await Promise.all([
+    const [logoAlbero, logoText, qrBase64] = await Promise.all([
       logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(`${LOGO_ALBERO_BASE64}`).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
       logoTextPng ? Promise.resolve(logoTextPng) : fetch(`${LOGO_TEXT_BASE64}`).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
+      Promise.resolve(qrDataUrl),
     ]);
 
     const labelHeight = isLarge ? '40mm' : '30mm';
+    const qrSize = isLarge ? 18 : 16;
     const logoAlberoHeight = 6;
     const logoTextHeight = logoAlberoHeight * 2;
 
@@ -102,20 +104,28 @@ export default function ShelfLabelPage() {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 50mm; height: ${labelHeight}; }
 .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
-.data-area { display: flex; flex-direction: column; gap: 1.5mm; margin-bottom: auto; }
+.top-row { display: flex; gap: 2mm; }
+.qr-area { width: ${qrSize}mm; height: ${qrSize}mm; flex-shrink: 0; }
+.qr-area img { width: ${qrSize}mm; height: ${qrSize}mm; }
+.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; justify-content: center; gap: 1.5mm; }
 .data-row { display: flex; align-items: center; gap: 1mm; }
 .circle { display: inline-flex; align-items: center; justify-content: center; width: 4mm; height: 4mm; border-radius: 50%; background: #000; color: #fff; font-size: 2.5mm; font-weight: bold; }
 .data-text { font-size: 4mm; font-weight: bold; color: #000; }
-.logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 1mm; }
+.logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; }
 .logo-row img { display: block; }
 </style>
 </head>
 <body>
 <div class="label">
-  <div class="data-area">
-    <div class="data-row"><span class="circle">S</span><span class="data-text">${stanza}</span></div>
-    <div class="data-row"><span class="circle">S</span><span class="data-text">${scaffale}</span></div>
-    <div class="data-row"><span class="circle">P</span><span class="data-text">${piano}</span></div>
+  <div class="top-row">
+    <div class="qr-area">
+      <img src="${qrBase64}" alt="QR" />
+    </div>
+    <div class="info-box">
+      <div class="data-row"><span class="circle">S</span><span class="data-text">${stanza}</span></div>
+      <div class="data-row"><span class="circle">S</span><span class="data-text">${scaffale}</span></div>
+      <div class="data-row"><span class="circle">P</span><span class="data-text">${piano}</span></div>
+    </div>
   </div>
   <div class="logo-row">
     <img src="${logoAlbero}" alt="logo" style="height: ${logoAlberoHeight}mm; width: ${logoAlberoHeight}mm;" />
