@@ -208,21 +208,20 @@ html, body { width: 50mm; height: ${labelHeight}; }
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2 text-center">Anteprima</p>
               <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white mx-auto"
+                className="border-2 border-dashed border-gray-300 rounded-lg p-3 bg-white mx-auto"
                 style={{
                   width: '220px',
                   height: isLarge ? '176px' : '132px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '6px',
                 }}
               >
                 {/* Top row: QR + info */}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flex: 1 }}>
                   {/* QR Code */}
                   <div
                     className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
-                    style={{ width: '100px', height: '100px' }}
+                    style={{ width: '90px', height: '90px' }}
                   >
                     <img
                       src={qrDataUrl || ''}
@@ -230,27 +229,26 @@ html, body { width: 50mm; height: ${labelHeight}; }
                       style={{ width: '70px', height: '70px' }}
                     />
                   </div>
-                  {/* Info box */}
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
+                  {/* Info box with circled S/S/P */}
+                  <div className="flex-1 flex flex-col justify-center gap-1">
                     <div className="flex items-center gap-1">
-                      <img src={logoAlberoPng || '/albero.png'} alt="logo" className="w-8 h-8" />
-                      <img src={logoTextPng || '/LogoKykosTesto.png'} alt="Kykos" className="h-6 w-auto" />
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">S</span>
+                      <span className="font-bold text-gray-800 text-sm">{stanza}</span>
                     </div>
-                    <div className="text-xs space-y-1">
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-400">S</span>
-                        <span className="font-medium text-gray-800">{stanza}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-400">S</span>
-                        <span className="font-medium text-gray-800">{scaffale}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-400">P</span>
-                        <span className="font-medium text-gray-800">{piano}</span>
-                      </div>
+                    <div className="flex items-center gap-1">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">S</span>
+                      <span className="font-bold text-gray-800 text-sm">{scaffale}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">P</span>
+                      <span className="font-bold text-gray-800 text-sm">{piano}</span>
                     </div>
                   </div>
+                </div>
+                {/* Logos at bottom */}
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <img src={logoAlberoPng || '/albero.png'} alt="logo" className="w-6 h-6" />
+                  <img src={logoTextPng || '/LogoKykosTesto.png'} alt="Kykos" className="h-6 w-auto" />
                 </div>
               </div>
             </div>
