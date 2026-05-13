@@ -63,7 +63,7 @@ export async function GET(
         intermediary: {
           select: { id: true, name: true },
         },
-        request: {
+        requests: {
           select: {
             recipient: {
               select: { id: true, name: true },
@@ -84,8 +84,8 @@ export async function GET(
     // Get deposit location from object and recipient from request
     const depositLocation = object.depositLocation;
 
-    // Get recipient through request if exists
-    const recipient = object.request?.recipient || null;
+    // Get recipient through requests if exists (take first one)
+    const recipient = object.requests?.[0]?.recipient || null;
 
     return NextResponse.json({
       object: {
