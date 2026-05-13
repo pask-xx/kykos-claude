@@ -19,7 +19,7 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   const token = cookieStore.get('operator_session')?.value;
   if (!token) return null;
   try {
-    const { payload } = jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as unknown as OperatorSession;
   } catch {
     return null;
