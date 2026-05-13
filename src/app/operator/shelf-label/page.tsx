@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 
@@ -12,6 +12,26 @@ async function fetchAsDataUri(url: string): Promise<string> {
     reader.onloadend = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
+  });
+}
+
+async function svgToPngDataUri(svgDataUri: string, width: number, height: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = svgDataUri;
   });
 }
 
@@ -55,7 +75,7 @@ export default function ShelfLabelPage() {
       return;
     }
     QRCode.toDataURL(qrData, {
-      width: 150,
+      width: 105,
       margin: 0,
       color: { dark: '#059669', light: '#ffffff' },
     }).then(setQrDataUrl).catch(() => setQrDataUrl(null));
@@ -64,19 +84,24 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const [logoAlbero, logoText, qrBase64] = await Promise.all([
+    const [logoAlberoSvg, logoTextSvg, qrBase64] = await Promise.all([
       fetchAsDataUri('/albero.svg'),
       fetchAsDataUri('/LogoKykosTesto.svg'),
       qrDataUrl,
     ]);
 
+    const [logoAlbero, logoText] = await Promise.all([
+      svgToPngDataUri(logoAlberoSvg, 80, 80),
+      svgToPngDataUri(logoTextSvg, 200, 50),
+    ]);
+
     const labelHeight = isLarge ? '40mm' : '30mm';
+    const qrSize = isLarge ? 18 : 16;
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
-    printWindow.document.write(`
-<!DOCTYPE html>
+    printWindow.document.write(`<!DOCTYPE html>
 <html>
 <head>
 <title>Etichetta Scaffale</title>
@@ -86,9 +111,9 @@ export default function ShelfLabelPage() {
 html, body { width: 50mm; height: ${labelHeight}; }
 .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
 .top-row { display: flex; gap: 2mm; }
-.qr-area { width: 23mm; height: 23mm; flex-shrink: 0; }
-.qr-area img { width: 23mm; height: 23mm; }
-.info-box { width: 23mm; display: flex; flex-direction: column; gap: 1mm; }
+.qr-area { width: ${qrSize}mm; height: ${qrSize}mm; flex-shrink: 0; }
+.qr-area img { width: ${qrSize}mm; height: ${qrSize}mm; }
+.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; gap: 1mm; }
 .logo-row { display: flex; align-items: center; gap: 1mm; }
 .logo-row img { height: 5mm; width: auto; }
 .shelf-data { font-size: 3.5mm; line-height: 1.5; color: #1f2937; }
@@ -116,8 +141,7 @@ html, body { width: 50mm; height: ${labelHeight}; }
   </div>
 </div>
 </body>
-</html>
-`);
+</html>`);
     printWindow.document.close();
     printWindow.print();
   };
@@ -211,7 +235,7 @@ html, body { width: 50mm; height: ${labelHeight}; }
                     <img
                       src={qrDataUrl || ''}
                       alt="QR Code"
-                      style={{ width: '100px', height: '100px' }}
+                      style={{ width: '70px', height: '70px' }}
                     />
                   </div>
                   {/* Info box */}
