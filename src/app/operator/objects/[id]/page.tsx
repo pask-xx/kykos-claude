@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 
@@ -23,9 +24,24 @@ interface ObjectDetail {
 
 export default function ObjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [object, setObject] = useState<ObjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+
+  // Determine back URL based on where user came from
+  const getBackUrl = () => {
+    if (window.history.length > 1) {
+      const referrer = document.referrer;
+      if (referrer.includes('/operator/deposit')) {
+        return '/operator/deposit';
+      }
+      if (referrer.includes('/operator/objects')) {
+        return '/operator/objects';
+      }
+    }
+    return '/operator/deposit';
+  };
 
   useEffect(() => {
     fetchObject();
@@ -75,7 +91,7 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
       <div className="text-center py-12">
         <p className="text-gray-500">Oggetto non trovato</p>
         <Link href="/operator/objects" className="text-primary-600 hover:underline mt-2 inline-block">
-          ← Torna alle disponibilità
+          ← Torna alla lista
         </Link>
       </div>
     );
@@ -88,8 +104,8 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <Link href="/operator/deposit" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Tutti i depositi
+          <Link href={getBackUrl()} className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
+            ← Torna alla lista
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{object.title}</h1>
           <div className="flex items-center gap-3 mt-2">
