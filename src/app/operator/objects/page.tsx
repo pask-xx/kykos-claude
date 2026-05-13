@@ -22,7 +22,7 @@ export default function OperatorObjectsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState('AVAILABLE');
   const [showDonated, setShowDonated] = useState(false);
 
   useEffect(() => {
@@ -69,6 +69,12 @@ export default function OperatorObjectsPage() {
 
   const categories = [...new Set(objects.map(o => o.category))];
   const statuses = [...new Set(objects.map(o => o.status))].filter(s => s !== 'DONATED');
+  const STATUS_LABELS: Record<string, string> = {
+    AVAILABLE: 'Disponibile',
+    RESERVED: 'Riservato',
+    DEPOSITED: 'Depositato',
+    CANCELLED: 'Cancellato',
+  };
 
   return (
     <div className="space-y-6">
@@ -117,7 +123,7 @@ export default function OperatorObjectsPage() {
           >
             <option value="">Tutti gli stati</option>
             {statuses.map(status => (
-              <option key={status} value={status}>{status}</option>
+              <option key={status} value={status}>{STATUS_LABELS[status] || status}</option>
             ))}
           </select>
         </div>
