@@ -48,6 +48,23 @@ export default function GoodsDepositLocationPage() {
            l.includes('anteriore') || l.includes('frontale');
   };
 
+  // Format QR data as (S): <stanza> - (S): <scaffale> - (P): <piano>
+  const formatLocationFromQr = (data: string): string => {
+    if (!data) return '';
+    // Assume data is in format stanza\scaffale\piano or similar
+    const parts = data.split(/[\s\n]+/).filter(p => p.trim());
+    if (parts.length >= 3) {
+      return `(S): ${parts[0]} - (S): ${parts[1]} - (P): ${parts[2]}`;
+    }
+    // If just one part, try splitting by common separators
+    const separatorMatch = data.match(/^([A-Z]+)\s*[-_]?\s*(\S+)\s*[-_]?\s*(\S+)\s*[-_]?\s*(\S+)$/i);
+    if (separatorMatch) {
+      return `(S): ${separatorMatch[1]} - (S): ${separatorMatch[2]} - (P): ${separatorMatch[3]}`;
+    }
+    // Return original if can't parse
+    return data;
+  };
+
   useEffect(() => {
     // Get cameras on mount
     async function getCameras() {
@@ -121,7 +138,8 @@ export default function GoodsDepositLocationPage() {
         const data = typeof scanResult === 'string' ? scanResult : scanResult.data;
         scanner.stop();
         setShowScanner(false);
-        setDepositLocation(data);
+        // Format location as (S): <stanza> - (S): <scaffale> - (P): <piano>
+        setDepositLocation(formatLocationFromQr(data));
       }, {
         returnDetailedScanResult: true,
         highlightScanRegion: true,
@@ -309,7 +327,7 @@ export default function GoodsDepositLocationPage() {
                   type="text"
                   value={depositLocation}
                   onChange={(e) => setDepositLocation(e.target.value)}
-                  placeholder="Es. Scaffale A-12"
+                  placeholder="(S): Stanza - (S): Scaffale - (P): Piano"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 />
                 <button
