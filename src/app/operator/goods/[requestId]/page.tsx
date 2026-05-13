@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
@@ -14,6 +13,7 @@ interface GoodsRequest {
   type: string;
   status: string;
   createdAt: string;
+  updatedAt: string;
   fulfilledAt: string | null;
   depositLocation: string | null;
   depositNotes: string | null;
@@ -57,19 +57,25 @@ const GOODS_STATUS_LABELS: Record<string, string> = {
   PENDING: 'In attesa',
   APPROVED: 'Approvata',
   FULFILLED: 'Soddisfatta',
-  DELIVERED: 'Consegnata',
+  DELIVERED: 'Depositata',
   COMPLETED: 'Completata',
   CANCELLED: 'Cancellata',
 };
 
-export default function GoodsDetailPage() {
-  const router = useRouter();
-  const params = useParams();
-  const requestId = params.requestId as string;
+const GOODS_STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
+  PENDING: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'In attesa' },
+  APPROVED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Approvata' },
+  FULFILLED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Soddisfatta' },
+  DELIVERED: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Depositata' },
+  COMPLETED: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Completata' },
+  CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Cancellata' },
+};
 
+export default function GoodsDetailPage({ params }: { params: Promise<{ requestId: string }> }) {
+  const { requestId } = use(params);
   const [goods, setGoods] = useState<GoodsRequest | null>(null);
   const [loading, setLoading] = useState(true);
-  const [completing, setCompleting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
     fetchGoods();
@@ -82,49 +88,20 @@ export default function GoodsDetailPage() {
         const data = await res.json();
         setGoods(data.goodsRequest);
       }
-    } catch (err) {
-      console.error('Error fetching goods:', err);
+    } catch (error) {
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCompletePickup = async () => {
-    setCompleting(true);
-    try {
-      const res = await fetch(`/api/entity-requests/${requestId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId, action: 'complete_pickup' }),
-      });
-
-      if (res.ok) {
-        router.push('/operator/deposit');
-      }
-    } catch (err) {
-      console.error('Error completing pickup:', err);
-    } finally {
-      setCompleting(false);
-    }
-  };
-
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
-      case 'APPROVED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Approvata</span>;
-      case 'FULFILLED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Soddisfatta</span>;
-      case 'DELIVERED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Consegnata</span>;
-      case 'COMPLETED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Completata</span>;
-      case 'CANCELLED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Cancellata</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
+    const badge = GOODS_STATUS_BADGES[status] || { bg: 'bg-gray-100', text: 'text-gray-700', label: status };
+    return (
+      <span className={`px-3 py-1 ${badge.bg} ${badge.text} text-sm rounded-full`}>
+        {badge.label}
+      </span>
+    );
   };
 
   if (loading) {
@@ -146,8 +123,8 @@ export default function GoodsDetailPage() {
     );
   }
 
-  // Get all images from offers
-  const allImages = goods.offers?.flatMap(o => o.imageUrls || []) || [];
+  // Collect all images from all offers
+  const allImages: string[] = goods.offers?.flatMap(o => o.imageUrls || []) || [];
 
   return (
     <div className="space-y-6">
@@ -155,121 +132,111 @@ export default function GoodsDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <Link href="/operator/deposit" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Torna ai depositi
+            ← Tutti i depositi
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{goods.title}</h1>
           <div className="flex items-center gap-3 mt-2">
             {getStatusBadge(goods.status)}
             <span className="text-sm text-gray-500">
-              {CATEGORY_LABELS[goods.category as keyof typeof CATEGORY_LABELS] || goods.category}
+              Aggiunto il {formatDate(goods.createdAt)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Images */}
-      {allImages.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border p-4">
-          <h2 className="font-semibold text-gray-900 mb-3">Foto</h2>
-          <div className="flex flex-wrap gap-3">
-            {allImages.map((url: string, i: number) => (
-              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={url}
-                  alt={`Immagine ${i + 1}`}
-                  className="w-24 h-24 object-cover rounded-lg border border-gray-200 hover:border-primary-400 transition-colors"
-                />
-              </a>
-            ))}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Gallery */}
+        <div className="space-y-4">
+          {/* Main image */}
+          <div className="bg-gray-100 rounded-xl overflow-hidden aspect-square flex items-center justify-center">
+            {allImages.length > 0 ? (
+              <img
+                src={allImages[selectedImage]}
+                alt={goods.title}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <span className="text-8xl">🎁</span>
+            )}
           </div>
-        </div>
-      )}
 
-      {/* Description */}
-      {goods.description && (
-        <div className="bg-white rounded-xl shadow-sm border p-4">
-          <h2 className="font-semibold text-gray-900 mb-2">Descrizione</h2>
-          <p className="text-gray-600">{goods.description}</p>
-        </div>
-      )}
-
-      {/* Deposit Location */}
-      {goods.depositLocation && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <h2 className="font-semibold text-amber-900 mb-1">📍 Posizione deposito</h2>
-          <p className="text-amber-800 text-lg font-medium">{goods.depositLocation}</p>
-          {goods.depositNotes && (
-            <p className="text-amber-700 text-sm mt-1">{goods.depositNotes}</p>
+          {/* Thumbnails */}
+          {allImages.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {allImages.map((url, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${
+                    selectedImage === index ? 'border-primary-500' : 'border-transparent'
+                  }`}
+                >
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
-      )}
 
-      {/* Donor Info */}
-      {goods.fulfilledBy && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <h2 className="font-semibold text-blue-900 mb-2">🎁 Donatore</h2>
-          <p className="text-blue-800 font-medium">{goods.fulfilledBy.name}</p>
-          <p className="text-blue-600 text-sm">{goods.fulfilledBy.email}</p>
-        </div>
-      )}
-
-      {/* Beneficiary Info */}
-      <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-        <h2 className="font-semibold text-green-900 mb-2">🙋 Beneficiario</h2>
-        <p className="text-green-800 font-medium">{goods.beneficiary.name}</p>
-        <p className="text-green-600 text-sm">{goods.beneficiary.email}</p>
-      </div>
-
-      {/* Entity Info */}
-      <div className="bg-gray-50 rounded-xl p-4">
-        <h2 className="font-semibold text-gray-900 mb-2">🏢 Ente</h2>
-        <p className="text-gray-700">{goods.intermediary.name}</p>
-        {(goods.intermediary.address || goods.intermediary.city) && (
-          <p className="text-gray-500 text-sm">
-            {[goods.intermediary.address, goods.intermediary.houseNumber, goods.intermediary.cap, goods.intermediary.city, goods.intermediary.province].filter(Boolean).join(', ')}
-          </p>
-        )}
-      </div>
-
-      {/* Actions - only for DELIVERED status */}
-      {goods.status === 'DELIVERED' && (
-        <div className="flex gap-3">
-          <button
-            onClick={handleCompletePickup}
-            disabled={completing}
-            className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-50"
-          >
-            {completing ? 'Elaborazione...' : '✓ Conferma ritiro'}
-          </button>
-        </div>
-      )}
-
-      {/* Timeline */}
-      <div className="bg-white rounded-xl shadow-sm border p-4">
-        <h2 className="font-semibold text-gray-900 mb-3">Cronologia</h2>
-        <div className="space-y-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-gray-600">Creata il {formatDate(goods.createdAt)}</span>
+        {/* Details */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Dettagli</h2>
+            <dl className="space-y-4">
+              <div>
+                <dt className="text-sm text-gray-500">Categoria</dt>
+                <dd className="font-medium text-gray-900">
+                  {CATEGORY_LABELS[goods.category as keyof typeof CATEGORY_LABELS] || goods.category}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm text-gray-500">Ente</dt>
+                <dd className="font-medium text-gray-900">{goods.intermediary.name}</dd>
+              </div>
+              {goods.depositLocation && (
+                <div>
+                  <dt className="text-sm text-gray-500">Posizione deposito</dt>
+                  <dd className="font-medium text-gray-900">{goods.depositLocation}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-sm text-gray-500">Donatore</dt>
+                <dd className="font-medium text-gray-900">{goods.fulfilledBy?.name || 'N/D'}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-gray-500">Beneficiario</dt>
+                <dd className="font-medium text-gray-900">{goods.beneficiary.name}</dd>
+              </div>
+              {goods.description && (
+                <div>
+                  <dt className="text-sm text-gray-500">Descrizione</dt>
+                  <dd className="text-gray-700">{goods.description}</dd>
+                </div>
+              )}
+            </dl>
           </div>
-          {goods.fulfilledAt && (
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-gray-600">Soddisfatta il {formatDate(goods.fulfilledAt)}</span>
-            </div>
-          )}
-          {goods.status === 'DELIVERED' && (
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-gray-600">Consegnata all&apos;ente</span>
-            </div>
-          )}
-          {goods.status === 'COMPLETED' && (
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-gray-400" />
-              <span className="text-gray-600">Ritirata dal beneficiario</span>
-            </div>
-          )}
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
+            <dl className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-gray-500">Creata</dt>
+                <dd className="text-gray-900">{formatDate(goods.createdAt)}</dd>
+              </div>
+              {goods.fulfilledAt && (
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Soddisfatta</dt>
+                  <dd className="text-gray-900">{formatDate(goods.fulfilledAt)}</dd>
+                </div>
+              )}
+              {goods.updatedAt && goods.updatedAt !== goods.createdAt && (
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Ultima modifica</dt>
+                  <dd className="text-gray-900">{formatDate(goods.updatedAt)}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
         </div>
       </div>
     </div>
