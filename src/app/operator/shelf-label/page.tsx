@@ -47,6 +47,8 @@ export default function ShelfLabelPage() {
   const [labelSize, setLabelSize] = useState('50x30');
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [logoAlberoPng, setLogoAlberoPng] = useState<string | null>(null);
+  const [logoTextPng, setLogoTextPng] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchOrgSettings() {
@@ -68,6 +70,23 @@ export default function ShelfLabelPage() {
     fetchOrgSettings();
   }, []);
 
+  useEffect(() => {
+    async function preloadLogos() {
+      if (!LOGO_ALBERO || !LOGO_TEXT) return;
+      try {
+        const [albero, text] = await Promise.all([
+          svgToPngDataUri(LOGO_ALBERO, 80, 80),
+          svgToPngDataUri(LOGO_TEXT, 200, 50),
+        ]);
+        setLogoAlberoPng(albero);
+        setLogoTextPng(text);
+      } catch (err) {
+        console.error('Error preloading logos:', err);
+      }
+    }
+    preloadLogos();
+  }, []);
+
   const qrData = `${stanza}\n${scaffale}\n${piano}`;
   const isValid = stanza.trim() && scaffale.trim() && piano.trim();
   const isLarge = labelSize === '50x40';
@@ -87,9 +106,11 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const logoAlberoData = LOGO_ALBERO;
-    const logoTextData = LOGO_TEXT;
-    const qrBase64 = qrDataUrl;
+    const [logoAlbero, logoText, qrBase64] = await Promise.all([
+      logoAlberoPng ? Promise.resolve(logoAlberoPng) : svgToPngDataUri(LOGO_ALBERO, 80, 80),
+      logoTextPng ? Promise.resolve(logoTextPng) : svgToPngDataUri(LOGO_TEXT, 200, 50),
+      Promise.resolve(qrDataUrl),
+    ]);
 
     const labelHeight = isLarge ? '40mm' : '30mm';
     const qrSize = isLarge ? 18 : 16;
@@ -125,8 +146,8 @@ html, body { width: 50mm; height: ${labelHeight}; }
     </div>
     <div class="info-box">
       <div class="logo-row">
-        <img src="${logoAlberoData}" alt="logo" />
-        <img src="${logoTextData}" alt="Kykos" />
+        <img src="${logoAlbero}" alt="logo" />
+        <img src="${logoText}" alt="Kykos" />
       </div>
       <div class="shelf-data">
         <div class="shelf-row"><span class="shelf-icon">S</span>${stanza}</div>
