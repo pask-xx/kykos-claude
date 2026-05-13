@@ -63,6 +63,13 @@ export async function GET(
         intermediary: {
           select: { id: true, name: true },
         },
+        request: {
+          select: {
+            recipient: {
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
     });
 
@@ -74,7 +81,19 @@ export async function GET(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    return NextResponse.json({ object });
+    // Get deposit location from object and recipient from request
+    const depositLocation = object.depositLocation;
+
+    // Get recipient through request if exists
+    const recipient = object.request?.recipient || null;
+
+    return NextResponse.json({
+      object: {
+        ...object,
+        depositLocation,
+        recipient,
+      }
+    });
   } catch (error) {
     console.error('Operator object detail error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });

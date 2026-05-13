@@ -15,7 +15,9 @@ interface ObjectDetail {
   imageUrls: string[];
   createdAt: string;
   updatedAt: string;
+  depositLocation: string | null;
   donor: { id: string; name: string };
+  recipient: { id: string; name: string };
   intermediary: { id: string; name: string };
 }
 
@@ -86,8 +88,8 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <Link href="/operator/objects" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Tutte le disponibilità
+          <Link href="/operator/deposit" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
+            ← Tutti i depositi
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{object.title}</h1>
           <div className="flex items-center gap-3 mt-2">
@@ -154,9 +156,19 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
                 <dt className="text-sm text-gray-500">Ente</dt>
                 <dd className="font-medium text-gray-900">{object.intermediary.name}</dd>
               </div>
+              {object.depositLocation && (
+                <div>
+                  <dt className="text-sm text-gray-500">Posizione deposito</dt>
+                  <dd className="font-medium text-gray-900">{object.depositLocation}</dd>
+                </div>
+              )}
               <div>
                 <dt className="text-sm text-gray-500">Donatore</dt>
                 <dd className="font-medium text-gray-900">{object.donor.name}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-gray-500">Beneficiario</dt>
+                <dd className="font-medium text-gray-900">{object.recipient?.name || 'N/D'}</dd>
               </div>
               {object.description && (
                 <div>
