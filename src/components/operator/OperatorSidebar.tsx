@@ -16,16 +16,17 @@ interface NavItem {
 
 const allNavItems: NavItem[] = [
   { href: '/operator/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/operator/requests', label: 'Richieste', icon: '📝', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/recipients', label: 'Beneficiari', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/requests-entity', label: 'Richieste', icon: '📋', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/objects', label: 'Disponibilità', icon: '📦', permission: 'OBJECT_RECEIVE' },
-  { href: '/operator/scan-qr', label: 'Scansiona QR', icon: '📱', permission: 'OBJECT_DELIVER' },
-  { href: '/operator/reports', label: 'Segnalazioni', icon: '⚠️', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/requests', label: 'Da approvare', icon: '📝', permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/deposit', label: 'In deposito', icon: '📤', permission: 'OBJECT_RECEIVE' },
+  { href: '/operator/recipients', label: 'Beneficiari', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/donors', label: 'Donatori', icon: '🎁', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/requests-entity', label: 'Richieste ente', icon: '📋', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/volunteers', label: 'Volontari', icon: '🤝', permission: 'VOLUNTEER_MANAGE' },
-  { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/scan-qr', label: 'Scansione QR', icon: '📱', permission: 'OBJECT_DELIVER' },
+  { href: '/operator/reports', label: 'Segnalazioni', icon: '⚠️', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
 ];
 
