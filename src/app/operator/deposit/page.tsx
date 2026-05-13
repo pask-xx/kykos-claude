@@ -122,8 +122,11 @@ export default function DepositPage() {
   };
 
   const getImage = (item: DepositedItem) => {
-    if (item.type === 'object' && item.imageUrls && item.imageUrls.length > 0) {
-      return item.imageUrls[0];
+    if (item.type === 'object') {
+      const obj = item as DepositedObject;
+      if (obj.imageUrls && obj.imageUrls.length > 0) {
+        return obj.imageUrls[0];
+      }
     }
     return null;
   };
