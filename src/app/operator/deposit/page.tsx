@@ -28,18 +28,7 @@ interface DepositedGood {
   fulfilledBy: { id: string; name: string };
 }
 
-interface DepositedOffer {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  createdAt: string;
-  depositLocation: string | null;
-  beneficiary: { id: string; name: string };
-  fulfilledBy: { id: string; name: string };
-}
-
-type DepositedItem = (DepositedObject | DepositedGood | DepositedOffer) & { type: 'object' | 'good' | 'offer' };
+type DepositedItem = (DepositedObject | DepositedGood) & { type: 'object' | 'good' };
 
 const GOODS_STATUS_LABELS: Record<string, string> = {
   PENDING: 'In attesa',
@@ -62,15 +51,13 @@ export default function DepositPage() {
 
   const fetchDepositedItems = async () => {
     try {
-      const [objectsRes, goodsRes, offersRes] = await Promise.all([
+      const [objectsRes, goodsRes] = await Promise.all([
         fetch('/api/operator/objects'),
         fetch('/api/operator/requests-entity'),
-        fetch('/api/operator/goods-offers'),
       ]);
 
       const objectsData = objectsRes.ok ? await objectsRes.json() : { objects: [] };
       const goodsData = goodsRes.ok ? await goodsRes.json() : { requests: [] };
-      const offersData = offersRes.ok ? await offersRes.json() : { offers: [] };
 
       // Filter DEPOSITED objects
       const depositedObjects: DepositedObject[] = (objectsData.objects || [])
@@ -101,24 +88,10 @@ export default function DepositPage() {
           fulfilledBy: r.fulfilledBy || { id: '', name: 'Donatore' },
         }));
 
-      // Map goods offers to DepositedOffer format
-      const depositedOffers: DepositedOffer[] = (offersData.offers || [])
-        .map((o: any) => ({
-          id: o.id,
-          title: o.request?.title || 'Offerta',
-          category: o.request?.category || '',
-          status: o.status,
-          createdAt: o.createdAt,
-          depositLocation: o.request?.depositLocation || null,
-          beneficiary: o.request?.beneficiary || { id: '', name: 'Beneficiario' },
-          fulfilledBy: o.offeredBy || { id: '', name: 'Donatore' },
-        }));
-
       // Combine and sort by createdAt desc
       const allItems: DepositedItem[] = [
         ...depositedObjects.map(o => ({ ...o, type: 'object' as const })),
         ...depositedGoods.map(g => ({ ...g, type: 'good' as const })),
-        ...depositedOffers.map(o => ({ ...o, type: 'offer' as const })),
       ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setItems(allItems);
@@ -144,9 +117,6 @@ export default function DepositPage() {
   const getItemLink = (item: DepositedItem) => {
     if (item.type === 'object') {
       return `/operator/objects/${item.id}`;
-    }
-    if (item.type === 'offer') {
-      return `/operator/goods-pickup/${item.id}`;
     }
     return `/operator/goods-pickup/${item.id}`;
   };
