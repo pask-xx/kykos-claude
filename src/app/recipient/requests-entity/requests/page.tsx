@@ -169,7 +169,7 @@ export default function RecipientEntityRequestsPage() {
         </div>
         {typeFilter !== 'AVAILABLE' && (
           <Link
-            href="/recipient/requests-entity/new"
+            href="/recipient/requests-entity/requests/new"
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
           >
             + Nuova richiesta
@@ -320,7 +320,7 @@ export default function RecipientEntityRequestsPage() {
           </p>
           {filter === 'mine' && (
             <Link
-              href="/recipient/requests-entity/new"
+              href="/recipient/requests-entity/requests/new"
               className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               Crea la tua prima richiesta
