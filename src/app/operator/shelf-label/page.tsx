@@ -4,39 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 
-const LOGO_ALBERO = '/albero.png';
-const LOGO_TEXT = '/LogoKykosTesto.png';
-
-async function fetchAsDataUri(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function svgToPngDataUri(svgDataUri: string, width: number, height: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      reject(new Error('Could not get canvas context'));
-      return;
-    }
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = reject;
-    img.src = svgDataUri;
-  });
-}
+const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
+const LOGO_TEXT_BASE64 = '/logoKykosTestoBase64.txt';
 
 export default function ShelfLabelPage() {
   const router = useRouter();
@@ -72,14 +41,20 @@ export default function ShelfLabelPage() {
 
   useEffect(() => {
     async function preloadLogos() {
-      if (!LOGO_ALBERO || !LOGO_TEXT) return;
       try {
-        const [albero, text] = await Promise.all([
-          svgToPngDataUri(LOGO_ALBERO, 80, 80),
-          svgToPngDataUri(LOGO_TEXT, 200, 50),
+        const [alberoRes, textRes] = await Promise.all([
+          fetch(LOGO_ALBERO_BASE64),
+          fetch(LOGO_TEXT_BASE64),
         ]);
-        setLogoAlberoPng(albero);
-        setLogoTextPng(text);
+        const [alberoBase64, textBase64] = await Promise.all([
+          alberoRes.text(),
+          textRes.text(),
+        ]);
+        // Ensure data URI prefix
+        const alberoDataUri = alberoBase64.startsWith('data:') ? alberoBase64 : `data:image/png;base64,${alberoBase64}`;
+        const textDataUri = textBase64.startsWith('data:') ? textBase64 : `data:image/png;base64,${textBase64}`;
+        setLogoAlberoPng(alberoDataUri);
+        setLogoTextPng(textDataUri);
       } catch (err) {
         console.error('Error preloading logos:', err);
       }
@@ -107,8 +82,8 @@ export default function ShelfLabelPage() {
     if (!isValid || !qrDataUrl) return;
 
     const [logoAlbero, logoText, qrBase64] = await Promise.all([
-      logoAlberoPng ? Promise.resolve(logoAlberoPng) : svgToPngDataUri(LOGO_ALBERO, 80, 80),
-      logoTextPng ? Promise.resolve(logoTextPng) : svgToPngDataUri(LOGO_TEXT, 200, 50),
+      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(`${LOGO_ALBERO_BASE64}`).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
+      logoTextPng ? Promise.resolve(logoTextPng) : fetch(`${LOGO_TEXT_BASE64}`).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
       Promise.resolve(qrDataUrl),
     ]);
 
@@ -258,8 +233,8 @@ html, body { width: 50mm; height: ${labelHeight}; }
                   {/* Info box */}
                   <div className="flex-1 flex flex-col justify-between min-w-0">
                     <div className="flex items-center gap-1">
-                      <img src="/albero.svg" alt="logo" className="w-8 h-8" />
-                      <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-6 w-auto" />
+                      <img src={logoAlberoPng || '/albero.png'} alt="logo" className="w-8 h-8" />
+                      <img src={logoTextPng || '/LogoKykosTesto.png'} alt="Kykos" className="h-6 w-auto" />
                     </div>
                     <div className="text-xs space-y-1">
                       <div className="flex items-center gap-1">
