@@ -87,16 +87,9 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const [logoAlberoSvg, logoTextSvg, qrBase64] = await Promise.all([
-      fetchAsDataUri(LOGO_ALBERO),
-      fetchAsDataUri(LOGO_TEXT),
-      Promise.resolve(qrDataUrl),
-    ]);
-
-    const [logoAlbero, logoText] = await Promise.all([
-      svgToPngDataUri(logoAlberoSvg, 80, 80),
-      svgToPngDataUri(logoTextSvg, 200, 50),
-    ]);
+    const logoAlberoData = LOGO_ALBERO;
+    const logoTextData = LOGO_TEXT;
+    const qrBase64 = qrDataUrl;
 
     const labelHeight = isLarge ? '40mm' : '30mm';
     const qrSize = isLarge ? 18 : 16;
@@ -132,8 +125,8 @@ html, body { width: 50mm; height: ${labelHeight}; }
     </div>
     <div class="info-box">
       <div class="logo-row">
-        <img src="${logoAlbero}" alt="logo" />
-        <img src="${logoText}" alt="Kykos" />
+        <img src="${logoAlberoData}" alt="logo" />
+        <img src="${logoTextData}" alt="Kykos" />
       </div>
       <div class="shelf-data">
         <div class="shelf-row"><span class="shelf-icon">S</span>${stanza}</div>
