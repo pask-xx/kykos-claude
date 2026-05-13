@@ -107,10 +107,10 @@ html, body { width: 50mm; height: ${labelHeight}; }
 .top-row { display: flex; gap: 2mm; }
 .qr-area { width: ${qrSize}mm; height: ${qrSize}mm; flex-shrink: 0; }
 .qr-area img { width: ${qrSize}mm; height: ${qrSize}mm; }
-.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; justify-content: center; gap: 1mm; }
+.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; justify-content: center; gap: 0.5mm; }
 .data-row { display: flex; align-items: center; gap: 1mm; }
-.circle { display: inline-flex; align-items: center; justify-content: center; width: 5.5mm; height: 5.5mm; border-radius: 50%; border: 0.5mm solid #000; color: #000; font-size: 4.5mm; font-weight: bold; }
-.data-text { font-size: 4.5mm; font-weight: bold; color: #000; }
+.circle { display: inline-flex; align-items: center; justify-content: center; width: 4.5mm; height: 4.5mm; border-radius: 50%; border: 0.5mm solid #000; color: #000; font-size: 3.5mm; font-weight: bold; line-height: 1; }
+.data-text { font-size: 3.5mm; font-weight: bold; color: #000; line-height: 1; }
 .logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 0.5mm; }
 .logo-row img { display: block; }
 </style>
