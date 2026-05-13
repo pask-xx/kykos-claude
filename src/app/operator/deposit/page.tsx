@@ -118,7 +118,7 @@ export default function DepositPage() {
     if (item.type === 'object') {
       return `/operator/objects/${item.id}`;
     }
-    return `/operator/goods-pickup/${item.id}`;
+    return `/operator/goods/${item.id}`;
   };
 
   const getImage = (item: DepositedItem) => {
