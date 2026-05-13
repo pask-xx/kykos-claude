@@ -18,6 +18,26 @@ async function fetchAsDataUri(url: string): Promise<string> {
   });
 }
 
+async function svgToPngDataUri(svgDataUri: string, width: number, height: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = svgDataUri;
+  });
+}
+
 export default function ShelfLabelPage() {
   const router = useRouter();
 
@@ -67,10 +87,15 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const [logoAlberoData, logoTextData, qrBase64] = await Promise.all([
+    const [logoAlberoSvg, logoTextSvg, qrBase64] = await Promise.all([
+      fetchAsDataUri(LOGO_ALBERO),
+      fetchAsDataUri(LOGO_TEXT),
       Promise.resolve(qrDataUrl),
-      Promise.resolve(qrDataUrl),
-      Promise.resolve(qrDataUrl),
+    ]);
+
+    const [logoAlbero, logoText] = await Promise.all([
+      svgToPngDataUri(logoAlberoSvg, 80, 80),
+      svgToPngDataUri(logoTextSvg, 200, 50),
     ]);
 
     const labelHeight = isLarge ? '40mm' : '30mm';
@@ -107,8 +132,8 @@ html, body { width: 50mm; height: ${labelHeight}; }
     </div>
     <div class="info-box">
       <div class="logo-row">
-        <img src="${logoAlberoData}" alt="logo" />
-        <img src="${logoTextData}" alt="Kykos" />
+        <img src="${logoAlbero}" alt="logo" />
+        <img src="${logoText}" alt="Kykos" />
       </div>
       <div class="shelf-data">
         <div class="shelf-row"><span class="shelf-icon">S</span>${stanza}</div>
