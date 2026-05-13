@@ -191,13 +191,16 @@ export default function GoodsRequestDetailPage() {
       {request.fulfilledBy && (
         <div className="bg-green-50 p-4 rounded-xl border border-green-200">
           <h3 className="font-semibold text-green-900 mb-2">✓ Soddisfatta</h3>
-          {(request.status === 'FULFILLED' || request.status === 'DELIVERED') && (
+          {request.status === 'DELIVERED' && (
             <Link
               href={`/recipient/qr-goods/${request.id}`}
               className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
             >
               📱 Visualizza QR per ritiro
             </Link>
+          )}
+          {request.status === 'FULFILLED' && (
+            <p className="text-sm text-green-700 mt-2">In attesa che il donatore consegni il bene presso l&apos;ente...</p>
           )}
         </div>
       )}
