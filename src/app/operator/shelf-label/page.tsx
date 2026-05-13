@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 
-const LOGO_ALBERO = 'https://mgfehedinbulejagvqus.supabase.co/storage/v1/object/public/labels/labels/albero.png';
-const LOGO_TEXT = 'https://mgfehedinbulejagvqus.supabase.co/storage/v1/object/public/labels/labels/LogoKykosTesto.png';
+const LOGO_ALBERO = '/albero.png';
+const LOGO_TEXT = '/LogoKykosTesto.png';
 
 async function fetchAsDataUri(url: string): Promise<string> {
   const res = await fetch(url);
