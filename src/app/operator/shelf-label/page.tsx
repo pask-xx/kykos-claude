@@ -89,7 +89,7 @@ export default function ShelfLabelPage() {
 
     const labelHeight = isLarge ? '40mm' : '30mm';
     const qrSize = isLarge ? 18 : 16;
-    const logoAlberoHeight = 6;
+    const logoAlberoHeight = 5;
     const logoTextHeight = logoAlberoHeight * 2;
 
     const printWindow = window.open('', '', 'width=400,height=400');
@@ -107,11 +107,11 @@ html, body { width: 50mm; height: ${labelHeight}; }
 .top-row { display: flex; gap: 2mm; }
 .qr-area { width: ${qrSize}mm; height: ${qrSize}mm; flex-shrink: 0; }
 .qr-area img { width: ${qrSize}mm; height: ${qrSize}mm; }
-.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; justify-content: center; gap: 1.5mm; }
+.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; justify-content: center; gap: 1mm; }
 .data-row { display: flex; align-items: center; gap: 1mm; }
-.circle { display: inline-flex; align-items: center; justify-content: center; width: 4mm; height: 4mm; border-radius: 50%; background: #000; color: #fff; font-size: 2.5mm; font-weight: bold; }
-.data-text { font-size: 4mm; font-weight: bold; color: #000; }
-.logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; }
+.circle { display: inline-flex; align-items: center; justify-content: center; width: 4.5mm; height: 4.5mm; border-radius: 50%; border: 0.5mm solid #000; color: #000; font-size: 3.5mm; font-weight: bold; }
+.data-text { font-size: 4.5mm; font-weight: bold; color: #000; }
+.logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 0.5mm; }
 .logo-row img { display: block; }
 </style>
 </head>
