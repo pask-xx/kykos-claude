@@ -2,6 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import QRCode from 'qrcode';
+
+async function fetchAsDataUri(url: string): Promise<string> {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
 export default function ShelfLabelPage() {
   const router = useRouter();
@@ -11,9 +23,9 @@ export default function ShelfLabelPage() {
   const [piano, setPiano] = useState('');
   const [labelSize, setLabelSize] = useState('50x30');
   const [loading, setLoading] = useState(true);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch organization settings
     async function fetchOrgSettings() {
       try {
         const res = await fetch('/api/operator/organization');
@@ -37,13 +49,26 @@ export default function ShelfLabelPage() {
   const isValid = stanza.trim() && scaffale.trim() && piano.trim();
   const isLarge = labelSize === '50x40';
 
-  const handlePrint = () => {
-    if (!isValid) return;
+  useEffect(() => {
+    if (!qrData.trim()) {
+      setQrDataUrl(null);
+      return;
+    }
+    QRCode.toDataURL(qrData, {
+      width: 150,
+      margin: 0,
+      color: { dark: '#059669', light: '#ffffff' },
+    }).then(setQrDataUrl).catch(() => setQrDataUrl(null));
+  }, [qrData]);
 
-    const baseUrl = window.location.origin;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=059669`;
-    const alberoUrl = `${baseUrl}/albero.svg`;
-    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+  const handlePrint = async () => {
+    if (!isValid || !qrDataUrl) return;
+
+    const [logoAlbero, logoText, qrBase64] = await Promise.all([
+      fetchAsDataUri('/albero.svg'),
+      fetchAsDataUri('/LogoKykosTesto.svg'),
+      qrDataUrl,
+    ]);
 
     const labelHeight = isLarge ? '40mm' : '30mm';
 
@@ -51,48 +76,48 @@ export default function ShelfLabelPage() {
     if (!printWindow) return;
 
     printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Etichetta Scaffale</title>
-          <style>
-            @page { size: 50mm ${labelHeight}; margin: 0; }
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body { width: 50mm; height: ${labelHeight}; }
-            .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
-            .top-row { display: flex; gap: 2mm; }
-            .qr-area { width: 23mm; height: 23mm; flex-shrink: 0; }
-            .qr-area img { width: 23mm; height: 23mm; }
-            .info-box { width: 23mm; display: flex; flex-direction: column; gap: 1mm; }
-            .logo-row { display: flex; align-items: center; gap: 1mm; }
-            .logo-row img { height: 5mm; width: auto; }
-            .shelf-data { font-size: 3.5mm; line-height: 1.5; color: #1f2937; }
-            .shelf-row { display: flex; align-items: baseline; gap: 1mm; }
-            .shelf-icon { font-size: 2.5mm; color: #6b7280; }
-          </style>
-        </head>
-        <body>
-          <div class="label">
-            <div class="top-row">
-              <div class="qr-area">
-                <img src="${qrUrl}" alt="QR" />
-              </div>
-              <div class="info-box">
-                <div class="logo-row">
-                  <img src="${alberoUrl}" alt="logo" />
-                  <img src="${logoTextUrl}" alt="Kykos" />
-                </div>
-                <div class="shelf-data">
-                  <div class="shelf-row"><span class="shelf-icon">🚪</span>${stanza}</div>
-                  <div class="shelf-row"><span class="shelf-icon">📚</span>${scaffale}</div>
-                  <div class="shelf-row"><span class="shelf-icon">📋</span>${piano}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
+<!DOCTYPE html>
+<html>
+<head>
+<title>Etichetta Scaffale</title>
+<style>
+@page { size: 50mm ${labelHeight}; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 50mm; height: ${labelHeight}; }
+.label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
+.top-row { display: flex; gap: 2mm; }
+.qr-area { width: 23mm; height: 23mm; flex-shrink: 0; }
+.qr-area img { width: 23mm; height: 23mm; }
+.info-box { width: 23mm; display: flex; flex-direction: column; gap: 1mm; }
+.logo-row { display: flex; align-items: center; gap: 1mm; }
+.logo-row img { height: 5mm; width: auto; }
+.shelf-data { font-size: 3.5mm; line-height: 1.5; color: #1f2937; }
+.shelf-row { display: flex; align-items: baseline; gap: 1mm; }
+.shelf-icon { font-size: 2.5mm; color: #6b7280; }
+</style>
+</head>
+<body>
+<div class="label">
+  <div class="top-row">
+    <div class="qr-area">
+      <img src="${qrBase64}" alt="QR" />
+    </div>
+    <div class="info-box">
+      <div class="logo-row">
+        <img src="${logoAlbero}" alt="logo" />
+        <img src="${logoText}" alt="Kykos" />
+      </div>
+      <div class="shelf-data">
+        <div class="shelf-row"><span class="shelf-icon">S</span>${stanza}</div>
+        <div class="shelf-row"><span class="shelf-icon">S</span>${scaffale}</div>
+        <div class="shelf-row"><span class="shelf-icon">P</span>${piano}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+`);
     printWindow.document.close();
     printWindow.print();
   };
@@ -184,7 +209,7 @@ export default function ShelfLabelPage() {
                     style={{ width: '100px', height: '100px' }}
                   >
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=059669`}
+                      src={qrDataUrl || ''}
                       alt="QR Code"
                       style={{ width: '100px', height: '100px' }}
                     />
@@ -197,15 +222,15 @@ export default function ShelfLabelPage() {
                     </div>
                     <div className="text-xs space-y-1">
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-400">🚪</span>
+                        <span className="text-gray-400">S</span>
                         <span className="font-medium text-gray-800">{stanza}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-400">📚</span>
+                        <span className="text-gray-400">S</span>
                         <span className="font-medium text-gray-800">{scaffale}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-400">📋</span>
+                        <span className="text-gray-400">P</span>
                         <span className="font-medium text-gray-800">{piano}</span>
                       </div>
                     </div>
