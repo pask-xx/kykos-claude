@@ -68,8 +68,8 @@ export default function ShelfLabelPage() {
     if (!isValid || !qrDataUrl) return;
 
     const [logoAlberoData, logoTextData, qrBase64] = await Promise.all([
-      fetchAsDataUri(LOGO_ALBERO),
-      fetchAsDataUri(LOGO_TEXT),
+      Promise.resolve(qrDataUrl),
+      Promise.resolve(qrDataUrl),
       Promise.resolve(qrDataUrl),
     ]);
 
@@ -93,7 +93,7 @@ html, body { width: 50mm; height: ${labelHeight}; }
 .qr-area img { width: ${qrSize}mm; height: ${qrSize}mm; }
 .info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; gap: 1mm; }
 .logo-row { display: flex; align-items: center; gap: 1mm; }
-.logo-row img { display: block; height: 5mm; width: auto; }
+.logo-row img { display: block; height: 4mm; width: 4mm; }
 .shelf-data { font-size: 3.5mm; line-height: 1.5; color: #1f2937; }
 .shelf-row { display: flex; align-items: baseline; gap: 1mm; }
 .shelf-icon { font-size: 2.5mm; color: #6b7280; }
