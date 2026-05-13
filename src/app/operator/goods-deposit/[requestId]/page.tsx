@@ -186,7 +186,7 @@ export default function GoodsDepositLocationPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          qrData: `kykos:deliver:${requestId}:${goodsData?.fulfilledById || ''}`,
+          qrData: `kykos:goods:deliver:${requestId}:${goodsData?.fulfilledById || ''}`,
           depositLocation: depositLocation.trim(),
           notes: notes.trim() || undefined,
         }),
