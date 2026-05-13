@@ -7,6 +7,17 @@ import QRCode from 'qrcode';
 const LOGO_ALBERO = 'https://mgfehedinbulejagvqus.supabase.co/storage/v1/object/public/labels/labels/albero.png';
 const LOGO_TEXT = 'https://mgfehedinbulejagvqus.supabase.co/storage/v1/object/public/labels/labels/LogoKykosTesto.png';
 
+async function fetchAsDataUri(url: string): Promise<string> {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 export default function ShelfLabelPage() {
   const router = useRouter();
 
@@ -56,11 +67,11 @@ export default function ShelfLabelPage() {
   const handlePrint = async () => {
     if (!isValid || !qrDataUrl) return;
 
-    const qrBase64 = await QRCode.toDataURL(qrData, {
-      width: 150,
-      margin: 0,
-      color: { dark: '#059669', light: '#ffffff' },
-    });
+    const [logoAlberoData, logoTextData, qrBase64] = await Promise.all([
+      fetchAsDataUri(LOGO_ALBERO),
+      fetchAsDataUri(LOGO_TEXT),
+      Promise.resolve(qrDataUrl),
+    ]);
 
     const labelHeight = isLarge ? '40mm' : '30mm';
     const qrSize = isLarge ? 18 : 16;
@@ -96,8 +107,8 @@ html, body { width: 50mm; height: ${labelHeight}; }
     </div>
     <div class="info-box">
       <div class="logo-row">
-        <img src="${LOGO_ALBERO}" alt="logo" />
-        <img src="${LOGO_TEXT}" alt="Kykos" />
+        <img src="${logoAlberoData}" alt="logo" />
+        <img src="${logoTextData}" alt="Kykos" />
       </div>
       <div class="shelf-data">
         <div class="shelf-row"><span class="shelf-icon">S</span>${stanza}</div>
@@ -142,6 +153,7 @@ html, body { width: 50mm; height: ${labelHeight}; }
             <p className="text-gray-500 mt-2">Crea un&apos;etichetta per contrassegnare uno spazio</p>
           </div>
 
+          {/* Form Fields */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Stanza *</label>
@@ -177,6 +189,7 @@ html, body { width: 50mm; height: ${labelHeight}; }
             </div>
           </div>
 
+          {/* Preview */}
           {isValid && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2 text-center">Anteprima</p>
@@ -190,13 +203,20 @@ html, body { width: 50mm; height: ${labelHeight}; }
                   gap: '6px',
                 }}
               >
+                {/* Top row: QR + info */}
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  {/* QR Code */}
                   <div
                     className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
                     style={{ width: '100px', height: '100px' }}
                   >
-                    {qrDataUrl && <img src={qrDataUrl} alt="QR Code" style={{ width: '70px', height: '70px' }} />}
+                    <img
+                      src={qrDataUrl || ''}
+                      alt="QR Code"
+                      style={{ width: '70px', height: '70px' }}
+                    />
                   </div>
+                  {/* Info box */}
                   <div className="flex-1 flex flex-col justify-between min-w-0">
                     <div className="flex items-center gap-1">
                       <img src="/albero.svg" alt="logo" className="w-8 h-8" />
@@ -222,6 +242,7 @@ html, body { width: 50mm; height: ${labelHeight}; }
             </div>
           )}
 
+          {/* Actions */}
           <div className="flex gap-3">
             <button
               onClick={() => router.push('/operator/scan-qr')}
