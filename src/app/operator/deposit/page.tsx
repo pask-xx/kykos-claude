@@ -217,11 +217,10 @@ export default function DepositPage() {
           .qr-area { width: 18mm; height: 18mm; flex-shrink: 0; }
           .qr-area img { width: 18mm; height: 18mm; }
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
+          .logos img { display: block; }
           .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
-          .logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 0.5mm; }
-          .logo-row img { display: block; }
-          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
           .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
       </head>
@@ -232,19 +231,17 @@ export default function DepositPage() {
               <img src="${qrDataUrl}" alt="QR" />
             </div>
             <div class="info-box">
+              <div class="logos">
+                <img src="${logoAlbero}" alt="logo" style="height: 5mm; width: 5mm;" />
+                <img src="${logoText}" alt="Kykos" style="height: 5mm; width: auto;" />
+              </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
                 ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
               </div>
             </div>
           </div>
-          <div class="logo-row">
-            <img src="${logoAlbero}" alt="logo" style="height: 5mm; width: 5mm;" />
-            <img src="${logoText}" alt="Kykos" style="height: 5mm; width: auto;" />
-          </div>
-          <div class="title-bar">
-            <div class="title-text">${item.title}</div>
-          </div>
+          <div class="title-text">${item.title}</div>
         </div>
       </body>
       </html>
