@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
+import QRCode from 'qrcode';
+
+const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
+const LOGO_TEXT_BASE64 = '/logoKykosTestoBase64.txt';
 
 interface DepositedObject {
   id: string;
@@ -46,6 +50,30 @@ export default function DepositPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [logoAlberoPng, setLogoAlberoPng] = useState<string | null>(null);
+  const [logoTextPng, setLogoTextPng] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function preloadLogos() {
+      try {
+        const [alberoRes, textRes] = await Promise.all([
+          fetch(LOGO_ALBERO_BASE64),
+          fetch(LOGO_TEXT_BASE64),
+        ]);
+        const [alberoBase64, textBase64] = await Promise.all([
+          alberoRes.text(),
+          textRes.text(),
+        ]);
+        const alberoDataUri = alberoBase64.startsWith('data:') ? alberoBase64 : `data:image/png;base64,${alberoBase64}`;
+        const textDataUri = textBase64.startsWith('data:') ? textBase64 : `data:image/png;base64,${textBase64}`;
+        setLogoAlberoPng(alberoDataUri);
+        setLogoTextPng(textDataUri);
+      } catch (err) {
+        console.error('Error preloading logos:', err);
+      }
+    }
+    preloadLogos();
+  }, []);
 
   useEffect(() => {
     fetchDepositedItems();
@@ -155,12 +183,17 @@ export default function DepositPage() {
   const handlePrintLabel = async (item: DepositedItem, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const qrData = `kykos:object:${item.id}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=059669`;
+    if (!logoAlberoPng || !logoTextPng) {
+      alert('Elaborazione in corso, riprova tra un istante.');
+      return;
+    }
 
-    const baseUrl = window.location.origin;
-    const logoAlberoUrl = `${baseUrl}/albero.svg`;
-    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+    const qrData = `kykos:object:${item.id}`;
+    const qrDataUrl = await QRCode.toDataURL(qrData, {
+      width: 80,
+      margin: 0,
+      color: { dark: '#059669', light: '#ffffff' },
+    });
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
@@ -182,28 +215,28 @@ export default function DepositPage() {
           html, body { width: 50mm; height: 30mm; }
           .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; background: white; }
           .top-row { display: flex; align-items: flex-start; gap: 2mm; }
-          .qr-area { width: 20mm; height: 20mm; flex-shrink: 0; }
-          .qr-area img { width: 20mm; height: 20mm; }
+          .qr-area { width: 17mm; height: 17mm; flex-shrink: 0; }
+          .qr-area img { width: 17mm; height: 17mm; }
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
-          .logos img { height: 6mm; }
-          .logos img:last-child { height: 4mm; }
-          .beneficiary { font-size: 3.5mm; line-height: 1.3; color: #333; }
+          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1.5mm; }
+          .logos img:first-child { height: 8mm; }
+          .logos img:last-child { height: 6mm; }
+          .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
-          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; border-top: 0.5mm solid #ccc; }
-          .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
+          .title-bar { width: 100%; margin-top: 2mm; }
+          .title-text { font-size: 3.5mm; color: #555; line-height: 1.2; }
         </style>
       </head>
       <body>
         <div class="label">
           <div class="top-row">
             <div class="qr-area">
-              <img src="${qrUrl}" alt="QR" />
+              <img src="${qrDataUrl}" alt="QR" />
             </div>
             <div class="info-box">
               <div class="logos">
-                <img src="${logoAlberoUrl}" alt="albero" />
-                <img src="${logoTextUrl}" alt="kykos" />
+                <img src="${logoAlberoPng}" alt="albero" />
+                <img src="${logoTextPng}" alt="kykos" />
               </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
