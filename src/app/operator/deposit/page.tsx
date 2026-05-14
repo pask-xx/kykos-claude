@@ -184,15 +184,11 @@ export default function DepositPage() {
     e.stopPropagation();
 
     const qrData = `kykos:object:${item.id}`;
-    const [qrDataUrl, logoAlbero, logoText] = await Promise.all([
-      QRCode.toDataURL(qrData, {
-        width: 90,
-        margin: 0,
-        color: { dark: '#059669', light: '#ffffff' },
-      }),
-      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(LOGO_ALBERO_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-      logoTextPng ? Promise.resolve(logoTextPng) : fetch(LOGO_TEXT_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-    ]);
+    const qrDataUrl = await QRCode.toDataURL(qrData, {
+      width: 90,
+      margin: 0,
+      color: { dark: '#059669', light: '#ffffff' },
+    });
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
@@ -216,12 +212,9 @@ export default function DepositPage() {
           .qr-area { width: 18mm; height: 18mm; flex-shrink: 0; }
           .qr-area img { width: 18mm; height: 18mm; }
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
-          .logos img:first-child { height: 7mm; width: 7mm; }
-          .logos img:last-child { height: 5mm; width: auto; }
           .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
-          .title-bar { width: 100%; margin-top: 2mm; }
+          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
           .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
       </head>
@@ -232,10 +225,6 @@ export default function DepositPage() {
               <img src="${qrDataUrl}" alt="QR" />
             </div>
             <div class="info-box">
-              <div class="logos">
-                <img src="${logoAlbero}" alt="albero" />
-                <img src="${logoText}" alt="kykos" />
-              </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
                 ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
