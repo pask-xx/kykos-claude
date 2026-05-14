@@ -183,23 +183,21 @@ export default function DepositPage() {
   const handlePrintLabel = async (item: DepositedItem, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!logoAlberoPng || !logoTextPng) {
-      alert('Elaborazione in corso, riprova tra un istante.');
-      return;
-    }
-
     const qrData = `kykos:object:${item.id}`;
-    const qrDataUrl = await QRCode.toDataURL(qrData, {
-      width: 80,
-      margin: 0,
-      color: { dark: '#059669', light: '#ffffff' },
-    });
+    const [qrDataUrl, logoAlbero, logoText] = await Promise.all([
+      QRCode.toDataURL(qrData, {
+        width: 90,
+        margin: 0,
+        color: { dark: '#059669', light: '#ffffff' },
+      }),
+      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(LOGO_ALBERO_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
+      logoTextPng ? Promise.resolve(logoTextPng) : fetch(LOGO_TEXT_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
+    ]);
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
     const beneficiaryName = getBeneficiaryName(item);
-    // Split name into first and last name for display
     const nameParts = beneficiaryName.split(' ');
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
@@ -215,16 +213,16 @@ export default function DepositPage() {
           html, body { width: 50mm; height: 30mm; }
           .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; background: white; }
           .top-row { display: flex; align-items: flex-start; gap: 2mm; }
-          .qr-area { width: 17mm; height: 17mm; flex-shrink: 0; }
-          .qr-area img { width: 17mm; height: 17mm; }
+          .qr-area { width: 18mm; height: 18mm; flex-shrink: 0; }
+          .qr-area img { width: 18mm; height: 18mm; }
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1.5mm; }
-          .logos img:first-child { height: 8mm; }
-          .logos img:last-child { height: 6mm; }
+          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
+          .logos img:first-child { height: 7mm; width: 7mm; }
+          .logos img:last-child { height: 5mm; width: auto; }
           .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
           .title-bar { width: 100%; margin-top: 2mm; }
-          .title-text { font-size: 3.5mm; color: #555; line-height: 1.2; }
+          .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
       </head>
       <body>
@@ -235,8 +233,8 @@ export default function DepositPage() {
             </div>
             <div class="info-box">
               <div class="logos">
-                <img src="${logoAlberoPng}" alt="albero" />
-                <img src="${logoTextPng}" alt="kykos" />
+                <img src="${logoAlbero}" alt="albero" />
+                <img src="${logoText}" alt="kykos" />
               </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
