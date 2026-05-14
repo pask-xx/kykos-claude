@@ -28,16 +28,16 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
   const [selectedImage, setSelectedImage] = useState(0);
   const [backUrl, setBackUrl] = useState('/operator/deposit');
 
-  // Determine back URL based on where user came from (client-side only)
+  // Determine back URL based on sessionStorage (set by list pages before navigation)
   useEffect(() => {
-    const referrer = document.referrer;
-    if (referrer.includes('/operator/deposit')) {
-      setBackUrl('/operator/deposit');
-    } else if (referrer.includes('/operator/objects')) {
-      setBackUrl('/operator/objects');
+    const storedBack = sessionStorage.getItem('operatorListBackUrl');
+    if (storedBack && storedBack.startsWith('/operator/')) {
+      setBackUrl(storedBack);
     } else {
       setBackUrl('/operator/deposit');
     }
+    // Clear the stored URL after reading it
+    sessionStorage.removeItem('operatorListBackUrl');
   }, []);
 
   useEffect(() => {

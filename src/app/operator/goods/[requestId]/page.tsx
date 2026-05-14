@@ -76,6 +76,19 @@ export default function GoodsDetailPage({ params }: { params: Promise<{ requestI
   const [goods, setGoods] = useState<GoodsRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [backUrl, setBackUrl] = useState('/operator/deposit');
+
+  // Determine back URL based on sessionStorage (set by list pages before navigation)
+  useEffect(() => {
+    const storedBack = sessionStorage.getItem('operatorListBackUrl');
+    if (storedBack && storedBack.startsWith('/operator/')) {
+      setBackUrl(storedBack);
+    } else {
+      setBackUrl('/operator/deposit');
+    }
+    // Clear the stored URL after reading it
+    sessionStorage.removeItem('operatorListBackUrl');
+  }, []);
 
   useEffect(() => {
     fetchGoods();
@@ -131,7 +144,7 @@ export default function GoodsDetailPage({ params }: { params: Promise<{ requestI
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <Link href="/operator/deposit" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
+          <Link href={backUrl} className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
             ← Torna alla lista
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{goods.title}</h1>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
 
@@ -40,6 +41,7 @@ const GOODS_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function DepositPage() {
+  const router = useRouter();
   const [items, setItems] = useState<DepositedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -48,6 +50,11 @@ export default function DepositPage() {
   useEffect(() => {
     fetchDepositedItems();
   }, []);
+
+  const navigateToDetail = (item: DepositedItem) => {
+    sessionStorage.setItem('operatorListBackUrl', '/operator/deposit');
+    router.push(getItemLink(item));
+  };
 
   const fetchDepositedItems = async () => {
     try {
@@ -202,10 +209,10 @@ export default function DepositPage() {
             {filteredItems.map((item) => {
               const image = getImage(item);
               return (
-                <Link
+                <div
                   key={`${item.type}-${item.id}`}
-                  href={getItemLink(item)}
-                  className="block p-4 hover:bg-gray-50 transition-colors"
+                  onClick={() => navigateToDetail(item)}
+                  className="block p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <div className="flex gap-4">
                     {/* Image or placeholder */}
@@ -249,7 +256,7 @@ export default function DepositPage() {
                       </div>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

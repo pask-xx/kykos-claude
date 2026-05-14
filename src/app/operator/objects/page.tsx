@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 
@@ -18,6 +19,7 @@ interface Object {
 }
 
 export default function OperatorObjectsPage() {
+  const router = useRouter();
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -28,6 +30,11 @@ export default function OperatorObjectsPage() {
   useEffect(() => {
     fetchObjects();
   }, []);
+
+  const navigateToDetail = (objId: string) => {
+    sessionStorage.setItem('operatorListBackUrl', '/operator/objects');
+    router.push(`/operator/objects/${objId}`);
+  };
 
   const fetchObjects = async () => {
     try {
@@ -145,7 +152,7 @@ export default function OperatorObjectsPage() {
             <div
               key={obj.id}
               className="bg-white p-4 rounded-xl shadow-sm border cursor-pointer hover:shadow-md transition"
-              onClick={() => window.location.href = `/operator/objects/${obj.id}`}
+              onClick={() => navigateToDetail(obj.id)}
             >
               <div className="flex gap-3">
                 {/* Image */}
