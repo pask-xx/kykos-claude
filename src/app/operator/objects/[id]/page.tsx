@@ -4,6 +4,10 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
+import QRCode from 'qrcode';
+
+const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
+const LOGO_TEXT_BASE64 = '/logoKykosTestoBase64.txt';
 
 interface ObjectDetail {
   id: string;
@@ -27,6 +31,8 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [backUrl, setBackUrl] = useState('/operator/deposit');
+  const [logoAlberoPng, setLogoAlberoPng] = useState<string | null>(null);
+  const [logoTextPng, setLogoTextPng] = useState<string | null>(null);
 
   // Determine back URL based on sessionStorage (set by list pages before navigation)
   useEffect(() => {
@@ -38,6 +44,29 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
     }
     // Clear the stored URL after reading it
     sessionStorage.removeItem('operatorListBackUrl');
+  }, []);
+
+  // Load logos
+  useEffect(() => {
+    async function preloadLogos() {
+      try {
+        const [alberoRes, textRes] = await Promise.all([
+          fetch(LOGO_ALBERO_BASE64),
+          fetch(LOGO_TEXT_BASE64),
+        ]);
+        const [alberoBase64, textBase64] = await Promise.all([
+          alberoRes.text(),
+          textRes.text(),
+        ]);
+        const alberoDataUri = alberoBase64.startsWith('data:') ? alberoBase64 : `data:image/png;base64,${alberoBase64}`;
+        const textDataUri = textBase64.startsWith('data:') ? textBase64 : `data:image/png;base64,${textBase64}`;
+        setLogoAlberoPng(alberoDataUri);
+        setLogoTextPng(textDataUri);
+      } catch (err) {
+        console.error('Error preloading logos:', err);
+      }
+    }
+    preloadLogos();
   }, []);
 
   useEffect(() => {
@@ -73,6 +102,69 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
       default:
         return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">{status}</span>;
     }
+  };
+
+  const handlePrintLabel = async () => {
+    if (!object || !logoAlberoPng || !logoTextPng) return;
+
+    const qrData = `kykos:object:${object.id}`;
+    const qrImage = await QRCode.toDataURL(qrData, {
+      width: 100,
+      margin: 0,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Etichetta - ${object.title}</title>
+        <style>
+          @page { size: 50mm 30mm; margin: 0; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { width: 50mm; height: 30mm; font-family: Arial, sans-serif; overflow: hidden; }
+          .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; }
+          .top { display: flex; align-items: center; gap: 2mm; flex: 1; }
+          .qr-box { width: 20mm; height: 20mm; flex-shrink: 0; border: 0.5mm solid #000; display: flex; align-items: center; justify-content: center; }
+          .qr-box img { width: 18mm; height: 18mm; }
+          .info { flex: 1; overflow: hidden; }
+          .title { font-size: 4mm; font-weight: bold; line-height: 1.1; margin-bottom: 1mm; }
+          .meta { font-size: 2.5mm; color: #555; }
+          .badges { display: flex; gap: 1mm; margin-top: 1mm; }
+          .badge { width: 7mm; height: 7mm; border-radius: 50%; border: 0.5mm solid #000; display: flex; align-items: center; justify-content: center; font-size: 3mm; font-weight: bold; }
+          .bottom { display: flex; justify-content: center; gap: 3mm; padding-top: 1mm; }
+          .bottom img { height: 8mm; }
+        </style>
+      </head>
+      <body>
+        <div class="label">
+          <div class="top">
+            <div class="qr-box">
+              <img src="${qrImage}" alt="QR" />
+            </div>
+            <div class="info">
+              <div class="title">${object.title.substring(0, 30)}</div>
+              <div class="meta">${object.intermediary.name}</div>
+              <div class="badges">
+                <div class="badge">S</div>
+                <div class="badge">P</div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom">
+            <img src="${logoAlberoPng}" alt="albero" />
+            <img src="${logoTextPng}" alt="kykos" />
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
   };
 
   if (loading) {
@@ -112,6 +204,14 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
             </span>
           </div>
         </div>
+        {object.status === 'DEPOSITED' && (
+          <button
+            onClick={handlePrintLabel}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 text-sm font-medium"
+          >
+            🖨️ Stampa etichetta
+          </button>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
