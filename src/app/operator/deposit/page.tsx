@@ -240,7 +240,7 @@ export default function DepositPage() {
           </div>
           <div class="logo-row">
             <img src="${logoAlbero}" alt="logo" style="height: 5mm; width: 5mm;" />
-            <img src="${logoText}" alt="Kykos" style="height: 10mm; width: auto;" />
+            <img src="${logoText}" alt="Kykos" style="height: 5mm; width: auto;" />
           </div>
           <div class="title-bar">
             <div class="title-text">${item.title}</div>
