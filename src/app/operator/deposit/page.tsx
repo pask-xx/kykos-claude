@@ -158,10 +158,9 @@ export default function DepositPage() {
     const qrData = `kykos:object:${item.id}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=059669`;
 
-    const [logoAlbero, logoText] = await Promise.all([
-      fetch('/albero.svg').then(r => r.text()),
-      fetch('/LogoKykosTesto.svg').then(r => r.text()),
-    ]);
+    const baseUrl = window.location.origin;
+    const logoAlberoUrl = `${baseUrl}/albero.svg`;
+    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
@@ -177,27 +176,27 @@ export default function DepositPage() {
         <style>
           @page { size: 50mm 30mm; margin: 0; }
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { width: 50mm; height: 30mm; font-family: Arial, sans-serif; overflow: hidden; }
-          .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; }
-          .top { display: flex; align-items: center; gap: 2mm; flex: 1; }
-          .qr-box { width: 20mm; height: 20mm; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-          .qr-box img { width: 20mm; height: 20mm; }
-          .info { flex: 1; overflow: hidden; }
+          html, body { width: 50mm; height: 30mm; }
+          .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; background: white; }
+          .top-row { display: flex; gap: 2mm; }
+          .qr-area { width: 20mm; height: 20mm; flex-shrink: 0; }
+          .qr-area img { width: 20mm; height: 20mm; }
+          .info-box { flex: 1; overflow: hidden; }
           .title { font-size: 4mm; font-weight: bold; line-height: 1.1; margin-bottom: 1mm; }
           .meta { font-size: 2.5mm; color: #555; }
           .badges { display: flex; gap: 1mm; margin-top: 1mm; }
           .badge { width: 7mm; height: 7mm; border-radius: 50%; border: 0.5mm solid #000; display: flex; align-items: center; justify-content: center; font-size: 3mm; font-weight: bold; }
-          .bottom { display: flex; justify-content: center; gap: 3mm; padding-top: 1mm; }
-          .bottom img { height: 8mm; }
+          .logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 1mm; }
+          .logo-row img { height: 8mm; }
         </style>
       </head>
       <body>
         <div class="label">
-          <div class="top">
-            <div class="qr-box">
+          <div class="top-row">
+            <div class="qr-area">
               <img src="${qrUrl}" alt="QR" />
             </div>
-            <div class="info">
+            <div class="info-box">
               <div class="title">${item.title.substring(0, 30)}</div>
               <div class="meta">${donorName} → ${beneficiaryName}</div>
               <div class="badges">
@@ -206,9 +205,9 @@ export default function DepositPage() {
               </div>
             </div>
           </div>
-          <div class="bottom">
-            ${logoAlbero}
-            ${logoText}
+          <div class="logo-row">
+            <img src="${logoAlberoUrl}" alt="albero" />
+            <img src="${logoTextUrl}" alt="kykos" />
           </div>
         </div>
       </body>
@@ -216,7 +215,6 @@ export default function DepositPage() {
     `);
     printWindow.document.close();
     printWindow.print();
-    printWindow.close();
   };
 
   if (loading) {
