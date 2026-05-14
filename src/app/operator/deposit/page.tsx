@@ -190,6 +190,11 @@ export default function DepositPage() {
       color: { dark: '#059669', light: '#ffffff' },
     });
 
+    const [logoAlbero, logoText] = await Promise.all([
+      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(LOGO_ALBERO_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
+      logoTextPng ? Promise.resolve(logoTextPng) : fetch(LOGO_TEXT_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
+    ]);
+
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
@@ -214,6 +219,8 @@ export default function DepositPage() {
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
           .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
+          .logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 0.5mm; }
+          .logo-row img { display: block; }
           .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
           .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
@@ -230,6 +237,10 @@ export default function DepositPage() {
                 ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
               </div>
             </div>
+          </div>
+          <div class="logo-row">
+            <img src="${logoAlbero}" alt="logo" style="height: 5mm; width: 5mm;" />
+            <img src="${logoText}" alt="Kykos" style="height: 10mm; width: auto;" />
           </div>
           <div class="title-bar">
             <div class="title-text">${item.title}</div>
