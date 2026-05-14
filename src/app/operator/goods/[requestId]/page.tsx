@@ -132,7 +132,7 @@ export default function GoodsDetailPage({ params }: { params: Promise<{ requestI
       <div className="flex items-start justify-between">
         <div>
           <Link href="/operator/deposit" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Tutti i depositi
+            ← Torna alla lista
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{goods.title}</h1>
           <div className="flex items-center gap-3 mt-2">
