@@ -190,10 +190,9 @@ export default function DepositPage() {
       color: { dark: '#059669', light: '#ffffff' },
     });
 
-    const [logoAlbero, logoText] = await Promise.all([
-      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(LOGO_ALBERO_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-      logoTextPng ? Promise.resolve(logoTextPng) : fetch(LOGO_TEXT_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-    ]);
+    const baseUrl = window.location.origin;
+    const logoAlberoUrl = `${baseUrl}/albero.svg`;
+    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
@@ -232,8 +231,8 @@ export default function DepositPage() {
             </div>
             <div class="info-box">
               <div class="logos">
-                <img src="${logoAlbero}" alt="logo" style="height: 5mm; width: 5mm;" />
-                <img src="${logoText}" alt="Kykos" style="height: 5mm; width: auto;" />
+                <img src="${logoAlberoUrl}" alt="logo" style="height: 5mm; width: 5mm;" />
+                <img src="${logoTextUrl}" alt="Kykos" style="height: 5mm; width: auto;" />
               </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
