@@ -184,16 +184,11 @@ export default function DepositPage() {
     e.stopPropagation();
 
     const qrData = `kykos:object:${item.id}`;
-    const qrDataUrl = await QRCode.toDataURL(qrData, {
-      width: 90,
-      margin: 0,
-      color: { dark: '#059669', light: '#ffffff' },
-    });
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=059669`;
 
-    const [logoAlbero, logoText] = await Promise.all([
-      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(LOGO_ALBERO_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-      logoTextPng ? Promise.resolve(logoTextPng) : fetch(LOGO_TEXT_BASE64).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-    ]);
+    const baseUrl = window.location.origin;
+    const logoAlberoUrl = `${baseUrl}/albero.svg`;
+    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
@@ -229,12 +224,12 @@ export default function DepositPage() {
         <div class="label">
           <div class="top-row">
             <div class="qr-area">
-              <img src="${qrDataUrl}" alt="QR" />
+              <img src="${qrUrl}" alt="QR" />
             </div>
             <div class="info-box">
               <div class="logos">
-                <img src="${logoAlbero}" alt="logo" style="height: 5mm; width: 5mm;" />
-                <img src="${logoText}" alt="Kykos" style="height: 5mm; width: auto;" />
+                <img src="${logoAlberoUrl}" alt="logo" style="height: 5mm; width: 5mm;" />
+                <img src="${logoTextUrl}" alt="Kykos" style="height: 5mm; width: auto;" />
               </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
