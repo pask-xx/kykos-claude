@@ -165,8 +165,11 @@ export default function DepositPage() {
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
-    const donorName = getDonorName(item);
     const beneficiaryName = getBeneficiaryName(item);
+    // Split name into first and last name for display
+    const nameParts = beneficiaryName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -178,16 +181,17 @@ export default function DepositPage() {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           html, body { width: 50mm; height: 30mm; }
           .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; background: white; }
-          .top-row { display: flex; gap: 2mm; }
+          .top-row { display: flex; align-items: flex-start; gap: 2mm; }
           .qr-area { width: 20mm; height: 20mm; flex-shrink: 0; }
           .qr-area img { width: 20mm; height: 20mm; }
-          .info-box { flex: 1; overflow: hidden; }
-          .title { font-size: 4mm; font-weight: bold; line-height: 1.1; margin-bottom: 1mm; }
-          .meta { font-size: 2.5mm; color: #555; }
-          .badges { display: flex; gap: 1mm; margin-top: 1mm; }
-          .badge { width: 7mm; height: 7mm; border-radius: 50%; border: 0.5mm solid #000; display: flex; align-items: center; justify-content: center; font-size: 3mm; font-weight: bold; }
-          .logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 1mm; }
-          .logo-row img { height: 8mm; }
+          .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
+          .logos img { height: 6mm; }
+          .logos img:last-child { height: 4mm; }
+          .beneficiary { font-size: 3.5mm; line-height: 1.3; color: #333; }
+          .beneficiary-name { font-weight: bold; }
+          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; border-top: 0.5mm solid #ccc; }
+          .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
       </head>
       <body>
@@ -197,17 +201,18 @@ export default function DepositPage() {
               <img src="${qrUrl}" alt="QR" />
             </div>
             <div class="info-box">
-              <div class="title">${item.title.substring(0, 30)}</div>
-              <div class="meta">${donorName} → ${beneficiaryName}</div>
-              <div class="badges">
-                <div class="badge">S</div>
-                <div class="badge">P</div>
+              <div class="logos">
+                <img src="${logoAlberoUrl}" alt="albero" />
+                <img src="${logoTextUrl}" alt="kykos" />
+              </div>
+              <div class="beneficiary">
+                <div class="beneficiary-name">${firstName}</div>
+                ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
               </div>
             </div>
           </div>
-          <div class="logo-row">
-            <img src="${logoAlberoUrl}" alt="albero" />
-            <img src="${logoTextUrl}" alt="kykos" />
+          <div class="title-bar">
+            <div class="title-text">${item.title}</div>
           </div>
         </div>
       </body>
