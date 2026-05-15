@@ -190,9 +190,8 @@ export default function DepositPage() {
       color: { dark: '#059669', light: '#ffffff' },
     });
 
-    const baseUrl = window.location.origin;
-    const logoAlberoUrl = `${baseUrl}/albero.svg`;
-    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+    const logoAlberoUrl = '/albero.svg';
+    const logoTextUrl = '/LogoKykosTesto.svg';
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
