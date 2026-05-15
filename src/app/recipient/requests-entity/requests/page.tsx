@@ -55,8 +55,9 @@ const STATUS_PRIORITY: Record<string, number> = {
   CANCELLED: 10,    // Cancellato - chiuso
   // Goods/Services
   FULFILLED: 90,   // Soddisfatta - in attesa di te
-  PENDING: 70,     // In attesa approvazione
-  APPROVED: 50,    // Approvata - in attesa di donatore
+  DELIVERED: 90,   // Depositata - in attesa di ritiro
+  PENDING: 70,      // In attesa approvazione
+  APPROVED: 50,     // Approvata - in attesa di donatore
   COMPLETED: 20,    // Completata - chiuso
 };
 
@@ -242,15 +243,15 @@ export default function RecipientEntityRequestsPage() {
               <Link
                 key={`${item.itemType}-${item.id}`}
                 href={item.link}
-                className={`block bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border}`}
+                className={`block bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border} overflow-hidden`}
               >
-                <div className="flex gap-3 sm:gap-4">
+                <div className="flex gap-2 sm:gap-4">
                   {/* Image/Icon */}
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                     {image ? (
                       <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-lg sm:text-2xl">
+                      <span className="text-base sm:text-xl">
                         {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon((item as EntityRequest).category)}
                       </span>
                     )}
@@ -258,27 +259,25 @@ export default function RecipientEntityRequestsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    {/* Title row */}
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{getTitle(item)}</h3>
-                    </div>
+                    {/* Title */}
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{getTitle(item)}</h3>
 
-                    {/* Badges row */}
-                    <div className="flex flex-wrap items-center gap-1 mt-1">
-                      <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                    {/* Badges */}
+                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                      <span className={`text-xs px-1 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
                         {colors.label}
                       </span>
                       {pendingOffers > 0 && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
-                          {pendingOffers} offerta(e)
+                        <span className="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
+                          {pendingOffers} 📬
                         </span>
                       )}
                       {getStatusBadge(item)}
                     </div>
 
-                    {/* Date row */}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Richiesta il {formatDate(getCreatedAt(item))}
+                    {/* Date */}
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formatDate(getCreatedAt(item))}
                     </p>
                   </div>
                 </div>
