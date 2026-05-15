@@ -189,19 +189,20 @@ export default function DepositPage() {
   const handlePrintLabel = async (item: DepositedItem, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // Determine QR id and recipient ID based on item type
+    // Determine QR id and donor ID based on item type
     let qrId: string;
-    let recipientId: string;
+    let donorId: string;
     if (item.type === 'object') {
       const obj = item as DepositedObject;
       qrId = obj.requestId;
-      recipientId = obj.recipient.id;
+      donorId = obj.donor.id;
     } else {
       const good = item as DepositedGood;
       qrId = good.id;
-      recipientId = good.beneficiary.id;
+      donorId = good.fulfilledBy.id;
     }
-    const qrData = `kykos:object:deliver:${qrId}:${recipientId}`;
+    // Deliver QR: kykos:object:deliver:{requestId}:{donorId}
+    const qrData = `kykos:object:deliver:${qrId}:${donorId}`;
     const qrDataUrl = await QRCode.toDataURL(qrData, {
       width: 90,
       margin: 0,
