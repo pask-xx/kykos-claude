@@ -190,6 +190,10 @@ export default function DepositPage() {
       color: { dark: '#059669', light: '#ffffff' },
     });
 
+    const baseUrl = window.location.origin;
+    const logoAlberoUrl = `${baseUrl}/albero.svg`;
+    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
@@ -214,6 +218,8 @@ export default function DepositPage() {
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
           .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
+          .logos { display: flex; align-items: center; gap: 1mm; margin-top: 2mm; }
+          .logos img { display: block; }
           .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
           .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
@@ -228,6 +234,10 @@ export default function DepositPage() {
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
                 ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
+              </div>
+              <div class="logos">
+                <img src="${logoAlberoUrl}" alt="logo" style="height: 5mm; width: 5mm;" />
+                <img src="${logoTextUrl}" alt="Kykos" style="height: 5mm; width: auto;" />
               </div>
             </div>
           </div>
