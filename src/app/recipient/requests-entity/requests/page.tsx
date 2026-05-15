@@ -186,6 +186,12 @@ export default function RecipientEntityRequestsPage() {
           <h1 className="text-3xl font-medium text-gray-900">Le tue richieste</h1>
           <p className="text-gray-500">Beni, servizi e oggetti richiesti</p>
         </div>
+        <Link
+          href="/recipient/requests-entity/requests/new"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+        >
+          + Nuova richiesta
+        </Link>
       </div>
 
       {/* Legend */}
