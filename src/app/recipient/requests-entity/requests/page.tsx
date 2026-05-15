@@ -246,38 +246,38 @@ export default function RecipientEntityRequestsPage() {
               >
                 <div className="flex gap-3 sm:gap-4">
                   {/* Image/Icon */}
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                     {image ? (
                       <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl sm:text-2xl">
+                      <span className="text-lg sm:text-2xl">
                         {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon((item as EntityRequest).category)}
                       </span>
                     )}
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    {/* Top row: title + badges */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{getTitle(item)}</h3>
-                        <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
-                          {colors.label}
-                        </span>
-                        {pendingOffers > 0 && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
-                            {pendingOffers} offerta(e)
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-shrink-0 ml-1">
-                        {getStatusBadge(item)}
-                      </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    {/* Title row */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{getTitle(item)}</h3>
                     </div>
 
-                    {/* Meta row */}
-                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                    {/* Badges row */}
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                        {colors.label}
+                      </span>
+                      {pendingOffers > 0 && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
+                          {pendingOffers} offerta(e)
+                        </span>
+                      )}
+                      {getStatusBadge(item)}
+                    </div>
+
+                    {/* Date row */}
+                    <p className="text-xs text-gray-500 mt-1">
                       Richiesta il {formatDate(getCreatedAt(item))}
                     </p>
                   </div>
