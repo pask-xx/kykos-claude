@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import QRCode from 'qrcode';
 
 interface LabelData {
   requestId: string;
@@ -30,68 +31,74 @@ export default function PrintLabelPage() {
     }
   }, [requestId, router]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!labelData || !labelRef.current) return;
 
-    const baseUrl = window.location.origin;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData.qrData)}&color=059669`;
-    const alberoUrl = `${baseUrl}/albero.svg`;
-    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+    const qrDataUrl = await QRCode.toDataURL(labelData.qrData, {
+      width: 90,
+      margin: 0,
+      color: { dark: '#059669', light: '#ffffff' },
+    });
 
-    const isLarge = labelData.labelSize === '50x40';
-    const labelHeight = isLarge ? '40mm' : '30mm';
+    const logoAlberoUrl = '/albero.svg';
+    const logoTextUrl = '/LogoKykosTesto.svg';
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
 
+    // Split beneficiary name into first and last
+    const nameParts = labelData.recipientName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
-        <head>
-          <title>Stampa Etichetta</title>
-          <style>
-            @page { size: 50mm ${labelHeight}; margin: 0; }
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body { width: 50mm; height: ${labelHeight}; }
-            .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
-            .top-row { display: flex; gap: 2mm; }
-            .qr-area { width: 23mm; height: 23mm; flex-shrink: 0; }
-            .qr-area img { width: 23mm; height: 23mm; }
-            .info-box { width: 23mm; display: flex; flex-direction: column; gap: 1mm; }
-            .logo-row { display: flex; align-items: center; gap: 1mm; }
-            .logo-row img { height: 5mm; width: auto; }
-            .info-text { font-size: 3mm; line-height: 1.3; color: #4b5563; }
-            .info-name { font-weight: bold; color: #1f2937; }
-            .info-date { color: #9ca3af; font-size: 2.5mm; }
-            .item-row { width: 100%; }
-            .item-text { font-size: 2.5mm; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          </style>
-        </head>
-        <body>
-          <div class="label">
-            <div class="top-row">
-              <div class="qr-area">
-                <img src="${qrUrl}" alt="QR" />
-              </div>
-              <div class="info-box">
-                <div class="logo-row">
-                  <img src="${alberoUrl}" alt="logo" />
-                  <img src="${logoTextUrl}" alt="Kykos" />
-                </div>
-                <div class="info-text">
-                  <div class="info-name">${labelData.recipientName}</div>
-                  <div class="info-date">Ritiro: ${labelData.depositDate}</div>
-                </div>
-              </div>
+      <head>
+        <title>Etichetta - ${labelData.itemDescription}</title>
+        <style>
+          @page { size: 50mm 30mm; margin: 0; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          html, body { width: 50mm; height: 30mm; }
+          .label { width: 50mm; height: 30mm; display: flex; flex-direction: column; padding: 2mm; background: white; }
+          .top-row { display: flex; align-items: flex-start; gap: 2mm; }
+          .qr-area { width: 18mm; height: 18mm; flex-shrink: 0; }
+          .qr-area img { width: 18mm; height: 18mm; }
+          .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
+          .logos img { display: block; }
+          .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
+          .beneficiary-name { font-weight: bold; }
+          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
+          .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
+        </style>
+      </head>
+      <body>
+        <div class="label">
+          <div class="top-row">
+            <div class="qr-area">
+              <img src="${qrDataUrl}" alt="QR" />
             </div>
-            <div class="item-row">
-              <div class="item-text">${labelData.itemDescription}</div>
+            <div class="info-box">
+              <div class="logos">
+                <img src="${logoAlberoUrl}" alt="logo" style="height: 7mm; width: 7mm;" />
+                <img src="${logoTextUrl}" alt="Kykos" style="height: 7mm; width: auto;" />
+              </div>
+              <div class="beneficiary">
+                <div class="beneficiary-name">${firstName}</div>
+                ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
+              </div>
             </div>
           </div>
-        </body>
+          <div class="title-bar">
+            <div class="title-text">${labelData.itemDescription}</div>
+          </div>
+        </div>
+      </body>
       </html>
     `);
     printWindow.document.close();
+    await new Promise(resolve => setTimeout(resolve, 2000));
     printWindow.print();
   };
 
@@ -135,10 +142,10 @@ export default function PrintLabelPage() {
             className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white mx-auto"
             style={{
               width: '220px',
-              height: labelData.labelSize === '50x40' ? '176px' : '132px',
+              height: '132px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '6px',
+              gap: '4px',
             }}
           >
             {/* Top row: QR + info */}
@@ -146,23 +153,22 @@ export default function PrintLabelPage() {
               {/* QR Code */}
               <div
                 className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
-                style={{ width: '100px', height: '100px' }}
+                style={{ width: '90px', height: '90px' }}
               >
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(labelData.qrData)}&color=059669`}
                   alt="QR Code"
-                  style={{ width: '100px', height: '100px' }}
+                  style={{ width: '90px', height: '90px' }}
                 />
               </div>
               {/* Info box */}
-              <div className="flex-1 flex flex-col justify-between min-w-0">
+              <div className="flex-1 flex flex-col justify-start gap-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  <img src="/albero.svg" alt="logo" className="w-8 h-8" />
-                  <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-6 w-auto" />
+                  <img src="/albero.svg" alt="logo" style={{ width: '28px', height: '28px' }} />
+                  <img src="/LogoKykosTesto.svg" alt="Kykos" style={{ height: '28px', width: 'auto' }} />
                 </div>
                 <div className="text-xs">
-                  <div className="font-medium text-gray-800 truncate">{labelData.recipientName}</div>
-                  <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
+                  <div className="font-medium text-gray-800">{labelData.recipientName}</div>
                 </div>
               </div>
             </div>
