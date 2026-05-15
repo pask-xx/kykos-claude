@@ -48,6 +48,21 @@ type UnifiedItem =
 const ACTIVE_STATUSES = ['PENDING', 'APPROVED', 'FULFILLED', 'RESERVED', 'DEPOSITED'];
 const CLOSED_STATUSES = ['COMPLETED', 'DONATED', 'CANCELLED'];
 
+// Priority for sorting: higher = more urgent (show first)
+const STATUS_PRIORITY: Record<string, number> = {
+  // Objects
+  DEPOSITED: 100,   // Pronto per ritiro - azione urgente
+  RESERVED: 80,     // In attesa conferma
+  AVAILABLE: 60,    // Disponibile (browsing, no impegno)
+  DONATED: 20,      // Ritirato - chiuso
+  CANCELLED: 10,    // Cancellato - chiuso
+  // Goods/Services
+  FULFILLED: 90,    // Soddisfatta - in attesa di te
+  PENDING: 70,      // In attesa approvazione
+  APPROVED: 50,     // Approvata - in attesa di donatore
+  COMPLETED: 20,     // Completata - chiuso
+};
+
 const TYPE_COLORS: Record<string, { border: string; badge: string; label: string }> = {
   GOODS: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700', label: 'Bene' },
   SERVICES: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', label: 'Servizio' },
@@ -92,14 +107,13 @@ export default function RecipientEntityRequestsPage() {
         })),
       ];
 
-      // Sort: active first, closed last
+      // Sort by priority then by date
       unified.sort((a, b) => {
-        const aActive = ACTIVE_STATUSES.includes(a.status) ||
-          (a.itemType === 'AVAILABLE' ? ACTIVE_STATUSES.includes(a.object.status) : false);
-        const bActive = ACTIVE_STATUSES.includes(b.status) ||
-          (b.itemType === 'AVAILABLE' ? ACTIVE_STATUSES.includes(b.object.status) : false);
-        if (aActive && !bActive) return -1;
-        if (!aActive && bActive) return 1;
+        const aStatus = a.itemType === 'AVAILABLE' ? a.object.status : a.status;
+        const bStatus = b.itemType === 'AVAILABLE' ? b.object.status : b.status;
+        const aPriority = STATUS_PRIORITY[aStatus] ?? 0;
+        const bPriority = STATUS_PRIORITY[bStatus] ?? 0;
+        if (aPriority !== bPriority) return bPriority - aPriority; // higher priority first
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
 
