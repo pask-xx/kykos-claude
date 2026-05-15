@@ -12,27 +12,15 @@ interface EntityRequest {
   type: string;
   status: string;
   createdAt: string;
-  beneficiary: {
-    id: string;
-    name: string;
-  };
-  intermediary: {
-    id: string;
-    name: string;
-  };
-  fulfilledBy: {
-    id: string;
-    name: string;
-  } | null;
+  beneficiary: { id: string; name: string };
+  intermediary: { id: string; name: string };
+  fulfilledBy: { id: string; name: string } | null;
   offers: Array<{
     id: string;
     message: string | null;
     status: string;
     createdAt: string;
-    offeredBy: {
-      id: string;
-      name: string;
-    };
+    offeredBy: { id: string; name: string };
   }>;
 }
 
@@ -50,50 +38,72 @@ interface ObjectRequest {
     status: string;
     depositLocation: string | null;
   };
-  donation: {
-    id: string;
-    amount: string;
-    createdAt: string;
-  } | null;
+  donation: { id: string; amount: string; createdAt: string } | null;
 }
 
-type TabType = 'GOODS' | 'SERVICES' | 'AVAILABLE';
+type UnifiedItem =
+  | (EntityRequest & { itemType: 'GOODS' | 'SERVICES'; link: string })
+  | (ObjectRequest & { itemType: 'AVAILABLE'; link: string });
+
+const ACTIVE_STATUSES = ['PENDING', 'APPROVED', 'FULFILLED', 'RESERVED', 'DEPOSITED'];
+const CLOSED_STATUSES = ['COMPLETED', 'DONATED', 'CANCELLED'];
+
+const TYPE_COLORS: Record<string, { border: string; badge: string; label: string }> = {
+  GOODS: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700', label: 'Bene' },
+  SERVICES: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', label: 'Servizio' },
+  AVAILABLE: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', label: 'Disponibilità' },
+};
 
 export default function RecipientEntityRequestsPage() {
-  const [requests, setRequests] = useState<EntityRequest[]>([]);
-  const [objectRequests, setObjectRequests] = useState<ObjectRequest[]>([]);
+  const [items, setItems] = useState<UnifiedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('available');
-  const [typeFilter, setTypeFilter] = useState<TabType>('GOODS');
-  const [counts, setCounts] = useState<{ GOODS: number; SERVICES: number; AVAILABLE: number }>({ GOODS: 0, SERVICES: 0, AVAILABLE: 0 });
 
   useEffect(() => {
-    // Fetch counts for all tabs on mount
-    fetch('/api/entity-requests?filter=mine&type=GOODS')
-      .then(res => res.json())
-      .then(data => setCounts(prev => ({ ...prev, GOODS: (data.requests || []).length })));
-    fetch('/api/entity-requests?filter=mine&type=SERVICES')
-      .then(res => res.json())
-      .then(data => setCounts(prev => ({ ...prev, SERVICES: (data.requests || []).length })));
-    fetch('/api/recipient/requests')
-      .then(res => res.json())
-      .then(data => setCounts(prev => ({ ...prev, AVAILABLE: ((data.requests || [])).length })));
+    fetchAllData();
   }, []);
 
-  useEffect(() => {
-    if (typeFilter === 'AVAILABLE') {
-      fetchObjectRequests();
-    } else {
-      fetchRequests();
-    }
-  }, [filter, typeFilter]);
-
-  const fetchRequests = async () => {
+  const fetchAllData = async () => {
     try {
-      const res = await fetch(`/api/entity-requests?filter=${filter}&type=${typeFilter}`);
-      const data = await res.json();
-      setRequests(data.requests || []);
-      setObjectRequests([]);
+      const [goodsRes, servicesRes, availableRes] = await Promise.all([
+        fetch('/api/entity-requests?filter=mine&type=GOODS'),
+        fetch('/api/entity-requests?filter=mine&type=SERVICES'),
+        fetch('/api/recipient/requests'),
+      ]);
+
+      const goodsData = goodsRes.ok ? await goodsRes.json() : { requests: [] };
+      const servicesData = servicesRes.ok ? await servicesRes.json() : { requests: [] };
+      const availableData = availableRes.ok ? await availableRes.json() : { requests: [] };
+
+      const unified: UnifiedItem[] = [
+        ...(goodsData.requests || []).map((r: EntityRequest) => ({
+          ...r,
+          itemType: 'GOODS' as const,
+          link: `/recipient/requests-entity/requests/${r.id}`,
+        })),
+        ...(servicesData.requests || []).map((r: EntityRequest) => ({
+          ...r,
+          itemType: 'SERVICES' as const,
+          link: `/recipient/requests-entity/requests/${r.id}`,
+        })),
+        ...((availableData.requests || []) as ObjectRequest[]).map((r: ObjectRequest) => ({
+          ...r,
+          itemType: 'AVAILABLE' as const,
+          link: `/recipient/objects/${r.object.id}`,
+        })),
+      ];
+
+      // Sort: active first, closed last
+      unified.sort((a, b) => {
+        const aActive = ACTIVE_STATUSES.includes(a.status) ||
+          (a.itemType === 'AVAILABLE' ? ACTIVE_STATUSES.includes(a.object.status) : false);
+        const bActive = ACTIVE_STATUSES.includes(b.status) ||
+          (b.itemType === 'AVAILABLE' ? ACTIVE_STATUSES.includes(b.object.status) : false);
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+      setItems(unified);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -101,50 +111,27 @@ export default function RecipientEntityRequestsPage() {
     }
   };
 
-  const fetchObjectRequests = async () => {
-    try {
-      const res = await fetch('/api/recipient/requests');
-      const data = await res.json();
-      const requests = data.requests || [];
-      // Filter based on status tab
-      const filtered = filter === 'mine'
-        ? requests
-        : filter === 'available'
-        ? requests.filter((r: ObjectRequest) => r.object.status !== 'DONATED')
-        : requests;
-      setObjectRequests(filtered);
-      setRequests([]);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
+  const getStatusBadge = (item: UnifiedItem) => {
+    if (item.itemType === 'AVAILABLE') {
+      const labels: Record<string, { label: string; color: string }> = {
+        AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700' },
+        RESERVED: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
+        DEPOSITED: { label: 'Pronto', color: 'bg-blue-100 text-blue-700' },
+        DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700' },
+        CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700' },
+      };
+      const s = labels[item.object.status] || { label: item.object.status, color: 'bg-gray-100 text-gray-700' };
+      return <span className={`px-2 py-1 text-xs rounded ${s.color}`}>{s.label}</span>;
     }
-  };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
-      case 'APPROVED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
-      case 'FULFILLED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Soddisfatta</span>;
-      case 'CANCELLED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Cancellata</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
-  };
-
-  const getObjectStatusBadge = (status: string) => {
     const labels: Record<string, { label: string; color: string }> = {
-      AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700' },
-      RESERVED: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
-      DEPOSITED: { label: 'Pronto', color: 'bg-blue-100 text-blue-700' },
-      DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700' },
-      CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700' },
+      PENDING: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
+      APPROVED: { label: 'Approvata', color: 'bg-green-100 text-green-700' },
+      FULFILLED: { label: 'Soddisfatta', color: 'bg-blue-100 text-blue-700' },
+      COMPLETED: { label: 'Completata', color: 'bg-gray-100 text-gray-700' },
+      CANCELLED: { label: 'Cancellata', color: 'bg-red-100 text-red-700' },
     };
-    const s = labels[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
+    const s = labels[item.status] || { label: item.status, color: 'bg-gray-100 text-gray-700' };
     return <span className={`px-2 py-1 text-xs rounded ${s.color}`}>{s.label}</span>;
   };
 
@@ -156,214 +143,108 @@ export default function RecipientEntityRequestsPage() {
     return icons[category] || '📦';
   };
 
-  const getTypeLabel = (type: string) => {
-    return type === 'GOODS' ? 'Bene' : 'Servizio';
+  const getTitle = (item: UnifiedItem) => {
+    if (item.itemType === 'AVAILABLE') return item.object.title;
+    return (item as EntityRequest).title;
+  };
+
+  const getCreatedAt = (item: UnifiedItem) => {
+    return item.createdAt;
+  };
+
+  const getImage = (item: UnifiedItem) => {
+    if (item.itemType === 'AVAILABLE') {
+      return item.object.imageUrls?.[0] || null;
+    }
+    return null;
+  };
+
+  const getDepositLocation = (item: UnifiedItem) => {
+    if (item.itemType === 'AVAILABLE') return item.object.depositLocation;
+    return null;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-medium text-gray-900">Richieste</h1>
-          <p className="text-gray-500">Gestisci le tue richieste di beni, servizi e oggetti</p>
+          <h1 className="text-3xl font-medium text-gray-900">Le tue richieste</h1>
+          <p className="text-gray-500">Beni, servizi e oggetti richiesti</p>
         </div>
-        {typeFilter !== 'AVAILABLE' && (
-          <Link
-            href="/recipient/requests-entity/requests/new"
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-          >
-            + Nuova richiesta
-          </Link>
-        )}
       </div>
 
-      {/* Type Filter */}
-      <div className="flex gap-2 border-b border-gray-200 pb-4">
-        <button
-          onClick={() => setTypeFilter('GOODS')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            typeFilter === 'GOODS' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          🪑 Beni ({counts.GOODS})
-        </button>
-        <button
-          onClick={() => setTypeFilter('SERVICES')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            typeFilter === 'SERVICES' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          🔧 Servizi ({counts.SERVICES})
-        </button>
-        <button
-          onClick={() => setTypeFilter('AVAILABLE')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            typeFilter === 'AVAILABLE' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          📦 Disponibilità ({counts.AVAILABLE})
-        </button>
+      {/* Legend */}
+      <div className="flex gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+          <span className="text-gray-600">Beni</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+          <span className="text-gray-600">Servizi</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-green-500"></span>
+          <span className="text-gray-600">Disponibilità</span>
+        </div>
       </div>
-
-      {/* Status Filter */}
-      {typeFilter !== 'AVAILABLE' ? (
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter('mine')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-              filter === 'mine' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Le mie richieste
-          </button>
-          <button
-            onClick={() => setFilter('available')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-              filter === 'available' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Disponibili
-          </button>
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-              filter === 'all' ? 'bg-gray-200 text-gray-800 border border-gray-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Tutte
-          </button>
-        </div>
-      ) : (
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter('mine')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-              filter === 'mine' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Le mie richieste
-          </button>
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-              filter === 'all' ? 'bg-gray-200 text-gray-800 border border-gray-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Tutte
-          </button>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-gray-500">Caricamento...</p>
         </div>
-      ) : typeFilter === 'AVAILABLE' ? (
-        // Available objects (from Request table)
-        objectRequests.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-            <span className="text-5xl mb-4 block">📦</span>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta di oggetto</h2>
-            <p className="text-gray-500">
-              {filter === 'mine' ? 'Non hai ancora richiesto nessun oggetto.' : 'Non ci sono richieste.'}
-            </p>
-            {filter === 'mine' && (
+      ) : items.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+          <span className="text-5xl mb-4 block">📋</span>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
+          <p className="text-gray-500">Non hai ancora richiesto beni, servizi o oggetti.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => {
+            const colors = TYPE_COLORS[item.itemType];
+            const image = getImage(item);
+            const depositLocation = getDepositLocation(item);
+
+            return (
               <Link
-                href="/recipient/dashboard"
-                className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Sfoglia gli oggetti disponibili
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {objectRequests.map((request) => (
-              <Link
-                key={request.id}
-                href={`/recipient/objects/${request.object.id}`}
-                className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition"
+                key={`${item.itemType}-${item.id}`}
+                href={item.link}
+                className={`bg-white p-4 rounded-xl shadow-sm border-2 border-gray-100 hover:border-primary-200 transition border-l-4 ${colors.border}`}
               >
                 <div className="flex gap-4">
-                  <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                    {request.object.imageUrls && request.object.imageUrls.length > 0 ? (
-                      <img src={request.object.imageUrls[0]} alt={request.object.title} className="w-full h-full object-cover" />
+                  <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                    {image ? (
+                      <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                      <span className="text-2xl">
+                        {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon(item.itemType === 'GOODS' ? (item as EntityRequest).category : (item as EntityRequest).category)}
+                      </span>
                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-semibold text-gray-900">{request.object.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900">{getTitle(item)}</h3>
+                          <span className={`text-xs px-2 py-0.5 rounded ${colors.badge}`}>
+                            {colors.label}
+                          </span>
+                        </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          Richiesta il {new Date(request.createdAt).toLocaleDateString('it-IT')}
+                          Richiesta il {formatDate(getCreatedAt(item))}
                         </p>
                       </div>
-                      {getObjectStatusBadge(request.object.status)}
+                      {getStatusBadge(item)}
                     </div>
-                    {request.object.depositLocation && (
-                      <p className="text-xs text-gray-400 mt-1">📍 {request.object.depositLocation}</p>
+                    {depositLocation && (
+                      <p className="text-xs text-gray-400 mt-1">📍 {depositLocation}</p>
                     )}
                   </div>
                 </div>
               </Link>
-            ))}
-          </div>
-        )
-      ) : requests.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">📋</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
-          <p className="text-gray-500">
-            {filter === 'mine' ? 'Non hai ancora creato richieste.' : 'Non ci sono richieste disponibili.'}
-          </p>
-          {filter === 'mine' && (
-            <Link
-              href="/recipient/requests-entity/requests/new"
-              className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-            >
-              Crea la tua prima richiesta
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {requests.map((request) => (
-            <Link
-              key={request.id}
-              href={`/recipient/requests-entity/requests/${request.id}`}
-              className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition"
-            >
-              <div className="flex gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-                  {getCategoryIcon(request.category)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">{request.title}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded ${request.type === 'GOODS' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                          {getTypeLabel(request.type)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {filter === 'available' ? `Da ${request.beneficiary.name}` : ''} • {formatDate(request.createdAt)}
-                      </p>
-                    </div>
-                    {getStatusBadge(request.status)}
-                  </div>
-                  {request.description && (
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{request.description}</p>
-                  )}
-                  {request.offers.length > 0 && (
-                    <p className="text-xs text-gray-400 mt-2">{request.offers.length} offerta(e)</p>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
