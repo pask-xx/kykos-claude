@@ -61,6 +61,9 @@ export async function GET() {
         status: true,
         imageUrls: true,
         createdAt: true,
+        depositLocation: true,
+        donor: { select: { id: true, name: true } },
+        recipient: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
