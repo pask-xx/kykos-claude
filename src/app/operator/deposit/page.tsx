@@ -219,7 +219,7 @@ export default function DepositPage() {
           .beneficiary-name { font-weight: bold; }
           .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
           .logos img { display: block; }
-          .title-bar { width: 100%; margin-top: 2mm; }
+          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
           .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
       </head>
