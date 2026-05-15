@@ -184,11 +184,7 @@ export default function DepositPage() {
     e.stopPropagation();
 
     const qrData = `kykos:object:${item.id}`;
-    const qrDataUrl = await QRCode.toDataURL(qrData, {
-      width: 90,
-      margin: 0,
-      color: { dark: '#059669', light: '#ffffff' },
-    });
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&color=059669`;
 
     const logoAlberoUrl = '/albero.svg';
     const logoTextUrl = '/LogoKykosTesto.svg';
@@ -227,7 +223,7 @@ export default function DepositPage() {
         <div class="label">
           <div class="top-row">
             <div class="qr-area">
-              <img src="${qrDataUrl}" alt="QR" />
+              <img src="${qrUrl}" alt="QR" />
             </div>
             <div class="info-box">
               <div class="logos">
