@@ -97,17 +97,21 @@ export default function DepositPage() {
       // Filter DEPOSITED objects
       const depositedObjects: DepositedObject[] = (objectsData.objects || [])
         .filter((o: any) => o.status === 'DEPOSITED')
-        .map((o: any) => ({
-          id: o.id,
-          title: o.title,
-          category: o.category,
-          status: o.status,
-          imageUrls: o.imageUrls || [],
-          createdAt: o.createdAt,
-          depositLocation: o.depositLocation || null,
-          donor: o.donor || { id: '', name: 'Donatore' },
-          recipient: o.recipient || { id: '', name: 'Beneficiario' },
-        }));
+        .map((o: any) => {
+          // Get recipient from approved/fulfilled request
+          const approvedRequest = o.requests?.[0];
+          return {
+            id: o.id,
+            title: o.title,
+            category: o.category,
+            status: o.status,
+            imageUrls: o.imageUrls || [],
+            createdAt: o.createdAt,
+            depositLocation: o.depositLocation || null,
+            donor: o.donor || { id: '', name: 'Donatore' },
+            recipient: approvedRequest?.recipient || { id: '', name: 'Beneficiario' },
+          };
+        });
 
       // Filter DELIVERED goods requests
       const depositedGoods: DepositedGood[] = (goodsData.requests || [])

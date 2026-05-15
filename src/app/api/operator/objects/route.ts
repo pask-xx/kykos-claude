@@ -63,7 +63,12 @@ export async function GET() {
         createdAt: true,
         depositLocation: true,
         donor: { select: { id: true, name: true } },
-        recipient: { select: { id: true, name: true } },
+        requests: {
+          where: { status: { in: ['APPROVED', 'FULFILLED', 'DELIVERED'] } },
+          select: {
+            recipient: { select: { id: true, name: true } },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
