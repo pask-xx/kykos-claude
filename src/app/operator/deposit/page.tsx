@@ -12,6 +12,7 @@ const LOGO_TEXT_BASE64 = '/logoKykosTestoBase64.txt';
 
 interface DepositedObject {
   id: string;
+  requestId: string;
   title: string;
   category: string;
   status: string;
@@ -98,10 +99,11 @@ export default function DepositPage() {
       const depositedObjects: DepositedObject[] = (objectsData.objects || [])
         .filter((o: any) => o.status === 'DEPOSITED')
         .map((o: any) => {
-          // Get recipient from approved/fulfilled request
+          // Get recipient from approved request
           const approvedRequest = o.requests?.[0];
           return {
             id: o.id,
+            requestId: approvedRequest?.id || o.id,
             title: o.title,
             category: o.category,
             status: o.status,
@@ -187,7 +189,7 @@ export default function DepositPage() {
   const handlePrintLabel = async (item: DepositedItem, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const qrData = `kykos:object:${item.id}`;
+    const qrData = `kykos:object:deliver:${item.requestId}:${item.recipient.id}`;
     const qrDataUrl = await QRCode.toDataURL(qrData, {
       width: 90,
       margin: 0,
@@ -243,6 +245,8 @@ export default function DepositPage() {
       </html>
     `);
     printWindow.document.close();
+    // Wait for images to load before printing
+    await new Promise(resolve => setTimeout(resolve, 2000));
     printWindow.print();
   };
 

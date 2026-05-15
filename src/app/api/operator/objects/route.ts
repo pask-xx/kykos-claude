@@ -66,6 +66,7 @@ export async function GET() {
         requests: {
           where: { status: 'APPROVED' },
           select: {
+            id: true,
             recipient: { select: { id: true, name: true } },
           },
         },
