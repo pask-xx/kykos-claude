@@ -184,11 +184,11 @@ export default function DepositPage() {
     e.stopPropagation();
 
     const qrData = `kykos:object:${item.id}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&color=059669`;
-
-    const baseUrl = window.location.origin;
-    const logoAlberoUrl = `${baseUrl}/albero.svg`;
-    const logoTextUrl = `${baseUrl}/LogoKykosTesto.svg`;
+    const qrDataUrl = await QRCode.toDataURL(qrData, {
+      width: 90,
+      margin: 0,
+      color: { dark: '#059669', light: '#ffffff' },
+    });
 
     const printWindow = window.open('', '', 'width=400,height=400');
     if (!printWindow) return;
@@ -212,11 +212,9 @@ export default function DepositPage() {
           .qr-area { width: 18mm; height: 18mm; flex-shrink: 0; }
           .qr-area img { width: 18mm; height: 18mm; }
           .info-box { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-          .logos { display: flex; align-items: center; gap: 1mm; margin-bottom: 1mm; }
-          .logos img { display: block; }
           .beneficiary { font-size: 3.5mm; line-height: 1.4; color: #333; }
           .beneficiary-name { font-weight: bold; }
-          .title-bar { width: 100%; margin-top: 2mm; }
+          .title-bar { width: 100%; margin-top: auto; padding-top: 1mm; }
           .title-text { font-size: 3mm; color: #555; line-height: 1.2; }
         </style>
       </head>
@@ -224,13 +222,9 @@ export default function DepositPage() {
         <div class="label">
           <div class="top-row">
             <div class="qr-area">
-              <img src="${qrUrl}" alt="QR" />
+              <img src="${qrDataUrl}" alt="QR" />
             </div>
             <div class="info-box">
-              <div class="logos">
-                <img src="${logoAlberoUrl}" alt="logo" style="height: 5mm; width: 5mm;" />
-                <img src="${logoTextUrl}" alt="Kykos" style="height: 5mm; width: auto;" />
-              </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
                 ${lastName ? `<div class="beneficiary-name">${lastName}</div>` : ''}
