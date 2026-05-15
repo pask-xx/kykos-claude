@@ -64,7 +64,7 @@ export async function GET() {
         depositLocation: true,
         donor: { select: { id: true, name: true } },
         requests: {
-          where: { status: { in: ['APPROVED', 'FULFILLED', 'DELIVERED'] } },
+          where: { status: 'APPROVED' },
           select: {
             recipient: { select: { id: true, name: true } },
           },
