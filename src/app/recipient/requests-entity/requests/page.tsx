@@ -45,9 +45,6 @@ type UnifiedItem =
   | (EntityRequest & { itemType: 'GOODS' | 'SERVICES'; link: string })
   | (ObjectRequest & { itemType: 'AVAILABLE'; link: string });
 
-const ACTIVE_STATUSES = ['PENDING', 'APPROVED', 'FULFILLED', 'RESERVED', 'DEPOSITED'];
-const CLOSED_STATUSES = ['COMPLETED', 'DONATED', 'CANCELLED'];
-
 // Priority for sorting: higher = more urgent (show first)
 const STATUS_PRIORITY: Record<string, number> = {
   // Objects
@@ -57,10 +54,10 @@ const STATUS_PRIORITY: Record<string, number> = {
   DONATED: 20,      // Ritirato - chiuso
   CANCELLED: 10,    // Cancellato - chiuso
   // Goods/Services
-  FULFILLED: 90,    // Soddisfatta - in attesa di te
-  PENDING: 70,      // In attesa approvazione
-  APPROVED: 50,     // Approvata - in attesa di donatore
-  COMPLETED: 20,     // Completata - chiuso
+  FULFILLED: 90,   // Soddisfatta - in attesa di te
+  PENDING: 70,     // In attesa approvazione
+  APPROVED: 50,    // Approvata - in attesa di donatore
+  COMPLETED: 20,    // Completata - chiuso
 };
 
 const TYPE_COLORS: Record<string, { border: string; badge: string; label: string }> = {
@@ -109,11 +106,22 @@ export default function RecipientEntityRequestsPage() {
 
       // Sort by priority then by date
       unified.sort((a, b) => {
+        // Offers boost priority
+        const aOffers = (a as EntityRequest).offers || [];
+        const bOffers = (b as EntityRequest).offers || [];
+        const aPendingOffers = aOffers.filter((o: any) => o.status === 'PENDING').length;
+        const bPendingOffers = bOffers.filter((o: any) => o.status === 'PENDING').length;
+
         const aStatus = a.itemType === 'AVAILABLE' ? a.object.status : a.status;
         const bStatus = b.itemType === 'AVAILABLE' ? b.object.status : b.status;
-        const aPriority = STATUS_PRIORITY[aStatus] ?? 0;
-        const bPriority = STATUS_PRIORITY[bStatus] ?? 0;
-        if (aPriority !== bPriority) return bPriority - aPriority; // higher priority first
+        let aPriority = STATUS_PRIORITY[aStatus] ?? 0;
+        let bPriority = STATUS_PRIORITY[bStatus] ?? 0;
+
+        // Boost for pending offers
+        if (aPendingOffers > 0) aPriority += 15;
+        if (bPendingOffers > 0) bPriority += 15;
+
+        if (aPriority !== bPriority) return bPriority - aPriority;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
 
@@ -135,7 +143,7 @@ export default function RecipientEntityRequestsPage() {
         CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700' },
       };
       const s = labels[item.object.status] || { label: item.object.status, color: 'bg-gray-100 text-gray-700' };
-      return <span className={`px-2 py-1 text-xs rounded ${s.color}`}>{s.label}</span>;
+      return <span className={`px-2 py-1 text-xs rounded whitespace-nowrap ${s.color}`}>{s.label}</span>;
     }
 
     const labels: Record<string, { label: string; color: string }> = {
@@ -147,7 +155,13 @@ export default function RecipientEntityRequestsPage() {
       CANCELLED: { label: 'Cancellata', color: 'bg-red-100 text-red-700' },
     };
     const s = labels[item.status] || { label: item.status, color: 'bg-gray-100 text-gray-700' };
-    return <span className={`px-2 py-1 text-xs rounded ${s.color}`}>{s.label}</span>;
+    return <span className={`px-2 py-1 text-xs rounded whitespace-nowrap ${s.color}`}>{s.label}</span>;
+  };
+
+  const getPendingOffersCount = (item: UnifiedItem): number => {
+    if (item.itemType === 'AVAILABLE') return 0;
+    const offers = (item as EntityRequest).offers || [];
+    return offers.filter((o: any) => o.status === 'PENDING').length;
   };
 
   const getCategoryIcon = (category: string) => {
@@ -163,14 +177,10 @@ export default function RecipientEntityRequestsPage() {
     return (item as EntityRequest).title;
   };
 
-  const getCreatedAt = (item: UnifiedItem) => {
-    return item.createdAt;
-  };
+  const getCreatedAt = (item: UnifiedItem) => item.createdAt;
 
   const getImage = (item: UnifiedItem) => {
-    if (item.itemType === 'AVAILABLE') {
-      return item.object.imageUrls?.[0] || null;
-    }
+    if (item.itemType === 'AVAILABLE') return item.object.imageUrls?.[0] || null;
     return null;
   };
 
@@ -181,21 +191,21 @@ export default function RecipientEntityRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-medium text-gray-900">Le tue richieste</h1>
-          <p className="text-gray-500">Beni, servizi e oggetti richiesti</p>
+          <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le tue richieste</h1>
+          <p className="text-sm sm:text-base text-gray-500">Beni, servizi e oggetti richiesti</p>
         </div>
         <Link
           href="/recipient/requests-entity/requests/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-center"
         >
           + Nuova richiesta
         </Link>
       </div>
 
       {/* Legend */}
-      <div className="flex gap-4 text-sm">
+      <div className="flex gap-3 sm:gap-4 text-sm flex-wrap">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-blue-500"></span>
           <span className="text-gray-600">Beni</span>
@@ -215,49 +225,63 @@ export default function RecipientEntityRequestsPage() {
           <p className="text-gray-500">Caricamento...</p>
         </div>
       ) : items.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">📋</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
+        <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
+          <span className="text-4xl sm:text-5xl mb-4 block">📋</span>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
           <p className="text-gray-500">Non hai ancora richiesto beni, servizi o oggetti.</p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {items.map((item) => {
             const colors = TYPE_COLORS[item.itemType];
             const image = getImage(item);
             const depositLocation = getDepositLocation(item);
+            const pendingOffers = getPendingOffersCount(item);
 
             return (
               <Link
                 key={`${item.itemType}-${item.id}`}
                 href={item.link}
-                className={`bg-white p-4 rounded-xl shadow-sm border-2 border-gray-100 hover:border-primary-200 transition border-l-4 ${colors.border}`}
+                className={`block bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border}`}
               >
-                <div className="flex gap-4">
-                  <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                <div className="flex gap-3 sm:gap-4">
+                  {/* Image/Icon */}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                     {image ? (
                       <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-2xl">
-                        {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon(item.itemType === 'GOODS' ? (item as EntityRequest).category : (item as EntityRequest).category)}
+                      <span className="text-xl sm:text-2xl">
+                        {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon((item as EntityRequest).category)}
                       </span>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900">{getTitle(item)}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded ${colors.badge}`}>
-                            {colors.label}
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Top row: title + badge */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{getTitle(item)}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                          {colors.label}
+                        </span>
+                        {pendingOffers > 0 && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
+                            {pendingOffers} offerta(e)
                           </span>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Richiesta il {formatDate(getCreatedAt(item))}
-                        </p>
+                        )}
                       </div>
-                      {getStatusBadge(item)}
+                      <div className="flex-shrink-0">
+                        {getStatusBadge(item)}
+                      </div>
                     </div>
+
+                    {/* Meta row */}
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                      Richiesta il {formatDate(getCreatedAt(item))}
+                    </p>
+
+                    {/* Bottom row: location if exists */}
                     {depositLocation && (
                       <p className="text-xs text-gray-400 mt-1">📍 {depositLocation}</p>
                     )}
