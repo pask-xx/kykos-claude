@@ -258,20 +258,20 @@ export default function RecipientEntityRequestsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    {/* Top row: title + badge */}
+                    {/* Top row: title + badges */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1 sm:gap-2 min-w-0">
                         <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{getTitle(item)}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                        <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
                           {colors.label}
                         </span>
                         {pendingOffers > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
                             {pendingOffers} offerta(e)
                           </span>
                         )}
                       </div>
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 ml-1">
                         {getStatusBadge(item)}
                       </div>
                     </div>
@@ -280,11 +280,6 @@ export default function RecipientEntityRequestsPage() {
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
                       Richiesta il {formatDate(getCreatedAt(item))}
                     </p>
-
-                    {/* Bottom row: location if exists */}
-                    {depositLocation && (
-                      <p className="text-xs text-gray-400 mt-1">📍 {depositLocation}</p>
-                    )}
                   </div>
                 </div>
               </Link>
