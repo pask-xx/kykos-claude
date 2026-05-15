@@ -142,6 +142,7 @@ export default function RecipientEntityRequestsPage() {
       PENDING: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
       APPROVED: { label: 'Approvata', color: 'bg-green-100 text-green-700' },
       FULFILLED: { label: 'Soddisfatta', color: 'bg-blue-100 text-blue-700' },
+      DELIVERED: { label: 'Depositata', color: 'bg-blue-100 text-blue-700' },
       COMPLETED: { label: 'Completata', color: 'bg-gray-100 text-gray-700' },
       CANCELLED: { label: 'Cancellata', color: 'bg-red-100 text-red-700' },
     };
