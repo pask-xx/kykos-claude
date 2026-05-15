@@ -249,8 +249,8 @@ export default function DepositPage() {
             </div>
             <div class="info-box">
               <div class="logos">
-                <img src="${logoAlberoUrl}" alt="logo" style="height: 5mm; width: 5mm;" />
-                <img src="${logoTextUrl}" alt="Kykos" style="height: 5mm; width: auto;" />
+                <img src="${logoAlberoUrl}" alt="logo" style="height: 7mm; width: 7mm;" />
+                <img src="${logoTextUrl}" alt="Kykos" style="height: 7mm; width: auto;" />
               </div>
               <div class="beneficiary">
                 <div class="beneficiary-name">${firstName}</div>
