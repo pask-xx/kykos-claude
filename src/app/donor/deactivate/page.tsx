@@ -30,11 +30,18 @@ interface DeactivationPreview {
 
 const STATUS_LABELS: Record<ObjectStatus, string> = {
   AVAILABLE: 'Disponibile',
-  RESERVED: 'Riservato',
-  DEPOSITED: 'Depositato',
-  DONATED: 'Donato',
+  RESERVED: 'Riservata',
+  DEPOSITED: 'Depositata',
+  DONATED: 'Ritirato',
   CANCELLED: 'Cancellato',
   BLOCKED: 'Bloccato',
+};
+
+const GOODS_OFFER_STATUS_LABELS: Record<GoodsOfferStatus, string> = {
+  PENDING: 'In attesa',
+  ACCEPTED: 'Accettata',
+  REJECTED: 'Rifiutata',
+  CANCELLED: 'Cancellata',
 };
 
 export default function DonorDeactivatePage() {
@@ -93,8 +100,8 @@ export default function DonorDeactivatePage() {
   const getStatusBadge = (status: ObjectStatus) => {
     const styles: Record<ObjectStatus, string> = {
       AVAILABLE: 'bg-green-100 text-green-700',
-      RESERVED: 'bg-blue-100 text-blue-700',
-      DEPOSITED: 'bg-purple-100 text-purple-700',
+      RESERVED: 'bg-amber-100 text-amber-700',
+      DEPOSITED: 'bg-blue-100 text-blue-700',
       DONATED: 'bg-gray-100 text-gray-700',
       CANCELLED: 'bg-gray-100 text-gray-500',
       BLOCKED: 'bg-red-100 text-red-700',
@@ -105,6 +112,28 @@ export default function DonorDeactivatePage() {
       </span>
     );
   };
+
+  const getOfferStatusBadge = (status: GoodsOfferStatus) => {
+    const styles: Record<GoodsOfferStatus, string> = {
+      PENDING: 'bg-amber-100 text-amber-700',
+      ACCEPTED: 'bg-blue-100 text-blue-700',
+      REJECTED: 'bg-gray-100 text-gray-700',
+      CANCELLED: 'bg-gray-100 text-gray-500',
+    };
+    return (
+      <span className={`px-2 py-0.5 text-xs rounded ${styles[status]}`}>
+        {GOODS_OFFER_STATUS_LABELS[status]}
+      </span>
+    );
+  };
+
+  // Filter out terminal states - they don't need any action
+  const activeObjects = preview?.objects.filter(
+    (o) => o.status === 'AVAILABLE' || o.status === 'RESERVED' || o.status === 'DEPOSITED'
+  ) ?? [];
+  const activeOffers = preview?.goodsOffers.filter(
+    (o) => o.status === 'PENDING' || o.status === 'ACCEPTED'
+  ) ?? [];
 
   if (loading) {
     return (
@@ -127,9 +156,7 @@ export default function DonorDeactivatePage() {
     );
   }
 
-  const hasActiveTransactions =
-    preview?.objects.filter((o) => o.status === 'AVAILABLE' || o.status === 'RESERVED').length ?? 0;
-  const hasDepositedObjects = preview?.objects.some((o) => o.status === 'DEPOSITED') ?? false;
+  const hasActiveTransactions = activeObjects.length + activeOffers.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -159,33 +186,17 @@ export default function DonorDeactivatePage() {
           </div>
         </div>
 
-        {/* Blocking Reasons */}
-        {preview?.blockingReasons && preview.blockingReasons.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🚫</span>
-              <div>
-                <h3 className="font-semibold text-red-900">Impossibile procedere</h3>
-                <ul className="text-red-700 text-sm mt-2 list-disc list-inside space-y-1">
-                  {preview.blockingReasons.map((reason, i) => (
-                    <li key={i}>{reason}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
+        
         {/* Objects Section */}
-        {preview && preview.objects.length > 0 && (
+        {activeObjects.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border mb-6">
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold text-gray-900">
-                Oggetti pubblicati ({preview.objects.length})
+                Oggetti pubblicati ({activeObjects.length})
               </h2>
             </div>
             <div className="divide-y">
-              {preview.objects.map((obj) => (
+              {activeObjects.map((obj) => (
                 <div key={obj.id} className="p-4 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-gray-900">{obj.title}</p>
@@ -202,30 +213,20 @@ export default function DonorDeactivatePage() {
         )}
 
         {/* GoodsOffers Section */}
-        {preview && preview.goodsOffers.length > 0 && (
+        {activeOffers.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border mb-6">
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold text-gray-900">
-                Offerte su richieste beni ({preview.goodsOffers.length})
+                Offerte su richieste beni ({activeOffers.length})
               </h2>
             </div>
             <div className="divide-y">
-              {preview.goodsOffers.map((offer) => (
+              {activeOffers.map((offer) => (
                 <div key={offer.id} className="p-4 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-gray-900">{offer.requestTitle}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={`px-2 py-0.5 text-xs rounded ${
-                          offer.status === 'PENDING'
-                            ? 'bg-amber-100 text-amber-700'
-                            : offer.status === 'ACCEPTED'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {offer.status === 'PENDING' ? 'In attesa' : offer.status}
-                      </span>
+                      {getOfferStatusBadge(offer.status)}
                       <span className="text-gray-400">→</span>
                       <span className="text-sm text-gray-600">{offer.willBe}</span>
                     </div>
@@ -237,7 +238,7 @@ export default function DonorDeactivatePage() {
         )}
 
         {/* Empty state */}
-        {preview && preview.objects.length === 0 && preview.goodsOffers.length === 0 && (
+        {activeObjects.length === 0 && activeOffers.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
             <p className="text-gray-500">Nessun dato da gestire</p>
           </div>
@@ -259,22 +260,20 @@ export default function DonorDeactivatePage() {
             Annulla
           </Link>
 
-          {preview?.canDeactivate && (
-            <ConfirmDialog
-              title="Conferma disattivazione"
-              message={`Stai per eliminare definitivamente il tuo account. Questa azione non può essere annullata.${hasActiveTransactions > 0 ? ` ${hasActiveTransactions} oggetti saranno cancellati.` : ''}`}
-              confirmLabel="Disattiva account"
-              variant="danger"
-              onConfirm={handleDeactivate}
+          <ConfirmDialog
+            title="Conferma disattivazione"
+            message={`Stai per eliminare definitivamente il tuo account. Questa azione non può essere annullata.${hasActiveTransactions > 0 ? ` ${hasActiveTransactions} elementi saranno cancellati.` : ''}`}
+            confirmLabel="Disattiva account"
+            variant="danger"
+            onConfirm={handleDeactivate}
+          >
+            <button
+              disabled={submitting}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
             >
-              <button
-                disabled={submitting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
-              >
-                {submitting ? 'Elaborazione...' : 'Disattiva account'}
-              </button>
-            </ConfirmDialog>
-          )}
+              {submitting ? 'Elaborazione...' : 'Disattiva account'}
+            </button>
+          </ConfirmDialog>
         </div>
       </div>
     </div>
