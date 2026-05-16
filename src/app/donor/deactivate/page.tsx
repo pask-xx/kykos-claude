@@ -129,7 +129,7 @@ export default function DonorDeactivatePage() {
 
   // Filter out terminal states - they don't need any action
   const activeObjects = preview?.objects.filter(
-    (o) => o.status === 'AVAILABLE' || o.status === 'RESERVED' || o.status === 'DEPOSITED'
+    (o) => o.status === 'AVAILABLE' || o.status === 'RESERVED'
   ) ?? [];
   const activeOffers = preview?.goodsOffers.filter(
     (o) => o.status === 'PENDING' || o.status === 'ACCEPTED'

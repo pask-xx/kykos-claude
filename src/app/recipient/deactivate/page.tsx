@@ -164,13 +164,13 @@ export default function RecipientDeactivatePage() {
 
   // Filter out terminal states - they don't need any action
   const activeObjects = preview?.objects.filter(
-    (o) => o.status === 'AVAILABLE' || o.status === 'RESERVED' || o.status === 'DEPOSITED'
+    (o) => o.status === 'AVAILABLE' || o.status === 'RESERVED'
   ) ?? [];
   const activeOffers = preview?.goodsOffers.filter(
     (o) => o.status === 'PENDING' || o.status === 'ACCEPTED'
   ) ?? [];
   const activeRequests = preview?.requests.filter(
-    (r) => r.objectStatus === 'AVAILABLE' || r.objectStatus === 'RESERVED' || r.objectStatus === 'DEPOSITED'
+    (r) => r.objectStatus === 'AVAILABLE' || r.objectStatus === 'RESERVED'
   ) ?? [];
   const activeGoodsRequests = preview?.goodsRequests.filter(
     (gr) => gr.status === 'PENDING' || gr.status === 'APPROVED' || gr.status === 'FULFILLED' || gr.status === 'DELIVERED'
