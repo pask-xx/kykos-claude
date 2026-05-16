@@ -52,7 +52,8 @@
       "Bash(node -e ' *)",
       "Bash(mkdir -p \"D:/PROGETTI/KYKOS/KYKOS-WITH-CLAUDE/src/app/donor/qr/[requestId]\")",
       "Bash(mkdir -p \"D:/PROGETTI/KYKOS/KYKOS-WITH-CLAUDE/src/app/recipient/qr/[requestId]\")",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(Select-Object -First 30)"
     ]
   }
 }

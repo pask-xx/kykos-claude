@@ -98,7 +98,7 @@ export default function GoodsRequestDetailPage() {
       case 'APPROVED':
         return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
       case 'FULFILLED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Soddisfatta</span>;
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Depositata</span>;
       case 'CANCELLED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Cancellata</span>;
       default:
@@ -147,121 +147,128 @@ export default function GoodsRequestDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm inline-block">
-        ← Indietro
-      </button>
+    <div className="min-h-screen bg-gray-50">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm mb-4 inline-block">
+          ← Indietro
+        </button>
 
-      {/* Header */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <div className="flex gap-4">
-          <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
-            {getCategoryIcon(request.category)}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
-                <p className="text-gray-500 mt-1">
-                  Richiesta da {request.beneficiary.name} • {formatDate(request.createdAt)}
-                </p>
-              </div>
-              {getStatusBadge(request.status)}
-            </div>
-            {request.description && (
-              <p className="text-gray-600 mt-3">{request.description}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Entity Info */}
-      <div className="bg-gray-50 p-4 rounded-xl">
-        <h3 className="font-semibold text-gray-900 mb-2">📍 Ente di riferimento</h3>
-        <p className="text-gray-700">{request.intermediary.name}</p>
-        {(request.intermediary.address || request.intermediary.city) && (
-          <p className="text-sm text-gray-500">
-            {[request.intermediary.address, request.intermediary.houseNumber, request.intermediary.cap, request.intermediary.city, request.intermediary.province].filter(Boolean).join(', ')}
-          </p>
-        )}
-      </div>
-
-      {/* Fulfiller Info */}
-      {request.fulfilledBy && (
-        <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-          <h3 className="font-semibold text-green-900 mb-2">✓ Soddisfatta</h3>
-          {request.status === 'DELIVERED' && (
-            <Link
-              href={`/recipient/qr-goods/${request.id}`}
-              className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-            >
-              📱 Visualizza QR per ritiro
-            </Link>
-          )}
-          {request.status === 'FULFILLED' && (
-            <p className="text-sm text-green-700 mt-2">In attesa che il donatore consegni il bene presso l&apos;ente...</p>
-          )}
-        </div>
-      )}
-
-      {/* Offers Section */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Disponibilità ({request.offers.length})</h2>
-        </div>
-
-        {request.offers.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">Nessuna disponibilità ancora</p>
-        ) : (
-          <div className="space-y-3">
-            {request.offers.map((offer) => (
-              <div key={offer.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">Disponibilità</p>
-                    <p className="text-sm text-gray-500">{formatDate(offer.createdAt)}</p>
-                    {offer.message && (
-                      <p className="text-gray-600 mt-2 text-sm">{offer.message}</p>
-                    )}
-                    {offer.imageUrls && offer.imageUrls.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {offer.imageUrls.map((url, i) => (
-                          <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={url}
-                              alt={`Immagine ${i + 1}`}
-                              className="w-16 h-16 object-cover rounded-lg border border-gray-200 hover:border-primary-400 transition-colors"
-                            />
-                          </a>
-                        ))}
-                      </div>
-                    )}
+        {request && (
+          <>
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <div className="p-6">
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
+                    {getCategoryIcon(request.category)}
                   </div>
-                  <div className="flex items-center gap-2">
-                    {getOfferStatusBadge(offer.status)}
-                    {offer.status === 'PENDING' && request.status === 'APPROVED' && !request.fulfilledBy && (
-                      <ConfirmDialog
-                        title="Accetta disponibilità"
-                        message="Sei sicuro di voler accettare questa disponibilità?"
-                        confirmLabel="Accetta"
-                        variant="warning"
-                        onConfirm={() => handleAcceptOffer(offer.id)}
-                      >
-                        <button
-                          disabled={submitting}
-                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
-                        >
-                          Accetta
-                        </button>
-                      </ConfirmDialog>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
+                        <p className="text-gray-500 mt-1">
+                          Richiesta da {request.beneficiary.name} • {formatDate(request.createdAt)}
+                        </p>
+                      </div>
+                      {getStatusBadge(request.status)}
+                    </div>
+                    {request.description && (
+                      <p className="text-gray-600 mt-3">{request.description}</p>
                     )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Entity Info */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <h3 className="font-semibold text-gray-900 mb-2">📍 Ente di riferimento</h3>
+                <p className="text-gray-700">{request.intermediary.name}</p>
+                {(request.intermediary.address || request.intermediary.city) && (
+                  <p className="text-sm text-gray-500">
+                    {[request.intermediary.address, request.intermediary.houseNumber, request.intermediary.cap, request.intermediary.city, request.intermediary.province].filter(Boolean).join(', ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Fulfiller Info */}
+              {request.fulfilledBy && (
+                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                  <h3 className="font-semibold text-green-900 mb-2">✓ Soddisfatta</h3>
+                  {request.status === 'DELIVERED' && (
+                    <Link
+                      href={`/recipient/qr-goods/${request.id}`}
+                      className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                    >
+                      📱 Visualizza QR per ritiro
+                    </Link>
+                  )}
+                  {request.status === 'FULFILLED' && (
+                    <p className="text-sm text-green-700 mt-2">In attesa che il donatore consegni il bene presso l&apos;ente...</p>
+                  )}
+                </div>
+              )}
+
+              {/* Offers Section */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Disponibilità ({request.offers.length})</h2>
+                </div>
+
+                {request.offers.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">Nessuna disponibilità ancora</p>
+                ) : (
+                  <div className="space-y-3">
+                    {request.offers.map((offer) => (
+                      <div key={offer.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-gray-900">Disponibilità</p>
+                            <p className="text-sm text-gray-500">{formatDate(offer.createdAt)}</p>
+                            {offer.message && (
+                              <p className="text-gray-600 mt-2 text-sm">{offer.message}</p>
+                            )}
+                            {offer.imageUrls && offer.imageUrls.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {offer.imageUrls.map((url, i) => (
+                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                      src={url}
+                                      alt={`Immagine ${i + 1}`}
+                                      className="w-16 h-16 object-cover rounded-lg border border-gray-200 hover:border-primary-400 transition-colors"
+                                    />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {getOfferStatusBadge(offer.status)}
+                            {offer.status === 'PENDING' && request.status === 'APPROVED' && !request.fulfilledBy && (
+                              <ConfirmDialog
+                                title="Accetta disponibilità"
+                                message="Sei sicuro di voler accettare questa disponibilità?"
+                                confirmLabel="Accetta"
+                                variant="warning"
+                                onConfirm={() => handleAcceptOffer(offer.id)}
+                              >
+                                <button
+                                  disabled={submitting}
+                                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                                >
+                                  Accetta
+                                </button>
+                              </ConfirmDialog>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         )}
-      </div>
+      </main>
     </div>
   );
 }
