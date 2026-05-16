@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CATEGORY_LABELS, REQUEST_STATUS_LABELS, RequestStatus } from '@/types';
+import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, RequestStatus, Condition } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Object {
@@ -215,7 +215,7 @@ export default function RecipientBrowsePage() {
                         {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
                       </span>
                       <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                        {obj.condition.replace('_', ' ')}
+                        {CONDITION_LABELS[obj.condition as Condition] || obj.condition}
                       </span>
                       {userRequests.has(obj.id) && (
                         <span className={`px-2 py-1 text-xs rounded font-medium ${
