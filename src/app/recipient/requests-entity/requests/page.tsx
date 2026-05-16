@@ -45,26 +45,23 @@ type UnifiedItem =
   | (EntityRequest & { itemType: 'GOODS' | 'SERVICES'; link: string })
   | (ObjectRequest & { itemType: 'AVAILABLE'; link: string });
 
-// Priority for sorting: higher = more urgent (show first)
 const STATUS_PRIORITY: Record<string, number> = {
-  // Objects
-  DEPOSITED: 100,   // Pronto per ritiro - azione urgente
-  RESERVED: 80,     // In attesa conferma
-  AVAILABLE: 60,    // Disponibile (browsing, no impegno)
-  DONATED: 20,      // Ritirato - chiuso
-  CANCELLED: 10,    // Cancellato - chiuso
-  // Goods/Services
-  FULFILLED: 90,   // Soddisfatta - in attesa di te
-  DELIVERED: 90,   // Depositata - in attesa di ritiro
-  PENDING: 70,      // In attesa approvazione
-  APPROVED: 50,     // Approvata - in attesa di donatore
-  COMPLETED: 20,    // Completata - chiuso
+  DEPOSITED: 100,
+  RESERVED: 80,
+  AVAILABLE: 60,
+  DONATED: 20,
+  CANCELLED: 10,
+  FULFILLED: 90,
+  DELIVERED: 90,
+  PENDING: 70,
+  APPROVED: 50,
+  COMPLETED: 20,
 };
 
 const TYPE_COLORS: Record<string, { border: string; badge: string; label: string }> = {
   GOODS: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700', label: 'Bene' },
   SERVICES: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', label: 'Servizio' },
-  AVAILABLE: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', label: 'Disponibilità' },
+  AVAILABLE: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', label: 'Disponibilita' },
 };
 
 export default function RecipientEntityRequestsPage() {
@@ -105,9 +102,7 @@ export default function RecipientEntityRequestsPage() {
         })),
       ];
 
-      // Sort by priority then by date
       unified.sort((a, b) => {
-        // Offers boost priority
         const aOffers = (a as EntityRequest).offers || [];
         const bOffers = (b as EntityRequest).offers || [];
         const aPendingOffers = aOffers.filter((o: any) => o.status === 'PENDING').length;
@@ -118,7 +113,6 @@ export default function RecipientEntityRequestsPage() {
         let aPriority = STATUS_PRIORITY[aStatus] ?? 0;
         let bPriority = STATUS_PRIORITY[bStatus] ?? 0;
 
-        // Boost for pending offers
         if (aPendingOffers > 0) aPriority += 15;
         if (bPendingOffers > 0) bPriority += 15;
 
@@ -178,15 +172,8 @@ export default function RecipientEntityRequestsPage() {
     return (item as EntityRequest).title;
   };
 
-  const getCreatedAt = (item: UnifiedItem) => item.createdAt;
-
   const getImage = (item: UnifiedItem) => {
     if (item.itemType === 'AVAILABLE') return item.object.imageUrls?.[0] || null;
-    return null;
-  };
-
-  const getDepositLocation = (item: UnifiedItem) => {
-    if (item.itemType === 'AVAILABLE') return item.object.depositLocation;
     return null;
   };
 
@@ -194,101 +181,95 @@ export default function RecipientEntityRequestsPage() {
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le tue richieste</h1>
-          <p className="text-sm sm:text-base text-gray-500">Beni, servizi e oggetti richiesti</p>
-        </div>
-        <Link
-          href="/recipient/requests-entity/requests/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-center"
-        >
-          + Nuova richiesta
-        </Link>
-      </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le tue richieste</h1>
+              <p className="text-sm sm:text-base text-gray-500">Beni, servizi e oggetti richiesti</p>
+            </div>
+            <Link
+              href="/recipient/requests-entity/requests/new"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-center"
+            >
+              + Nuova richiesta
+            </Link>
+          </div>
 
-      {/* Legend */}
-      <div className="flex gap-3 sm:gap-4 text-sm flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-          <span className="text-gray-600">Beni</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-          <span className="text-gray-600">Servizi</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-green-500"></span>
-          <span className="text-gray-600">Disponibilità</span>
-        </div>
-      </div>
+          <div className="flex gap-3 sm:gap-4 text-sm flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+              <span className="text-gray-600">Beni</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+              <span className="text-gray-600">Servizi</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-green-500"></span>
+              <span className="text-gray-600">Disponibilita</span>
+            </div>
+          </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
-        </div>
-      ) : items.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
-          <span className="text-4xl sm:text-5xl mb-4 block">📋</span>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
-          <p className="text-gray-500">Non hai ancora richiesto beni, servizi o oggetti.</p>
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:gap-4">
-          {items.map((item) => {
-            const colors = TYPE_COLORS[item.itemType];
-            const image = getImage(item);
-            const depositLocation = getDepositLocation(item);
-            const pendingOffers = getPendingOffersCount(item);
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-gray-500">Caricamento...</p>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
+              <span className="text-4xl sm:text-5xl mb-4 block">📋</span>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
+              <p className="text-gray-500">Non hai ancora richiesto beni, servizi o oggetti.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:gap-4">
+              {items.map((item) => {
+                const colors = TYPE_COLORS[item.itemType];
+                const image = getImage(item);
+                const pendingOffers = getPendingOffersCount(item);
 
-            return (
-              <Link
-                key={`${item.itemType}-${item.id}`}
-                href={item.link}
-                className={`block bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border} overflow-hidden`}
-              >
-                <div className="flex gap-2 sm:gap-4">
-                  {/* Image/Icon */}
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-                    {image ? (
-                      <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-base sm:text-xl">
-                        {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon((item as EntityRequest).category)}
-                      </span>
-                    )}
-                  </div>
+                return (
+                  <Link
+                    key={`${item.itemType}-${item.id}`}
+                    href={item.link}
+                    className={`block bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border} overflow-hidden`}
+                  >
+                    <div className="flex gap-2 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                        {image ? (
+                          <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-base sm:text-xl">
+                            {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon((item as EntityRequest).category)}
+                          </span>
+                        )}
+                      </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    {/* Title */}
-                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{getTitle(item)}</h3>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{getTitle(item)}</h3>
 
-                    {/* Badges */}
-                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                      <span className={`text-xs px-1 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
-                        {colors.label}
-                      </span>
-                      {pendingOffers > 0 && (
-                        <span className="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
-                          {pendingOffers} 📬
-                        </span>
-                      )}
-                      {getStatusBadge(item)}
+                        <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                          <span className={`text-xs px-1 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                            {colors.label}
+                          </span>
+                          {pendingOffers > 0 && (
+                            <span className="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
+                              {pendingOffers} 📬
+                            </span>
+                          )}
+                          {getStatusBadge(item)}
+                        </div>
+
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {formatDate(item.createdAt)}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Date */}
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {formatDate(getCreatedAt(item))}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
