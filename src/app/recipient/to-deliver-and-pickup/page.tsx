@@ -109,19 +109,13 @@ export default async function RecipientToDeliverAndPickupPage() {
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Da gestire</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Consegne e Ritiri</h1>
             <p className="text-gray-500 text-sm mt-1">
               {totalItems} elementi
             </p>
           </div>
-          <Link
-            href="/recipient/dashboard"
-            className="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
-          >
-            ← Dashboard
-          </Link>
         </div>
 
         {/* Legend */}
