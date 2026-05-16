@@ -364,7 +364,7 @@ export default function RecipientFeedClient() {
               <div className="flex gap-3">
                 <ConfirmDialog
                   title="Conferma richiesta"
-                  message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
+                  message="Sei sicuro di voler richiedere questo oggetto?"
                   confirmLabel="Sì, richiedi"
                   variant="warning"
                   onConfirm={() => handleRequest(obj.id)}

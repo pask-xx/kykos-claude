@@ -309,7 +309,7 @@ export default function ObjectDetailPage() {
                   </div>
                   <ConfirmDialog
                     title="Conferma richiesta"
-                    message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
+                    message="Sei sicuro di voler richiedere questo oggetto?"
                     confirmLabel="Sì, richiedi"
                     variant="warning"
                     onConfirm={handleRequest}
