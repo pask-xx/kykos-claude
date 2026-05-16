@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface ObjectDetails {
