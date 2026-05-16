@@ -182,7 +182,12 @@ export default async function RecipientToDeliverAndPickupPage() {
                         : item.itemType === 'DONATION' ? 'QR Code pronto' : 'Pronto per il ritiro'}
                     </p>
                   </div>
-                  <span className="text-lg">📱</span>
+                  <svg className="w-6 h-6 text-primary-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
                 </Link>
               );
             })}
