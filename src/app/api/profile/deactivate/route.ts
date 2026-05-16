@@ -107,26 +107,26 @@ export async function GET() {
 
     // === Analyze Objects (DONOR role) ===
     for (const obj of objects) {
-      let willBe = 'CANCELLED';
+      let willBe = 'Sarà cancellato';
 
       switch (obj.status) {
         case 'AVAILABLE':
-          willBe = 'CANCELLED';
+          willBe = 'Sarà cancellato';
           break;
         case 'RESERVED':
-          willBe = 'CANCELLED';
+          willBe = 'Sarà cancellato';
           break;
         case 'DEPOSITED':
-          willBe = 'DEPOSITED (invariato - già depositato)';
+          willBe = 'Invariato - già depositato';
           break;
         case 'DONATED':
-          willBe = 'DONATED (invariato - già ritirato)';
+          willBe = 'Invariato - già ritirato';
           break;
         case 'CANCELLED':
-          willBe = 'CANCELLED (invariato)';
+          willBe = 'Invariato';
           break;
         case 'BLOCKED':
-          willBe = 'BLOCKED (invariato)';
+          willBe = 'Invariato';
           break;
       }
 
@@ -141,20 +141,20 @@ export async function GET() {
 
     // === Analyze GoodsOffers ===
     for (const offer of goodsOffers) {
-      let willBe = 'CANCELLED';
+      let willBe = 'Sarà cancellata';
 
       switch (offer.status) {
         case 'PENDING':
-          willBe = 'CANCELLED';
+          willBe = 'Sarà cancellata';
           break;
         case 'ACCEPTED':
-          willBe = 'CANCELLED + notifica beneficiario';
+          willBe = 'Sarà cancellata + notifica beneficiario';
           break;
         case 'REJECTED':
-          willBe = 'REJECTED (unchanged)';
+          willBe = 'Invariata';
           break;
         case 'CANCELLED':
-          willBe = 'CANCELLED (unchanged)';
+          willBe = 'Invariata';
           break;
       }
 
@@ -169,22 +169,22 @@ export async function GET() {
     // === Analyze Requests made (RECIPIENT role) ===
     // These depend on the ObjectStatus, not RequestStatus
     for (const req of requestsMade) {
-      let willBe = 'CANCELLED';
+      let willBe = 'Sarà cancellata';
 
       switch (req.object.status) {
         case 'AVAILABLE':
         case 'RESERVED':
-          willBe = 'CANCELLED, oggetto torna disponibile';
+          willBe = 'Sarà cancellata, oggetto torna disponibile';
           break;
         case 'DEPOSITED':
-          willBe = 'CANCELLED + notifica ENTE per ripubblicazione';
+          willBe = 'Sarà cancellata + notifica ENTE per ripubblicazione';
           break;
         case 'DONATED':
-          willBe = 'DONATED (invariato - transazione conclusa)';
+          willBe = 'Invariato - transazione conclusa';
           break;
         case 'CANCELLED':
         case 'BLOCKED':
-          willBe = `${req.object.status} (invariato)`;
+          willBe = 'Invariato';
           break;
       }
 
@@ -198,26 +198,26 @@ export async function GET() {
 
     // === Analyze GoodsRequests created (RECIPIENT role) ===
     for (const gr of goodsRequestsCreated) {
-      let willBe = 'CANCELLED';
+      let willBe = 'Sarà cancellata';
 
       switch (gr.status) {
         case 'PENDING':
-          willBe = 'CANCELLED';
+          willBe = 'Sarà cancellata';
           break;
         case 'APPROVED':
-          willBe = 'CANCELLED + offerte cancellate';
+          willBe = 'Sarà cancellata + offerte cancellate';
           break;
         case 'FULFILLED':
-          willBe = 'CANCELLED + notifica DONATORE';
+          willBe = 'Sarà cancellata + notifica DONATORE';
           break;
         case 'DELIVERED':
-          willBe = 'CANCELLED + notifica ENTE per ripubblicazione';
+          willBe = 'Sarà cancellata + notifica ENTE per ripubblicazione';
           break;
         case 'COMPLETED':
-          willBe = 'COMPLETED (invariato - transazione conclusa)';
+          willBe = 'Invariato - transazione conclusa';
           break;
         case 'CANCELLED':
-          willBe = 'CANCELLED (invariato)';
+          willBe = 'Invariato';
           break;
       }
 
