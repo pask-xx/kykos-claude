@@ -2,6 +2,23 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { CATEGORY_LABELS } from '@/types';
+
+interface UnifiedItem {
+  id: string;
+  title: string;
+  category: string;
+  imageUrls: string[] | null;
+  itemType: 'DONATION' | 'OBJECT' | 'GOODS';
+  link: string;
+  label: string;
+}
+
+const TYPE_COLORS: Record<string, { border: string; badge: string }> = {
+  DONATION: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700' },
+  OBJECT: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700' },
+  GOODS: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700' },
+};
 
 export default async function RecipientToDeliverAndPickupPage() {
   const session = await getSession();
@@ -56,7 +73,37 @@ export default async function RecipientToDeliverAndPickupPage() {
     },
   });
 
-  const totalItems = donations.length + objectRequests.length + goodsRequestsDelivered.length;
+  const unified: UnifiedItem[] = [
+    ...donations.map(d => ({
+      id: d.id,
+      title: d.object.title,
+      category: 'OBJECT',
+      imageUrls: d.object.imageUrls,
+      itemType: 'DONATION' as const,
+      link: `/recipient/qr/${d.requestId}`,
+      label: 'Consegna',
+    })),
+    ...objectRequests.map(r => ({
+      id: r.id,
+      title: r.object.title,
+      category: 'OBJECT',
+      imageUrls: r.object.imageUrls,
+      itemType: 'OBJECT' as const,
+      link: `/recipient/qr/${r.id}`,
+      label: 'Ritiro Oggetto',
+    })),
+    ...goodsRequestsDelivered.map(gr => ({
+      id: gr.id,
+      title: gr.title,
+      category: gr.category,
+      imageUrls: null,
+      itemType: 'GOODS' as const,
+      link: `/recipient/qr-goods/${gr.id}`,
+      label: 'Ritiro Bene/Servizio',
+    })),
+  ];
+
+  const totalItems = unified.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,9 +111,9 @@ export default async function RecipientToDeliverAndPickupPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Consegne e Ritiri</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Da gestire</h1>
             <p className="text-gray-500 text-sm mt-1">
-              {totalItems} elementi da gestire
+              {totalItems} elementi
             </p>
           </div>
           <Link
@@ -75,6 +122,22 @@ export default async function RecipientToDeliverAndPickupPage() {
           >
             ← Dashboard
           </Link>
+        </div>
+
+        {/* Legend */}
+        <div className="flex gap-4 text-sm mb-6 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+            <span className="text-gray-600">Consegne</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+            <span className="text-gray-600">Ritiri Oggetti</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+            <span className="text-gray-600">Ritiri Beni/Servizi</span>
+          </div>
         </div>
 
         {/* Empty state */}
@@ -86,95 +149,43 @@ export default async function RecipientToDeliverAndPickupPage() {
           </div>
         )}
 
-        {/* Consegne */}
-        {donations.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📦</span> Consegne
-            </h2>
-            <div className="space-y-3">
-              {donations.map((donation) => (
-                <div key={donation.id} className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border">
-                  <div className="w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {donation.object.imageUrls && donation.object.imageUrls.length > 0 ? (
-                      <img src={donation.object.imageUrls[0]} alt={donation.object.title} className="w-full h-full object-cover" />
+        {/* Unified list */}
+        {totalItems > 0 && (
+          <div className="grid gap-3">
+            {unified.map((item) => {
+              const colors = TYPE_COLORS[item.itemType];
+              return (
+                <Link
+                  key={`${item.itemType}-${item.id}`}
+                  href={item.link}
+                  className={`flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border}`}
+                >
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {item.imageUrls && item.imageUrls.length > 0 ? (
+                      <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-2xl">📦</span>
+                      <span className="text-xl">
+                        {item.itemType === 'GOODS' ? '🎁' : '📦'}
+                      </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{donation.object.title}</p>
-                    <p className="text-xs text-blue-600">QR Code pronto</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900 truncate text-sm">{item.title}</p>
+                      <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                        {item.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {item.itemType === 'GOODS'
+                        ? CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category
+                        : item.itemType === 'DONATION' ? 'QR Code pronto' : 'Pronto per il ritiro'}
+                    </p>
                   </div>
-                  <Link
-                    href={`/recipient/qr/${donation.requestId}`}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium flex-shrink-0"
-                  >
-                    📱 QR Code
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Ritiri Oggetti */}
-        {objectRequests.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📦</span> Ritiri - Oggetti
-            </h2>
-            <div className="space-y-3">
-              {objectRequests.map((req) => (
-                <div key={req.id} className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border">
-                  <div className="w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {req.object.imageUrls && req.object.imageUrls.length > 0 ? (
-                      <img src={req.object.imageUrls[0]} alt={req.object.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-2xl">📦</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{req.object.title}</p>
-                    <p className="text-xs text-green-600">Pronto per il ritiro</p>
-                  </div>
-                  <Link
-                    href={`/recipient/qr/${req.id}`}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex-shrink-0"
-                  >
-                    📱 QR Ritiro
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Ritiri Beni/Servizi */}
-        {goodsRequestsDelivered.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>🎁</span> Ritiri - Beni e Servizi
-            </h2>
-            <div className="space-y-3">
-              {goodsRequestsDelivered.map((gr) => (
-                <div key={gr.id} className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border">
-                  <div className="w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                    <span className="text-2xl">🎁</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{gr.title}</p>
-                    <p className="text-xs text-gray-400">{gr.category}</p>
-                  </div>
-                  <Link
-                    href={`/recipient/qr-goods/${gr.id}`}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex-shrink-0"
-                  >
-                    📱 QR Ritiro
-                  </Link>
-                </div>
-              ))}
-            </div>
+                  <span className="text-lg">📱</span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>
