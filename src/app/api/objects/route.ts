@@ -33,6 +33,7 @@ export async function GET(request: Request) {
       select: {
         id: true,
         title: true,
+        description: true,
         category: true,
         condition: true,
         imageUrls: true,
