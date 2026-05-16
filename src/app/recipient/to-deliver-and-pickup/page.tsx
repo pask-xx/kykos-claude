@@ -142,52 +142,58 @@ export default async function RecipientToDeliverAndPickupPage() {
 
         {/* Empty state */}
         {totalItems === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-            <span className="text-5xl mb-4 block">🎉</span>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Niente da gestire</h2>
+          <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
+            <span className="text-4xl sm:text-5xl mb-4 block">🎉</span>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Niente da gestire</h2>
             <p className="text-gray-500">Tutti i tuoi impegni sono stati evasi!</p>
           </div>
         )}
 
         {/* Unified list */}
         {totalItems > 0 && (
-          <div className="grid gap-3">
+          <div className="grid gap-3 sm:gap-4">
             {unified.map((item) => {
               const colors = TYPE_COLORS[item.itemType];
               return (
                 <Link
                   key={`${item.itemType}-${item.id}`}
                   href={item.link}
-                  className={`flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border}`}
+                  className={`block bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border} overflow-hidden`}
                 >
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {item.imageUrls && item.imageUrls.length > 0 ? (
-                      <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xl">
-                        {item.itemType === 'GOODS' ? '🎁' : '📦'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 truncate text-sm">{item.title}</p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
-                        {item.label}
-                      </span>
+                  <div className="flex gap-2 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                      {item.imageUrls && item.imageUrls.length > 0 ? (
+                        <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-base sm:text-xl">
+                          {item.itemType === 'GOODS' ? '🎁' : '📦'}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {item.itemType === 'GOODS'
-                        ? CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category
-                        : item.itemType === 'DONATION' ? 'QR Code pronto' : 'Pronto per il ritiro'}
-                    </p>
+
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{item.title}</h3>
+
+                      <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                        <span className={`text-xs px-1 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                          {item.label}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {item.itemType === 'GOODS'
+                          ? CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category
+                          : item.itemType === 'DONATION' ? 'QR Code pronto' : 'Pronto per il ritiro'}
+                      </p>
+                    </div>
+
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                    </svg>
                   </div>
-                  <svg className="w-6 h-6 text-primary-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="14" y="14" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                  </svg>
                 </Link>
               );
             })}
