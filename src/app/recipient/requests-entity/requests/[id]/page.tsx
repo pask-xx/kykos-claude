@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRouter } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
@@ -48,6 +48,7 @@ interface GoodsRequest {
 
 export default function GoodsRequestDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const [request, setRequest] = useState<GoodsRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -147,11 +148,9 @@ export default function GoodsRequestDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/recipient/requests-entity/requests" className="text-gray-500 hover:text-gray-700">
-          ← Indietro
-        </Link>
-      </div>
+      <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm inline-block">
+        ← Indietro
+      </button>
 
       {/* Header */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">

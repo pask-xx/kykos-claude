@@ -183,9 +183,9 @@ export default function ObjectDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <Link href="/recipient/objects" className="text-gray-500 hover:text-gray-700 text-sm mb-4 inline-block">
-          ← Torna agli oggetti
-        </Link>
+        <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm mb-4 inline-block">
+          ← Indietro
+        </button>
 
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${message.includes('annullata') ? 'bg-amber-50 text-amber-700' : message.includes('successo') || message.includes('inviata') ? 'bg-green-50 text-green-700' : message.includes('Segnalazione') ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>

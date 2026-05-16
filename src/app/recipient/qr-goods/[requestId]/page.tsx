@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRouter } from 'react';
 import Link from 'next/link';
 import QRCodeCard from '@/components/qr/QRCodeCard';
 
@@ -40,6 +40,7 @@ interface QRData {
 
 export default function GoodsRequestRecipientQRPage({ params }: { params: Promise<{ requestId: string }> }) {
   const { requestId } = use(params);
+  const router = useRouter();
   const [data, setData] = useState<QRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,10 +91,10 @@ export default function GoodsRequestRecipientQRPage({ params }: { params: Promis
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link href="/recipient/requests-entity/requests" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Torna alle richieste
-          </Link>
+        <div className="mb-6 text-center">
+          <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm mb-2 inline-block">
+            ← Indietro
+          </button>
           <h1 className="text-2xl font-bold text-gray-900">QR Code per il ritiro</h1>
           <p className="text-gray-500">{data.goodsRequest.title}</p>
         </div>
