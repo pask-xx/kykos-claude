@@ -62,9 +62,9 @@ export default function OperatorObjectsPage() {
       case 'AVAILABLE':
         return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
       case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservato</span>;
+        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
       case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Donato</span>;
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Ritirato</span>;
       case 'DEPOSITED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
       case 'CANCELLED':
@@ -78,8 +78,8 @@ export default function OperatorObjectsPage() {
   const statuses = [...new Set(objects.map(o => o.status))].filter(s => s !== 'DONATED');
   const STATUS_LABELS: Record<string, string> = {
     AVAILABLE: 'Disponibile',
-    RESERVED: 'Riservato',
-    DEPOSITED: 'Depositato',
+    RESERVED: 'Riservata',
+    DEPOSITED: 'Depositata',
     CANCELLED: 'Cancellato',
   };
 

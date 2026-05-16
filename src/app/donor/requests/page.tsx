@@ -108,15 +108,15 @@ export default function DonorRequestsPage() {
       case 'APPROVED':
         return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
       case 'RESERVED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Riservato</span>;
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Riservata</span>;
       case 'DEPOSITED':
         return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Depositato</span>;
       case 'DONATED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Donato</span>;
+        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Ritirato</span>;
       case 'FULFILLED':
         return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Soddisfatta</span>;
       case 'DELIVERED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Consegnato</span>;
+        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Depositata</span>;
       case 'REJECTED':
         return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Rifiutata</span>;
       default:
@@ -127,11 +127,11 @@ export default function DonorRequestsPage() {
   const getObjectStatusBadge = (status: string) => {
     switch (status) {
       case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservato</span>;
+        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
       case 'DEPOSITED':
         return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Depositato</span>;
       case 'DONATED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Donato</span>;
+        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Ritirato</span>;
       default:
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
     }

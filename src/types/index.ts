@@ -136,9 +136,9 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
 
 export const OBJECT_STATUS_LABELS: Record<ObjectStatus, string> = {
   AVAILABLE: 'Disponibile',
-  RESERVED: 'Riservato',
-  DEPOSITED: 'Depositato',
-  DONATED: 'Donato',
+  RESERVED: 'Riservata',
+  DEPOSITED: 'Depositata',
+  DONATED: 'Ritirato',
   CANCELLED: 'Cancellato',
   BLOCKED: 'Bloccato',
 };
