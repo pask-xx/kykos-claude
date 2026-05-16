@@ -117,20 +117,16 @@ export async function GET() {
           willBe = 'CANCELLED';
           break;
         case 'DEPOSITED':
-          willBe = 'DEPOSITED (cannot change)';
-          preview.blockingReasons.push(
-            `L'oggetto "${obj.title}" è già depositato presso l'ente e non può essere cancellato`
-          );
-          preview.canDeactivate = false;
+          willBe = 'DEPOSITED (invariato - già depositato)';
           break;
         case 'DONATED':
-          willBe = 'DONATED (unchanged - completed)';
+          willBe = 'DONATED (invariato - già ritirato)';
           break;
         case 'CANCELLED':
-          willBe = 'CANCELLED (unchanged)';
+          willBe = 'CANCELLED (invariato)';
           break;
         case 'BLOCKED':
-          willBe = 'BLOCKED (unchanged)';
+          willBe = 'BLOCKED (invariato)';
           break;
       }
 
@@ -181,22 +177,14 @@ export async function GET() {
           willBe = 'CANCELLED, oggetto torna disponibile';
           break;
         case 'DEPOSITED':
-          willBe = 'CANCELLED + notifica ENTE';
-          // Notify entity operators
-          preview.blockingReasons.push(
-            `La richiesta per "${req.object.title}" sarà cancellata ma l'ente dovrà ripubblicare l'oggetto`
-          );
+          willBe = 'CANCELLED + notifica ENTE per ripubblicazione';
           break;
         case 'DONATED':
-          willBe = 'DONATED (cannot cancel - already completed)';
-          preview.blockingReasons.push(
-            `La richiesta per "${req.object.title}" non può essere cancellata (già ritirata)`
-          );
-          preview.canDeactivate = false;
+          willBe = 'DONATED (invariato - transazione conclusa)';
           break;
         case 'CANCELLED':
         case 'BLOCKED':
-          willBe = `${req.object.status} (unchanged)`;
+          willBe = `${req.object.status} (invariato)`;
           break;
       }
 
@@ -211,7 +199,6 @@ export async function GET() {
     // === Analyze GoodsRequests created (RECIPIENT role) ===
     for (const gr of goodsRequestsCreated) {
       let willBe = 'CANCELLED';
-      let shouldBlock = false;
 
       switch (gr.status) {
         case 'PENDING':
@@ -222,22 +209,15 @@ export async function GET() {
           break;
         case 'FULFILLED':
           willBe = 'CANCELLED + notifica DONATORE';
-          // Notify the donor who fulfilled this request
           break;
         case 'DELIVERED':
-          willBe = 'CANCELLED + notifica ENTE';
-          // Notify entity to republish
+          willBe = 'CANCELLED + notifica ENTE per ripubblicazione';
           break;
         case 'COMPLETED':
-          willBe = 'COMPLETED (cannot cancel - already completed)';
-          preview.blockingReasons.push(
-            `La richiesta beni "${gr.title}" non può essere cancellata (già completata)`
-          );
-          preview.canDeactivate = false;
-          shouldBlock = true;
+          willBe = 'COMPLETED (invariato - transazione conclusa)';
           break;
         case 'CANCELLED':
-          willBe = 'CANCELLED (unchanged)';
+          willBe = 'CANCELLED (invariato)';
           break;
       }
 

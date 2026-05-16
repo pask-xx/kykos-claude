@@ -46,9 +46,9 @@ interface DeactivationPreview {
 
 const OBJECT_STATUS_LABELS: Record<ObjectStatus, string> = {
   AVAILABLE: 'Disponibile',
-  RESERVED: 'Riservato',
-  DEPOSITED: 'Depositato',
-  DONATED: 'Donato',
+  RESERVED: 'Riservata',
+  DEPOSITED: 'Depositata',
+  DONATED: 'Ritirato',
   CANCELLED: 'Cancellato',
   BLOCKED: 'Bloccato',
 };
@@ -354,22 +354,20 @@ export default function RecipientDeactivatePage() {
             Annulla
           </Link>
 
-          {preview?.canDeactivate && (
-            <ConfirmDialog
-              title="Conferma disattivazione"
-              message={`Stai per eliminare definitivamente il tuo account. Questa azione non può essere annullata.${hasActiveObjects > 0 || hasActiveRequests > 0 ? ` ${hasActiveObjects + hasActiveRequests} elementi saranno cancellati.` : ''}`}
-              confirmLabel="Disattiva account"
-              variant="danger"
-              onConfirm={handleDeactivate}
+          <ConfirmDialog
+            title="Conferma disattivazione"
+            message={`Stai per eliminare definitivamente il tuo account. Questa azione non può essere annullata.${hasActiveObjects > 0 || hasActiveRequests > 0 ? ` ${hasActiveObjects + hasActiveRequests} elementi saranno cancellati.` : ''}`}
+            confirmLabel="Disattiva account"
+            variant="danger"
+            onConfirm={handleDeactivate}
+          >
+            <button
+              disabled={submitting}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
             >
-              <button
-                disabled={submitting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
-              >
-                {submitting ? 'Elaborazione...' : 'Disattiva account'}
-              </button>
-            </ConfirmDialog>
-          )}
+              {submitting ? 'Elaborazione...' : 'Disattiva account'}
+            </button>
+          </ConfirmDialog>
         </div>
       </div>
     </div>
