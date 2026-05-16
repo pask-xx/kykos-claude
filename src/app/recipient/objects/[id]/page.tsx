@@ -239,12 +239,16 @@ export default function ObjectDetailPage() {
               </span>
               {userRequest && (
                 <span className={`px-3 py-1 text-sm rounded-lg font-medium ${
+                  object.status === 'DEPOSITED' ? 'bg-blue-100 text-blue-700' :
+                  object.status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
                   userRequest.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
                   userRequest.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
                   userRequest.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
                   'bg-gray-100 text-gray-600'
                 }`}>
-                  {REQUEST_STATUS_LABELS[userRequest.status]}
+                  {object.status === 'DEPOSITED' ? 'Depositata' :
+                   object.status === 'RESERVED' ? 'Riservata' :
+                   REQUEST_STATUS_LABELS[userRequest.status]}
                 </span>
               )}
             </div>
@@ -287,7 +291,8 @@ export default function ObjectDetailPage() {
                     userRequest.status === 'REJECTED' ? 'bg-red-50 text-red-700 border border-red-200' :
                     'bg-gray-50 text-gray-700 border border-gray-200'
                   }`}>
-                    {userRequest.status === 'APPROVED' ? '✓ Richiesta approvata! L\'ente ti contatterà per il ritiro.' :
+                    {userRequest.status === 'APPROVED' && object.status === 'DEPOSITED' ? '✓ L\'oggetto è pronto per il ritiro!' :
+                     userRequest.status === 'APPROVED' ? '✓ Richiesta approvata! L\'ente ti contatterà per il ritiro.' :
                      userRequest.status === 'REJECTED' ? '✗ Richiesta rifiutata' :
                      'Richiesta non più attiva'}
                   </div>
