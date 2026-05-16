@@ -83,10 +83,7 @@ export default function RecipientQRPage({ params }: { params: Promise<{ requestI
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link href="/recipient/dashboard" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Torna alla dashboard
-          </Link>
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-gray-900">QR Code per il ritiro</h1>
           <p className="text-gray-500">{data.donation.objectTitle}</p>
         </div>
