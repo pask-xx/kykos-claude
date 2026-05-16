@@ -34,7 +34,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 const objectStatusLabels: Record<string, { label: string; color: string; icon: string }> = {
   AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700', icon: '📦' },
   RESERVED: { label: 'In attesa consegna', color: 'bg-amber-100 text-amber-700', icon: '⏳' },
-  DEPOSITED: { label: 'Pronto per ritiro', color: 'bg-blue-100 text-blue-700', icon: '📱' },
+  DEPOSITED: { label: 'Depositata', color: 'bg-blue-100 text-blue-700', icon: '📱' },
   DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700', icon: '✅' },
   CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700', icon: '🚫' },
 };
