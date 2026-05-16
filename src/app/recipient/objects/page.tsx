@@ -34,6 +34,7 @@ export default function RecipientBrowsePage() {
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState('ALL');
   const [user, setUser] = useState<User | null>(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     Promise.all([fetchUserRequests(), fetchObjects(), fetchUser()]);
@@ -151,26 +152,35 @@ export default function RecipientBrowsePage() {
 
         {/* Filters */}
         <div className="bg-white p-4 rounded-xl shadow-sm border mb-8">
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setCategory('ALL')}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                category === 'ALL' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Tutti
-            </button>
-            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+          <div className="flex flex-col sm:flex-row gap-4">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cerca per titolo..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            />
+            <div className="flex gap-2 flex-wrap">
               <button
-                key={key}
-                onClick={() => setCategory(key)}
+                onClick={() => setCategory('ALL')}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
-                  category === key ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  category === 'ALL' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {label}
+                Tutti
               </button>
-            ))}
+              {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setCategory(key)}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${
+                    category === key ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -186,7 +196,9 @@ export default function RecipientBrowsePage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {objects.map((obj) => (
+            {objects
+              .filter(obj => !search || obj.title.toLowerCase().includes(search.toLowerCase()))
+              .map((obj) => (
               <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition">
                 <Link href={`/recipient/objects/${obj.id}`} className="block">
                   <div className="aspect-square bg-gray-100 flex items-center justify-center">
