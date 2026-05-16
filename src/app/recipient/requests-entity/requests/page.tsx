@@ -288,6 +288,7 @@ export default function RecipientEntityRequestsPage() {
           })}
         </div>
       )}
+      </div>
     </main>
   );
 }
