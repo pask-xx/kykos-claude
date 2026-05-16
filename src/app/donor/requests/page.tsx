@@ -154,8 +154,9 @@ export default function DonorRequestsPage() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Le mie donazioni</h1>
+    <div className="min-h-screen bg-gray-50">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 className="text-3xl font-medium text-gray-900 mb-6">Le mie donazioni</h1>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200 pb-4">
@@ -281,6 +282,7 @@ export default function DonorRequestsPage() {
           </div>
         )
       )}
+      </main>
     </div>
   );
 }

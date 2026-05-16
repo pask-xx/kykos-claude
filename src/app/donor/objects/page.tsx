@@ -58,16 +58,17 @@ export default function DonorObjectsPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Le mie disponibilità</h1>
-        <Link
-          href="/donor/objects/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm"
-        >
-          + Nuovo oggetto
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-medium text-gray-900">Le mie disponibilità</h1>
+          <Link
+            href="/donor/objects/new"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm"
+          >
+            + Nuovo oggetto
+          </Link>
+        </div>
 
       {loading ? (
         <div className="text-center py-12">
@@ -119,6 +120,7 @@ export default function DonorObjectsPage() {
           ))}
         </div>
       )}
+      </main>
     </div>
   );
 }
