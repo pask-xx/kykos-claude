@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CATEGORY_LABELS, REQUEST_STATUS_LABELS, RequestStatus } from '@/types';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Object {
   id: string;
@@ -259,14 +260,21 @@ export default function RecipientBrowsePage() {
                       </button>
                     )
                   ) : (
-                    <button
-                      onClick={() => handleRequest(obj.id)}
-                      disabled={requesting === obj.id || !user?.authorized}
-                      className="w-full py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={!user?.authorized ? 'Devi essere autorizzato per richiedere oggetti' : undefined}
+                    <ConfirmDialog
+                      title="Conferma richiesta"
+                      message="Sei sicuro di voler richiedere questo oggetto? L'ente dovrà approvare la tua richiesta prima che tu possa ritirarlo."
+                      confirmLabel="Sì, richiedi"
+                      variant="warning"
+                      onConfirm={() => handleRequest(obj.id)}
                     >
-                      {requesting === obj.id ? 'Invio...' : 'Richiedi'}
-                    </button>
+                      <button
+                        disabled={requesting === obj.id || !user?.authorized}
+                        className="w-full py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={!user?.authorized ? 'Devi essere autorizzato per richiedere oggetti' : undefined}
+                      >
+                        {requesting === obj.id ? 'Invio...' : 'Richiedi'}
+                      </button>
+                    </ConfirmDialog>
                   )}
                 </div>
               </div>
