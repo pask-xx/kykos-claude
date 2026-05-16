@@ -191,7 +191,9 @@ export default function RecipientEntityRequestsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
+      <main className="container mx-auto px-4 py-8 max-w-2xl">
+        <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le tue richieste</h1>
@@ -286,6 +288,6 @@ export default function RecipientEntityRequestsPage() {
           })}
         </div>
       )}
-    </div>
+    </main>
   );
 }
