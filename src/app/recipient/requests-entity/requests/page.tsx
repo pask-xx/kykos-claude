@@ -247,9 +247,6 @@ export default function RecipientEntityRequestsPage() {
                         <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{getTitle(item)}</h3>
 
                         <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                          <span className={`text-xs px-1 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
-                            {colors.label}
-                          </span>
                           {pendingOffers > 0 && (
                             <span className="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
                               {pendingOffers} 📬
