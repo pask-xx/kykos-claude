@@ -47,13 +47,13 @@ type UnifiedItem =
 
 const STATUS_PRIORITY: Record<string, number> = {
   DEPOSITED: 100,
-  RESERVED: 80,
+  RESERVED: 70,
   AVAILABLE: 60,
   DONATED: 20,
   CANCELLED: 10,
-  FULFILLED: 30,
-  DELIVERED: 40,
-  PENDING: 70,
+  DELIVERED: 100,
+  FULFILLED: 70,
+  PENDING: 80,
   APPROVED: 50,
   COMPLETED: 20,
 };
@@ -132,7 +132,7 @@ export default function RecipientEntityRequestsPage() {
     if (item.itemType === 'AVAILABLE') {
       const labels: Record<string, { label: string; color: string }> = {
         AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700' },
-        RESERVED: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
+        RESERVED: { label: 'Riservata', color: 'bg-amber-100 text-amber-700' },
         DEPOSITED: { label: 'Pronto', color: 'bg-blue-100 text-blue-700' },
         DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700' },
         CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700' },
