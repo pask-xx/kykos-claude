@@ -184,7 +184,7 @@ export default function GoodsDetailPage({ params }: { params: Promise<{ requestI
                     selectedImage === index ? 'border-primary-500' : 'border-transparent'
                   }`}
                 >
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <img src={url} alt={`Immagine ${index + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
