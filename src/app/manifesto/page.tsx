@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Il Manifesto KYKOS',
     description: 'Anonimato, gioia, sostenibilità. I principi che guidano la donazione anonima.',
-    url: 'https://kykos.app/manifesto',
+    url: 'https://kykos.it/manifesto',
     type: 'website',
   },
 };

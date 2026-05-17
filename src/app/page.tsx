@@ -11,13 +11,13 @@ const jsonLd = {
   "@type": "Organization",
   "name": "KYKOS",
   "description": "Platform for anonymous donation of objects to people in need. Dona con amore, ricevi con dignità.",
-  "url": "https://kykos.app",
-  "logo": "https://kykos.app/albero.svg",
+  "url": "https://kykos.it",
+  "logo": "https://kykos.it/albero.svg",
   "sameAs": [],
   "contactPoint": {
     "@type": "ContactPoint",
     "description": "Supporto KYKOS",
-    "email": "info@kykos.app"
+    "email": "info@kykos.it"
   }
 };
 

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   authors: [{ name: "KYKOS" }],
   creator: "KYKOS",
   publisher: "KYKOS",
-  metadataBase: new URL("https://kykos.app"),
+  metadataBase: new URL("https://kykos.it"),
   alternates: {
     canonical: "/",
     languages: {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "it_IT",
-    url: "https://kykos.app",
+    url: "https://kykos.it",
     siteName: "KYKOS",
     title: "KYKOS - Dona con amore, ricevi con dignità",
     description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
