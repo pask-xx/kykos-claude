@@ -22,9 +22,9 @@ export const metadata: Metadata = {
   publisher: "KYKOS",
   metadataBase: new URL("https://kykos.it"),
   alternates: {
-    canonical: "/",
+    canonical: "https://kykos.it",
     languages: {
-      "it-IT": "/",
+      "it-IT": "https://kykos.it/",
     },
   },
   openGraph: {
