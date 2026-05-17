@@ -14,4 +14,4 @@ Disallow: /volunteer/dashboard
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://kykos.app/sitemap.xml
+Sitemap: https://www.kykos.it/sitemap.xml
