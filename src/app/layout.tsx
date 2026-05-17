@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/albero.png",
         width: 1200,
         height: 630,
         alt: "KYKOS - Dona con amore",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "KYKOS - Dona con amore, ricevi con dignità",
     description: "Piattaforma di donazione anonima. Chi dona non sa chi riceve, chi riceve non sa chi dona.",
-    images: ["/og-image.png"],
+    images: ["/albero.png"],
   },
   robots: {
     index: true,
