@@ -214,13 +214,17 @@ export default async function DonorStatistics() {
                   </div>
                   <span className={`px-2 py-1 text-xs rounded flex-shrink-0 ${
                     obj.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-                    obj.status === 'RESERVED' ? 'bg-yellow-100 text-yellow-700' :
-                    obj.status === 'DONATED' ? 'bg-blue-100 text-blue-700' :
+                    obj.status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
+                    obj.status === 'DEPOSITED' ? 'bg-blue-100 text-blue-700' :
+                    obj.status === 'DONATED' ? 'bg-gray-100 text-gray-700' :
+                    obj.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {obj.status === 'AVAILABLE' ? 'Disp.' :
-                     obj.status === 'RESERVED' ? 'Riserv.' :
-                     obj.status === 'DONATED' ? 'Donato' : obj.status}
+                    {obj.status === 'AVAILABLE' ? 'Disponibile' :
+                     obj.status === 'RESERVED' ? 'Riservata' :
+                     obj.status === 'DEPOSITED' ? 'Depositata' :
+                     obj.status === 'DONATED' ? 'Ritirato' :
+                     obj.status === 'CANCELLED' ? 'Cancellato' : obj.status}
                   </span>
                 </div>
               ))}
