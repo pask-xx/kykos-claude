@@ -31,9 +31,9 @@ export default function AderisciPrintPage() {
         <img src="/LogoKykosTesto.svg" alt="KYKOS" className="mx-auto mb-3" style={{height: '80px'}} />
         <p className="text-xl text-gray-500 mb-6">Dona con amore, ricevi con dignità</p>
         <p className="text-gray-600 leading-relaxed mb-8 text-lg">
-          La rete di solidarietà che mette in contatto chi vuole donare oggetti
-          con chi ne ha bisogno. <strong>Completamente anonima</strong>:
-          chi dona non sa chi riceve, e chi riceve non sa chi dona.
+          La rete di solidarietà<br/> che mette in contatto chi vuole donare oggetti
+          con chi ne ha bisogno.<br/><strong>Completamente anonima</strong>:
+          chi dona non sa chi riceve<br/> e chi riceve non sa chi dona.
         </p>
 
         {/* Three icon cards - horizontal */}
@@ -72,7 +72,7 @@ export default function AderisciPrintPage() {
         {/* QR Code - large and centered */}
         <div className="flex flex-col items-center">
           <div className="relative">
-            <div className="w-64 h-64 bg-white rounded-xl shadow-lg border-4 border-gray-200 flex items-center justify-center p-3">
+            <div className="w-44 h-44 bg-white rounded-xl shadow-lg border-4 border-gray-200 flex items-center justify-center p-3">
               {qrDataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
