@@ -429,6 +429,21 @@ export default function OrganizationSettingsPage() {
           🏷️ Crea etichetta scaffale
         </button>
       </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span>📄</span> Stampa locandina
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Stampa una locandina con QR code da esporre per promuovere la donazione.
+        </p>
+        <button
+          onClick={() => window.open('/aderisci/print', '_blank')}
+          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium"
+        >
+          🖨️ Stampa locandina
+        </button>
+      </div>
     </div>
   );
 }
