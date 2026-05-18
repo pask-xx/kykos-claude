@@ -85,8 +85,8 @@ export default function AderisciPrintPage() {
               )}
             </div>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-white rounded-full p-2 shadow-md">
-                <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" />
+              <div className="bg-white rounded-full p-1 shadow-md">
+                <img src="/albero.svg" alt="KYKOS" className="w-7 h-7" />
               </div>
             </div>
           </div>
