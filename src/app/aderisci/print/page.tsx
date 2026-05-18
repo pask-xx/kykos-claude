@@ -31,8 +31,8 @@ export default function AderisciPrintPage() {
         <img src="/LogoKykosTesto.svg" alt="KYKOS" className="mx-auto mb-3" style={{height: '80px'}} />
         <p className="text-xl text-gray-500 mb-6">Dona con amore, ricevi con dignità</p>
         <p className="text-gray-600 leading-relaxed mb-8 text-lg">
-          La rete di solidarietà<br/> che mette in contatto chi vuole donare oggetti<br/>
-          con chi ne ha bisogno.<br/><strong>Completamente anonima</strong>:
+         <strong>La rete di solidarietà</strong><br/> che mette in contatto chi vuole donare oggetti<br/>
+          con chi ne ha bisogno.<br/>Completamente anonima:
           chi dona non sa chi riceve<br/> e chi riceve non sa chi dona.
         </p>
 
