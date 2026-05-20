@@ -30,7 +30,7 @@ const faqJsonLd = {
       "name": "Come funziona KYKOS?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "KYKOS è una piattaforma di donazione anonima. Chi dona non sa chi riceve e chi riceve non sa chi dona. Gli oggetti vengono pubblicati, verificati da enti fidati (Caritas, parrocchie) e consegnati con un contributo simbolico di 1-2€."
+        "text": "KYKOS è una piattaforma di donazione anonima. Chi dona non sa chi riceve e chi riceve non sa chi dona. Gli oggetti vengono pubblicati, verificati da enti fidati (Caritas, parrocchie) e consegnati con un contributo simbolico."
       }
     },
     {
@@ -46,7 +46,7 @@ const faqJsonLd = {
       "name": "Quanto costa ricevere un oggetto?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Il contributo simbolico richiesto è di 1-2€ per coprire i costi logistici. Nessun profitto è generato dagli intermediari."
+        "text": "Il contributo simbolico richiesto è per coprire i costi logistici. Nessun profitto è generato dagli intermediari."
       }
     }
   ]
