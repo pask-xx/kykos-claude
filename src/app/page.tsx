@@ -121,7 +121,7 @@ export default function Home() {
           ricevi con <span className="text-secondary-600">dignità</span>
         </h1>
         <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed">
-          Anonimato totale per donatori e riceventi.
+          Anonimato totale per donatori e beneficiari.
           <br className="hidden md:block" />
           Chi dona non sa chi riceve. Chi riceve non sa chi dona.
         </p>
@@ -162,7 +162,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">Intermediari fidati</h3>
             <p className="text-gray-600 leading-relaxed">
-              Centri Caritas, parrocchie e associazioni verificano i riceventi
+              Gli enti intermediari verificano i beneficiari
               e gestiscono lo scambio in sicurezza.
             </p>
           </div>
