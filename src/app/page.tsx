@@ -53,7 +53,6 @@ const faqJsonLd = {
 };
 
 export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
 
   useEffect(() => {
@@ -78,71 +77,36 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Header */}
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm shadow-sm z-50">
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 group">
-              <img src="/albero.svg" alt="KYKOS" className="w-12 h-12 transition-transform group-hover:scale-110" />
-              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
+        <div className="container mx-auto px-4 py-3">
+          <nav className="flex items-center justify-between gap-2">
+            <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
+              <img src="/albero.svg" alt="KYKOS" className="w-10 h-10 transition-transform group-hover:scale-110" />
+              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-12" />
             </Link>
 
-            {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-3">
+            {/* Nav buttons - always visible */}
+            <div className="flex items-center gap-2">
               <SessionDashboardLink />
               <Link
                 href="/manifesto"
-                className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition"
+                className="hidden sm:block px-2 py-2 text-gray-600 hover:text-primary-600 font-medium transition text-sm"
               >
                 Manifesto
               </Link>
               <Link
                 href="/auth/login"
-                className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 font-medium shadow-sm transition"
+                className="px-3 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 font-medium shadow-sm transition text-sm"
               >
                 Accedi
               </Link>
               <Link
                 href="/auth/register"
-                className="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow-sm transition"
+                className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow-sm transition text-sm"
               >
                 Registrati
               </Link>
             </div>
-
-            {/* Mobile menu button */}
-            <button
-              className="md:hidden w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary-600"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? "✕" : "☰"}
-            </button>
           </nav>
-
-          {/* Mobile nav dropdown */}
-          {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 space-y-2 border-t border-gray-100 pt-4">
-              <Link
-                href="/manifesto"
-                className="block px-4 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg font-medium transition"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Manifesto
-              </Link>
-              <Link
-                href="/auth/login"
-                className="block px-4 py-3 text-secondary-600 hover:bg-gray-50 rounded-lg font-medium transition font-semibold"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Accedi
-              </Link>
-              <Link
-                href="/auth/register"
-                className="block px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold transition text-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Registrati
-              </Link>
-            </div>
-          )}
         </div>
       </header>
 
