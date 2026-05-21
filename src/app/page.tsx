@@ -214,7 +214,7 @@ export default function Home() {
             <div className="text-center">
               <div className="w-14 h-14 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 font-bold text-xl shadow-lg shadow-green-600/30">4</div>
               <h4 className="font-bold text-lg text-gray-900 mb-2">Scambio anonimo</h4>
-              <p className="text-gray-600">Un contributo simbolico (1-2€)</p>
+              <p className="text-gray-600">Un gesto di generosità</p>
             </div>
           </div>
         </div>
