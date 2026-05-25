@@ -226,6 +226,18 @@ model User {
   @@map("users")
 }
 
+model Diocese {
+  id       String  @id @default(cuid())
+  name     String  @unique  // e.g., "Diocesi di Roma", "Arcidiocesi di Milano"
+  seat     String  // e.g., "Roma", "Milano"
+  latitude Float
+  longitude Float
+
+  organizations Organization[]
+
+  @@map("dioceses")
+}
+
 model Organization {
   id                  String   @id @default(cuid())
   code                String   @unique
@@ -253,6 +265,9 @@ model Organization {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  dioceseId String?
+  diocese   Diocese? @relation(fields: [dioceseId], references: [id])
 
   operators Operator[]
 

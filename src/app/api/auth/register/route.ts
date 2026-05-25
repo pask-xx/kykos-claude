@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       latitude,
       longitude,
       secret,
+      dioceseId,
     } = await request.json();
 
     // Generate fantasy nickname if not provided
@@ -269,6 +270,7 @@ export async function POST(request: Request) {
               name: orgName,
               type: orgType as OrgType,
               code: generateOrgCode(),
+              dioceseId: dioceseId || null,
             },
           },
         }),

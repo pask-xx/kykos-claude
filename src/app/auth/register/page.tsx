@@ -24,6 +24,13 @@ function RegistrationGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+interface Diocese {
+  id: string;
+  name: string;
+  seat: string;
+  distance: number;
+}
+
 interface Intermediary {
   id: string;
   name: string;
@@ -40,6 +47,7 @@ function RegisterForm() {
   const defaultRole = (searchParams.get('role')?.toUpperCase() || 'DONOR') as Role;
 
   const [intermediaries, setIntermediaries] = useState<Intermediary[]>([]);
+  const [dioceses, setDioceses] = useState<Diocese[]>([]);
 
   // Common fields
   const [email, setEmail] = useState(oauthEmail);
@@ -66,6 +74,11 @@ function RegisterForm() {
   });
   const [houseNumber, setHouseNumber] = useState('');
 
+  // Intermediary fields
+  const [orgName, setOrgName] = useState('');
+  const [orgType, setOrgType] = useState('');
+  const [dioceseId, setDioceseId] = useState('');
+
   // Recipient fields
   const [referenceEntityId, setReferenceEntityId] = useState('');
   const [isee, setIsee] = useState('');
@@ -91,12 +104,27 @@ function RegisterForm() {
     }
   }, [isOAuth, oauthName]);
 
-  // Fetch intermediaries when location is detected
+  // Fetch intermediaries and dioceses when location is detected
   useEffect(() => {
-    if (role === 'RECIPIENT' && latitude && longitude) {
-      fetchIntermediaries();
+    if (latitude && longitude) {
+      if (role === 'RECIPIENT') {
+        fetchIntermediaries();
+      }
+      if (role === 'INTERMEDIARY') {
+        fetchDioceses();
+      }
     }
   }, [role, latitude, longitude]);
+
+  const fetchDioceses = async () => {
+    try {
+      const res = await fetch(`/api/dioceses?lat=${latitude}&lng=${longitude}&radius=50`);
+      const data = await res.json();
+      setDioceses(data.dioceses || []);
+    } catch (err) {
+      console.error('Error fetching dioceses:', err);
+    }
+  };
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -200,6 +228,21 @@ function RegisterForm() {
       }
     }
 
+    if (role === 'INTERMEDIARY') {
+      if (!firstName || !lastName || !birthDate || !fiscalCode || !address || !cap || !city || !houseNumber) {
+        setError('Tutti i campi anagrafici sono obbligatori per gli enti');
+        return;
+      }
+      if (!orgName || !orgType) {
+        setError('Nome e tipo organizzazione sono obbligatori per gli enti');
+        return;
+      }
+      if (!latitude || !longitude) {
+        setError('La geolocalizzazione è obbligatoria per gli enti');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -240,6 +283,18 @@ function RegisterForm() {
       if (lat && lng) {
         payload.latitude = lat;
         payload.longitude = lng;
+      }
+
+      if (role === 'INTERMEDIARY') {
+        if (!orgName || !orgType) {
+          setError('Nome e tipo organizzazione sono obbligatori per gli enti');
+          return;
+        }
+        payload.orgName = orgName;
+        payload.orgType = orgType;
+        if (dioceseId) {
+          payload.dioceseId = dioceseId;
+        }
       }
 
       const res = await fetch('/api/auth/register', {
@@ -293,7 +348,7 @@ function RegisterForm() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Ruolo</label>
             <div className="grid grid-cols-2 gap-3">
-              {(['DONOR', 'RECIPIENT'] as Role[]).map((r) => (
+              {(['DONOR', 'RECIPIENT', 'INTERMEDIARY'] as Role[]).map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -307,10 +362,12 @@ function RegisterForm() {
                   <span className="block text-2xl mb-1">
                     {r === 'DONOR' && '🎁'}
                     {r === 'RECIPIENT' && '🙏'}
+                    {r === 'INTERMEDIARY' && '🏢'}
                   </span>
                   <span className="text-sm font-medium">
                     {r === 'DONOR' && 'Donatore'}
                     {r === 'RECIPIENT' && 'Beneficiario'}
+                    {r === 'INTERMEDIARY' && 'Ente'}
                   </span>
                 </button>
               ))}
@@ -485,12 +542,12 @@ function RegisterForm() {
               </div>
             </div>
 
-            {/* Geolocation Section - Required for RECIPIENT, Optional for DONOR */}
+            {/* Geolocation Section - Required for RECIPIENT and INTERMEDIARY, Optional for DONOR */}
             <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
               <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
                 <span>📍</span> Geolocalizzazione
-                {isRecipient && <span className="text-red-500">*</span>}
-                {!isRecipient && <span className="text-gray-400 text-xs">(facoltativa)</span>}
+                {(isRecipient || role === 'INTERMEDIARY') && <span className="text-red-500">*</span>}
+                {isDonor && <span className="text-gray-400 text-xs">(facoltativa)</span>}
               </h3>
               <p className="text-xs text-gray-500 mb-3">
                 {latitude && longitude
@@ -527,6 +584,71 @@ function RegisterForm() {
               )}
             </div>
           </div>
+
+          {/* Intermediary specific fields */}
+          {role === 'INTERMEDIARY' && (
+            <div className="border-t pt-5">
+              <p className="text-sm font-medium text-gray-700 mb-3">Dati ente *</p>
+              <div className="mb-3">
+                <label htmlFor="orgName" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nome dell'ente *
+                </label>
+                <input
+                  id="orgName"
+                  type="text"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  required={role === 'INTERMEDIARY'}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
+                  placeholder="Caritas Italiana"
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="orgType" className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo ente *
+                </label>
+                <select
+                  id="orgType"
+                  value={orgType}
+                  onChange={(e) => setOrgType(e.target.value)}
+                  required={role === 'INTERMEDIARY'}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
+                >
+                  <option value="">Seleziona tipo</option>
+                  <option value="CHURCH">Ente Ecclesiale</option>
+                  <option value="CHARITY">Associazione / Fondazione</option>
+                  <option value="ASSOCIATION">Altro</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="diocese" className="block text-sm font-medium text-gray-700 mb-2">
+                  Diocesi di appartenenza
+                </label>
+                {!latitude || !longitude ? (
+                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                    Rileva prima la posizione per vedere le diocesi vicine
+                  </div>
+                ) : (
+                  <select
+                    id="diocese"
+                    value={dioceseId}
+                    onChange={(e) => setDioceseId(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
+                  >
+                    <option value="">Seleziona diocesi ({dioceses.length} trovate)</option>
+                    {dioceses.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} - {d.seat} ({d.distance.toFixed(1)} km)
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  Facoltativo. Ti aiuterà a trovare enti vicini alla tua diocesi.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Recipient specific fields - at the end */}
           {role === 'RECIPIENT' && (
