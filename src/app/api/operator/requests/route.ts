@@ -68,6 +68,7 @@ export async function GET() {
         recipient: {
           select: {
             id: true,
+            nickname: true,
             name: true,
             email: true,
           },
