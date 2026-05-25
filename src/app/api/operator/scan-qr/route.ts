@@ -82,7 +82,7 @@ export async function POST(request: Request) {
             status: true,
             depositLocation: true,
             donorId: true,
-            donor: { select: { name: true } },
+            donor: { select: { nickname: true, name: true } },
             intermediary: { select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true } },
           },
         },

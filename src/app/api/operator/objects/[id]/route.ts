@@ -58,7 +58,7 @@ export async function GET(
       where: { id },
       include: {
         donor: {
-          select: { id: true, name: true },
+          select: { id: true, nickname: true, name: true },
         },
         intermediary: {
           select: { id: true, name: true },
@@ -66,7 +66,7 @@ export async function GET(
         requests: {
           select: {
             recipient: {
-              select: { id: true, name: true },
+              select: { id: true, nickname: true, name: true },
             },
           },
         },

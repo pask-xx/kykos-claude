@@ -62,12 +62,12 @@ export async function GET() {
         imageUrls: true,
         createdAt: true,
         depositLocation: true,
-        donor: { select: { id: true, name: true } },
+        donor: { select: { id: true, nickname: true, name: true } },
         requests: {
           where: { status: 'APPROVED' },
           select: {
             id: true,
-            recipient: { select: { id: true, name: true } },
+            recipient: { select: { id: true, nickname: true, name: true } },
           },
         },
       },

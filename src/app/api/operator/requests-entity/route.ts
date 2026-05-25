@@ -51,18 +51,18 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
       include: {
         beneficiary: {
-          select: { id: true, name: true, firstName: true, lastName: true },
+          select: { id: true, nickname: true, name: true, firstName: true, lastName: true },
         },
         intermediary: {
           select: { id: true, name: true },
         },
         fulfilledBy: {
-          select: { id: true, name: true },
+          select: { id: true, nickname: true, name: true },
         },
         offers: {
           include: {
             offeredBy: {
-              select: { id: true, name: true },
+              select: { id: true, nickname: true, name: true },
             },
           },
         },

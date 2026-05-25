@@ -52,6 +52,8 @@ function RegisterForm() {
   // Personal info
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [generatingNickname, setGeneratingNickname] = useState(false);
   const [birthDate, setBirthDate] = useState('');
   const [fiscalCode, setFiscalCode] = useState('');
   const [address, setAddress] = useState('');
@@ -204,6 +206,7 @@ function RegisterForm() {
       const payload: Record<string, string> = {
         email,
         role,
+        nickname,
         firstName,
         lastName,
         fiscalCode,
@@ -349,6 +352,49 @@ function RegisterForm() {
                   placeholder="Rossi"
                 />
               </div>
+            </div>
+
+            {/* Nickname - Optional with Generate button */}
+            <div className="mt-3">
+              <label htmlFor="nickname" className="block text-xs text-gray-500 mb-1">
+                Nickname (facoltativo)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="nickname"
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
+                  maxLength={30}
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition text-sm"
+                  placeholder="Scegli un nickname"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setGeneratingNickname(true);
+                    try {
+                      // Generate a fantasy nickname client-side
+                      const adjectives = ['kind', 'gentle', 'warm', 'bright', 'soft', 'calm', 'sunny', 'happy', 'wise', 'bold', 'brave', 'fair', 'pure', 'light', 'peace', 'grace', 'hope', 'joy', 'trust', 'swift', 'wild', 'tender', 'loving', 'caring', 'sharing', 'giving', 'noble'];
+                      const nouns = ['heart', 'soul', 'spirit', 'dream', 'hope', 'sun', 'star', 'moon', 'cloud', 'rain', 'wind', 'flower', 'tree', 'bird', 'leaf', 'river', 'mountain', 'ocean', 'forest', 'garden', 'melody', 'harmony', 'wisdom', 'courage', 'peace', 'joy'];
+                      const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+                      const adj = pick(adjectives);
+                      const noun = pick(nouns);
+                      const num = Math.floor(Math.random() * 999) + 1;
+                      setNickname(`${adj}.${noun}.${num}`);
+                    } finally {
+                      setGeneratingNickname(false);
+                    }
+                  }}
+                  disabled={generatingNickname}
+                  className="px-4 py-2 bg-secondary-100 text-secondary-700 text-sm font-medium rounded-lg hover:bg-secondary-200 disabled:opacity-50 transition"
+                >
+                  {generatingNickname ? '...' : 'Genera'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Usato dagli enti per identificarti. Scegli tu o clicca "Genera".
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">

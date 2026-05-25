@@ -59,7 +59,7 @@ export async function POST(
             title: true,
             status: true,
             donorId: true,
-            donor: { select: { name: true } },
+            donor: { select: { nickname: true, name: true } },
             intermediary: {
               select: {
                 name: true,

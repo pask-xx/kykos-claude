@@ -25,7 +25,7 @@ export async function GET() {
       where: { intermediaryId: org.id },
       orderBy: { createdAt: 'desc' },
       include: {
-        donor: { select: { name: true, firstName: true, lastName: true } },
+        donor: { select: { nickname: true, name: true, firstName: true, lastName: true } },
         _count: {
           select: { requests: true },
         },

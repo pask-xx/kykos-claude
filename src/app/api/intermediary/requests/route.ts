@@ -30,10 +30,10 @@ export async function GET() {
           select: {
             title: true,
             imageUrls: true,
-            donor: { select: { name: true } },
+            donor: { select: { nickname: true, name: true } },
           },
         },
-        recipient: { select: { name: true, firstName: true, lastName: true } },
+        recipient: { select: { nickname: true, name: true, firstName: true, lastName: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -77,10 +77,10 @@ export async function PATCH(request: Request) {
       include: {
         object: {
           include: {
-            donor: { select: { id: true, name: true, email: true } },
+            donor: { select: { id: true, nickname: true, name: true, email: true } },
           },
         },
-        recipient: { select: { id: true, name: true, email: true } },
+        recipient: { select: { id: true, nickname: true, name: true, email: true } },
       },
     });
 

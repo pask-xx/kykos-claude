@@ -64,7 +64,7 @@ L'unica eccezione: **INTERMEDIARIO** (l'organizzazione fidata) vede entrambe le 
 2. **Aggiungere un field al select**: Verificare ogni ruolo che riceve questo dato.
 3. **Creare una nuova API route**: Default = select minimo. Aggiungere campi solo quando il business logic richiede.
 
-## REGOLA #2: ENUMERATI TRADOTTI IN ITALIANO
+## REGOLA #3: ENUMERATI TRADOTTI IN ITALIANO
 
 **Gli enumerati NON devono essere mostrati così come sono nel codice.**
 
@@ -102,3 +102,43 @@ import { STATUS_LABELS, REQUEST_STATUS_LABELS, CATEGORY_LABELS, DONOR_LEVEL_LABE
 - `CONDITION_LABELS` per Condition
 - `DONOR_LEVEL_LABELS` per DonorLevel
 - `ROLE_LABELS` per Role
+
+## REGOLA #4: NICKNAME PER GLI UTENTI
+
+**Ogni utente ha un nickname univoco usato dagli enti per identificarlo.**
+
+### Regole nickname
+
+1. **Obbligatorio** per tutti gli utenti (DONOR, RECIPIENT)
+2. **Univoco** nel sistema
+3. **Scelto dall'utente** in fase di registrazione (facoltativo con bottone "Genera")
+4. **Fantasy nickname** se l'utente non lo sceglie (formato: `aggettivo.sostantivo.numero`, es. `kind.heart.42`)
+5. **Gli enti (INTERMEDIARY/OPERATOR) vedono il nickname**, non il nome reale
+
+### Fantasy Nickname
+
+Esempi: `kind.heart.42`, `warm.sun.128`, `gentle.spirit.7`
+
+```typescript
+// src/lib/utils.ts - generateFantasyNickname()
+const adjectives = ['kind', 'gentle', 'warm', 'bright', ...];
+const nouns = ['heart', 'soul', 'spirit', 'dream', ...];
+return `${pick(adjectives)}.${pick(nouns)}.${num}`;
+```
+
+### Come funziona
+
+- In registrazione: campo nickname facoltativo con bottone "Genera"
+- Se vuoto: generato fantasy nickname da `generateFantasyNickname()` in `src/lib/utils.ts`
+- Intermediary/Operator UI: mostra `user.nickname` invece di `user.name` o `user.firstName`
+
+### Pattern UI per enti
+
+```typescript
+// ✅ CORRETTO - Enti vedono nickname
+<td>{user.nickname}</td>
+
+// ❌ ERRATO - Enti che vedono nome reale
+<td>{user.name}</td>
+<td>{user.firstName} {user.lastName}</td>
+```

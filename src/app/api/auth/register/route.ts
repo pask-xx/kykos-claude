@@ -5,7 +5,7 @@ import { geocodeAddress } from '@/lib/geocode';
 import { sendWelcomeEmail } from '@/lib/email';
 import { sendConfirmationEmail } from '@/lib/email';
 import { Role, OrgType, NotificationType, RecipientType } from '@prisma/client';
-import { generateOrgCode } from '@/lib/utils';
+import { generateOrgCode, generateFantasyNickname } from '@/lib/utils';
 import { SignJWT } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       email,
       password,
       role,
+      nickname,
       firstName,
       lastName,
       birthDate,
@@ -43,6 +44,37 @@ export async function POST(request: Request) {
       longitude,
       secret,
     } = await request.json();
+
+    // Generate or validate nickname (optional field)
+    let finalNickname = nickname?.trim() || null;
+    if (finalNickname) {
+      // Validate nickname format (alphanumeric and dots only, 3-30 chars)
+      if (!/^[a-zA-Z0-9.]{3,30}$/.test(finalNickname)) {
+        return NextResponse.json(
+          { error: 'Il nickname deve essere lungo 3-30 caratteri e contenere solo lettere, numeri e punti' },
+          { status: 400 }
+        );
+      }
+      // Check if nickname is already taken
+      const existingNickname = await prisma.user.findUnique({
+        where: { nickname: finalNickname },
+      });
+      if (existingNickname) {
+        return NextResponse.json(
+          { error: 'Questo nickname è già in uso, scegline un altro' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Generate fantasy nickname if not provided
+      finalNickname = await generateFantasyNickname();
+      // Ensure uniqueness
+      let exists = await prisma.user.findUnique({ where: { nickname: finalNickname } });
+      while (exists) {
+        finalNickname = await generateFantasyNickname();
+        exists = await prisma.user.findUnique({ where: { nickname: finalNickname } });
+      }
+    }
 
     // Staging secret gate: if STAGING_REGISTRATION_SECRET is set, require the secret
     const stagingSecret = process.env.STAGING_REGISTRATION_SECRET;
@@ -240,6 +272,7 @@ export async function POST(request: Request) {
         authUserId,
         email,
         name: fullName,
+        nickname: finalNickname,
         role: role as Role,
         firstName: firstName || null,
         lastName: lastName || null,

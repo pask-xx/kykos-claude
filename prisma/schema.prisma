@@ -163,6 +163,7 @@ model User {
   authUserId   String?  @unique  // Supabase Auth user ID
   email        String   @unique
   name         String // Keep for backward compat
+  nickname     String?  @unique  // User-chosen or auto-generated, used for display to intermediaries
   passwordHash String?           // Nullable - null for Supabase Auth users, kept for migration
   role         Role     @default(DONOR)
   createdAt    DateTime @default(now())

@@ -57,7 +57,7 @@ export async function GET() {
       },
       include: {
         offeredBy: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, nickname: true, name: true, email: true },
         },
         request: {
           select: {
@@ -65,7 +65,7 @@ export async function GET() {
             title: true,
             category: true,
             beneficiary: {
-              select: { id: true, name: true },
+              select: { id: true, nickname: true, name: true },
             },
           },
         },

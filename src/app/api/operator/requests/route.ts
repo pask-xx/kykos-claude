@@ -129,10 +129,10 @@ export async function PATCH(request: Request) {
         include: {
           object: {
             include: {
-              donor: { select: { id: true, name: true, email: true } },
+              donor: { select: { id: true, nickname: true, name: true, email: true } },
             },
           },
-          recipient: { select: { id: true, name: true, email: true } },
+          recipient: { select: { id: true, nickname: true, name: true, email: true } },
         },
       });
 

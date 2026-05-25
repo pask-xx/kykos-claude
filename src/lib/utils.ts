@@ -27,6 +27,34 @@ export function generateOrgCode(): string {
 }
 
 /**
+ * Generate a random fantasy nickname (not based on real names)
+ * Format: adjective.noun.number (e.g., kind.heart.42, happy.sun.123)
+ * Used when user doesn't choose their own nickname
+ */
+export async function generateFantasyNickname(): Promise<string> {
+  const adjectives = [
+    'kind', 'gentle', 'warm', 'bright', 'soft', 'calm', 'sunny',
+    'happy', 'wise', 'bold', 'brave', 'fair', 'pure', 'light',
+    'peace', 'grace', 'hope', 'joy', 'trust', 'swift', 'wild',
+    'tender', 'loving', 'caring', 'sharing', 'giving', 'noble',
+  ];
+
+  const nouns = [
+    'heart', 'soul', 'spirit', 'dream', 'hope', 'sun', 'star',
+    'moon', 'cloud', 'rain', 'wind', 'flower', 'tree', 'bird',
+    'leaf', 'river', 'mountain', 'ocean', 'forest', 'garden',
+    'melody', 'harmony', 'wisdom', 'courage', 'peace', 'joy',
+  ];
+
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const adj = pick(adjectives);
+  const noun = pick(nouns);
+  const num = Math.floor(Math.random() * 999) + 1;
+
+  return `${adj}.${noun}.${num}`;
+}
+
+/**
  * Generate operator username from firstName and lastName
  * Format: nome.cognome (e.g., mario.rossi)
  * If duplicate exists, append org code suffix: mario.rossi.ABCD12

@@ -56,7 +56,7 @@ export async function PATCH(
     const association = await prisma.volunteerAssociation.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        user: { select: { id: true, nickname: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
       },
     });
