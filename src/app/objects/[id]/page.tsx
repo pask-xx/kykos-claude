@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
+import { useParams, useRouter } from 'next/navigation';
+import { CATEGORY_LABELS, CONDITION_LABELS, DonorLevel, DONOR_LEVEL_LABELS, Category, Condition } from '@/types';
 
 interface Object {
   id: string;
@@ -15,10 +15,11 @@ interface Object {
   status: string;
   createdAt: string;
   donor: {
-    name: string;
     latitude: number | null;
     longitude: number | null;
+    donorProfile: { level: DonorLevel };
   };
+  donorProfile: { level: DonorLevel };
   intermediary: {
     name: string;
     latitude: number | null;
@@ -26,8 +27,11 @@ interface Object {
   };
 }
 
+const LEVEL_LABELS: Record<DonorLevel, string> = DONOR_LEVEL_LABELS;
+
 export default function ObjectDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const [object, setObject] = useState<Object | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -41,6 +45,10 @@ export default function ObjectDetailPage() {
   const fetchObject = async () => {
     try {
       const res = await fetch(`/api/objects/${params.id}`);
+      if (res.status === 401) {
+        router.push('/auth/login');
+        return;
+      }
       const data = await res.json();
       if (data.object) {
         setObject(data.object);
@@ -180,8 +188,8 @@ export default function ObjectDetailPage() {
 
             <div className="border-t pt-6 space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Donatore</h3>
-                <p className="text-gray-900">{object.donor.name}</p>
+                <h3 className="text-sm font-medium text-gray-500">Livello Donatore</h3>
+                <p className="text-gray-900">{LEVEL_LABELS[object.donor.donorProfile.level]}</p>
               </div>
 
               <div>

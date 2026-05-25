@@ -25,8 +25,10 @@ export async function GET(request: Request) {
         },
         include: {
           requests: {
-            include: {
-              recipient: { select: { name: true } },
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
             },
           },
         },

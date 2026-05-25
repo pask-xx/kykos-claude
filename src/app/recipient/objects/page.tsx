@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, RequestStatus, Condition } from '@/types';
+import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, DonorLevel, RequestStatus, Condition } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Object {
@@ -12,7 +12,9 @@ interface Object {
   category: string;
   condition: string;
   imageUrls: string[] | null;
-  donor: { name: string };
+  donor: {
+    donorProfile: { level: DonorLevel };
+  };
   intermediary: { id: string; name: string };
   status: string;
 }

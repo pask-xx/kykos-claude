@@ -5,14 +5,19 @@ import { calculateDistance } from '@/lib/geo';
 
 export async function GET(request: Request) {
   try {
+    // Auth required - oggetti non visibili a pubblico
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Autenticazione richiesta' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const lat = searchParams.get('latitude');
     const lon = searchParams.get('longitude');
     const radius = searchParams.get('radius');
 
-    // Get session to exclude own objects if logged in as recipient
-    const session = await getSession();
+    // Exclude own objects if logged in as recipient
     const excludeDonorId = session?.role === 'RECIPIENT' ? session.id : null;
 
     const where: Record<string, unknown> = {
@@ -40,7 +45,11 @@ export async function GET(request: Request) {
         status: true,
         createdAt: true,
         donor: {
-          select: { name: true, latitude: true, longitude: true },
+          select: {
+            latitude: true,
+            longitude: true,
+            donorProfile: { select: { level: true } },
+          },
         },
         intermediary: {
           select: { id: true, name: true, latitude: true, longitude: true },

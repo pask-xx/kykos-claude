@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, RequestStatus, Category, Condition } from '@/types';
+import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, DonorLevel, RequestStatus, Category, Condition } from '@/types';
 
 interface ObjectDetails {
   id: string;
@@ -14,7 +14,11 @@ interface ObjectDetails {
   condition: string;
   imageUrls: string[] | null;
   status: string;
-  donor: { name: string; latitude: number | null; longitude: number | null };
+  donor: {
+    latitude: number | null;
+    longitude: number | null;
+    donorProfile: { level: DonorLevel };
+  };
   intermediary: { id: string; name: string; latitude: number | null; longitude: number | null };
 }
 

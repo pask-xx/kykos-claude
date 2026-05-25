@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Auth required - oggetti non visibili a pubblico
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Autenticazione richiesta' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const object = await prisma.object.findUnique({
@@ -13,9 +20,9 @@ export async function GET(
       include: {
         donor: {
           select: {
-            name: true,
             latitude: true,
             longitude: true,
+            donorProfile: { select: { level: true } },
           },
         },
         intermediary: {

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CATEGORY_LABELS, Category } from '@/types';
+import { useRouter } from 'next/navigation';
+import { CATEGORY_LABELS, DonorLevel, DONOR_LEVEL_LABELS, Category } from '@/types';
 import { formatDistance } from '@/lib/geo';
 
 interface Object {
@@ -15,16 +16,20 @@ interface Object {
   createdAt: string;
   distance: number | null;
   donor: {
-    name: string;
+    donorProfile: { level: DonorLevel };
   };
   intermediary: {
     name: string;
   };
 }
 
+const LEVEL_LABELS: Record<DonorLevel, string> = DONOR_LEVEL_LABELS;
+
 export default function BrowsePage() {
+  const router = useRouter();
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [category, setCategory] = useState<string>('ALL');
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -84,6 +89,13 @@ export default function BrowsePage() {
       }
       const url = `/api/objects${params.toString() ? `?${params.toString()}` : ''}`;
       const res = await fetch(url);
+
+      if (res.status === 401) {
+        setUnauthorized(true);
+        setLoading(false);
+        return;
+      }
+
       const data = await res.json();
       setObjects(data.objects || []);
     } catch (error) {
@@ -203,7 +215,19 @@ export default function BrowsePage() {
         </div>
 
         {/* Objects Grid */}
-        {loading ? (
+        {unauthorized ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
+            <span className="text-5xl mb-4 block">🔐</span>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Accesso richiesto</h2>
+            <p className="text-gray-500 mb-6">Devi effettuare l'accesso per visualizzare gli oggetti disponibili.</p>
+            <Link
+              href="/auth/login"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+            >
+              Accedi
+            </Link>
+          </div>
+        ) : loading ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Caricamento...</p>
           </div>
@@ -256,7 +280,7 @@ export default function BrowsePage() {
                     {obj.description || 'Nessuna descrizione'}
                   </p>
                   <div className="text-xs text-gray-400 mb-3">
-                    Donatore: {obj.donor.name} · Intermediario: {obj.intermediary.name}
+                    Livello donatore: {LEVEL_LABELS[obj.donor.donorProfile.level]} · Intermediario: {obj.intermediary.name}
                   </div>
                   <Link
                     href={`/objects/${obj.id}`}
