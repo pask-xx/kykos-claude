@@ -374,9 +374,9 @@ function RegisterForm() {
                   onClick={async () => {
                     setGeneratingNickname(true);
                     try {
-                      // Generate a fantasy nickname client-side
-                      const adjectives = ['kind', 'gentle', 'warm', 'bright', 'soft', 'calm', 'sunny', 'happy', 'wise', 'bold', 'brave', 'fair', 'pure', 'light', 'peace', 'grace', 'hope', 'joy', 'trust', 'swift', 'wild', 'tender', 'loving', 'caring', 'sharing', 'giving', 'noble'];
-                      const nouns = ['heart', 'soul', 'spirit', 'dream', 'hope', 'sun', 'star', 'moon', 'cloud', 'rain', 'wind', 'flower', 'tree', 'bird', 'leaf', 'river', 'mountain', 'ocean', 'forest', 'garden', 'melody', 'harmony', 'wisdom', 'courage', 'peace', 'joy'];
+                      // Generate a fantasy nickname in Italian
+                      const adjectives = ['buono', 'gentile', 'caldo', 'luminoso', 'mite', 'sereno', 'solare', 'felice', 'saggio', 'ardito', 'coraggioso', 'giusto', 'puro', 'lucente', 'pacifico', 'grazioso', 'speranzoso', 'allegro', 'fiducioso', 'rapido', 'selvaggio', 'delicato', 'amorevole', 'premuroso', 'generoso', 'nobile'];
+                      const nouns = ['cuore', 'anima', 'spirito', 'sogno', 'speranza', 'sole', 'stella', 'luna', 'nuvola', 'pioggia', 'vento', 'fiore', 'albero', 'uccello', 'foglia', 'fiume', 'montagna', 'oceano', 'foresta', 'giardino', 'melodia', 'armonia', 'sapienza', 'coraggio', 'pace', 'gioia'];
                       const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
                       const adj = pick(adjectives);
                       const noun = pick(nouns);

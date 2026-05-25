@@ -27,23 +27,22 @@ export function generateOrgCode(): string {
 }
 
 /**
- * Generate a random fantasy nickname (not based on real names)
- * Format: adjective.noun.number (e.g., kind.heart.42, happy.sun.123)
- * Used when user doesn't choose their own nickname
+ * Generate a random fantasy nickname in Italian (not based on real names)
+ * Format: aggettivo.sostantivo.numero (e.g., cuore.buono.42, anima.calda.128)
  */
 export async function generateFantasyNickname(): Promise<string> {
   const adjectives = [
-    'kind', 'gentle', 'warm', 'bright', 'soft', 'calm', 'sunny',
-    'happy', 'wise', 'bold', 'brave', 'fair', 'pure', 'light',
-    'peace', 'grace', 'hope', 'joy', 'trust', 'swift', 'wild',
-    'tender', 'loving', 'caring', 'sharing', 'giving', 'noble',
+    'buono', 'gentile', 'caldo', 'luminoso', 'mite', 'sereno', 'solare',
+    'felice', 'saggio', 'ardito', 'coraggioso', 'giusto', 'puro', 'lucente',
+    'pacifico', 'grazioso', 'speranzoso', 'allegro', 'fiducioso', 'rapido', 'selvaggio',
+    'delicato', 'amorevole', 'premuroso', 'generoso', 'nobile', 'sereno',
   ];
 
   const nouns = [
-    'heart', 'soul', 'spirit', 'dream', 'hope', 'sun', 'star',
-    'moon', 'cloud', 'rain', 'wind', 'flower', 'tree', 'bird',
-    'leaf', 'river', 'mountain', 'ocean', 'forest', 'garden',
-    'melody', 'harmony', 'wisdom', 'courage', 'peace', 'joy',
+    'cuore', 'anima', 'spirito', 'sogno', 'speranza', 'sole', 'stella',
+    'luna', 'nuvola', 'pioggia', 'vento', 'fiore', 'albero', 'uccello',
+    'foglia', 'fiume', 'montagna', 'oceano', 'foresta', 'giardino',
+    'melodia', 'armonia', 'sapienza', 'coraggio', 'pace', 'gioia',
   ];
 
   const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];

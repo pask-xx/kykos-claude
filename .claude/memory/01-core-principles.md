@@ -117,7 +117,9 @@ import { STATUS_LABELS, REQUEST_STATUS_LABELS, CATEGORY_LABELS, DONOR_LEVEL_LABE
 
 ### Fantasy Nickname
 
-Esempi: `kind.heart.42`, `warm.sun.128`, `gentle.spirit.7`
+Esempi: `buono.cuore.42`, `caldo.sole.128`, `gentile.anima.7`
+
+Le parole sono tutte italiane: aggettivi (buono, gentile, caldo...) e sostantivi (cuore, sole, anima...).
 
 ```typescript
 // src/lib/utils.ts - generateFantasyNickname()
