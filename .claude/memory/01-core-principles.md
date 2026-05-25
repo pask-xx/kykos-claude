@@ -105,13 +105,13 @@ import { STATUS_LABELS, REQUEST_STATUS_LABELS, CATEGORY_LABELS, DONOR_LEVEL_LABE
 
 ## REGOLA #4: NICKNAME PER GLI UTENTI
 
-**Ogni utente ha un nickname univoco usato dagli enti per identificarlo.**
+**Ogni utente ha un nickname (fantasy name) usato dagli enti per identificarlo senza vedere il nome reale.**
 
 ### Regole nickname
 
-1. **Obbligatorio** per tutti gli utenti (DONOR, RECIPIENT)
-2. **Univoco** nel sistema
-3. **Scelto dall'utente** in fase di registrazione (facoltativo con bottone "Genera")
+1. **Opzionale** per tutti gli utenti (DONOR, RECIPIENT)
+2. **Non univoco** — può essere condiviso da più utenti (è solo display)
+3. **Scelto dall'utente** in fase di registrazione (con bottone "Genera")
 4. **Fantasy nickname** se l'utente non lo sceglie (formato: `aggettivo.sostantivo.numero`, es. `kind.heart.42`)
 5. **Gli enti (INTERMEDIARY/OPERATOR) vedono il nickname**, non il nome reale
 

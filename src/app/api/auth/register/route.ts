@@ -45,35 +45,10 @@ export async function POST(request: Request) {
       secret,
     } = await request.json();
 
-    // Generate or validate nickname (optional field)
+    // Generate fantasy nickname if not provided
     let finalNickname = nickname?.trim() || null;
-    if (finalNickname) {
-      // Validate nickname format (alphanumeric and dots only, 3-30 chars)
-      if (!/^[a-zA-Z0-9.]{3,30}$/.test(finalNickname)) {
-        return NextResponse.json(
-          { error: 'Il nickname deve essere lungo 3-30 caratteri e contenere solo lettere, numeri e punti' },
-          { status: 400 }
-        );
-      }
-      // Check if nickname is already taken
-      const existingNickname = await prisma.user.findUnique({
-        where: { nickname: finalNickname },
-      });
-      if (existingNickname) {
-        return NextResponse.json(
-          { error: 'Questo nickname è già in uso, scegline un altro' },
-          { status: 400 }
-        );
-      }
-    } else {
-      // Generate fantasy nickname if not provided
+    if (!finalNickname) {
       finalNickname = await generateFantasyNickname();
-      // Ensure uniqueness
-      let exists = await prisma.user.findUnique({ where: { nickname: finalNickname } });
-      while (exists) {
-        finalNickname = await generateFantasyNickname();
-        exists = await prisma.user.findUnique({ where: { nickname: finalNickname } });
-      }
     }
 
     // Staging secret gate: if STAGING_REGISTRATION_SECRET is set, require the secret
