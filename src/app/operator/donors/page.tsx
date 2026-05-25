@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/utils';
 
 interface Donor {
   id: string;
+  nickname: string | null;
   name: string;
   email: string;
   firstName: string | null;
@@ -97,9 +98,7 @@ export default function DonorsListPage() {
       ) : (
         <div className="space-y-4">
           {donors.map((donor) => {
-            const displayName = donor.firstName && donor.lastName
-              ? `${donor.firstName} ${donor.lastName}`
-              : donor.name;
+            const displayName = donor.nickname || donor.name;
 
             return (
               <div

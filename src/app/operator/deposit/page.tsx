@@ -19,8 +19,8 @@ interface DepositedObject {
   imageUrls: string[];
   createdAt: string;
   depositLocation: string | null;
-  donor: { id: string; name: string };
-  recipient: { id: string; name: string };
+  donor: { id: string; nickname: string | null; name: string };
+  recipient: { id: string; nickname: string | null; name: string };
 }
 
 interface DepositedGood {
@@ -30,8 +30,8 @@ interface DepositedGood {
   status: string;
   createdAt: string;
   depositLocation: string | null;
-  beneficiary: { id: string; name: string };
-  fulfilledBy: { id: string; name: string };
+  beneficiary: { id: string; nickname: string | null; name: string };
+  fulfilledBy: { id: string; nickname: string | null; name: string };
 }
 
 type DepositedItem = (DepositedObject | DepositedGood) & { type: 'object' | 'good' };
@@ -149,8 +149,8 @@ export default function DepositPage() {
     const matchesSearch = !search ||
       item.title.toLowerCase().includes(search.toLowerCase()) ||
       (item.type === 'object'
-        ? (item as DepositedObject).donor.name.toLowerCase().includes(search.toLowerCase())
-        : (item as DepositedGood).beneficiary.name.toLowerCase().includes(search.toLowerCase()));
+        ? ((item as DepositedObject).donor.nickname || (item as DepositedObject).donor.name).toLowerCase().includes(search.toLowerCase())
+        : ((item as DepositedGood).beneficiary.nickname || (item as DepositedGood).beneficiary.name).toLowerCase().includes(search.toLowerCase()));
     const matchesCategory = !filterCategory || item.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -174,14 +174,14 @@ export default function DepositPage() {
 
   const getDonorName = (item: DepositedItem) => {
     if (item.type === 'object') {
-      return (item as DepositedObject).donor.name;
+      return (item as DepositedObject).donor.nickname || (item as DepositedObject).donor.name;
     }
-    return (item as DepositedGood).fulfilledBy.name;
+    return (item as DepositedGood).fulfilledBy.nickname || (item as DepositedGood).fulfilledBy.name;
   };
 
   const getBeneficiaryName = (item: DepositedItem) => {
     if (item.type === 'object') {
-      return (item as DepositedObject).recipient.name;
+      return (item as DepositedObject).recipient.nickname || (item as DepositedObject).recipient.name;
     }
     return (item as DepositedGood).beneficiary.name;
   };

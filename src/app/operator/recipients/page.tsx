@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/utils';
 
 interface Recipient {
   id: string;
+  nickname: string | null;
   name: string;
   email: string;
   authorized: boolean;
@@ -100,7 +101,7 @@ export default function OperatorRecipientsPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <Link href={`/operator/recipients/${recipient.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
-                              {recipient.name}
+                              {recipient.nickname || recipient.name}
                             </Link>
                             <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
                           </div>
@@ -153,7 +154,7 @@ export default function OperatorRecipientsPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <Link href={`/operator/recipients/${recipient.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
-                              {recipient.name}
+                              {recipient.nickname || recipient.name}
                             </Link>
                             <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
                           </div>

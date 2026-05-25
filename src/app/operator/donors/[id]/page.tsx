@@ -13,6 +13,7 @@ interface DonorStats {
 
 interface Donor {
   id: string;
+  nickname: string | null;
   email: string;
   name: string;
   firstName: string | null;
@@ -114,9 +115,7 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  const displayName = donor.firstName && donor.lastName
-    ? `${donor.firstName} ${donor.lastName}`
-    : donor.name;
+  const displayName = donor.nickname || donor.name;
 
   const LEVEL_COLORS: Record<string, string> = {
     BRONZE: 'bg-amber-700',

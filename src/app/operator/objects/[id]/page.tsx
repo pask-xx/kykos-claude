@@ -20,8 +20,8 @@ interface ObjectDetail {
   createdAt: string;
   updatedAt: string;
   depositLocation: string | null;
-  donor: { id: string; name: string };
-  recipient: { id: string; name: string };
+  donor: { id: string; nickname: string | null; name: string };
+  recipient: { id: string; nickname: string | null; name: string };
   intermediary: { id: string; name: string };
 }
 
@@ -277,11 +277,11 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
               )}
               <div>
                 <dt className="text-sm text-gray-500">Donatore</dt>
-                <dd className="font-medium text-gray-900">{object.donor.name}</dd>
+                <dd className="font-medium text-gray-900">{object.donor.nickname || object.donor.name}</dd>
               </div>
               <div>
                 <dt className="text-sm text-gray-500">Beneficiario</dt>
-                <dd className="font-medium text-gray-900">{object.recipient?.name || 'N/D'}</dd>
+                <dd className="font-medium text-gray-900">{object.recipient?.nickname || object.recipient?.name || 'N/D'}</dd>
               </div>
               {object.description && (
                 <div>

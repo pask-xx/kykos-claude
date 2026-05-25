@@ -29,6 +29,7 @@ interface RecipientStats {
 
 interface Recipient {
   id: string;
+  nickname: string | null;
   email: string;
   name: string;
   firstName: string | null;
@@ -192,9 +193,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const displayName = recipient.firstName && recipient.lastName
-    ? `${recipient.firstName} ${recipient.lastName}`
-    : recipient.name;
+  const displayName = recipient.nickname || recipient.name;
 
   return (
     <div className="space-y-6 p-6">

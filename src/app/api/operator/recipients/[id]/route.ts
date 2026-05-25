@@ -58,6 +58,7 @@ export async function GET(
       where: { id },
       select: {
         id: true,
+        nickname: true,
         email: true,
         name: true,
         firstName: true,

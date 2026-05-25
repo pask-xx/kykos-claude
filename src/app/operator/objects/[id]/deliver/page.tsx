@@ -9,8 +9,8 @@ interface ObjectDetail {
   title: string;
   status: string;
   imageUrls: string[];
-  donor: { id: string; name: string };
-  recipient?: { id: string; name: string };
+  donor: { id: string; nickname: string | null; name: string };
+  recipient?: { id: string; nickname: string | null; name: string };
 }
 
 export default function DeliverObjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -109,7 +109,7 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">{object.title}</h2>
-            <p className="text-sm text-gray-500 mt-1">Donatore: {object.donor.name}</p>
+            <p className="text-sm text-gray-500 mt-1">Donatore: {object.donor.nickname || object.donor.name}</p>
             <div className="mt-3">
               <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm rounded-full">
                 Ritirato - in attesa di consegna finale

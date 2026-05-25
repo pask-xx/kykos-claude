@@ -11,9 +11,9 @@ interface Request {
   object: {
     title: string;
     imageUrls: string[] | null;
-    donor: { name: string };
+    donor: { nickname: string | null; name: string };
   };
-  recipient: { name: string; firstName: string | null; lastName: string | null };
+  recipient: { nickname: string | null; name: string; firstName: string | null; lastName: string | null };
 }
 
 export default function IntermediaryRequestsPage() {
@@ -125,16 +125,16 @@ export default function IntermediaryRequestsPage() {
                         <div>
                           <p className="text-xs text-gray-500">Beneficiario</p>
                           <p className="font-medium text-gray-900 text-xs truncate">
-                            {req.recipient.firstName && req.recipient.lastName
-                              ? `${req.recipient.firstName} ${req.recipient.lastName}`
-                              : req.recipient.name}
+                            {req.recipient.nickname || req.recipient.name}
                           </p>
                         </div>
 
                         {/* 3: Donatore */}
                         <div>
                           <p className="text-xs text-gray-500">Donatore</p>
-                          <p className="font-medium text-gray-900 text-xs truncate">{req.object.donor.name}</p>
+                          <p className="font-medium text-gray-900 text-xs truncate">
+                            {req.object.donor.nickname || req.object.donor.name}
+                          </p>
                         </div>
 
                         {/* 4: Data */}
@@ -207,16 +207,16 @@ export default function IntermediaryRequestsPage() {
                         <div>
                           <p className="text-xs text-gray-500">Beneficiario</p>
                           <p className="font-medium text-gray-900 text-xs truncate">
-                            {req.recipient.firstName && req.recipient.lastName
-                              ? `${req.recipient.firstName} ${req.recipient.lastName}`
-                              : req.recipient.name}
+                            {req.recipient.nickname || req.recipient.name}
                           </p>
                         </div>
 
                         {/* 3: Donatore */}
                         <div>
                           <p className="text-xs text-gray-500">Donatore</p>
-                          <p className="font-medium text-gray-900 text-xs truncate">{req.object.donor.name}</p>
+                          <p className="font-medium text-gray-900 text-xs truncate">
+                            {req.object.donor.nickname || req.object.donor.name}
+                          </p>
                         </div>
 
                         {/* 4: Data */}

@@ -14,7 +14,7 @@ interface Object {
   status: string;
   imageUrls: string[] | null;
   createdAt: string;
-  donor: { name: string; firstName: string | null; lastName: string | null };
+  donor: { nickname: string | null; name: string; firstName: string | null; lastName: string | null };
   _count: { requests: number };
 }
 
@@ -58,6 +58,8 @@ export default function IntermediaryObjectsPage() {
   const filteredObjects = objects.filter(obj => {
     const matchesSearch = !search ||
       obj.title.toLowerCase().includes(search.toLowerCase()) ||
+      obj.donor.nickname?.toLowerCase().includes(search.toLowerCase()) ||
+      obj.donor.nickname?.toLowerCase().includes(search.toLowerCase()) ||
       obj.donor.name.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || obj.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -130,9 +132,7 @@ export default function IntermediaryObjectsPage() {
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-1 truncate">{obj.title}</h3>
                 <p className="text-sm text-gray-500 mb-2">
-                  Donatore: {obj.donor.firstName && obj.donor.lastName
-                    ? `${obj.donor.firstName} ${obj.donor.lastName}`
-                    : obj.donor.name}
+                  Donatore: {obj.donor.nickname || obj.donor.name}
                 </p>
                 <div className="flex items-center justify-between text-xs text-gray-400">
                   <span>{obj._count.requests} richieste</span>

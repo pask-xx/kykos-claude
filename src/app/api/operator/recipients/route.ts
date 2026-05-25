@@ -54,6 +54,7 @@ export async function GET() {
       where: { referenceEntityId: session.organizationId },
       select: {
         id: true,
+        nickname: true,
         name: true,
         email: true,
         authorized: true,

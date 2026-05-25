@@ -19,6 +19,7 @@ interface Request {
   };
   recipient: {
     id: string;
+    nickname: string | null;
     name: string;
     email: string;
   };
@@ -211,7 +212,7 @@ export default function OperatorRequestsPage() {
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm">
                   <span className="text-gray-500">Beneficiario: </span>
-                  <span className="text-gray-700 font-medium">{req.recipient.name}</span>
+                  <span className="text-gray-700 font-medium">{req.recipient.nickname || req.recipient.name}</span>
                 </div>
                 {getStatusBadge(req.status)}
               </div>
