@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CitySelector from '@/components/geo/CitySelector';
 
+interface Diocese {
+  id: string;
+  name: string;
+  seat: string;
+  distance: number;
+}
+
 function NewIntermediaryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,6 +43,10 @@ function NewIntermediaryContent() {
     lng: null,
   });
 
+  // Diocese fields
+  const [dioceses, setDioceses] = useState<Diocese[]>([]);
+  const [dioceseId, setDioceseId] = useState('');
+
   // Geocoding
   const [geocoding, setGeocoding] = useState(false);
   const [geocodingError, setGeocodingError] = useState('');
@@ -64,6 +75,24 @@ function NewIntermediaryContent() {
         .catch(console.error);
     }
   }, [fromAdesione, enteId]);
+
+  // Fetch dioceses when coordinates are available
+  useEffect(() => {
+    if (cityCoords.lat && cityCoords.lng) {
+      fetchDioceses();
+    }
+  }, [cityCoords.lat, cityCoords.lng]);
+
+  const fetchDioceses = async () => {
+    if (!cityCoords.lat || !cityCoords.lng) return;
+    try {
+      const res = await fetch(`/api/dioceses?lat=${cityCoords.lat}&lng=${cityCoords.lng}&radius=50`);
+      const data = await res.json();
+      setDioceses(data.dioceses || []);
+    } catch (err) {
+      console.error('Error fetching dioceses:', err);
+    }
+  };
 
   const geocodeFromAddress = async () => {
     if (!address || !city) {
@@ -139,6 +168,7 @@ function NewIntermediaryContent() {
           phone,
           latitude: finalLat,
           longitude: finalLng,
+          dioceseId: dioceseId || null,
         }),
       });
 
@@ -343,6 +373,32 @@ function NewIntermediaryContent() {
                 setCityCoords({ lat: lat ?? null, lng: lng ?? null });
               }}
             />
+          </div>
+
+          {/* Diocese Selection */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Diocesi di appartenenza</label>
+            {!cityCoords.lat || !cityCoords.lng ? (
+              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                Calcola prima le coordinate per vedere le diocesi vicine
+              </div>
+            ) : (
+              <select
+                value={dioceseId}
+                onChange={(e) => setDioceseId(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+              >
+                <option value="">Seleziona diocesi ({dioceses.length} trovate)</option>
+                {dioceses.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} - {d.seat} ({d.distance.toFixed(1)} km)
+                  </option>
+                ))}
+              </select>
+            )}
+            <p className="text-xs text-gray-400 mt-1">
+              Facoltativo. Aiuta a identificare l&apos;ente nella propria diocesi.
+            </p>
           </div>
 
           {/* Geocoding Section */}

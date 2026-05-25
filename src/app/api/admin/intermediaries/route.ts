@@ -69,6 +69,7 @@ export async function POST(request: Request) {
       phone,
       latitude,
       longitude,
+      dioceseId,
     } = await request.json();
 
     // Validate required fields (no password - we generate temp one)
@@ -156,6 +157,7 @@ export async function POST(request: Request) {
           longitude: longitude ? parseFloat(String(longitude)) : null,
           verified: true,
           userId: user.id,
+          dioceseId: dioceseId || null,
         },
       });
 
