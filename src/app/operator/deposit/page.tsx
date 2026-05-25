@@ -183,7 +183,7 @@ export default function DepositPage() {
     if (item.type === 'object') {
       return (item as DepositedObject).recipient.nickname || (item as DepositedObject).recipient.name;
     }
-    return (item as DepositedGood).beneficiary.name;
+    return (item as DepositedGood).beneficiary.nickname || (item as DepositedGood).beneficiary.name;
   };
 
   const handlePrintLabel = async (item: DepositedItem, e: React.MouseEvent) => {

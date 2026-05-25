@@ -70,7 +70,7 @@ export async function GET(request: Request) {
         where: { id: requestId },
         include: {
           beneficiary: {
-            select: { id: true, name: true, firstName: true, lastName: true, email: true },
+            select: { id: true, nickname: true, name: true, firstName: true, lastName: true, email: true },
           },
           intermediary: {
             select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
@@ -115,7 +115,7 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
       include: {
         beneficiary: {
-          select: { id: true, name: true, firstName: true, lastName: true },
+          select: { id: true, nickname: true, name: true, firstName: true, lastName: true },
         },
         intermediary: {
           select: { id: true, name: true },
