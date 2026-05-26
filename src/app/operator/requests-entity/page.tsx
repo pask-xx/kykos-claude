@@ -14,6 +14,7 @@ interface EntityRequest {
   createdAt: string;
   beneficiary: {
     id: string;
+    nickname: string | null;
     name: string;
   };
   intermediary: {
@@ -22,6 +23,7 @@ interface EntityRequest {
   };
   fulfilledBy: {
     id: string;
+    nickname: string | null;
     name: string;
   } | null;
   offers: Array<{
@@ -31,6 +33,7 @@ interface EntityRequest {
     createdAt: string;
     offeredBy: {
       id: string;
+      nickname: string | null;
       name: string;
     };
   }>;
@@ -92,7 +95,7 @@ export default function OperatorEntityRequestsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-medium text-gray-900">Richieste all&apos;ente</h1>
+        <h1 className="text-3xl font-medium text-gray-900">Richieste</h1>
         <p className="text-gray-500">Gestisci le richieste di beni e servizi</p>
       </div>
 
@@ -194,7 +197,7 @@ export default function OperatorEntityRequestsPage() {
                         </span>
                       </div>
                       <p className="text-sm text-gray-500 mt-1">
-                        Richiesta da {request.beneficiary.name} • {formatDate(request.createdAt)}
+                        Richiesta da {request.beneficiary.nickname || request.beneficiary.name} • {formatDate(request.createdAt)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
