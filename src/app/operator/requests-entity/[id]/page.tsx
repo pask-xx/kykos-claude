@@ -74,7 +74,6 @@ export default function GoodsRequestDetailPage() {
   const [request, setRequest] = useState<GoodsRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequest();
@@ -97,28 +96,6 @@ export default function GoodsRequestDetailPage() {
       setError('Errore di connessione');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleOfferAction = async (offerId: string, action: 'accept' | 'reject') => {
-    setProcessing(offerId);
-    try {
-      const res = await fetch('/api/operator/goods-offers', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offerId, action }),
-      });
-
-      if (res.ok) {
-        fetchRequest();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Errore');
-      }
-    } catch {
-      alert('Errore di connessione');
-    } finally {
-      setProcessing(null);
     }
   };
 
@@ -234,24 +211,6 @@ export default function GoodsRequestDetailPage() {
                       {offer.message}
                     </p>
                   )}
-                  {offer.status === 'PENDING' && (
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        onClick={() => handleOfferAction(offer.id, 'accept')}
-                        disabled={processing === offer.id}
-                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50"
-                      >
-                        {processing === offer.id ? 'Elaborazione...' : 'Accetta offerta'}
-                      </button>
-                      <button
-                        onClick={() => handleOfferAction(offer.id, 'reject')}
-                        disabled={processing === offer.id}
-                        className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50"
-                      >
-                        Rifiuta
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -292,11 +251,6 @@ export default function GoodsRequestDetailPage() {
         )}
         {request.intermediary.phone && (
           <p className="text-sm text-gray-500 mt-1">{request.intermediary.phone}</p>
-        )}
-        {request.intermediary.hoursInfo && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-            <strong>Orari:</strong> {request.intermediary.hoursInfo}
-          </div>
         )}
       </div>
     </div>
