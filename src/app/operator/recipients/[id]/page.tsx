@@ -193,7 +193,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const displayName = recipient.nickname || recipient.name;
+  const fullName = [recipient.firstName, recipient.lastName].filter(Boolean).join(' ') || null;
 
   return (
     <div className="space-y-6 p-6">
@@ -204,6 +204,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
             ← Torna alla lista
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+          {fullName && <p className="text-gray-500">{fullName}</p>}
           <p className="text-gray-500">{recipient.email}</p>
         </div>
       </div>
