@@ -189,7 +189,9 @@ export default function OperatorRecipientsPage() {
                         </div>
 
                         <p className="text-xs text-gray-400 mt-2">
-                          Autorizzato il {formatDate(recipient.authorizedAt!)}
+                          {recipient.authorizedAt && recipient.authorizedAt !== 'null'
+                            ? `Autorizzato il ${formatDate(recipient.authorizedAt)}`
+                            : 'Autorizzato (data non disponibile)'}
                         </p>
                       </div>
                     </div>

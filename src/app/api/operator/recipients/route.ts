@@ -66,7 +66,6 @@ export async function GET() {
       orderBy: { needScore: 'desc' },
     });
 
-    console.log('[DEBUG] orgId:', session.organizationId, 'trovati:', recipients.length);
     return NextResponse.json({ recipients });
   } catch (error) {
     console.error('Operator recipients error:', error);
