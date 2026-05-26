@@ -156,6 +156,20 @@ enum AdesioneStatus {
   REJECTED
 }
 
+enum MultiAvailabilityStatus {
+  OPEN
+  CLOSED
+  EXHAUSTED
+}
+
+enum MultiAvailabilityRequestStatus {
+  PENDING
+  ASSIGNED
+  REJECTED
+  FULFILLED
+  CANCELLED
+}
+
 // ================== MODELS ==================
 
 model User {
@@ -224,6 +238,9 @@ model User {
   // Volunteer associations
   volunteerAssociations VolunteerAssociation[]
 
+  // Multi availability requests
+  multiAvailabilityRequests MultiAvailabilityRequest[]
+
   @@map("users")
 }
 
@@ -281,6 +298,9 @@ model Organization {
 
   // Volunteer associations
   volunteerAssociations VolunteerAssociation[]
+
+  // Multi availability
+  multiAvailabilities MultiAvailability[]
 
   @@map("organizations")
 }
@@ -598,4 +618,50 @@ model NotifyEmail {
   createdAt DateTime @default(now())
 
   @@map("notify_emails")
+}
+
+model MultiAvailability {
+  id                String                 @id @default(cuid())
+  title            String
+  description      String?                @map("description") @db.Text
+  category         Category
+  availableQty     Int                     @map("available_qty") // quantità totale disponibile
+  assignedQty      Int                     @default(0) @map("assigned_qty") // quantità assegnata
+  status           MultiAvailabilityStatus @default(OPEN)
+  deadline         DateTime?
+  exhaustMessage   String?                @map("exhaust_message") @db.Text // messaggio per chi non riceve
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  requests MultiAvailabilityRequest[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("multi_availabilities")
+}
+
+model MultiAvailabilityRequest {
+  id                   String                         @id @default(cuid())
+  needScoreSnapshot    Int                            @map("need_score_snapshot") // score al momento della richiesta
+  requestedAt          DateTime                       @default(now())
+  status               MultiAvailabilityRequestStatus @default(PENDING)
+  qrCode               String?                        @map("qr_code")
+  fulfilledAt          DateTime?                      @map("fulfilled_at")
+  notifiedAt           DateTime?                      @map("notified_at") // quando è stato notificato di non aver ricevuto
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
+
+  multiAvailabilityId String
+  multiAvailability   MultiAvailability @relation(fields: [multiAvailabilityId], references: [id], onDelete: Cascade)
+
+  beneficiaryId String
+  beneficiary   User   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@unique([multiAvailabilityId, beneficiaryId])
+  @@index([multiAvailabilityId])
+  @@index([beneficiaryId])
+  @@map("multi_availability_requests")
 }
