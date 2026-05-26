@@ -79,3 +79,78 @@ export async function GET() {
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const session = await getOperatorSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    const operator = await prisma.operator.findUnique({
+      where: { id: session.operatorId },
+    });
+
+    if (!operator || !operator.active) {
+      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+    }
+
+    if (!hasAnyPermission(operator.role, operator.permissions, ['OBJECT_RECEIVE', 'RECIPIENT_AUTHORIZE'])) {
+      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+    }
+
+    const { offerId, action } = await request.json();
+
+    if (!offerId || !action) {
+      return NextResponse.json({ error: 'offerId e action sono obbligatori' }, { status: 400 });
+    }
+
+    const offer = await prisma.goodsOffer.findUnique({
+      where: { id: offerId },
+      include: {
+        request: {
+          select: { intermediaryId: true, beneficiaryId: true },
+        },
+      },
+    });
+
+    if (!offer) {
+      return NextResponse.json({ error: 'Offerta non trovata' }, { status: 404 });
+    }
+
+    if (offer.request.intermediaryId !== session.organizationId) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+    }
+
+    if (action === 'accept') {
+      await prisma.$transaction(async (tx) => {
+        await tx.goodsOffer.update({
+          where: { id: offerId },
+          data: { status: 'ACCEPTED' },
+        });
+
+        await tx.goodsRequest.update({
+          where: { id: offer.requestId },
+          data: {
+            status: 'FULFILLED',
+            fulfilledById: offer.offeredById,
+            fulfilledAt: new Date(),
+          },
+        });
+      });
+    } else if (action === 'reject') {
+      await prisma.goodsOffer.update({
+        where: { id: offerId },
+        data: { status: 'REJECTED' },
+      });
+    } else {
+      return NextResponse.json({ error: 'Azione non valida' }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Operator goods offers PATCH error:', error);
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  }
+}
