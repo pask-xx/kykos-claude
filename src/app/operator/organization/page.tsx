@@ -124,9 +124,9 @@ export default function OrganizationSettingsPage() {
 
       if (res.ok) {
         const labels: Record<string, string> = {
-          autoApproveRequests: 'Oggetti',
-          autoApproveGoodsRequests: 'Beni',
-          autoApproveServicesRequests: 'Servizi',
+          autoApproveRequests: 'Disponibilità',
+          autoApproveGoodsRequests: 'Richieste di beni',
+          autoApproveServicesRequests: 'Richieste di servizi',
         };
         setSuccess(`${labels[field]}: ${checked ? 'Approvazione automatica attivata' : 'disattivata'}`);
         setTimeout(() => setSuccess(null), 3000);
@@ -271,8 +271,8 @@ export default function OrganizationSettingsPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <p className="font-medium text-gray-900">📦 Oggetti</p>
-              <p className="text-sm text-gray-500">Richieste di oggetti pubblicati da donatori</p>
+              <p className="font-medium text-gray-900">📦 Disponibilità</p>
+              <p className="text-sm text-gray-500">Richieste di disponibilità pubblicati da donatori</p>
             </div>
             <button
               onClick={() => handleAutoApproveToggle('autoApproveRequests', !autoApproveRequests)}
@@ -291,7 +291,7 @@ export default function OrganizationSettingsPage() {
 
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <p className="font-medium text-gray-900">🪑 Beni</p>
+              <p className="font-medium text-gray-900">🪑 Richieste di beni</p>
               <p className="text-sm text-gray-500">Richieste di beni da parte dei beneficiari</p>
             </div>
             <button
@@ -311,7 +311,7 @@ export default function OrganizationSettingsPage() {
 
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <p className="font-medium text-gray-900">🔧 Servizi</p>
+              <p className="font-medium text-gray-900">🔧 Richieste di servizi</p>
               <p className="text-sm text-gray-500">Richieste di servizi da parte dei beneficiari</p>
             </div>
             <button
