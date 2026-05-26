@@ -72,6 +72,7 @@ export async function GET(
         province: true,
         referenceEntityId: true,
         isee: true,
+        needScore: true,
         authorized: true,
         authorizedAt: true,
         canRequestGoods: true,
@@ -241,7 +242,19 @@ export async function PATCH(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    const { authorized, canRequestGoods, canRequestServices } = await request.json();
+    const { authorized, canRequestGoods, canRequestServices, needScore } = await request.json();
+
+    // needScore can only be updated by ORGANIZATION_ADMIN
+    if (needScore !== undefined) {
+      if (!hasAnyPermission(operator.role, operator.permissions, ['ORGANIZATION_ADMIN'])) {
+        return NextResponse.json({ error: 'Permessi insufficienti per modificare lo score' }, { status: 403 });
+      }
+
+      // Validate range
+      if (typeof needScore !== 'number' || needScore < 0 || needScore > 100) {
+        return NextResponse.json({ error: 'needScore deve essere un numero tra 0 e 100' }, { status: 400 });
+      }
+    }
 
     const wasAlreadyAuthorized = recipient.authorized;
     const isNowAuthorized = authorized === true && !wasAlreadyAuthorized;
@@ -253,6 +266,7 @@ export async function PATCH(
         authorizedAt: authorized ? (recipient.authorizedAt || new Date()) : null,
         canRequestGoods: canRequestGoods !== undefined ? canRequestGoods : recipient.canRequestGoods,
         canRequestServices: canRequestServices !== undefined ? canRequestServices : recipient.canRequestServices,
+        needScore: needScore !== undefined ? needScore : recipient.needScore,
       },
     });
 

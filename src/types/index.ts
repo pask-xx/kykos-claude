@@ -158,3 +158,13 @@ export const GOODS_REQUEST_STATUS_LABELS: Record<GoodsRequestStatus, string> = {
   COMPLETED: 'Completata',
   CANCELLED: 'Cancellata',
 };
+
+// Need Score helpers
+export type NeedScore = number; // 0-100
+
+export const NEED_SCORE_LABELS = (score: number): string => {
+  if (score >= 80) return 'Alto bisogno';
+  if (score >= 50) return 'Bisogno medio';
+  if (score >= 20) return 'Basso bisogno';
+  return 'Minimo bisogno';
+};

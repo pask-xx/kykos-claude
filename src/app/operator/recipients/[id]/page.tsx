@@ -42,6 +42,7 @@ interface Recipient {
   city: string | null;
   province: string | null;
   isee: string | null;
+  needScore: number;
   authorized: boolean;
   authorizedAt: string | null;
   canRequestGoods: boolean;
@@ -86,11 +87,38 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingScore, setEditingScore] = useState(false);
+  const [scoreValue, setScoreValue] = useState<number>(50);
+  const [savingScore, setSavingScore] = useState(false);
 
   useEffect(() => {
     fetchRecipient();
     fetchNotifications();
   }, [id]);
+
+  const updateNeedScore = async (newScore: number) => {
+    setSavingScore(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/operator/recipients/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ needScore: newScore }),
+      });
+
+      if (res.ok) {
+        setRecipient(prev => prev ? { ...prev, needScore: newScore } : null);
+        setEditingScore(false);
+      } else {
+        const err = await res.json();
+        setError(err.error || 'Errore');
+      }
+    } catch (err) {
+      setError('Errore di rete');
+    } finally {
+      setSavingScore(false);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -111,6 +139,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         const data = await res.json();
         setRecipient(data.recipient);
         setStats(data.stats);
+        setScoreValue(data.recipient.needScore);
       } else {
         const err = await res.json();
         setError(err.error || 'Errore');
@@ -293,6 +322,55 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               <p className="font-medium text-gray-900">€{recipient.isee}</p>
             </div>
           )}
+          <div>
+            <p className="text-xs text-gray-500 uppercase">Score di bisogno</p>
+            {editingScore ? (
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={scoreValue}
+                  onChange={(e) => setScoreValue(Number(e.target.value))}
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="font-bold text-lg w-12 text-center">{scoreValue}</span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => updateNeedScore(scoreValue)}
+                    disabled={savingScore}
+                    className="px-2 py-1 bg-green-600 text-white rounded text-xs font-medium disabled:opacity-50"
+                  >
+                    {savingScore ? '...' : '✓'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingScore(false); setScoreValue(recipient.needScore); }}
+                    className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs font-medium"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  recipient.needScore >= 80 ? 'bg-red-100 text-red-700' :
+                  recipient.needScore >= 50 ? 'bg-amber-100 text-amber-700' :
+                  recipient.needScore >= 20 ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-100 text-gray-700'
+                }`}>
+                  {recipient.needScore}
+                </span>
+                <button
+                  onClick={() => setEditingScore(true)}
+                  className="text-xs text-primary-600 hover:text-primary-700"
+                >
+                  modifica
+                </button>
+              </div>
+            )}
+            <p className="text-xs text-gray-400 mt-1">0 = poco bisogno, 100 = molto bisogno</p>
+          </div>
           {recipient.address && (
             <div className="md:col-span-2">
               <p className="text-xs text-gray-500 uppercase">Indirizzo</p>

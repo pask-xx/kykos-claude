@@ -13,7 +13,22 @@ interface Recipient {
   authorizedAt: string | null;
   createdAt: string;
   isee: string | null;
+  needScore: number;
 }
+
+const getNeedScoreColor = (score: number) => {
+  if (score >= 80) return 'bg-red-100 text-red-700';
+  if (score >= 50) return 'bg-amber-100 text-amber-700';
+  if (score >= 20) return 'bg-blue-100 text-blue-700';
+  return 'bg-gray-100 text-gray-700';
+};
+
+const getNeedScoreLabel = (score: number) => {
+  if (score >= 80) return 'Alto';
+  if (score >= 50) return 'Medio';
+  if (score >= 20) return 'Basso';
+  return 'Minimo';
+};
 
 export default function OperatorRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
@@ -164,6 +179,13 @@ export default function OperatorRecipientsPage() {
                           >
                             Gestisci
                           </Link>
+                        </div>
+
+                        {/* Need Score Badge */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getNeedScoreColor(recipient.needScore)}`}>
+                            Score: {recipient.needScore} — {getNeedScoreLabel(recipient.needScore)}
+                          </span>
                         </div>
 
                         <p className="text-xs text-gray-400 mt-2">

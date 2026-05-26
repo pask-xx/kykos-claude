@@ -186,6 +186,7 @@ model User {
   referenceEntityId    String?
   referenceEntity      Organization? @relation("RecipientReference", fields: [referenceEntityId], references: [id])
   isee                 Decimal?
+  needScore            Int           @default(50) // 0-100, indice di bisogno, editabile da admin ente
   authorized           Boolean       @default(false)
   authorizedAt         DateTime?
   emailConfirmed       Boolean       @default(false)

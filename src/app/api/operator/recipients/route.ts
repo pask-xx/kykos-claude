@@ -61,8 +61,9 @@ export async function GET() {
         authorizedAt: true,
         createdAt: true,
         isee: true,
+        needScore: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { needScore: 'desc' },
     });
 
     return NextResponse.json({ recipients });
