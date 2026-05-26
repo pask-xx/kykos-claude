@@ -625,6 +625,7 @@ model MultiAvailability {
   title            String
   description      String?                @map("description") @db.Text
   category         Category
+  imageUrls        String[]               @default([]) @map("image_urls")
   availableQty     Int                     @map("available_qty") // quantità totale disponibile
   assignedQty      Int                     @default(0) @map("assigned_qty") // quantità assegnata
   status           MultiAvailabilityStatus @default(OPEN)

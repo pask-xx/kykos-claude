@@ -18,6 +18,7 @@ CREATE TABLE "multi_availabilities" (
   "title" TEXT NOT NULL,
   "description" TEXT,
   "category" "Category" NOT NULL,
+  "image_urls" TEXT[] NOT NULL DEFAULT '{}',
   "available_qty" INTEGER NOT NULL,
   "assigned_qty" INTEGER NOT NULL DEFAULT 0,
   "status" "MultiAvailabilityStatus" NOT NULL DEFAULT 'OPEN',

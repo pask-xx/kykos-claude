@@ -59,7 +59,10 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Get-ChildItem \"D:\\\\PROGETTI\\\\KYKOS\\\\KYKOS-WITH-CLAUDE\" -Force)",
       "Bash(Select-Object Name, Mode)",
-      "Bash(Select-Object -First 50)"
+      "Bash(Select-Object -First 50)",
+      "Bash(node -e \"const d = require\\('./DiocesiItaliane.json'\\); console.log\\('Total diocesi:', d.length\\);\")",
+      "Bash(Get-ChildItem -Path D:\\\\PROGETTI\\\\KYKOS\\\\KYKOS-WITH-CLAUDE\\\\scripts -Filter \"*.json\")",
+      "Bash(Select-Object Name)"
     ]
   }
 }

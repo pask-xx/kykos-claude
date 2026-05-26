@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
+import ImageUploader from '@/components/ImageUploader';
 
 interface MultiAvailability {
   id: string;
   title: string;
   description: string | null;
   category: Category;
+  imageUrls: string[];
   availableQty: number;
   assignedQty: number;
   status: 'OPEN' | 'CLOSED' | 'EXHAUSTED';
@@ -48,6 +50,7 @@ export default function MultiAvailabilityPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('OTHER');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [availableQty, setAvailableQty] = useState(10);
   const [deadline, setDeadline] = useState('');
 
@@ -81,6 +84,7 @@ export default function MultiAvailabilityPage() {
           title,
           description,
           category,
+          imageUrls,
           availableQty: parseInt(availableQty.toString()),
           deadline: deadline || null,
         }),
@@ -102,6 +106,7 @@ export default function MultiAvailabilityPage() {
     setTitle('');
     setDescription('');
     setCategory('OTHER');
+    setImageUrls([]);
     setAvailableQty(10);
     setDeadline('');
   };
@@ -110,14 +115,14 @@ export default function MultiAvailabilityPage() {
     <div className="space-y-6 p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Disponibilità multipla</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Distribuzione</h1>
           <p className="text-gray-500">Gestisci offerte con assegnazione manuale</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
         >
-          + Nuova disponibilità
+          + Nuova distribuzione
         </button>
       </div>
 
@@ -128,8 +133,8 @@ export default function MultiAvailabilityPage() {
       ) : availabilities.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
           <span className="text-5xl mb-4 block">📦</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna disponibilità</h2>
-          <p className="text-gray-500">Crea la tua prima disponibilità multipla</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna distribuzione</h2>
+          <p className="text-gray-500">Crea la tua prima disponibilità</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -139,8 +144,17 @@ export default function MultiAvailabilityPage() {
               href={`/operator/availability/${avail.id}`}
               className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+              <div className="flex gap-4">
+                {avail.imageUrls && avail.imageUrls.length > 0 && (
+                  <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    <img
+                      src={avail.imageUrls[0]}
+                      alt={avail.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-gray-900">{avail.title}</h3>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(avail.status)}`}>
@@ -171,8 +185,8 @@ export default function MultiAvailabilityPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Nuova disponibilità multipla</h2>
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Nuova distribuzione</h2>
 
             <div className="space-y-4">
               <div>
@@ -208,6 +222,15 @@ export default function MultiAvailabilityPage() {
                     <option key={value} value={value}>{label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
+                <ImageUploader
+                  onImagesChange={setImageUrls}
+                  maxFiles={5}
+                  currentImages={imageUrls}
+                />
               </div>
 
               <div>

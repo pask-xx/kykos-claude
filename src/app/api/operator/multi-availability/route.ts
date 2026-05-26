@@ -51,6 +51,7 @@ export async function GET() {
         title: true,
         description: true,
         category: true,
+        imageUrls: true,
         availableQty: true,
         assignedQty: true,
         status: true,
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, description, category, availableQty, deadline, exhaustMessage } = body;
+    const { title, description, category, imageUrls, availableQty, deadline, exhaustMessage } = body;
 
     if (!title || !category || availableQty === undefined) {
       return NextResponse.json({ error: 'title, category e availableQty sono obbligatori' }, { status: 400 });
@@ -104,6 +105,7 @@ export async function POST(request: Request) {
         title,
         description,
         category,
+        imageUrls: imageUrls || [],
         availableQty,
         deadline: deadline ? new Date(deadline) : null,
         exhaustMessage: exhaustMessage || 'Spiacenti, le scorte sono esaurite. Non è stato possibile soddisfare la tua richiesta.',
