@@ -77,6 +77,10 @@ export default function OperatorEntityRequestsPage() {
         return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
       case 'FULFILLED':
         return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Soddisfatta</span>;
+      case 'DELIVERED':
+        return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Consegnata</span>;
+      case 'COMPLETED':
+        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Completata</span>;
       case 'CANCELLED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Cancellata</span>;
       default:
