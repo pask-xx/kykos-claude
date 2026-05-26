@@ -1,11 +1,31 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
+);
+
+async function getUserIdFromOperatorSession(): Promise<string | null> {
+  const cookieStore = await import('next/headers').then(m => m.cookies());
+  const token = cookieStore.get('operator_session')?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload.operatorId as string;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request: Request) {
   try {
+    // Check user session OR operator session
     const session = await getSession();
+    const operatorId = await getUserIdFromOperatorSession();
 
-    if (!session) {
+    const userId = session?.id || operatorId;
+    if (!userId) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
@@ -29,7 +49,8 @@ export async function POST(request: Request) {
 
     // Generate unique filename
     const ext = file.name.split('.').pop() || 'jpg';
-    const filename = `${session.id}/${Date.now()}.${ext}`;
+    const id = session?.id || operatorId || 'anonymous';
+    const filename = `${id}/${Date.now()}.${ext}`;
 
     // Convert file to array buffer
     const arrayBuffer = await file.arrayBuffer();
