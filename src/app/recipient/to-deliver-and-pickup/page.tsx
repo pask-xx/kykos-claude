@@ -9,7 +9,7 @@ interface UnifiedItem {
   title: string;
   category: string;
   imageUrls: string[] | null;
-  itemType: 'DONATION' | 'OBJECT' | 'GOODS';
+  itemType: 'DONATION' | 'OBJECT' | 'GOODS' | 'MULTI_AVAIL';
   link: string;
   label: string;
 }
@@ -18,6 +18,7 @@ const TYPE_COLORS: Record<string, { border: string; badge: string }> = {
   DONATION: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700' },
   OBJECT: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700' },
   GOODS: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700' },
+  MULTI_AVAIL: { border: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-700' },
 };
 
 export default async function RecipientToDeliverAndPickupPage() {
@@ -73,6 +74,24 @@ export default async function RecipientToDeliverAndPickupPage() {
     },
   });
 
+  // Ritiri Distribuzioni Multi-Availability: requests dove beneficiaryId = session.id E status = 'ASSIGNED' o 'FULFILLED'
+  const multiAvailRequests = await prisma.multiAvailabilityRequest.findMany({
+    where: {
+      beneficiaryId: session.id,
+      status: { in: ['ASSIGNED', 'FULFILLED'] },
+    },
+    include: {
+      multiAvailability: {
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          imageUrls: true,
+        },
+      },
+    },
+  });
+
   const unified: UnifiedItem[] = [
     ...donations.map(d => ({
       id: d.id,
@@ -100,6 +119,15 @@ export default async function RecipientToDeliverAndPickupPage() {
       itemType: 'GOODS' as const,
       link: `/recipient/qr-goods/${gr.id}`,
       label: 'Ritiro Bene/Servizio',
+    })),
+    ...multiAvailRequests.map(mr => ({
+      id: mr.id,
+      title: mr.multiAvailability.title,
+      category: mr.multiAvailability.category,
+      imageUrls: mr.multiAvailability.imageUrls,
+      itemType: 'MULTI_AVAIL' as const,
+      link: `/recipient/multi-avail-pickup/${mr.id}`,
+      label: 'Ritiro Distribuzione',
     })),
   ];
 
@@ -132,6 +160,10 @@ export default async function RecipientToDeliverAndPickupPage() {
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
             <span className="text-gray-600">Ritiri Beni/Servizi</span>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+            <span className="text-gray-600">Ritiri Distribuzioni</span>
+          </div>
         </div>
 
         {/* Empty state */}
@@ -160,7 +192,7 @@ export default async function RecipientToDeliverAndPickupPage() {
                         <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-base sm:text-xl">
-                          {item.itemType === 'GOODS' ? '🎁' : '📦'}
+                          {item.itemType === 'GOODS' ? '🎁' : item.itemType === 'MULTI_AVAIL' ? '📦' : '📦'}
                         </span>
                       )}
                     </div>
@@ -177,7 +209,9 @@ export default async function RecipientToDeliverAndPickupPage() {
                       <p className="text-xs text-gray-400 mt-0.5">
                         {item.itemType === 'GOODS'
                           ? CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category
-                          : item.itemType === 'DONATION' ? 'QR Code pronto' : 'Pronto per il ritiro'}
+                          : item.itemType === 'DONATION' ? 'QR Code pronto'
+                          : item.itemType === 'MULTI_AVAIL' ? CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category
+                          : 'Pronto per il ritiro'}
                       </p>
                     </div>
 
