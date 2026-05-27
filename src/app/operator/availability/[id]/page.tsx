@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import ImageUploader from '@/components/ImageUploader';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
@@ -80,6 +81,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [editDescription, setEditDescription] = useState('');
   const [editAvailableQty, setEditAvailableQty] = useState(0);
   const [editDeadline, setEditDeadline] = useState('');
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAvailability();
@@ -206,6 +208,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
           description: editDescription || null,
           availableQty: editAvailableQty,
           deadline: editDeadline ? new Date(editDeadline) : null,
+          imageUrls: editImageUrls,
         }),
       });
 
@@ -267,6 +270,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                   setEditDescription(availability.description || '');
                   setEditAvailableQty(availability.availableQty);
                   setEditDeadline(availability.deadline ? new Date(availability.deadline).toISOString().slice(0, 16) : '');
+                  setEditImageUrls(availability.imageUrls || []);
                   setShowEditModal(true);
                 }}
                 className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
@@ -587,6 +591,14 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                   value={editDeadline}
                   onChange={(e) => setEditDeadline(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
+                <ImageUploader
+                  onImagesChange={setEditImageUrls}
+                  maxFiles={5}
+                  currentImages={editImageUrls}
                 />
               </div>
             </div>
