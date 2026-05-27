@@ -485,17 +485,32 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
       )}
 
       {/* Close Confirmation Modal */}
-      <ConfirmDialog
-        open={showCloseModal}
-        onClose={() => setShowCloseModal(false)}
-        onConfirm={handleClose}
-        title="Chiudi disponibilità"
-        message="Sei sicuro di voler chiudere questa disponibilità? Non sarà più possibile ricevere nuove richieste."
-        confirmText={closing ? 'Chiusura...' : 'Conferma'}
-        cancelText="Annulla"
-        variant="danger"
-        disabled={closing}
-      />
+      {showCloseModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowCloseModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Chiudi disponibilità</h3>
+            <p className="text-gray-600 mb-6">
+              Sei sicuro di voler chiudere questa disponibilità? Non sarà più possibile ricevere nuove richieste.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowCloseModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleClose}
+                disabled={closing}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+              >
+                {closing ? 'Chiusura...' : 'Conferma'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
