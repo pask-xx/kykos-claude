@@ -19,11 +19,16 @@ export async function GET() {
       return NextResponse.json({ availabilities: [] });
     }
 
-    // Get open multi availabilities for this organization
+    // Get open multi availabilities for this organization (not expired)
+    const now = new Date();
     const availabilities = await prisma.multiAvailability.findMany({
       where: {
         organizationId: user.referenceEntityId,
         status: 'OPEN',
+        OR: [
+          { deadline: null },
+          { deadline: { gt: now } },
+        ],
       },
       select: {
         id: true,

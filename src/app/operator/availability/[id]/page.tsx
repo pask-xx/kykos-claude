@@ -69,10 +69,17 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [notifyMessage, setNotifyMessage] = useState('');
   const [sendingNotifications, setSendingNotifications] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [notifyAndClose, setNotifyAndClose] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editAvailableQty, setEditAvailableQty] = useState(0);
+  const [editDeadline, setEditDeadline] = useState('');
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAvailability();
@@ -188,6 +195,32 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
     }
   };
 
+  const handleEdit = async () => {
+    setEditing(true);
+    try {
+      const res = await fetch(`/api/operator/multi-availability/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editTitle,
+          description: editDescription || null,
+          availableQty: editAvailableQty,
+          deadline: editDeadline ? new Date(editDeadline) : null,
+          imageUrls: editImageUrls,
+        }),
+      });
+
+      if (res.ok) {
+        setShowEditModal(false);
+        fetchAvailability();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setEditing(false);
+    }
+  };
+
   const pendingRequests = sortedRequests.filter(r => r.status === 'PENDING');
   const assignedRequests = sortedRequests.filter(r => r.status === 'ASSIGNED' || r.status === 'FULFILLED');
   const remainingQty = (availability?.availableQty || 0) - (availability?.assignedQty || 0);
@@ -228,14 +261,29 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
           <div className="text-right">
             <p className="text-2xl font-bold text-primary-600">{availability.assignedQty}/{availability.availableQty}</p>
             <p className="text-sm text-gray-500">assegnati</p>
-            {availability.status === 'OPEN' && (
+            <div className="flex gap-2 mt-2 justify-end">
               <button
-                onClick={() => setShowCloseModal(true)}
-                className="mt-2 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+                onClick={() => {
+                  setEditTitle(availability.title);
+                  setEditDescription(availability.description || '');
+                  setEditAvailableQty(availability.availableQty);
+                  setEditDeadline(availability.deadline ? new Date(availability.deadline).toISOString().slice(0, 16) : '');
+                  setEditImageUrls(availability.imageUrls || []);
+                  setShowEditModal(true);
+                }}
+                className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
               >
-                Chiudi
+                Modifica
               </button>
-            )}
+              {availability.status === 'OPEN' && (
+                <button
+                  onClick={() => setShowCloseModal(true)}
+                  className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+                >
+                  Chiudi
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -493,6 +541,70 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
                 {saving ? 'Assegnazione...' : `Assegna ${selectedIds.size}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowEditModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Modifica disponibilità</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Titolo</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Numero disponibilità</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={editAvailableQty}
+                  onChange={(e) => setEditAvailableQty(parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Scadenza</label>
+                <input
+                  type="datetime-local"
+                  value={editDeadline}
+                  onChange={(e) => setEditDeadline(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6 justify-end">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleEdit}
+                disabled={editing}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+              >
+                {editing ? 'Salvataggio...' : 'Salva'}
               </button>
             </div>
           </div>
