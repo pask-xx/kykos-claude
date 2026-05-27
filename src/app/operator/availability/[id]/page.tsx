@@ -284,6 +284,20 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{availability.title}</h1>
             <p className="text-gray-500">{CATEGORY_LABELS[availability.category]}</p>
+            {availability.imageUrls && availability.imageUrls.length > 0 && (
+              <div className="flex gap-2 mt-3">
+                {availability.imageUrls.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={url}
+                      alt={`Foto ${i + 1}`}
+                      className="w-16 h-16 object-cover rounded-lg border hover:ring-2 hover:ring-primary-500 cursor-pointer"
+                      style={{ width: 64, height: 64 }}
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-primary-600">{availability.assignedQty}/{availability.availableQty}</p>
