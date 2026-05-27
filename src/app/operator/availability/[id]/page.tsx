@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatDatetimeForInput } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
 
 interface BeneficiaryRequest {
@@ -269,7 +269,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                   setEditTitle(availability.title);
                   setEditDescription(availability.description || '');
                   setEditAvailableQty(availability.availableQty);
-                  setEditDeadline(availability.deadline ? new Date(availability.deadline).toISOString().slice(0, 16) : '');
+                  setEditDeadline(availability.deadline ? formatDatetimeForInput(availability.deadline) : '');
                   setEditImageUrls(availability.imageUrls || []);
                   setShowEditModal(true);
                 }}

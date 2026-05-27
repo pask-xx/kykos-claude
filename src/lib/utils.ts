@@ -13,6 +13,14 @@ export function formatDate(date: Date | string): string {
   });
 }
 
+export function formatDatetimeForInput(date: Date | string): string {
+  const d = new Date(date);
+  // Adjust for local timezone to get correct local time in the input
+  const offset = d.getTimezoneOffset();
+  const localDate = new Date(d.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
+}
+
 export function getDonorLevel(donations: number): string {
   if (donations >= 50) return 'DIAMOND';
   if (donations >= 31) return 'PLATINUM';
