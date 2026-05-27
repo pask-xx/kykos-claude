@@ -18,6 +18,18 @@ interface GoodsRequest {
   alreadyOffered: boolean;
 }
 
+interface Cause {
+  id: string;
+  title: string;
+  description: string;
+  imageUrls: string[];
+  targetQty: number | null;
+  deadline: string | null;
+  organization: { id: string; name: string; city: string | null };
+  participantCount: number;
+  hasJoined: boolean;
+}
+
 export default function DonorRequestsClient() {
   const [requests, setRequests] = useState<GoodsRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +43,9 @@ export default function DonorRequestsClient() {
   const [offerMessage, setOfferMessage] = useState('');
   const [offeringForId, setOfferingForId] = useState<string | null>(null);
   const [offerImages, setOfferImages] = useState<string[]>([]);
+  const [causes, setCauses] = useState<Cause[]>([]);
+  const [joiningCauseId, setJoiningCauseId] = useState<string | null>(null);
+  const [expandedCauseId, setExpandedCauseId] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,11 +78,26 @@ export default function DonorRequestsClient() {
     }
   }, []);
 
+  const fetchCauses = useCallback(async () => {
+    try {
+      const res = await fetch('/api/causes');
+      if (res.ok) {
+        const data = await res.json();
+        setCauses(data.causes || []);
+      }
+    } catch (err) {
+      console.error('Error fetching causes:', err);
+    }
+  }, []);
+
   // Initial load
   useEffect(() => {
     setLoading(true);
-    fetchRequests().finally(() => setLoading(false));
-  }, [fetchRequests]);
+    Promise.all([
+      fetchRequests(),
+      fetchCauses(),
+    ]).finally(() => setLoading(false));
+  }, [fetchRequests, fetchCauses]);
 
   // Load more when scrolling
   useEffect(() => {
@@ -142,6 +172,26 @@ export default function DonorRequestsClient() {
     }
   };
 
+  const handleJoinCause = async (causeId: string) => {
+    setJoiningCauseId(causeId);
+    try {
+      const res = await fetch(`/api/causes/${causeId}/join`, { method: 'POST' });
+      if (res.ok) {
+        setCauses(prev =>
+          prev.map(c => c.id === causeId ? { ...c, hasJoined: true } : c)
+        );
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nell\'adesione');
+      }
+    } catch {
+      setError('Errore di connessione');
+    } finally {
+      setJoiningCauseId(null);
+      setExpandedCauseId(null);
+    }
+  };
+
   const categoryLabels: Record<string, string> = {
     FURNITURE: 'Arredamento',
     ELECTRONICS: 'Elettronica',
@@ -185,7 +235,7 @@ export default function DonorRequestsClient() {
     );
   }
 
-  if (requests.length === 0) {
+  if (requests.length === 0 && causes.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-5xl mb-4">📋</div>
@@ -206,6 +256,82 @@ export default function DonorRequestsClient() {
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center text-sm">
           {error}
+        </div>
+      )}
+
+      {/* Causes Section */}
+      {causes.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">💝</span>
+            <h2 className="text-lg font-semibold text-gray-900">Cause</h2>
+          </div>
+          {causes.filter(c => !c.hasJoined).map((cause) => (
+            <div
+              key={cause.id}
+              className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
+            >
+              <div
+                className="cursor-pointer"
+                onClick={() => setExpandedCauseId(expandedCauseId === cause.id ? null : cause.id)}
+              >
+                <div className="flex gap-4 p-4">
+                  <div className="w-24 h-24 flex-shrink-0 bg-rose-50 rounded-lg overflow-hidden flex items-center justify-center">
+                    {cause.imageUrls && cause.imageUrls.length > 0 ? (
+                      <img src={cause.imageUrls[0]} alt={cause.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl">💝</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{cause.title}</h3>
+                    <p className="text-sm text-gray-500">{cause.organization.name}</p>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{cause.description}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span>{cause.participantCount} partecipanti</span>
+                      {cause.targetQty && <span>Target: {cause.targetQty}</span>}
+                      {cause.deadline && <span>Scade: {new Date(cause.deadline).toLocaleDateString('it-IT')}</span>}
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 flex items-center">
+                    <span className={`text-gray-400 transition-transform duration-200 ${expandedCauseId === cause.id ? 'rotate-180' : ''}`}>▼</span>
+                  </div>
+                </div>
+              </div>
+
+              {expandedCauseId === cause.id && (
+                <div className="border-t border-gray-100 p-4 bg-gray-50">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-amber-800">
+                      <span className="font-medium">Come aderire:</span> Segui le istruzioni nella descrizione per partecipare a questa causa.
+                    </p>
+                  </div>
+                  {cause.description && (
+                    <p className="text-gray-600 mb-4 whitespace-pre-wrap">{cause.description}</p>
+                  )}
+                  <button
+                    onClick={() => handleJoinCause(cause.id)}
+                    disabled={joiningCauseId === cause.id}
+                    className="w-full py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  >
+                    {joiningCauseId === cause.id ? 'Iscrizione...' : 'Aderisci alla causa'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          {causes.filter(c => c.hasJoined).map((cause) => (
+            <div
+              key={cause.id}
+              className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-4 flex items-center gap-4"
+            >
+              <span className="text-2xl">✓</span>
+              <div className="flex-1">
+                <h3 className="font-medium text-green-800">{cause.title}</h3>
+                <p className="text-sm text-green-600">Iscritto il {new Date().toLocaleDateString('it-IT')}</p>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
