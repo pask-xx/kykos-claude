@@ -332,7 +332,7 @@ export default function RecipientFeedClient() {
                   {/* Disclaimer */}
                   <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                     <p className="text-sm text-amber-800">
-                      <span className="font-medium">Nota:</span> La disponibilità è limitata e l'assegnazione non è garantita. Riceverai una comunicazione dall'ente only in caso di accettazione della tua richiesta.
+                      <span className="font-medium">Nota:</span> La disponibilità è limitata e l'assegnazione non è garantita. Riceverai una comunicazione dall'ente in caso di assegnazione o mancata assegnazione della tua richiesta.
                     </p>
                   </div>
 
