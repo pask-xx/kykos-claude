@@ -68,8 +68,10 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [saving, setSaving] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
   const [notifyMessage, setNotifyMessage] = useState('');
   const [sendingNotifications, setSendingNotifications] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     fetchAvailability();
@@ -160,6 +162,26 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
     }
   };
 
+  const handleClose = async () => {
+    setClosing(true);
+    try {
+      const res = await fetch(`/api/operator/multi-availability/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'CLOSED' }),
+      });
+
+      if (res.ok) {
+        setShowCloseModal(false);
+        fetchAvailability();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setClosing(false);
+    }
+  };
+
   const pendingRequests = sortedRequests.filter(r => r.status === 'PENDING');
   const assignedRequests = sortedRequests.filter(r => r.status === 'ASSIGNED' || r.status === 'FULFILLED');
   const remainingQty = (availability?.availableQty || 0) - (availability?.assignedQty || 0);
@@ -200,6 +222,14 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
           <div className="text-right">
             <p className="text-2xl font-bold text-primary-600">{availability.assignedQty}/{availability.availableQty}</p>
             <p className="text-sm text-gray-500">assegnati</p>
+            {availability.status === 'OPEN' && (
+              <button
+                onClick={() => setShowCloseModal(true)}
+                className="mt-2 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+              >
+                Chiudi
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -453,6 +483,19 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
           </div>
         </div>
       )}
+
+      {/* Close Confirmation Modal */}
+      <ConfirmDialog
+        open={showCloseModal}
+        onClose={() => setShowCloseModal(false)}
+        onConfirm={handleClose}
+        title="Chiudi disponibilità"
+        message="Sei sicuro di voler chiudere questa disponibilità? Non sarà più possibile ricevere nuove richieste."
+        confirmText={closing ? 'Chiusura...' : 'Conferma'}
+        cancelText="Annulla"
+        variant="danger"
+        disabled={closing}
+      />
     </div>
   );
 }
