@@ -9,14 +9,14 @@ CREATE TYPE "MultiAvailabilityStatus" AS ENUM ('OPEN', 'CLOSED', 'EXHAUSTED');
 -- Enum MultiAvailabilityRequestStatus
 CREATE TYPE "MultiAvailabilityRequestStatus" AS ENUM ('PENDING', 'ASSIGNED', 'REJECTED', 'FULFILLED', 'CANCELLED');
 
--- Table multi_availabilities (usa createdAt/updatedAt per match Prisma)
+-- Table multi_availabilities (tutti camelCase per compatibilità Prisma)
 CREATE TABLE "multi_availabilities" (
   "id" TEXT NOT NULL PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
   "title" TEXT NOT NULL,
   "description" TEXT,
   "category" "Category" NOT NULL,
   "imageUrls" TEXT[] NOT NULL DEFAULT '{}',
-  "availableQty" INTEGER NOT NULL,
+  "availableQty" INTEGER NOT NULL DEFAULT 1,
   "assignedQty" INTEGER NOT NULL DEFAULT 0,
   "status" "MultiAvailabilityStatus" NOT NULL DEFAULT 'OPEN',
   "deadline" TIMESTAMP(3),

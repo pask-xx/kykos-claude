@@ -623,14 +623,14 @@ model NotifyEmail {
 model MultiAvailability {
   id                String                 @id @default(cuid())
   title            String
-  description      String?                @map("description") @db.Text
+  description      String?                @db.Text
   category         Category
   imageUrls        String[]               @default([])
-  availableQty     Int                     @map("available_qty") // quantità totale disponibile
-  assignedQty      Int                     @default(0) @map("assigned_qty") // quantità assegnata
+  availableQty     Int                     @default(1)
+  assignedQty      Int                     @default(0)
   status           MultiAvailabilityStatus @default(OPEN)
   deadline         DateTime?
-  exhaustMessage   String?                @map("exhaust_message") @db.Text // messaggio per chi non riceve
+  exhaustMessage   String?                @db.Text
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
 
@@ -646,12 +646,12 @@ model MultiAvailability {
 
 model MultiAvailabilityRequest {
   id                   String                         @id @default(cuid())
-  needScoreSnapshot    Int                            @map("need_score_snapshot") // score al momento della richiesta
+  needScoreSnapshot    Int
   requestedAt          DateTime                       @default(now())
   status               MultiAvailabilityRequestStatus @default(PENDING)
-  qrCode               String?                        @map("qr_code")
-  fulfilledAt          DateTime?                      @map("fulfilled_at")
-  notifiedAt           DateTime?                      @map("notified_at") // quando è stato notificato di non aver ricevuto
+  qrCode               String?
+  fulfilledAt          DateTime?
+  notifiedAt           DateTime?
   createdAt            DateTime                       @default(now())
   updatedAt            DateTime                       @updatedAt
 
