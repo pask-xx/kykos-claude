@@ -79,7 +79,6 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [editDescription, setEditDescription] = useState('');
   const [editAvailableQty, setEditAvailableQty] = useState(0);
   const [editDeadline, setEditDeadline] = useState('');
-  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAvailability();
@@ -206,7 +205,6 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
           description: editDescription || null,
           availableQty: editAvailableQty,
           deadline: editDeadline ? new Date(editDeadline) : null,
-          imageUrls: editImageUrls,
         }),
       });
 
@@ -268,7 +266,6 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                   setEditDescription(availability.description || '');
                   setEditAvailableQty(availability.availableQty);
                   setEditDeadline(availability.deadline ? new Date(availability.deadline).toISOString().slice(0, 16) : '');
-                  setEditImageUrls(availability.imageUrls || []);
                   setShowEditModal(true);
                 }}
                 className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
