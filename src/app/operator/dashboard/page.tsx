@@ -99,7 +99,7 @@ export default async function OperatorDashboard() {
               <span className="text-2xl">✅</span>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Riceventi autorizzati</p>
+              <p className="text-sm text-gray-500">Beneficiari autorizzati</p>
               <p className="text-2xl font-bold text-gray-900">{authorizedRecipients}</p>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default async function OperatorDashboard() {
               <span className="text-2xl">📦</span>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Oggetti totali</p>
+              <p className="text-sm text-gray-500">Disponibilità</p>
               <p className="text-2xl font-bold text-gray-900">{operator.organization._count.objects}</p>
             </div>
           </div>
@@ -125,25 +125,6 @@ export default async function OperatorDashboard() {
               <p className="text-2xl font-bold text-gray-900">{operator.organization._count.operators}</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Azioni rapide</h2>
-        <div className="flex gap-4 flex-wrap">
-          <a
-            href="/operator/requests"
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-          >
-            Gestisci richieste
-          </a>
-          <a
-            href="/operator/recipients"
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-          >
-            Autorizza riceventi
-          </a>
         </div>
       </div>
     </div>
