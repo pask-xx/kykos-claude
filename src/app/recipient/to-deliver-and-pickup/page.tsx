@@ -48,7 +48,7 @@ export default async function RecipientToDeliverAndPickupPage() {
     },
   });
 
-  // Ritiri Oggetti: requests dove recipientId = session.id E object.status = 'DEPOSITED'
+  // Ritiri Disponibilita: requests dove recipientId = session.id E object.status = 'DEPOSITED'
   const objectRequests = await prisma.request.findMany({
     where: {
       recipientId: session.id,
@@ -61,7 +61,7 @@ export default async function RecipientToDeliverAndPickupPage() {
     },
   });
 
-  // Ritiri Beni/Servizi: goodsRequests dove beneficiaryId = session.id E status = 'DELIVERED'
+  // Ritiri Richieste: goodsRequests dove beneficiaryId = session.id E status = 'DELIVERED'
   const goodsRequestsDelivered = await prisma.goodsRequest.findMany({
     where: {
       beneficiaryId: session.id,
@@ -109,7 +109,7 @@ export default async function RecipientToDeliverAndPickupPage() {
       imageUrls: r.object.imageUrls,
       itemType: 'OBJECT' as const,
       link: `/recipient/qr/${r.id}`,
-      label: 'Ritiro Oggetto',
+      label: 'Ritiro Disponibilità',
     })),
     ...goodsRequestsDelivered.map(gr => ({
       id: gr.id,
@@ -118,7 +118,7 @@ export default async function RecipientToDeliverAndPickupPage() {
       imageUrls: null,
       itemType: 'GOODS' as const,
       link: `/recipient/qr-goods/${gr.id}`,
-      label: 'Ritiro Bene/Servizio',
+      label: 'Ritiro Richieste',
     })),
     ...multiAvailRequests.map(mr => ({
       id: mr.id,
@@ -154,11 +154,11 @@ export default async function RecipientToDeliverAndPickupPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-green-500"></span>
-            <span className="text-gray-600">Ritiri Oggetti</span>
+            <span className="text-gray-600">Ritiri Disponibilità</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-            <span className="text-gray-600">Ritiri Beni/Servizi</span>
+            <span className="text-gray-600">Ritiri Richieste</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-500"></span>
