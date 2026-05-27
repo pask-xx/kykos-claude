@@ -52,6 +52,7 @@ export default function RecipientFeedClient() {
   const [reportReason, setReportReason] = useState('');
   const [reporting, setReporting] = useState(false);
   const [requestingMultiId, setRequestingMultiId] = useState<string | null>(null);
+  const [expandedMultiId, setExpandedMultiId] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -281,67 +282,84 @@ export default function RecipientFeedClient() {
               key={avail.id}
               className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
             >
-              <div className="flex gap-4 p-4">
-                {/* Image */}
-                <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                  {avail.imageUrls && avail.imageUrls.length > 0 ? (
-                    <img
-                      src={avail.imageUrls[0]}
-                      alt={avail.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
-                  )}
-                </div>
+              {/* Collapsed Card */}
+              <div
+                className="cursor-pointer"
+                onClick={() => setExpandedMultiId(expandedMultiId === avail.id ? null : avail.id)}
+              >
+                <div className="flex gap-4 p-4">
+                  {/* Image */}
+                  <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                    {avail.imageUrls && avail.imageUrls.length > 0 ? (
+                      <img
+                        src={avail.imageUrls[0]}
+                        alt={avail.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                    )}
+                  </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">{avail.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
-                      {CATEGORY_LABELS[avail.category] || avail.category}
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{avail.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
+                        {CATEGORY_LABELS[avail.category] || avail.category}
+                      </span>
+                    </div>
+                    {avail.description && (
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{avail.description}</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">
+                      Pubblicato {new Date(avail.createdAt).toLocaleDateString('it-IT')}
+                    </p>
+                  </div>
+
+                  {/* Expand icon */}
+                  <div className="flex-shrink-0 flex items-center">
+                    <span className={`text-gray-400 transition-transform duration-200 ${expandedMultiId === avail.id ? 'rotate-180' : ''}`}>
+                      ▼
                     </span>
                   </div>
-                  {avail.description && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{avail.description}</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">
-                    Pubblicato {new Date(avail.createdAt).toLocaleDateString('it-IT')}
-                  </p>
-                </div>
-
-                {/* Expand icon */}
-                <div className="flex-shrink-0 flex items-center">
-                  <span className="text-gray-400">▼</span>
                 </div>
               </div>
 
               {/* Expanded Content */}
-              <div className="border-t border-gray-100 p-4 bg-gray-50">
-                {/* Description */}
-                {avail.description && (
-                  <p className="text-gray-600 mb-4">{avail.description}</p>
-                )}
+              {expandedMultiId === avail.id && (
+                <div className="border-t border-gray-100 p-4 bg-gray-50">
+                  {/* Disclaimer */}
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800">
+                      <span className="font-medium">Nota:</span> La disponibilità è limitata e l'assegnazione non è garantita. Riceverai una comunicazione dall'ente only in caso di accettazione della tua richiesta.
+                    </p>
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <ConfirmDialog
-                    title="Conferma richiesta"
-                    message={`Vuoi richiedere "${avail.title}"? L'ente deciderà l'assegnazione in base alle esigenze.`}
-                    confirmLabel="Sì, richiedi"
-                    variant="warning"
-                    onConfirm={() => handleRequestMultiAvailability(avail.id)}
-                  >
-                    <button
-                      disabled={requestingMultiId === avail.id}
-                      className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  {/* Description */}
+                  {avail.description && (
+                    <p className="text-gray-600 mb-4">{avail.description}</p>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="px-2">
+                    <ConfirmDialog
+                      title="Conferma richiesta"
+                      message={`Vuoi richiedere "${avail.title}"? L'ente deciderà l'assegnazione in base alle esigenze.`}
+                      confirmLabel="Sì, richiedi"
+                      variant="warning"
+                      onConfirm={() => handleRequestMultiAvailability(avail.id)}
                     >
-                      {requestingMultiId === avail.id ? 'Invio...' : 'Richiedi'}
-                    </button>
-                  </ConfirmDialog>
+                      <button
+                        disabled={requestingMultiId === avail.id}
+                        className="w-full py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {requestingMultiId === avail.id ? 'Invio...' : 'Richiedi'}
+                      </button>
+                    </ConfirmDialog>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
