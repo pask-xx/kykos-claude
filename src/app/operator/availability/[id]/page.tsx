@@ -72,6 +72,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [notifyMessage, setNotifyMessage] = useState('');
   const [sendingNotifications, setSendingNotifications] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [notifyAndClose, setNotifyAndClose] = useState(false);
 
   useEffect(() => {
     fetchAvailability();
@@ -153,12 +154,17 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
 
       if (res.ok) {
         setShowNotifyModal(false);
-        fetchAvailability();
+        if (notifyAndClose) {
+          await handleClose();
+        } else {
+          fetchAvailability();
+        }
       }
     } catch (err) {
       console.error('Error:', err);
     } finally {
       setSendingNotifications(false);
+      setNotifyAndClose(false);
     }
   };
 
@@ -427,6 +433,15 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
               placeholder="Messaggio per chi non ha ricevuto l'assegnazione..."
             />
+            <label className="flex items-center gap-2 mt-4 text-sm text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyAndClose}
+                onChange={(e) => setNotifyAndClose(e.target.checked)}
+                className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
+              />
+              <span>Chiudi anche la disponibilità multipla</span>
+            </label>
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowNotifyModal(false)}
@@ -439,7 +454,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 disabled={sendingNotifications}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {sendingNotifications ? 'Invio...' : 'Invia notifiche'}
+                {sendingNotifications ? 'Invio...' : notifyAndClose ? 'Procedi e chiudi' : 'Procedi'}
               </button>
             </div>
           </div>

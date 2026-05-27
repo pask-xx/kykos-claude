@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
+import { sendEmail } from '@/lib/email';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -80,6 +81,10 @@ export async function POST(
           select: {
             id: true,
             email: true,
+            name: true,
+            firstName: true,
+            lastName: true,
+            nickname: true,
           }
         }
       },
@@ -108,7 +113,7 @@ export async function POST(
       });
       notifications.push(notification);
 
-      // Segna come notificato
+      // Segna come notificato e aggiorna stato
       await prisma.multiAvailabilityRequest.update({
         where: { id: req.id },
         data: {
@@ -116,6 +121,36 @@ export async function POST(
           notifiedAt: new Date(),
         },
       });
+
+      // Invia email effettiva
+      const beneficiaryName = [req.beneficiary.firstName, req.beneficiary.lastName]
+        .filter(Boolean).join(' ') || req.beneficiary.nickname || req.beneficiary.name;
+      const subject = `KYKOS - Disponibilità esaurita: ${availability.title}`;
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+          <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px; text-align: center;">
+              <img src="${process.env.NEXT_PUBLIC_BASE_URL}/albero.svg" alt="KYKOS" style="height: 64px;">
+              <img src="${process.env.NEXT_PUBLIC_BASE_URL}/LogoKykosTesto.svg" alt="KYKOS" style="height: 64px; margin-left: 2px;">
+              <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Disponibilità esaurita</p>
+            </div>
+            <div style="padding: 32px;">
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                Ciao ${beneficiaryName},</p>
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                spiace comunicarti che la disponibilità <strong>"${availability.title}"</strong> non è più disponibile.</p>
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                ${message}</p>
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+              <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+                Non rispondere a questa email.
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+      await sendEmail({ to: req.beneficiary.email, subject, html });
     }
 
     return NextResponse.json({
