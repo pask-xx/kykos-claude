@@ -50,7 +50,19 @@ export async function GET(
 
     const availability = await prisma.multiAvailability.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        imageUrls: true,
+        availableQty: true,
+        assignedQty: true,
+        status: true,
+        deadline: true,
+        exhaustMessage: true,
+        organizationId: true,
+        organization: { select: { id: true, name: true } },
         requests: {
           include: {
             beneficiary: {
@@ -67,9 +79,6 @@ export async function GET(
           },
           orderBy: { needScoreSnapshot: 'desc' },
         },
-        organization: {
-          select: { id: true, name: true }
-        }
       },
     });
 
@@ -140,7 +149,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { title, description, availableQty, deadline, exhaustMessage, status } = body;
+    const { title, description, availableQty, deadline, exhaustMessage, status, imageUrls } = body;
 
     const updated = await prisma.multiAvailability.update({
       where: { id },
@@ -151,6 +160,7 @@ export async function PATCH(
         ...(deadline !== undefined && { deadline: deadline ? new Date(deadline) : null }),
         ...(exhaustMessage !== undefined && { exhaustMessage }),
         ...(status !== undefined && { status }),
+        ...(imageUrls !== undefined && { imageUrls }),
       },
     });
 

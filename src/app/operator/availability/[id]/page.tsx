@@ -28,6 +28,7 @@ interface MultiAvailability {
   title: string;
   description: string | null;
   category: Category;
+  imageUrls: string[];
   availableQty: number;
   assignedQty: number;
   status: 'OPEN' | 'CLOSED' | 'EXHAUSTED';
