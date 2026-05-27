@@ -13,3 +13,6 @@ Leggere questi file ad ogni sessione per non violare i principi core.
 1. Leggi `01-core-principles.md` e `04-anonymity.md` ad ogni sessione
 2. Prima di aggiungere un field in un select, verifica chi lo riceve
 3. Quando in dubbio, controlla qui prima di chiedere
+
+## Reference
+- [multi-availability](multi-availability.md) — Logica completa distribuzione multipla
