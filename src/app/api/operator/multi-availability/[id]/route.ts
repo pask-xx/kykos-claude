@@ -89,12 +89,18 @@ export async function GET(
       }
     });
 
-    return NextResponse.json({
+    console.log(`[DEBUG] MultiAvail ${id}: assignedQty in DB = ${assignedCount}, field = ${availability.assignedQty}`);
+
+    const result = {
       availability: {
         ...availability,
         assignedQty: assignedCount,
       }
-    });
+    };
+
+    console.log('[DEBUG] Returning availability with assignedQty:', result.availability.assignedQty);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('MultiAvailability detail error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
