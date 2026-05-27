@@ -279,11 +279,11 @@ export default function RecipientFeedClient() {
           {availableMultiAvailabilities.map((avail) => (
             <div
               key={avail.id}
-              className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl border border-primary-200 overflow-hidden"
+              className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
             >
               <div className="flex gap-4 p-4">
                 {/* Image */}
-                <div className="w-20 h-20 flex-shrink-0 bg-white rounded-lg overflow-hidden">
+                <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                   {avail.imageUrls && avail.imageUrls.length > 0 ? (
                     <img
                       src={avail.imageUrls[0]}
@@ -297,25 +297,35 @@ export default function RecipientFeedClient() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900">{avail.title}</h3>
+                  <h3 className="font-semibold text-gray-900 truncate">{avail.title}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-200 text-primary-800">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
                       {CATEGORY_LABELS[avail.category] || avail.category}
-                    </span>
-                    <span className="text-sm text-primary-700 font-medium">
-                      {avail.availableQty - avail.assignedQty} disponibili
                     </span>
                   </div>
                   {avail.description && (
                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">{avail.description}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {avail._count.requests} richiesta{avail._count.requests !== 1 ? 'e' : ''} • Pubblicato {new Date(avail.createdAt).toLocaleDateString('it-IT')}
+                    Pubblicato {new Date(avail.createdAt).toLocaleDateString('it-IT')}
                   </p>
                 </div>
 
-                {/* Request Button */}
+                {/* Expand icon */}
                 <div className="flex-shrink-0 flex items-center">
+                  <span className="text-gray-400">▼</span>
+                </div>
+              </div>
+
+              {/* Expanded Content */}
+              <div className="border-t border-gray-100 p-4 bg-gray-50">
+                {/* Description */}
+                {avail.description && (
+                  <p className="text-gray-600 mb-4">{avail.description}</p>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
                   <ConfirmDialog
                     title="Conferma richiesta"
                     message={`Vuoi richiedere "${avail.title}"? L'ente deciderà l'assegnazione in base alle esigenze.`}
@@ -325,9 +335,9 @@ export default function RecipientFeedClient() {
                   >
                     <button
                       disabled={requestingMultiId === avail.id}
-                      className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
+                      className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {requestingMultiId === avail.id ? '...' : 'Richiedi'}
+                      {requestingMultiId === avail.id ? 'Invio...' : 'Richiedi'}
                     </button>
                   </ConfirmDialog>
                 </div>
