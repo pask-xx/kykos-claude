@@ -85,16 +85,8 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  useEffect(() => {
-    fetchAvailability();
-    const interval = setInterval(() => {
-      fetchAvailability(false);
-    }, 30000); // Auto-refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [id]);
-
-  const fetchAvailability = async (showLoader = true) => {
-    if (showLoader) setLoading(true);
+  const fetchAvailability = async () => {
+    setLoading(true);
     setRefreshing(true);
     try {
       const res = await fetch(`/api/operator/multi-availability/${id}?t=${Date.now()}`, {
@@ -273,7 +265,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               </span>
             )}
             <button
-              onClick={() => fetchAvailability(false)}
+              onClick={() => fetchAvailability()}
               disabled={refreshing}
               className="p-2 text-gray-500 hover:text-primary-600 disabled:opacity-50"
               title="Aggiorna dati"
