@@ -114,6 +114,8 @@ enum NotificationType {
   GOODS_REQUEST_REJECTED
   GOODS_REQUEST_FULFILLED
   GOODS_OFFER_RECEIVED
+  // Cause notifications
+  CAUSE_MESSAGE
 }
 
 enum RequestType {
@@ -241,6 +243,9 @@ model User {
   // Multi availability requests
   multiAvailabilityRequests MultiAvailabilityRequest[]
 
+  // Cause participation
+  causeParticipations CauseParticipant[]
+
   @@map("users")
 }
 
@@ -301,6 +306,9 @@ model Organization {
 
   // Multi availability
   multiAvailabilities MultiAvailability[]
+
+  // Causes
+  causes Cause[]
 
   @@map("organizations")
 }
@@ -665,4 +673,40 @@ model MultiAvailabilityRequest {
   @@index([multiAvailabilityId])
   @@index([beneficiaryId])
   @@map("multi_availability_requests")
+}
+
+model Cause {
+  id           String    @id @default(cuid())
+  title        String
+  description  String    @db.Text
+  imageUrls    String[]  @default([])
+  targetQty    Int?
+  deadline     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  participants CauseParticipant[]
+
+  @@index([organizationId])
+  @@map("causes")
+}
+
+model CauseParticipant {
+  id        String   @id @default(cuid())
+  joinedAt  DateTime @default(now())
+  note      String?  @db.Text
+
+  causeId String
+  cause   Cause @relation(fields: [causeId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([causeId, userId])
+  @@index([causeId])
+  @@index([userId])
+  @@map("cause_participants")
 }
