@@ -82,12 +82,20 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [editAvailableQty, setEditAvailableQty] = useState(0);
   const [editDeadline, setEditDeadline] = useState('');
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchAvailability();
+    const interval = setInterval(() => {
+      fetchAvailability(false);
+    }, 30000); // Auto-refresh every 30 seconds
+    return () => clearInterval(interval);
   }, [id]);
 
-  const fetchAvailability = async () => {
+  const fetchAvailability = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    setRefreshing(true);
     try {
       const res = await fetch(`/api/operator/multi-availability/${id}?t=${Date.now()}`, {
         cache: 'no-store'
@@ -96,11 +104,13 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
         const data = await res.json();
         setAvailability(data.availability);
         setNotifyMessage(data.availability.exhaustMessage || '');
+        setLastUpdated(new Date());
       }
     } catch (err) {
       console.error('Error:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -252,9 +262,28 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
     <div className="space-y-6 p-4 sm:p-6">
       {/* Header */}
       <div>
-        <Link href="/operator/availability" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-          ← Torna alla lista
-        </Link>
+        <div className="flex items-center justify-between mb-2">
+          <Link href="/operator/availability" className="text-sm text-gray-500 hover:text-primary-600 inline-flex items-center gap-1">
+            ← Torna alla lista
+          </Link>
+          <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <span className="text-xs text-gray-400">
+                Aggiornato {lastUpdated.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            <button
+              onClick={() => fetchAvailability(false)}
+              disabled={refreshing}
+              className="p-2 text-gray-500 hover:text-primary-600 disabled:opacity-50"
+              title="Aggiorna dati"
+            >
+              <svg className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{availability.title}</h1>
