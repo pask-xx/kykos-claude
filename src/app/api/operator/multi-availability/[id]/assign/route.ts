@@ -64,10 +64,27 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { beneficiaryIds } = body;
+    const { requestIds } = body;
 
-    if (!Array.isArray(beneficiaryIds)) {
-      return NextResponse.json({ error: 'beneficiaryIds deve essere un array' }, { status: 400 });
+    if (!Array.isArray(requestIds)) {
+      return NextResponse.json({ error: 'requestIds deve essere un array' }, { status: 400 });
+    }
+
+    // Ottieni i request IDs e i relativi beneficiary IDs
+    const requests = await prisma.multiAvailabilityRequest.findMany({
+      where: {
+        id: { in: requestIds },
+        multiAvailabilityId: id,
+        status: 'PENDING',
+      },
+      select: {
+        id: true,
+        beneficiaryId: true,
+      },
+    });
+
+    if (requests.length === 0) {
+      return NextResponse.json({ error: 'Nessuna richiesta trovuta da assegnare' }, { status: 400 });
     }
 
     // Verifica che non si superi la quantità disponibile
@@ -78,7 +95,7 @@ export async function POST(
       }
     });
 
-    const newAssignments = beneficiaryIds.length;
+    const newAssignments = requests.length;
     if (currentlyAssigned + newAssignments > availability.availableQty) {
       return NextResponse.json({
         error: `Superata la quantità disponibile. Disponibili: ${availability.availableQty - currentlyAssigned}`
@@ -87,32 +104,21 @@ export async function POST(
 
     // Genera QR code per ogni beneficiario assegnato
     const qrCodes: string[] = [];
-    for (const beneficiaryId of beneficiaryIds) {
-      const qrCode = `MA-${id.slice(0, 8)}-${beneficiaryId.slice(0, 8)}-${randomBytes(4).toString('hex').toUpperCase()}`;
+    for (const req of requests) {
+      const qrCode = `MA-${id.slice(0, 8)}-${req.beneficiaryId.slice(0, 8)}-${randomBytes(4).toString('hex').toUpperCase()}`;
 
       // Ottieni lo score attuale del beneficiario
       const beneficiary = await prisma.user.findUnique({
-        where: { id: beneficiaryId },
+        where: { id: req.beneficiaryId },
         select: { needScore: true }
       });
 
-      const req = await prisma.multiAvailabilityRequest.upsert({
-        where: {
-          multiAvailabilityId_beneficiaryId: {
-            multiAvailabilityId: id,
-            beneficiaryId,
-          }
-        },
-        update: {
+      await prisma.multiAvailabilityRequest.update({
+        where: { id: req.id },
+        data: {
           status: 'ASSIGNED',
           qrCode,
-        },
-        create: {
-          multiAvailabilityId: id,
-          beneficiaryId,
           needScoreSnapshot: beneficiary?.needScore ?? 50,
-          status: 'ASSIGNED',
-          qrCode,
         },
       });
       qrCodes.push(qrCode);
@@ -133,7 +139,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      assigned: beneficiaryIds.length,
+      assigned: requests.length,
       qrCodes,
     });
   } catch (error) {

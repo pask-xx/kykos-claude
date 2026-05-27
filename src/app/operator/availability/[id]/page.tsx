@@ -121,7 +121,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
       const res = await fetch(`/api/operator/multi-availability/${id}/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ beneficiaryIds: Array.from(selectedIds) }),
+        body: JSON.stringify({ requestIds: Array.from(selectedIds) }),
       });
 
       if (res.ok) {
