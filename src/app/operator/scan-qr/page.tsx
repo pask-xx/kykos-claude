@@ -117,6 +117,13 @@ export default function ScanQrPage() {
           return;
         }
 
+        if (qrData.startsWith('kykos:multiavailability:pickup:')) {
+          const parts = qrData.split(':');
+          const requestId = parts[3];
+          router.push(`/operator/multi-avail-pickup/${requestId}`);
+          return;
+        }
+
         // Legacy format (without subType) - treat as object for backward compatibility
         if (qrData.startsWith('kykos:deliver:')) {
           const parts = qrData.split(':');
