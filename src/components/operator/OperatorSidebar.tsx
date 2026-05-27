@@ -19,6 +19,7 @@ const allNavItems: NavItem[] = [
   { href: '/operator/requests-entity', label: 'Richieste', icon: '📋', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/objects', label: 'Disponibilità', icon: '📦', permission: 'OBJECT_RECEIVE' },
   { href: '/operator/availability', label: 'Distribuzione', icon: '📦', permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/cause', label: 'Cause', icon: '💝', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/requests', label: 'Da approvare', icon: '📝', permission: 'RECIPIENT_AUTHORIZE' },
   { href: '/operator/deposit', label: 'In deposito', icon: '📤', permission: 'OBJECT_RECEIVE' },
   { href: '/operator/recipients', label: 'Beneficiari', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
