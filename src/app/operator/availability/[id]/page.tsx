@@ -86,7 +86,6 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchAvailability = async () => {
-    setLoading(true);
     setRefreshing(true);
     try {
       const res = await fetch(`/api/operator/multi-availability/${id}?t=${Date.now()}`, {
@@ -105,6 +104,11 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
       setRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    fetchAvailability();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const sortedRequests = [...(availability?.requests || [])].sort((a, b) => {
     if (sortBy === 'needScore') {
