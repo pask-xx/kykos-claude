@@ -122,6 +122,18 @@ export async function POST(
         },
       });
       qrCodes.push(qrCode);
+
+      // Invia notifica al beneficiario assegnato
+      await prisma.notification.create({
+        data: {
+          recipientUserId: req.beneficiaryId,
+          recipientType: 'USER',
+          title: `Assegnazione ricevuta: ${availability.title}`,
+          message: `Congratulazioni! La tua richiesta per "${availability.title}" è stata accettata. Il tuo QR code per il ritiro è: ${qrCode}. Recati presso l'ente per ritirare il premio.`,
+          type: 'REQUEST_APPROVED' as any,
+          link: '/recipient/dashboard',
+        },
+      });
     }
 
     // Aggiorna assignedQty
