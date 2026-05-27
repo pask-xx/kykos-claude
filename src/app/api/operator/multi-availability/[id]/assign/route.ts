@@ -90,6 +90,12 @@ export async function POST(
     for (const beneficiaryId of beneficiaryIds) {
       const qrCode = `MA-${id.slice(0, 8)}-${beneficiaryId.slice(0, 8)}-${randomBytes(4).toString('hex').toUpperCase()}`;
 
+      // Ottieni lo score attuale del beneficiario
+      const beneficiary = await prisma.user.findUnique({
+        where: { id: beneficiaryId },
+        select: { needScore: true }
+      });
+
       const req = await prisma.multiAvailabilityRequest.upsert({
         where: {
           multiAvailabilityId_beneficiaryId: {
@@ -104,7 +110,7 @@ export async function POST(
         create: {
           multiAvailabilityId: id,
           beneficiaryId,
-          needScoreSnapshot: 0, // Will be set by the beneficiary's current score
+          needScoreSnapshot: beneficiary?.needScore ?? 50,
           status: 'ASSIGNED',
           qrCode,
         },

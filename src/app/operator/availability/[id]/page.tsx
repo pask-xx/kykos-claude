@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
 
@@ -66,6 +67,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [sortBy, setSortBy] = useState<'needScore' | 'requestedAt'>('needScore');
   const [saving, setSaving] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [notifyMessage, setNotifyMessage] = useState('');
   const [sendingNotifications, setSendingNotifications] = useState(false);
 
@@ -277,7 +279,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               Deseleziona
             </button>
             <button
-              onClick={handleAssign}
+              onClick={() => setShowAssignModal(true)}
               disabled={selectedIds.size === 0 || saving}
               className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
             >
@@ -361,13 +363,20 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
 
       {/* Notify Button */}
       <div className="flex justify-end">
-        <button
-          onClick={() => setShowNotifyModal(true)}
-          disabled={pendingRequests.length === 0}
-          className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+        <ConfirmDialog
+          title="Notifica scorte esaurite"
+          message={`Invia notifica a ${pendingRequests.length} beneficiari che non hanno ricevuto l'assegnazione?`}
+          confirmLabel="Procedi"
+          variant="warning"
+          onConfirm={() => setShowNotifyModal(true)}
         >
-          Notifica scorte esaurite ai non assegnati
-        </button>
+          <button
+            disabled={pendingRequests.length === 0}
+            className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+          >
+            Notifica scorte esaurite ai non assegnati
+          </button>
+        </ConfirmDialog>
       </div>
 
       {/* Notify Modal */}
@@ -399,6 +408,44 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
                 {sendingNotifications ? 'Invio...' : 'Invia notifiche'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Confirmation Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAssignModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Conferma assegnazione</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Stai per assegnare <strong>{selectedIds.size}</strong> beneficiari. Questa azione assegnerà i QR code di ritiro e non potrà essere annullata.
+            </p>
+            {remainingQty < selectedIds.size && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-800">
+                  Attenzione: stai assegnando più beneficiari dei posti disponibili ({remainingQty}).
+                </p>
+              </div>
+            )}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowAssignModal(false)}
+                className="flex-1 px-4 py-2 border text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={async () => {
+                  setShowAssignModal(false);
+                  await handleAssign();
+                }}
+                disabled={saving}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {saving ? 'Assegnazione...' : `Assegna ${selectedIds.size}`}
               </button>
             </div>
           </div>
