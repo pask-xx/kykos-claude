@@ -4,6 +4,8 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
 import { randomBytes } from 'crypto';
+import { sendMultiAvailabilityQrNotification } from '@/lib/email';
+import { generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -105,31 +107,80 @@ export async function POST(
     // Genera QR code per ogni beneficiario assegnato
     const qrCodes: string[] = [];
     for (const req of requests) {
-      const qrCode = `MA-${id.slice(0, 8)}-${req.beneficiaryId.slice(0, 8)}-${randomBytes(4).toString('hex').toUpperCase()}`;
-
-      // Ottieni lo score attuale del beneficiario
+      // Ottieni tutti i dettagli del beneficiario
       const beneficiary = await prisma.user.findUnique({
         where: { id: req.beneficiaryId },
-        select: { needScore: true }
+        select: {
+          needScore: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          name: true,
+          nickname: true,
+        }
       });
+
+      if (!beneficiary) continue;
+
+      // Genera QR code nel nuovo formato
+      const qrCodeData = `kykos:multiavailability:pickup:${req.id}:${req.beneficiaryId}`;
+      const qrCodeImageUrl = await generateAndUploadQrCodeWithLogo(qrCodeData, `multi-avail-${req.id}.png`);
 
       await prisma.multiAvailabilityRequest.update({
         where: { id: req.id },
         data: {
           status: 'ASSIGNED',
-          qrCode,
-          needScoreSnapshot: beneficiary?.needScore ?? 50,
+          qrCode: qrCodeData,
+          needScoreSnapshot: beneficiary.needScore ?? 50,
         },
       });
-      qrCodes.push(qrCode);
+      qrCodes.push(qrCodeData);
 
-      // Invia notifica al beneficiario assegnato
+      // Invia email con QR code
+      const recipientName = [beneficiary.firstName, beneficiary.lastName].filter(Boolean).join(' ') || beneficiary.nickname || beneficiary.name || 'Beneficiario';
+
+      // Recupera info organizzazione per l'email
+      const organization = await prisma.organization.findUnique({
+        where: { id: session.organizationId },
+        select: {
+          name: true,
+          address: true,
+          houseNumber: true,
+          cap: true,
+          city: true,
+          province: true,
+          phone: true,
+          email: true,
+          hoursInfo: true,
+        }
+      });
+
+      await sendMultiAvailabilityQrNotification(
+        beneficiary.email,
+        req.beneficiaryId,
+        recipientName,
+        availability.title,
+        availability.id,
+        qrCodeData,
+        qrCodeImageUrl,
+        organization?.name || '',
+        organization?.address || null,
+        organization?.houseNumber || null,
+        organization?.cap || null,
+        organization?.city || null,
+        organization?.province || null,
+        organization?.phone || null,
+        organization?.email || null,
+        organization?.hoursInfo || undefined
+      );
+
+      // Invia notifica
       await prisma.notification.create({
         data: {
           recipientUserId: req.beneficiaryId,
           recipientType: 'USER',
-          title: `Assegnazione ricevuta: ${availability.title}`,
-          message: `Congratulazioni! La tua richiesta per "${availability.title}" è stata accettata. Il tuo QR code per il ritiro è: ${qrCode}. Recati presso l'ente per ritirare il premio.`,
+          title: `Assegnazione confermata: ${availability.title}`,
+          message: `La tua richiesta per "${availability.title}" è stata accettata. Il tuo QR code per il ritiro è pronto.`,
           type: 'REQUEST_APPROVED' as any,
           link: '/recipient/dashboard',
         },

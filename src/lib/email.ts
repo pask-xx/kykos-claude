@@ -894,3 +894,70 @@ export async function sendGoodsPickupQrNotification(
   await createNotificationForUser(beneficiaryId, 'QR Code per il ritiro', `Il tuo QR code per ritirare "${requestTitle}" è pronto`, NotificationType.OBJECT_DELIVERED, '/recipient/requests-entity/requests');
   return true;
 }
+
+export async function sendMultiAvailabilityQrNotification(
+  toEmail: string,
+  beneficiaryId: string,
+  beneficiaryName: string,
+  availabilityTitle: string,
+  availabilityId: string,
+  qrCodeData: string,
+  qrCodeImageUrl: string,
+  organizationName: string,
+  organizationAddress: string | null,
+  organizationHouseNumber: string | null,
+  organizationCap: string | null,
+  organizationCity: string | null,
+  organizationProvince: string | null,
+  organizationPhone: string | null,
+  organizationEmail: string | null,
+  hoursInfo?: string | null
+): Promise<boolean> {
+  const subject = `${APP_NAME} - QR Code per il ritiro: ${availabilityTitle}`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Assegnazione confermata!</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao ${beneficiaryName},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            La tua richiesta per <strong>"${availabilityTitle}"</strong> è stata accettata!</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ecco il QR code per il ritiro:</p>
+          <div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
+            <p style="font-size: 12px; color: #666; margin: 0 0 12px;">QR Code - Ritiro</p>
+            <img src="${qrCodeImageUrl}" alt="QR Code" style="width: 200px; height: 200px;" />
+            <p style="font-family: monospace; font-size: 10px; margin: 8px 0 0 0; word-break: break-all;">${qrCodeData}</p>
+          </div>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Recati presso l'ente per procedere con il ritiro.</p>
+          ${(organizationName || organizationAddress || organizationHouseNumber || organizationCap || organizationCity || organizationProvince || organizationPhone || organizationEmail) ? `<div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="font-size: 14px; color: #059669; font-weight: 600; margin: 0 0 8px;">📍 Dettagli ente</p>
+            ${organizationName ? `<p style="font-size: 14px; color: #374151; font-weight: 600; margin: 0 0 4px;">${organizationName}</p>` : ''}
+            ${organizationAddress ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">${organizationAddress}${organizationHouseNumber ? `, ${organizationHouseNumber}` : ''}${organizationCap || organizationCity ? `<br>${[organizationCap, organizationCity].filter(Boolean).join(' ')}${organizationProvince ? ` (${organizationProvince})` : ''}` : ''}</p>` : ''}
+            ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
+            ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
+          </div>` : ''}
+          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #faf5ff; border-radius: 8px; border-left: 4px solid #7c3aed;">
+            <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
+            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
+          </div>` : ''}
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(beneficiaryId, 'Assegnazione confermata!', `Il tuo QR code per ritirare "${availabilityTitle}" è pronto`, NotificationType.REQUEST_APPROVED, '/recipient/dashboard');
+  return true;
+}

@@ -153,7 +153,7 @@ export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; sub
   console.log('parseQrCodeData: parsing', data);
 
   // New format: kykos:{subType}:deliver/pickup:requestId:userId
-  const newMatch = data.match(/^kykos:(object|goods):(deliver|pickup):(.+):(.+)$/);
+  const newMatch = data.match(/^kykos:(object|goods|multiavailability):(deliver|pickup):(.+):(.+)$/);
   if (newMatch) {
     console.log('parseQrCodeData: matched new format, subType=', newMatch[1], 'action=', newMatch[2], 'requestId=', newMatch[3], 'userId=', newMatch[4]);
     return { type: newMatch[2] as 'deliver' | 'pickup', subType: newMatch[1] as 'object' | 'goods', requestId: newMatch[3], userId: newMatch[4] };
@@ -174,4 +174,8 @@ export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; sub
 
   console.log('parseQrCodeData: no match found, data length:', data.length);
   return null;
+}
+
+export function generateMultiAvailabilityQrCode(requestId: string, beneficiaryId: string): string {
+  return `kykos:multiavailability:pickup:${requestId}:${beneficiaryId}`;
 }
