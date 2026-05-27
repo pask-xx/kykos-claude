@@ -50,19 +50,7 @@ export async function GET(
 
     const availability = await prisma.multiAvailability.findUnique({
       where: { id },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        category: true,
-        imageUrls: true,
-        availableQty: true,
-        assignedQty: true,
-        status: true,
-        deadline: true,
-        exhaustMessage: true,
-        organizationId: true,
-        organization: { select: { id: true, name: true } },
+      include: {
         requests: {
           include: {
             beneficiary: {
@@ -79,6 +67,9 @@ export async function GET(
           },
           orderBy: { needScoreSnapshot: 'desc' },
         },
+        organization: {
+          select: { id: true, name: true }
+        }
       },
     });
 
