@@ -24,44 +24,44 @@ CREATE TABLE "multi_availabilities" (
   "status" "MultiAvailabilityStatus" NOT NULL DEFAULT 'OPEN',
   "deadline" TIMESTAMP(3),
   "exhaust_message" TEXT,
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "organization_id" TEXT NOT NULL
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "organizationId" TEXT NOT NULL
 );
 
 -- Table multi_availability_requests
 CREATE TABLE "multi_availability_requests" (
   "id" TEXT NOT NULL PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  "need_score_snapshot" INTEGER NOT NULL,
-  "requested_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "needScoreSnapshot" INTEGER NOT NULL,
+  "requestedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "status" "MultiAvailabilityRequestStatus" NOT NULL DEFAULT 'PENDING',
-  "qr_code" TEXT,
-  "fulfilled_at" TIMESTAMP(3),
-  "notified_at" TIMESTAMP(3),
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "multi_availability_id" TEXT NOT NULL,
-  "beneficiary_id" TEXT NOT NULL
+  "qrCode" TEXT,
+  "fulfilledAt" TIMESTAMP(3),
+  "notifiedAt" TIMESTAMP(3),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "multiAvailabilityId" TEXT NOT NULL,
+  "beneficiaryId" TEXT NOT NULL
 );
 
 -- Indexes
-CREATE INDEX "multi_availabilities_organization_id_idx" ON "multi_availabilities"("organization_id");
+CREATE INDEX "multi_availabilities_organization_id_idx" ON "multi_availabilities"("organizationId");
 CREATE INDEX "multi_availabilities_status_idx" ON "multi_availabilities"("status");
-CREATE INDEX "multi_availability_requests_multi_availability_id_idx" ON "multi_availability_requests"("multi_availability_id");
-CREATE INDEX "multi_availability_requests_beneficiary_id_idx" ON "multi_availability_requests"("beneficiary_id");
+CREATE INDEX "multi_availability_requests_multi_availability_id_idx" ON "multi_availability_requests"("multiAvailabilityId");
+CREATE INDEX "multi_availability_requests_beneficiary_id_idx" ON "multi_availability_requests"("beneficiaryId");
 
 -- Constraints
 ALTER TABLE "multi_availabilities" ADD CONSTRAINT "multi_availabilities_organization_id_fkey"
-  FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE;
+  FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE;
 
 ALTER TABLE "multi_availability_requests" ADD CONSTRAINT "multi_availability_requests_multi_availability_id_fkey"
-  FOREIGN KEY ("multi_availability_id") REFERENCES "multi_availabilities"("id") ON DELETE CASCADE;
+  FOREIGN KEY ("multiAvailabilityId") REFERENCES "multi_availabilities"("id") ON DELETE CASCADE;
 
 ALTER TABLE "multi_availability_requests" ADD CONSTRAINT "multi_availability_requests_beneficiary_id_fkey"
-  FOREIGN KEY ("beneficiary_id") REFERENCES "users"("id") ON DELETE CASCADE;
+  FOREIGN KEY ("beneficiaryId") REFERENCES "users"("id") ON DELETE CASCADE;
 
 ALTER TABLE "multi_availability_requests" ADD CONSTRAINT "multi_availability_requests_multi_availability_id_beneficiary_id_unique"
-  UNIQUE ("multi_availability_id", "beneficiary_id");
+  UNIQUE ("multiAvailabilityId", "beneficiaryId");
 
 -- ================================================
 -- Down Migration (rollback)
