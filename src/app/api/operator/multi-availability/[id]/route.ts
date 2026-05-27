@@ -81,7 +81,20 @@ export async function GET(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    return NextResponse.json({ availability });
+    // Conta gli assegnati direttamente dal DB
+    const assignedCount = await prisma.multiAvailabilityRequest.count({
+      where: {
+        multiAvailabilityId: id,
+        status: { in: ['ASSIGNED', 'FULFILLED'] }
+      }
+    });
+
+    return NextResponse.json({
+      availability: {
+        ...availability,
+        assignedQty: assignedCount,
+      }
+    });
   } catch (error) {
     console.error('MultiAvailability detail error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });

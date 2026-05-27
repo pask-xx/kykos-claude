@@ -203,22 +203,22 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">Totale richieste</p>
-          <p className="text-2xl font-bold text-gray-900">{availability.requests.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <p className="text-xs sm:text-sm text-gray-500 truncate">Totale richieste</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{availability.requests.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">In attesa</p>
-          <p className="text-2xl font-bold text-amber-600">{pendingRequests.length}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <p className="text-xs sm:text-sm text-gray-500 truncate">In attesa</p>
+          <p className="text-xl sm:text-2xl font-bold text-amber-600">{pendingRequests.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">Assegnati</p>
-          <p className="text-2xl font-bold text-green-600">{assignedRequests.length}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <p className="text-xs sm:text-sm text-gray-500 truncate">Assegnati</p>
+          <p className="text-xl sm:text-2xl font-bold text-green-600">{assignedRequests.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">Disponibili</p>
-          <p className="text-2xl font-bold text-primary-600">{remainingQty}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
+          <p className="text-xs sm:text-sm text-gray-500 truncate">Disponibili</p>
+          <p className="text-xl sm:text-2xl font-bold text-primary-600">{remainingQty}</p>
         </div>
       </div>
 
