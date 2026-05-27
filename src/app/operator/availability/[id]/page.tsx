@@ -440,7 +440,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 onChange={(e) => setNotifyAndClose(e.target.checked)}
                 className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
               />
-              <span>Chiudi anche la disponibilità multipla</span>
+              <span>Chiudi anche la distribuzione corrente</span>
             </label>
             <div className="flex gap-3 mt-6">
               <button
