@@ -161,7 +161,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   };
 
   const pendingRequests = sortedRequests.filter(r => r.status === 'PENDING');
-  const assignedRequests = sortedRequests.filter(r => r.status === 'ASSIGNED');
+  const assignedRequests = sortedRequests.filter(r => r.status === 'ASSIGNED' || r.status === 'FULFILLED');
   const remainingQty = (availability?.availableQty || 0) - (availability?.assignedQty || 0);
 
   if (loading) {
