@@ -115,6 +115,7 @@ export async function POST(request: Request) {
     }
 
     const {
+      nickname,
       firstName,
       lastName,
       fiscalCode,
@@ -137,6 +138,7 @@ export async function POST(request: Request) {
     const beneficiary = await prisma.user.create({
       data: {
         email: `street.${Date.now()}@street.kykos.local`,
+        nickname: nickname || null,
         name: `${firstName} ${lastName}`,
         firstName,
         lastName,

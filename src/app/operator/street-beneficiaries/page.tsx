@@ -26,6 +26,7 @@ interface StreetBeneficiary {
 }
 
 interface FormData {
+  nickname: string;
   firstName: string;
   lastName: string;
   fiscalCode: string;
@@ -46,7 +47,7 @@ export default function StreetBeneficiariesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    firstName: '', lastName: '', fiscalCode: '', birthDate: '',
+    nickname: '', firstName: '', lastName: '', fiscalCode: '', birthDate: '',
     address: '', houseNumber: '', cap: '', city: '', province: '', isee: '',
     latitude: '', longitude: '',
   });
@@ -86,7 +87,7 @@ export default function StreetBeneficiariesPage() {
 
       if (res.ok) {
         setFormData({
-          firstName: '', lastName: '', fiscalCode: '', birthDate: '',
+          nickname: '', firstName: '', lastName: '', fiscalCode: '', birthDate: '',
           address: '', houseNumber: '', cap: '', city: '', province: '', isee: '',
           latitude: '', longitude: '',
         });
@@ -185,6 +186,10 @@ export default function StreetBeneficiariesPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
                 <input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nickname</label>
+                <input type="text" value={formData.nickname} onChange={(e) => setFormData({ ...formData, nickname: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="segreto.vento.42" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Codice Fiscale</label>
