@@ -36,6 +36,12 @@ interface Organization {
   longitude: number | null;
   autoApproveRequests: boolean;
   hoursInfo: string | null;
+  dioceseId: string | null;
+  diocese?: {
+    id: string;
+    name: string;
+    seat: string;
+  };
 }
 
 interface FormData {
@@ -52,6 +58,7 @@ interface FormData {
   longitude: string;
   autoApproveRequests: boolean;
   hoursInfo: string;
+  dioceseId: string;
 }
 
 function RichTextEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
@@ -207,6 +214,7 @@ export default function IntermediaryProfilePage() {
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [dioceses, setDioceses] = useState<{id: string; name: string; seat: string}[]>([]);
   const [form, setForm] = useState<FormData>({
     name: '',
     vatNumber: '',
@@ -244,11 +252,18 @@ export default function IntermediaryProfilePage() {
             longitude: o.longitude?.toString() || '',
             autoApproveRequests: o.autoApproveRequests || false,
             hoursInfo: o.hoursInfo || '',
+            dioceseId: o.dioceseId || '',
           });
         }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    // Fetch all dioceses for the selector
+    fetch('/api/dioceses/all')
+      .then(res => res.json())
+      .then(data => setDioceses(data.dioceses || []))
+      .catch(console.error);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,6 +302,7 @@ export default function IntermediaryProfilePage() {
           longitude: form.longitude || null,
           autoApproveRequests: form.autoApproveRequests,
           hoursInfo: form.hoursInfo || null,
+          dioceseId: form.dioceseId || null,
         }),
       });
 
@@ -515,6 +531,21 @@ export default function IntermediaryProfilePage() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Diocesi</label>
+              <select
+                name="dioceseId"
+                value={form.dioceseId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              >
+                <option value="">Seleziona diocesi</option>
+                {dioceses.map(d => (
+                  <option key={d.id} value={d.id}>{d.name} ({d.seat})</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Associata all'ente per la visibilità degli operatori di strada</p>
             </div>
           </div>
 

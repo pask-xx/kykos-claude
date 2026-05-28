@@ -169,8 +169,53 @@ type OperatorCapabilities = {
 4. **Nuove API**:
    - `POST /api/operator/street-beneficiaries` — crea beneficiario senza account
    - `GET /api/operator/street-beneficiaries` — lista beneficiari assegnati allo street operator
+   - `PATCH /api/operator/street-beneficiaries` — aggiorna beneficiario
    - `POST /api/operator/street-beneficiaries/[id]/operators` — assegna altri street operators
    - `POST /api/operator/requests-street` — crea richiesta per beneficiario street-managed
 5. **Visibilità diocesana**: filtrare query per `entity.dioceseId` per street operators
 6. **Dashboard dedicata**: pagina `/operator/street` con focus su attività street
 7. **Notifiche**: inviare a tutti gli street operators associati al beneficiario
+
+## Implementato (2026-05-28)
+
+### Pagine
+
+- `/operator/street-beneficiaries` — gestione completa anagrafica beneficiari street
+  - Form con CitySelector (provincia → comune)
+  - Geolocalizzazione da indirizzo (geocoding API)
+  - Generatore automatico nickname (aggettivo.nome.123)
+  - Dettagli espansi con nickname, coordinate, ente
+- `/operator/diocese-objects` — "Disponibilità diocesi" per street operators
+  - Visibilità su TUTTI gli oggetti della diocesi
+  - Mostra l'ente di appartenenza per ogni oggetto
+
+### API
+
+- `GET/POST/PATCH /api/operator/street-beneficiaries` — CRUD beneficiari
+- `GET /api/operator/diocese-objects` — oggetti con visibilità diocesana
+- `PATCH /api/operator/[id]` — aggiornamento operatori con flag isOfficeOperator/isStreetOperator
+
+### Interfaccia Amministratori
+
+- `/intermediary/operators` — colonna "Tipo" con badge Ufficio/Strada
+- `/intermediary/operators/[id]` — sezione "Tipo operatore" con checkbox
+  - Ruolo e Permessi visibili solo se isOfficeOperator=true
+
+### Menu Sidebar
+
+- "Beneficiari street" (🧑‍🤝‍🧑) — visibile solo se isStreetOperator
+- "Disponibilità diocesi" (🗺️) — visibile solo se isStreetOperator
+
+### Campi Anagrafici Beneficiario
+
+- nickname (unico per ente, formato aggettivo.nome.123)
+- firstName, lastName, fiscalCode, birthDate
+- address, houseNumber, cap
+- city, province (CitySelector - doppia combo)
+- latitude, longitude (geocoding da indirizzo)
+- isee
+
+### Regole Anonimato
+
+- Donatore NON visibile agli street operators
+- Street operator vede: titolo, descrizione, categoria, condizione, stato, immagini, ente
