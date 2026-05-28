@@ -65,6 +65,8 @@ export async function GET() {
         role: operator.role,
         permissions: operator.permissions,
         organization: operator.organization,
+        isStreetOperator: operator.isStreetOperator,
+        isOfficeOperator: operator.isOfficeOperator,
       },
     });
   } catch (error) {

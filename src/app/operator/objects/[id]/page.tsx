@@ -173,7 +173,7 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     async function checkOperator() {
       try {
-        const res = await fetch('/api/auth/operator-me');
+        const res = await fetch('/api/operator/me');
         if (res.ok) {
           const data = await res.json();
           setOperatorType({
