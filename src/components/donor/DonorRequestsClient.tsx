@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import ImageUploader from '@/components/ImageUploader';
 
 interface GoodsRequest {
   id: string;
@@ -42,7 +41,6 @@ export default function DonorRequestsClient() {
   const [offerSuccess, setOfferSuccess] = useState<string | null>(null);
   const [offerMessage, setOfferMessage] = useState('');
   const [offeringForId, setOfferingForId] = useState<string | null>(null);
-  const [offerImages, setOfferImages] = useState<string[]>([]);
   const [causes, setCauses] = useState<Cause[]>([]);
   const [joiningCauseId, setJoiningCauseId] = useState<string | null>(null);
   const [expandedCauseId, setExpandedCauseId] = useState<string | null>(null);
@@ -151,14 +149,13 @@ export default function DonorRequestsClient() {
       const res = await fetch('/api/donor/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId, message: offerMessage, imageUrls: offerImages }),
+        body: JSON.stringify({ requestId, message: offerMessage }),
       });
 
       if (res.ok) {
         setOfferSuccess('Offerta inviata con successo!');
         setOfferingForId(null);
         setOfferMessage('');
-        setOfferImages([]);
         setRequests(prev => prev.map(r => r.id === requestId ? { ...r, alreadyOffered: true, _count: { ...r._count, offers: r._count.offers + 1 } } : r));
         setTimeout(() => setOfferSuccess(null), 3000);
       } else {
@@ -335,6 +332,7 @@ export default function DonorRequestsClient() {
         </div>
       )}
 
+      {/* Richieste Section */}
       {requests.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -342,135 +340,132 @@ export default function DonorRequestsClient() {
             <h2 className="text-lg font-semibold text-gray-900">Richieste</h2>
           </div>
           {requests.map((req) => (
-        <div
-          key={req.id}
-          className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
-        >
-          {/* Collapsed Card */}
-          <div
-            className="cursor-pointer"
-            onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
-          >
-            <div className="p-4">
-              <div className="flex items-start gap-3">
-                {/* Icon */}
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  req.type === 'SERVICES' ? 'bg-purple-100' : 'bg-primary-100'
-                }`}>
-                  <span className="text-2xl">{req.type === 'SERVICES' ? '🛠️' : '📦'}</span>
-                </div>
+            <div
+              key={req.id}
+              className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
+            >
+              {/* Collapsed Card */}
+              <div
+                className="cursor-pointer"
+                onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
+              >
+                <div className="p-4">
+                  <div className="flex items-start gap-3">
+                    {/* Icon */}
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      req.type === 'SERVICES' ? 'bg-purple-100' : 'bg-primary-100'
+                    }`}>
+                      <span className="text-2xl">{req.type === 'SERVICES' ? '🛠️' : '📦'}</span>
+                    </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900">{req.title}</h3>
-                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[req.type]}`}>
-                      {typeLabels[req.type]}
-                    </span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                      {categoryLabels[req.category] || req.category}
-                    </span>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900">{req.title}</h3>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[req.type]}`}>
+                          {typeLabels[req.type]}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          {categoryLabels[req.category] || req.category}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1.5">
+                        {new Date(req.createdAt).toLocaleDateString('it-IT')}
+                        <span className="mx-1.5">•</span>
+                        {req.intermediary.name}
+                        {req._count.offers > 0 && (
+                          <span className="ml-2 text-amber-600">• {req._count.offers} offerta{req._count.offers !== 1 ? 'e' : ''}</span>
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Expand icon */}
+                    <div className="flex-shrink-0 flex items-center">
+                      <span className={`text-gray-400 transition-transform duration-200 ${expandedId === req.id ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    {new Date(req.createdAt).toLocaleDateString('it-IT')}
-                    <span className="mx-1.5">•</span>
-                    {req.intermediary.name}
-                    {req._count.offers > 0 && (
-                      <span className="ml-2 text-amber-600">• {req._count.offers} offerta{req._count.offers !== 1 ? 'e' : ''}</span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Expand icon */}
-                <div className="flex-shrink-0 flex items-center">
-                  <span className={`text-gray-400 transition-transform duration-200 ${expandedId === req.id ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Expanded Content */}
-          {expandedId === req.id && (
-            <div className="border-t border-gray-100 p-4 bg-gray-50">
-              {/* Description */}
-              {req.description ? (
-                <p className="text-gray-600 mb-4 text-sm leading-relaxed">{req.description}</p>
-              ) : (
-                <p className="text-gray-400 italic mb-4 text-sm">Nessuna descrizione</p>
-              )}
+              {/* Expanded Content */}
+              {expandedId === req.id && (
+                <div className="border-t border-gray-100 p-4 bg-gray-50">
+                  {/* Description */}
+                  {req.description ? (
+                    <p className="text-gray-600 mb-4 text-sm leading-relaxed">{req.description}</p>
+                  ) : (
+                    <p className="text-gray-400 italic mb-4 text-sm">Nessuna descrizione</p>
+                  )}
 
-              {/* Anonymous notice */}
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4 text-xs text-blue-700">
-                <span className="font-medium">🔒 Anonimato</span>
-                <p className="mt-1">La richiesta è anonima. Non puoi vedere chi l'ha fatta.</p>
-              </div>
+                  {/* Anonymous notice */}
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4 text-xs text-blue-700">
+                    <span className="font-medium">🔒 Anonimato</span>
+                    <p className="mt-1">La richiesta è anonima. Non puoi vedere chi l'ha fatta.</p>
+                  </div>
 
-              {/* Offer form or already offered */}
-              {req.alreadyOffered ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
-                  <span className="text-amber-700 font-medium text-sm">✓ Hai già inviato un'offerta per questa richiesta</span>
-                </div>
-              ) : offeringForId === req.id ? (
-                <div className="space-y-3">
-                  <textarea
-                    value={offerMessage}
-                    onChange={(e) => setOfferMessage(e.target.value)}
-                    placeholder="Aggiungi una descrizione del bene che offri (facoltativo)..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                    rows={3}
-                  />
-                  <ImageUploader
-                    onImagesChange={setOfferImages}
-                    maxFiles={5}
-                  />
-                  <div className="flex gap-2">
+                  {/* Offer form or already offered */}
+                  {req.alreadyOffered ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+                      <span className="text-amber-700 font-medium text-sm">✓ Hai già inviato un'offerta per questa richiesta</span>
+                    </div>
+                  ) : offeringForId === req.id ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={offerMessage}
+                        onChange={(e) => setOfferMessage(e.target.value)}
+                        placeholder="Aggiungi un messaggio (facoltativo)..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                        rows={3}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOffer(req.id);
+                          }}
+                          disabled={offeringId === req.id}
+                          className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            req.type === 'SERVICES'
+                              ? 'bg-purple-600 text-white hover:bg-purple-700'
+                              : 'bg-primary-600 text-white hover:bg-primary-700'
+                          }`}
+                        >
+                          {offeringId === req.id ? 'Invio...' : req.type === 'SERVICES' ? 'Offri servizio' : 'Fornisci'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOfferingForId(null);
+                          }}
+                          className="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors"
+                        >
+                          Annulla
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleOffer(req.id);
+                        setOfferingForId(req.id);
                       }}
-                      disabled={offeringId === req.id}
-                      className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
                         req.type === 'SERVICES'
                           ? 'bg-purple-600 text-white hover:bg-purple-700'
                           : 'bg-primary-600 text-white hover:bg-primary-700'
                       }`}
                     >
-                      {offeringId === req.id ? 'Invio...' : req.type === 'SERVICES' ? 'Offri servizio' : 'Invia offerta'}
+                      {req.type === 'SERVICES' ? 'Offri servizio' : 'Fornisci'}
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOfferingForId(null);
-                        setOfferImages([]);
-                      }}
-                      className="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors"
-                    >
-                      Annulla
-                    </button>
-                  </div>
+                  )}
                 </div>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOfferingForId(req.id);
-                  }}
-                  className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                    req.type === 'SERVICES'
-                      ? 'bg-purple-600 text-white hover:bg-purple-700'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  }`}
-                >
-                  {req.type === 'SERVICES' ? 'Offri servizio' : 'Fornisci'}
-                </button>
               )}
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      )}
 
       {/* Load more trigger */}
       {hasNextPage ? (
