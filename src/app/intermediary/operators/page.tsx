@@ -342,6 +342,8 @@ export default function IntermediaryOperatorsPage() {
                       </div>
                       <p className="text-xs text-gray-500 mt-1">Un operatore può avere entrambi i ruoli</p>
                     </div>
+                    {newOp.isOfficeOperator && (
+                      <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>
                       <select
@@ -372,6 +374,8 @@ export default function IntermediaryOperatorsPage() {
                         ))}
                       </div>
                     </div>
+                      </>
+                    )}
                     </div>
 
                   {error && (
