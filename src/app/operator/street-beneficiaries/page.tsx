@@ -5,6 +5,7 @@ import CitySelector from '@/components/geo/CitySelector';
 
 interface StreetBeneficiary {
   id: string;
+  nickname: string | null;
   firstName: string;
   lastName: string;
   fiscalCode: string | null;
@@ -15,6 +16,8 @@ interface StreetBeneficiary {
   city: string | null;
   province: string | null;
   isee: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isStreetManaged: boolean;
   createdAt: string;
   assignedAt: string;
@@ -53,6 +56,7 @@ export default function StreetBeneficiariesPage() {
   });
   const [creating, setCreating] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [generatingNickname, setGeneratingNickname] = useState(false);
@@ -80,10 +84,12 @@ export default function StreetBeneficiariesPage() {
 
     setCreating(true);
     try {
+      const method = editingId ? 'PATCH' : 'POST';
+      const body = editingId ? { ...formData, id: editingId } : formData;
       const res = await fetch('/api/operator/street-beneficiaries', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
@@ -93,16 +99,38 @@ export default function StreetBeneficiariesPage() {
           latitude: '', longitude: '',
         });
         setShowForm(false);
+        setEditingId(null);
         fetchBeneficiaries();
       } else {
         const data = await res.json();
-        setError(data.error || 'Errore nella creazione');
+        setError(data.error || (editingId ? 'Errore durante il salvataggio' : 'Errore nella creazione'));
       }
     } catch (err) {
       setError('Errore di connessione');
     } finally {
       setCreating(false);
     }
+  };
+
+  const startEdit = (b: StreetBeneficiary) => {
+    setEditingId(b.id);
+    setFormData({
+      nickname: b.nickname || '',
+      firstName: b.firstName,
+      lastName: b.lastName,
+      fiscalCode: b.fiscalCode || '',
+      birthDate: b.birthDate ? new Date(b.birthDate).toISOString().split('T')[0] : '',
+      address: b.address || '',
+      houseNumber: b.houseNumber || '',
+      cap: b.cap || '',
+      city: b.city || '',
+      province: b.province || '',
+      isee: b.isee || '',
+      latitude: b.latitude?.toString() || '',
+      longitude: b.longitude?.toString() || '',
+    });
+    setShowForm(true);
+    setExpandedId(null);
   };
 
   const geocodeFromAddress = async () => {
@@ -177,7 +205,9 @@ export default function StreetBeneficiariesPage() {
       {/* Form */}
       {showForm && (
         <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Nuovo beneficiario</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {editingId ? 'Modifica beneficiario' : 'Nuovo beneficiario'}
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -272,8 +302,8 @@ export default function StreetBeneficiariesPage() {
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50">Annulla</button>
-              <button type="submit" disabled={creating} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">{creating ? 'Creazione...' : 'Crea beneficiario'}</button>
+              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setFormData({ nickname: '', firstName: '', lastName: '', fiscalCode: '', birthDate: '', address: '', houseNumber: '', cap: '', city: '', province: '', isee: '', latitude: '', longitude: '' }); }} className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50">Annulla</button>
+              <button type="submit" disabled={creating} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">{creating ? (editingId ? 'Salvataggio...' : 'Creazione...') : (editingId ? 'Salva modifiche' : 'Crea beneficiario')}</button>
             </div>
           </form>
         </div>
@@ -298,6 +328,9 @@ export default function StreetBeneficiariesPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">{b.firstName} {b.lastName}</h3>
                     <p className="text-sm text-gray-500">{[b.address, b.city].filter(Boolean).join(', ')}</p>
+                    {b.nickname && (
+                      <p className="text-xs text-secondary-600 font-mono mt-0.5">@{b.nickname}</p>
+                    )}
                   </div>
                   <span className={`text-gray-400 transition-transform ${expandedId === b.id ? 'rotate-180' : ''}`}>▼</span>
                 </div>
@@ -306,17 +339,20 @@ export default function StreetBeneficiariesPage() {
               {expandedId === b.id && (
                 <div className="border-t border-gray-100 p-4 bg-gray-50">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    {b.nickname && <div><span className="text-gray-500">Nickname:</span><p className="font-medium font-mono">@{b.nickname}</p></div>}
                     <div><span className="text-gray-500">Codice Fiscale:</span><p className="font-medium">{b.fiscalCode || '-'}</p></div>
                     <div><span className="text-gray-500">Data nascita:</span><p className="font-medium">{b.birthDate ? new Date(b.birthDate).toLocaleDateString('it-IT') : '-'}</p></div>
                     <div><span className="text-gray-500">ISEE:</span><p className="font-medium">{b.isee ? `€${parseFloat(b.isee).toLocaleString('it-IT')}` : '-'}</p></div>
                     <div><span className="text-gray-500">Indirizzo:</span><p className="font-medium">{b.address || '-'}{b.houseNumber ? `, ${b.houseNumber}` : ''}</p></div>
                     <div><span className="text-gray-500">CAP:</span><p className="font-medium">{b.cap || '-'}</p></div>
                     <div><span className="text-gray-500">Città:</span><p className="font-medium">{b.city || '-'} {b.province ? `(${b.province})` : ''}</p></div>
+                    {b.latitude && b.longitude && <div><span className="text-gray-500">Coords:</span><p className="font-medium">{b.latitude.toFixed(4)}, {b.longitude.toFixed(4)}</p></div>}
                     <div><span className="text-gray-500">Creato il:</span><p className="font-medium">{new Date(b.createdAt).toLocaleDateString('it-IT')}</p></div>
                     <div><span className="text-gray-500">Assegnato il:</span><p className="font-medium">{new Date(b.assignedAt).toLocaleDateString('it-IT')}</p></div>
                     {b.referenceEntity && <div><span className="text-gray-500">Ente:</span><p className="font-medium">{b.referenceEntity.name}</p></div>}
                   </div>
                   <div className="mt-4 flex gap-2">
+                    <button onClick={() => startEdit(b)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Modifica</button>
                     <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Assegna operatori</button>
                     <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Crea richiesta</button>
                   </div>

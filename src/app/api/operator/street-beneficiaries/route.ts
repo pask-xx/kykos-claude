@@ -56,6 +56,7 @@ export async function GET() {
         beneficiary: {
           select: {
             id: true,
+            nickname: true,
             firstName: true,
             lastName: true,
             fiscalCode: true,
@@ -67,6 +68,8 @@ export async function GET() {
             province: true,
             isee: true,
             isStreetManaged: true,
+            latitude: true,
+            longitude: true,
             createdAt: true,
             referenceEntity: {
               select: {
@@ -181,6 +184,106 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Create street beneficiary error:', error);
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  }
+}
+
+// PATCH /api/operator/street-beneficiaries - aggiorna un beneficiario
+export async function PATCH(request: Request) {
+  try {
+    const session = await getOperatorSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    const operator = await prisma.operator.findUnique({
+      where: { id: session.operatorId },
+    });
+
+    if (!operator || !operator.active) {
+      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+    }
+
+    if (!operator.isStreetOperator) {
+      return NextResponse.json({ error: 'Non è un operatore di strada' }, { status: 403 });
+    }
+
+    const {
+      id,
+      nickname,
+      firstName,
+      lastName,
+      fiscalCode,
+      birthDate,
+      address,
+      houseNumber,
+      cap,
+      city,
+      province,
+      latitude,
+      longitude,
+      isee,
+    } = await request.json();
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID beneficiario richiesto' }, { status: 400 });
+    }
+
+    // Verifica che il beneficiario sia assegnato a questo operator
+    const assignment = await prisma.streetOperatorBeneficiary.findFirst({
+      where: {
+        streetOperatorId: session.operatorId,
+        beneficiaryId: id,
+      },
+    });
+
+    if (!assignment) {
+      return NextResponse.json({ error: 'Beneficiario non assegnato a questo operatore' }, { status: 403 });
+    }
+
+    // Costruisci i dati da aggiornare
+    const updateData: any = {};
+    if (nickname !== undefined) updateData.nickname = nickname || null;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (fiscalCode !== undefined) updateData.fiscalCode = fiscalCode || null;
+    if (birthDate !== undefined) updateData.birthDate = birthDate ? new Date(birthDate) : null;
+    if (address !== undefined) updateData.address = address || null;
+    if (houseNumber !== undefined) updateData.houseNumber = houseNumber || null;
+    if (cap !== undefined) updateData.cap = cap || null;
+    if (city !== undefined) updateData.city = city || null;
+    if (province !== undefined) updateData.province = province || null;
+    if (latitude !== undefined) updateData.latitude = latitude ? parseFloat(latitude) : null;
+    if (longitude !== undefined) updateData.longitude = longitude ? parseFloat(longitude) : null;
+    if (isee !== undefined) updateData.isee = isee ? parseFloat(isee) : null;
+    if (firstName || lastName) updateData.name = `${firstName || ''} ${lastName || ''}`.trim();
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return NextResponse.json({
+      beneficiary: {
+        id: updated.id,
+        nickname: updated.nickname,
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        fiscalCode: updated.fiscalCode,
+        birthDate: updated.birthDate,
+        address: updated.address,
+        houseNumber: updated.houseNumber,
+        cap: updated.cap,
+        city: updated.city,
+        province: updated.province,
+        latitude: updated.latitude,
+        longitude: updated.longitude,
+        isee: updated.isee,
+      },
+    });
+  } catch (error) {
+    console.error('Update street beneficiary error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
