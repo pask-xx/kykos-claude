@@ -14,6 +14,8 @@ interface Operator {
   role: OperatorRole;
   permissions: string[];
   active: boolean;
+  isOfficeOperator: boolean;
+  isStreetOperator: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +44,8 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
     phone: '',
     role: 'OPERATORE' as OperatorRole,
     permissions: [] as string[],
+    isOfficeOperator: true,
+    isStreetOperator: false,
   });
 
   useEffect(() => {
@@ -61,6 +65,8 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
           phone: data.operator.phone || '',
           role: data.operator.role,
           permissions: data.operator.permissions || [],
+          isOfficeOperator: data.operator.isOfficeOperator ?? true,
+          isStreetOperator: data.operator.isStreetOperator ?? false,
         });
       } else {
         const err = await res.json();
@@ -90,6 +96,8 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
           phone: form.phone || null,
           role: form.role,
           permissions: form.permissions,
+          isOfficeOperator: form.isOfficeOperator,
+          isStreetOperator: form.isStreetOperator,
         }),
       });
 
@@ -247,6 +255,38 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Tipo operatore</h2>
+          <div className="space-y-2">
+            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.isOfficeOperator}
+                onChange={(e) => setForm(prev => ({ ...prev, isOfficeOperator: e.target.checked }))}
+                className="w-4 h-4 rounded border-gray-300 text-primary-600"
+              />
+              <div>
+                <p className="font-medium text-gray-900">Operatore d'ufficio</p>
+                <p className="text-xs text-gray-500">Può accedere alla dashboard e gestire richieste/oggetti</p>
+              </div>
+            </label>
+            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.isStreetOperator}
+                onChange={(e) => setForm(prev => ({ ...prev, isStreetOperator: e.target.checked }))}
+                className="w-4 h-4 rounded border-gray-300 text-primary-600"
+              />
+              <div>
+                <p className="font-medium text-gray-900">Operatore di strada</p>
+                <p className="text-xs text-gray-500">Gestisce beneficiari senza account e ha visibilità diocesana</p>
+              </div>
+            </label>
+          </div>
+          <p className="text-sm text-gray-500 mt-3">Un operatore può avere entrambi i tipi.</p>
+        </div>
+
+        {form.isOfficeOperator && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Ruolo e Permessi</h2>
 
           <div className="mb-6">
@@ -295,6 +335,7 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
             </button>
           </div>
         </div>
+        )}
       </form>
 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
