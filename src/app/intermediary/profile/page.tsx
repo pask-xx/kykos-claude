@@ -268,7 +268,11 @@ export default function IntermediaryProfilePage() {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type, checked } = e.target;
+    const target = e.target;
+    const name = target.name;
+    const value = target.value;
+    const type = target.type;
+    const checked = type === 'checkbox' ? (target as HTMLInputElement).checked : undefined;
     setForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
