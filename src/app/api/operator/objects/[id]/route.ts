@@ -78,7 +78,23 @@ export async function GET(
     }
 
     if (object.intermediaryId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+      // Check if operator is street operator and object is in same diocese
+      if (operator.isStreetOperator) {
+        const opOrg = await prisma.organization.findUnique({
+          where: { id: session.organizationId },
+          select: { dioceseId: true },
+        });
+        const objOrg = await prisma.organization.findUnique({
+          where: { id: object.intermediaryId },
+          select: { dioceseId: true },
+        });
+
+        if (!opOrg?.dioceseId || opOrg.dioceseId !== objOrg?.dioceseId) {
+          return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+        }
+      } else {
+        return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+      }
     }
 
     // Get deposit location from object and recipient from request

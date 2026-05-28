@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { hasPermission, hasAnyPermission } from '@/lib/permissions';
+import { hasAnyPermission } from '@/lib/permissions';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -29,7 +29,7 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getOperatorSession();
 
@@ -45,31 +45,122 @@ export async function GET() {
       return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
     }
 
-    // Check permission
     if (!hasAnyPermission(operator.role, operator.permissions, ['RECIPIENT_AUTHORIZE'])) {
       return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
     }
 
-    const recipients = await prisma.user.findMany({
-      where: { referenceEntityId: session.organizationId },
-      select: {
-        id: true,
-        nickname: true,
-        name: true,
-        email: true,
-        authorized: true,
-        authorizedAt: true,
-        createdAt: true,
-        isee: true,
-        needScore: true,
-      },
-      orderBy: { needScore: 'desc' },
-    });
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q') || '';
+    const isStreet = operator.isStreetOperator;
 
-    return NextResponse.json({ recipients });
+    if (isStreet) {
+      // Get organization to find diocese
+      const org = await prisma.organization.findUnique({
+        where: { id: session.organizationId },
+        select: { dioceseId: true },
+      });
+
+      if (!org?.dioceseId) {
+        return NextResponse.json({ error: 'Ente non associato a una diocesi' }, { status: 400 });
+      }
+
+      // Find all organizations in the same diocese
+      const organizationsInDiocese = await prisma.organization.findMany({
+        where: { dioceseId: org.dioceseId },
+        select: { id: true },
+      });
+
+      const orgIds = organizationsInDiocese.map(o => o.id);
+
+      // Search recipients across all organizations in the diocese
+      const whereClause: any = {
+        role: 'RECIPIENT',
+        referenceEntityId: { in: orgIds },
+        authorized: true,
+      };
+
+      if (query) {
+        whereClause.OR = [
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+          { fiscalCode: { contains: query, mode: 'insensitive' } },
+          { nickname: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: 'insensitive' } },
+        ];
+      }
+
+      const recipients = await prisma.user.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          nickname: true,
+          firstName: true,
+          lastName: true,
+          fiscalCode: true,
+          birthDate: true,
+          city: true,
+          province: true,
+          isStreetManaged: true,
+          referenceEntity: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+            },
+          },
+        },
+        orderBy: { lastName: 'asc' },
+        take: 50,
+      });
+
+      return NextResponse.json({ recipients });
+    } else {
+      // Office operator - only their organization
+      const whereClause: any = {
+        role: 'RECIPIENT',
+        referenceEntityId: session.organizationId,
+        authorized: true,
+      };
+
+      if (query) {
+        whereClause.OR = [
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+          { fiscalCode: { contains: query, mode: 'insensitive' } },
+          { nickname: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: 'insensitive' } },
+        ];
+      }
+
+      const recipients = await prisma.user.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          nickname: true,
+          firstName: true,
+          lastName: true,
+          fiscalCode: true,
+          birthDate: true,
+          city: true,
+          province: true,
+          isStreetManaged: true,
+          referenceEntity: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+            },
+          },
+        },
+        orderBy: { lastName: 'asc' },
+        take: 50,
+      });
+
+      return NextResponse.json({ recipients });
+    }
   } catch (error) {
     console.error('Operator recipients error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status:  500 });
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
 
@@ -89,7 +180,6 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
     }
 
-    // Check permission
     if (!hasAnyPermission(operator.role, operator.permissions, ['RECIPIENT_AUTHORIZE'])) {
       return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
     }

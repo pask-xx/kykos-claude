@@ -1,0 +1,150 @@
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+import { prisma } from '@/lib/prisma';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
+);
+
+interface OperatorSession {
+  operatorId: string;
+  organizationId: string;
+  username: string;
+  role: string;
+}
+
+async function getOperatorSession(): Promise<OperatorSession | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('operator_session')?.value;
+
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as OperatorSession;
+  } catch {
+    return null;
+  }
+}
+
+// POST /api/operator/request-object - crea richiesta per un beneficiario
+export async function POST(request: Request) {
+  try {
+    const session = await getOperatorSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    const operator = await prisma.operator.findUnique({
+      where: { id: session.operatorId },
+    });
+
+    if (!operator || !operator.active) {
+      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+    }
+
+    if (!operator.isStreetOperator && !operator.isOfficeOperator) {
+      return NextResponse.json({ error: 'Non è un operatore abilitato' }, { status: 403 });
+    }
+
+    const { objectId, recipientId, message } = await request.json();
+
+    if (!objectId || !recipientId) {
+      return NextResponse.json({ error: 'objectId e recipientId sono obbligatori' }, { status: 400 });
+    }
+
+    // Get object and verify it's AVAILABLE
+    const object = await prisma.object.findUnique({
+      where: { id: objectId },
+    });
+
+    if (!object) {
+      return NextResponse.json({ error: 'Oggetto non trovato' }, { status: 404 });
+    }
+
+    if (object.status !== 'AVAILABLE') {
+      return NextResponse.json({ error: 'L\'oggetto non è più disponibile' }, { status: 400 });
+    }
+
+    // Get recipient
+    const recipient = await prisma.user.findUnique({
+      where: { id: recipientId },
+    });
+
+    if (!recipient) {
+      return NextResponse.json({ error: 'Beneficiario non trovato' }, { status: 404 });
+    }
+
+    if (recipient.role !== 'RECIPIENT') {
+      return NextResponse.json({ error: 'L\'utente non è un beneficiario' }, { status: 400 });
+    }
+
+    if (!recipient.authorized) {
+      return NextResponse.json({ error: 'Il beneficiario non è autorizzato' }, { status: 400 });
+    }
+
+    // Get the intermediary organization for this object (where it was deposited)
+    const objectOrg = await prisma.organization.findUnique({
+      where: { id: object.intermediaryId },
+    });
+
+    if (!objectOrg) {
+      return NextResponse.json({ error: 'Ente dell\'oggetto non trovato' }, { status: 404 });
+    }
+
+    // Check that the object organization is in the same diocese as the operator's organization
+    const operatorOrg = await prisma.organization.findUnique({
+      where: { id: session.organizationId },
+      select: { dioceseId: true },
+    });
+
+    if (!operatorOrg?.dioceseId || operatorOrg.dioceseId !== objectOrg.dioceseId) {
+      return NextResponse.json({ error: 'L\'oggetto non è nella tua diocesi' }, { status: 403 });
+    }
+
+    // Check if there's already a pending/approved request for this object and recipient
+    const existingRequest = await prisma.request.findFirst({
+      where: {
+        objectId,
+        recipientId,
+        status: { in: ['PENDING', 'APPROVED'] },
+      },
+    });
+
+    if (existingRequest) {
+      return NextResponse.json({ error: 'Esiste già una richiesta per questo oggetto e beneficiario' }, { status: 400 });
+    }
+
+    // Create the request - auto-approved since street operator is a delegate of the entity
+    const newRequest = await prisma.request.create({
+      data: {
+        objectId,
+        recipientId,
+        intermediaryId: object.intermediaryId, // Use the object's intermediary
+        status: 'APPROVED', // Auto-approved as the operator is a delegate
+        message: message || null,
+      },
+    });
+
+    // Update object status to RESERVED
+    await prisma.object.update({
+      where: { id: objectId },
+      data: { status: 'RESERVED' },
+    });
+
+    return NextResponse.json({
+      success: true,
+      request: {
+        id: newRequest.id,
+        status: newRequest.status,
+        objectId: newRequest.objectId,
+        recipientId: newRequest.recipientId,
+      },
+    });
+  } catch (error) {
+    console.error('Create request error:', error);
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  }
+}

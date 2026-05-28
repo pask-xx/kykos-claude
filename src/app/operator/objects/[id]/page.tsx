@@ -167,6 +167,27 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
     printWindow.close();
   };
 
+  const [operatorType, setOperatorType] = useState<{ isStreetOperator: boolean; isOfficeOperator: boolean } | null>(null);
+
+  // Check if operator is street operator
+  useEffect(() => {
+    async function checkOperator() {
+      try {
+        const res = await fetch('/api/auth/operator-me');
+        if (res.ok) {
+          const data = await res.json();
+          setOperatorType({
+            isStreetOperator: data.operator.isStreetOperator || false,
+            isOfficeOperator: data.operator.isOfficeOperator || false,
+          });
+        }
+      } catch (err) {
+        console.error('Error checking operator:', err);
+      }
+    }
+    checkOperator();
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -211,6 +232,14 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
           >
             🖨️ Stampa etichetta
           </button>
+        )}
+        {operatorType?.isStreetOperator && object.status === 'AVAILABLE' && (
+          <Link
+            href={`/operator/objects/${id}/request`}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
+          >
+            📩 Richiedi
+          </Link>
         )}
       </div>
 
