@@ -494,12 +494,10 @@ export default function RecipientFeedClient() {
       {/* Regular Objects Section */}
       {objects.length > 0 && (
         <div className="space-y-3">
-          {availableMultiAvailabilities.length > 0 && (
-            <div className="flex items-center gap-2 pt-4 border-t">
-              <span className="text-2xl">🎁</span>
-              <h2 className="text-lg font-semibold text-gray-900">Oggetti disponibili</h2>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🎁</span>
+            <h2 className="text-lg font-semibold text-gray-900">Oggetti disponibili</h2>
+          </div>
           {objects.map((obj) => (
             <div
               key={obj.id}
