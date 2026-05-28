@@ -30,6 +30,8 @@ export async function POST(request: Request) {
       lastName,
       notifyEmail,
       role,
+      isOfficeOperator,
+      isStreetOperator,
     } = await request.json();
 
     // Validate required fields
@@ -114,6 +116,8 @@ export async function POST(request: Request) {
         lastName,
         role: role || 'OPERATORE',
         organizationId: organization.id,
+        isOfficeOperator: isOfficeOperator !== false, // default true
+        isStreetOperator: isStreetOperator || false,   // default false
       },
     });
 

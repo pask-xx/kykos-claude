@@ -12,6 +12,8 @@ interface NavItem {
   label: string;
   icon: string;
   permission?: OperatorPermission;
+  streetOnly?: boolean;
+  officeOnly?: boolean;
 }
 
 const allNavItems: NavItem[] = [
@@ -30,6 +32,7 @@ const allNavItems: NavItem[] = [
   { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
+  { href: '/operator/street-beneficiaries', label: 'Beneficiari street', icon: '🧑‍🤝‍🧑', streetOnly: true },
 ];
 
 interface OperatorSidebarProps {
@@ -37,6 +40,8 @@ interface OperatorSidebarProps {
   operatorPermissions: string[];
   operatorName: string;
   organizationName: string;
+  isOfficeOperator: boolean;
+  isStreetOperator: boolean;
   children: React.ReactNode;
 }
 
@@ -45,6 +50,8 @@ export default function OperatorSidebar({
   operatorPermissions,
   operatorName,
   organizationName,
+  isOfficeOperator,
+  isStreetOperator,
   children,
 }: OperatorSidebarProps) {
   const pathname = usePathname();
@@ -63,6 +70,11 @@ export default function OperatorSidebar({
   };
 
   const navItems = allNavItems.filter(item => {
+    // Filtra per tipo operatore
+    if (item.streetOnly && !isStreetOperator) return false;
+    if (item.officeOnly && !isOfficeOperator) return false;
+
+    // Filtra per permesso
     if (!item.permission) return true;
     return hasPermission(item.permission);
   });

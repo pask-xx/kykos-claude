@@ -50,8 +50,31 @@ export async function GET() {
       return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
     }
 
+    // Se è street operator, vede TUTTI gli oggetti della diocesi
+    // Altrimenti vede solo gli oggetti del proprio ente
+    let whereClause: any = {};
+
+    if (operator.isStreetOperator && !operator.isOfficeOperator) {
+      // Solo street operator: visibilità diocesana
+      const org = await prisma.organization.findUnique({
+        where: { id: session.organizationId },
+        select: { dioceseId: true },
+      });
+
+      if (org?.dioceseId) {
+        whereClause = {
+          intermediary: {
+            dioceseId: org.dioceseId,
+          },
+        };
+      }
+    } else {
+      // Operatore d'ufficio o misto: solo proprio ente
+      whereClause = { intermediaryId: session.organizationId };
+    }
+
     const objects = await prisma.object.findMany({
-      where: { intermediaryId: session.organizationId },
+      where: whereClause,
       select: {
         id: true,
         title: true,

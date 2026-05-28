@@ -211,6 +211,7 @@ model User {
   canProvideServicesAt DateTime?
   canRequestGoods     Boolean       @default(true)
   canRequestServices  Boolean       @default(false)
+  isStreetManaged     Boolean       @default(false) // true = senza account, gestito da street operators
 
   // Donor relations
   donatedObjects Object[]      @relation("DonorObjects")
@@ -245,6 +246,9 @@ model User {
 
   // Cause participation
   causeParticipations CauseParticipant[]
+
+  // Street operators che gestiscono questo beneficiario (se isStreetManaged=true)
+  managedByStreetOperators StreetOperatorBeneficiary[]
 
   @@map("users")
 }
@@ -457,6 +461,8 @@ model Operator {
   role           OperatorRole @default(OPERATORE)
   permissions    String[]     @default([]) // additional granular permissions
   active         Boolean      @default(true)
+  isOfficeOperator  Boolean    @default(true)  // operatore d'ufficio (comportamento attuale)
+  isStreetOperator  Boolean    @default(false)  // operatore di strada
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -466,8 +472,28 @@ model Operator {
   // Notifications
   notifications Notification[] @relation("NotificationOperator")
 
+  // Street operator: beneficiari gestiti
+  managedBeneficiaries StreetOperatorBeneficiary[]
+
   @@unique([username])
   @@map("operators")
+}
+
+// Associa più street operators allo stesso beneficiario (turnazione/backup)
+model StreetOperatorBeneficiary {
+  id               String   @id @default(cuid())
+  assignedAt       DateTime @default(now())
+
+  streetOperatorId String
+  streetOperator   Operator @relation(fields: [streetOperatorId], references: [id], onDelete: Cascade)
+
+  beneficiaryId    String
+  beneficiary      User     @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@unique([streetOperatorId, beneficiaryId])
+  @@index([streetOperatorId])
+  @@index([beneficiaryId])
+  @@map("street_operator_beneficiaries")
 }
 
 enum ReportStatus {

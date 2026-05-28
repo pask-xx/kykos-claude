@@ -55,6 +55,8 @@ export default async function OperatorLayout({ children }: { children: React.Rea
       operatorPermissions={operator.permissions}
       operatorName={`${operator.firstName} ${operator.lastName}`}
       organizationName={operator.organization.name}
+      isOfficeOperator={operator.isOfficeOperator}
+      isStreetOperator={operator.isStreetOperator}
     >
       {children}
     </OperatorSidebar>
