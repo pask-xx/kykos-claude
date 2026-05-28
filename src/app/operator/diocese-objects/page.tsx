@@ -25,8 +25,6 @@ export default function DioceseObjectsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('AVAILABLE');
-  const [showDonated, setShowDonated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,7 +44,8 @@ export default function DioceseObjectsPage() {
         throw new Error(data.error || 'Errore nel caricamento');
       }
       const data = await res.json();
-      setObjects(data.objects || []);
+      // Filter only AVAILABLE objects
+      setObjects((data.objects || []).filter((o: Object) => o.status === 'AVAILABLE'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore generico');
     } finally {
@@ -58,36 +57,10 @@ export default function DioceseObjectsPage() {
     const matchesSearch = obj.title.toLowerCase().includes(search.toLowerCase()) ||
       (obj.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
     const matchesCategory = !filterCategory || obj.category === filterCategory;
-    if (obj.status === 'DONATED' && !showDonated) return false;
-    const matchesStatus = !filterStatus || obj.status === filterStatus;
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Ritirato</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
-      case 'CANCELLED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Cancellato</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
-  };
-
   const categories = [...new Set(objects.map(o => o.category))];
-  const statuses = [...new Set(objects.map(o => o.status))].filter(s => s !== 'DONATED');
-  const STATUS_LABELS: Record<string, string> = {
-    AVAILABLE: 'Disponibile',
-    RESERVED: 'Riservata',
-    DEPOSITED: 'Depositata',
-    CANCELLED: 'Cancellato',
-  };
 
   if (loading) {
     return (
@@ -113,17 +86,8 @@ export default function DioceseObjectsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Disponibilità diocesi</h1>
-          <p className="text-gray-500">{filteredObjects.length} oggetti in tutta la diocesi</p>
+          <p className="text-gray-500">{filteredObjects.length} oggetti disponibili</p>
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            checked={showDonated}
-            onChange={(e) => setShowDonated(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300"
-          />
-          Mostra donati
-        </label>
       </div>
 
       {/* Filters */}
@@ -141,21 +105,11 @@ export default function DioceseObjectsPage() {
             onChange={(e) => setFilterCategory(e.target.value)}
             className="flex-1 min-w-[140px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
           >
-            <option value="">Tutte</option>
+            <option value="">Tutte le categorie</option>
             {categories.map(cat => (
               <option key={cat} value={cat}>
                 {CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}
               </option>
-            ))}
-          </select>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="flex-1 min-w-[140px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-          >
-            <option value="">Tutti gli stati</option>
-            {statuses.map(status => (
-              <option key={status} value={status}>{STATUS_LABELS[status] || status}</option>
             ))}
           </select>
         </div>
@@ -187,10 +141,7 @@ export default function DioceseObjectsPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
-                    {getStatusBadge(obj.status)}
-                  </div>
+                  <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
                   <p className="text-sm text-gray-500 mt-1">
                     {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
                     <span className="text-gray-400 ml-1">
@@ -202,21 +153,6 @@ export default function DioceseObjectsPage() {
                   </p>
                 </div>
               </div>
-
-              {/* Action for DEPOSITED */}
-              {obj.status === 'DEPOSITED' && (
-                <div
-                  className="mt-3 pt-3 border-t border-gray-100"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Link
-                    href={`/operator/objects/${obj.id}/deliver`}
-                    className="inline-block px-3 py-1.5 bg-green-100 text-green-700 text-xs rounded-lg hover:bg-green-200 font-medium"
-                  >
-                    📦 Conferma consegna
-                  </Link>
-                </div>
-              )}
             </div>
           ))}
         </div>
