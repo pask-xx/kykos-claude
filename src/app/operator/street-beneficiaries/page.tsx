@@ -55,6 +55,7 @@ export default function StreetBeneficiariesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [generatingNickname, setGeneratingNickname] = useState(false);
 
   const fetchBeneficiaries = useCallback(async () => {
     try {
@@ -189,7 +190,28 @@ export default function StreetBeneficiariesPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nickname</label>
-                <input type="text" value={formData.nickname} onChange={(e) => setFormData({ ...formData, nickname: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="segreto.vento.42" />
+                <div className="flex gap-2">
+                  <input type="text" value={formData.nickname} onChange={(e) => setFormData({ ...formData, nickname: e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, '') })} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="segreto.vento.42" maxLength={30} />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setGeneratingNickname(true);
+                      try {
+                        const adjectives = ['buono', 'gentile', 'caldo', 'luminoso', 'mite', 'sereno', 'solare', 'felice', 'saggio', 'ardito', 'coraggioso', 'giusto', 'puro', 'lucente', 'pacifico', 'grazioso', 'speranzoso', 'allegro', 'fiducioso', 'rapido', 'selvaggio', 'delicato', 'amorevole', 'premuroso', 'generoso', 'nobile'];
+                        const nouns = ['cuore', 'anima', 'spirito', 'sogno', 'speranza', 'sole', 'stella', 'luna', 'nuvola', 'pioggia', 'vento', 'fiore', 'albero', 'uccello', 'foglia', 'fiume', 'montagna', 'oceano', 'foresta', 'giardino', 'melodia', 'armonia', 'sapienza', 'coraggio', 'pace', 'gioia'];
+                        const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+                        setFormData(prev => ({ ...prev, nickname: `${pick(adjectives)}.${pick(nouns)}.${Math.floor(Math.random() * 999) + 1}` }));
+                      } finally {
+                        setGeneratingNickname(false);
+                      }
+                    }}
+                    disabled={generatingNickname}
+                    className="px-4 py-2 bg-secondary-100 text-secondary-700 text-sm font-medium rounded-lg hover:bg-secondary-200 disabled:opacity-50 transition"
+                  >
+                    {generatingNickname ? '...' : 'Genera'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Usato dagli enti per identificare il beneficiario</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Codice Fiscale</label>
