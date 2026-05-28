@@ -214,7 +214,8 @@ export default function IntermediaryProfilePage() {
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [dioceses, setDioceses] = useState<{id: string; name: string; seat: string}[]>([]);
+  const [dioceses, setDioceses] = useState<{id: string; name: string; seat: string; distance?: number}[]>([]);
+  const [cityCoords, setCityCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [form, setForm] = useState<FormData>({
     name: '',
     vatNumber: '',
@@ -255,17 +256,33 @@ export default function IntermediaryProfilePage() {
             hoursInfo: o.hoursInfo || '',
             dioceseId: o.dioceseId || '',
           });
+          // Set city coords for diocese lookup
+          if (o.latitude && o.longitude) {
+            setCityCoords({ lat: o.latitude, lng: o.longitude });
+          }
         }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-
-    // Fetch all dioceses for the selector
-    fetch('/api/dioceses/all')
-      .then(res => res.json())
-      .then(data => setDioceses(data.dioceses || []))
-      .catch(console.error);
   }, []);
+
+  // Fetch dioceses when coordinates are available
+  useEffect(() => {
+    if (cityCoords.lat && cityCoords.lng) {
+      fetchNearbyDioceses();
+    }
+  }, [cityCoords.lat, cityCoords.lng]);
+
+  const fetchNearbyDioceses = async () => {
+    if (!cityCoords.lat || !cityCoords.lng) return;
+    try {
+      const res = await fetch(`/api/dioceses?lat=${cityCoords.lat}&lng=${cityCoords.lng}&radius=100`);
+      const data = await res.json();
+      setDioceses(data.dioceses || []);
+    } catch (err) {
+      console.error('Error fetching dioceses:', err);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const target = e.target;
@@ -341,6 +358,7 @@ export default function IntermediaryProfilePage() {
           latitude: position.coords.latitude.toString(),
           longitude: position.coords.longitude.toString(),
         }));
+        setCityCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
         setLocating(false);
         setSuccess(false);
       },
@@ -388,6 +406,7 @@ export default function IntermediaryProfilePage() {
         latitude: data.latitude.toString(),
         longitude: data.longitude.toString(),
       }));
+      setCityCoords({ lat: data.latitude, lng: data.longitude });
       setSuccess(false);
     } catch (err) {
       setLocationError(err instanceof Error ? err.message : 'Errore');
@@ -539,18 +558,30 @@ export default function IntermediaryProfilePage() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Diocesi</label>
-              <select
-                name="dioceseId"
-                value={form.dioceseId}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                <option value="">Seleziona diocesi</option>
-                {dioceses.map(d => (
-                  <option key={d.id} value={d.id}>{d.name} ({d.seat})</option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Associata all'ente per la visibilità degli operatori di strada</p>
+              {dioceses.length > 0 ? (
+                <select
+                  name="dioceseId"
+                  value={form.dioceseId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                >
+                  <option value="">Seleziona diocesi</option>
+                  {dioceses.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} ({d.seat}){d.distance !== undefined ? ` - ${d.distance.toFixed(1)} km` : ''}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                  {form.latitude && form.longitude ? 'Nessuna diocesi trovata nelle vicinanze' : 'Rileva prima la posizione per vedere le diocesi vicine'}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                {dioceses.length > 0
+                  ? 'Diocesi disponibili nelle vicinanze'
+                  : 'Geolocalizza l\'ente per trovare le diocesi vicine'}
+              </p>
             </div>
           </div>
 
