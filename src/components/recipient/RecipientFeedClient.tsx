@@ -496,7 +496,7 @@ export default function RecipientFeedClient() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🎁</span>
-            <h2 className="text-lg font-semibold text-gray-900">Oggetti disponibili</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Disponibilità</h2>
           </div>
           {objects.map((obj) => (
             <div
