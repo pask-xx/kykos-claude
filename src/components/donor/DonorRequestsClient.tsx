@@ -335,7 +335,13 @@ export default function DonorRequestsClient() {
         </div>
       )}
 
-      {requests.map((req) => (
+      {requests.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📋</span>
+            <h2 className="text-lg font-semibold text-gray-900">Richieste</h2>
+          </div>
+          {requests.map((req) => (
         <div
           key={req.id}
           className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
