@@ -33,6 +33,7 @@ const allNavItems: NavItem[] = [
   { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
   { href: '/operator/street-beneficiaries', label: 'Beneficiari street', icon: '🧑‍🤝‍🧑', streetOnly: true },
+  { href: '/operator/diocese-objects', label: 'Disponibilità diocesi', icon: '🗺️', streetOnly: true },
 ];
 
 interface OperatorSidebarProps {
