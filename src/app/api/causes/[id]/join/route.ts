@@ -13,7 +13,9 @@ async function getUserSession() {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as { userId: string; role: string };
+    const user = (payload as { user?: { id: string; email: string; name: string; role: string } }).user;
+    if (!user) return null;
+    return { userId: user.id, role: user.role };
   } catch {
     return null;
   }
