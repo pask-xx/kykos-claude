@@ -47,16 +47,6 @@ export default async function DonorDashboard() {
           </div>
         </div>
       )}
-      {!user?.canProvideServices && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-center gap-3">
-          <span className="text-xl">ℹ️</span>
-          <div>
-            <p className="text-sm font-medium text-amber-800">Solo beni disponibili</p>
-            <p className="text-xs text-amber-600">Le richieste di servizi sono nascoste</p>
-          </div>
-        </div>
-      )}
-
       {/* Requests Feed */}
       <DonorRequestsClient />
     </div>
