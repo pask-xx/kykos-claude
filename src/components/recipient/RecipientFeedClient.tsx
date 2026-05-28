@@ -395,6 +395,9 @@ export default function RecipientFeedClient() {
           ))}
         </div>
       )}
+
+      {/* Multi Availabilities Section */}
+      {availableMultiAvailabilities.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl">📦</span>
