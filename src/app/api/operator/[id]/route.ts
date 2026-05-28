@@ -85,6 +85,8 @@ export async function GET(
         role: operator.role,
         permissions: operator.permissions,
         active: operator.active,
+        isOfficeOperator: operator.isOfficeOperator,
+        isStreetOperator: operator.isStreetOperator,
         createdAt: operator.createdAt,
         updatedAt: operator.updatedAt,
       },
@@ -155,6 +157,8 @@ export async function PATCH(
       role,
       permissions,
       active,
+      isOfficeOperator,
+      isStreetOperator,
     } = await request.json();
 
     // Check if new username conflicts with another operator
@@ -181,6 +185,8 @@ export async function PATCH(
     if (role !== undefined) updateData.role = role;
     if (permissions !== undefined) updateData.permissions = permissions;
     if (active !== undefined) updateData.active = active;
+    if (isOfficeOperator !== undefined) updateData.isOfficeOperator = isOfficeOperator;
+    if (isStreetOperator !== undefined) updateData.isStreetOperator = isStreetOperator;
     if (password) {
       return NextResponse.json(
         { error: 'La modifica della password non è supportata per questo tipo di account' },
@@ -202,7 +208,12 @@ export async function PATCH(
         firstName: updated.firstName,
         lastName: updated.lastName,
         role: updated.role,
+        permissions: updated.permissions,
         active: updated.active,
+        isOfficeOperator: updated.isOfficeOperator,
+        isStreetOperator: updated.isStreetOperator,
+        createdAt: updated.createdAt,
+        updatedAt: updated.updatedAt,
       },
     });
   } catch (error) {
