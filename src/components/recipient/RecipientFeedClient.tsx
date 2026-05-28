@@ -370,13 +370,20 @@ export default function RecipientFeedClient() {
                   {cause.description && (
                     <p className="text-gray-600 mb-4 whitespace-pre-wrap">{cause.description}</p>
                   )}
-                  <button
-                    onClick={() => handleJoinCause(cause.id)}
-                    disabled={joiningCauseId === cause.id}
-                    className="w-full py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  <ConfirmDialog
+                    title="Conferma adesione"
+                    message={`Vuoi aderire alla causa "${cause.title}"?`}
+                    confirmLabel="Sì, aderisco"
+                    variant="warning"
+                    onConfirm={() => handleJoinCause(cause.id)}
                   >
-                    {joiningCauseId === cause.id ? 'Iscrizione...' : 'Aderisci alla causa'}
-                  </button>
+                    <button
+                      disabled={joiningCauseId === cause.id}
+                      className="w-full py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors disabled:opacity-50"
+                    >
+                      {joiningCauseId === cause.id ? 'Iscrizione...' : 'Aderisci alla causa'}
+                    </button>
+                  </ConfirmDialog>
                 </div>
               )}
             </div>
