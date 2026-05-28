@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import CitySelector from '@/components/geo/CitySelector';
 
 interface StreetBeneficiary {
   id: string;
@@ -35,6 +36,8 @@ interface FormData {
   city: string;
   province: string;
   isee: string;
+  latitude: string;
+  longitude: string;
 }
 
 export default function StreetBeneficiariesPage() {
@@ -45,9 +48,12 @@ export default function StreetBeneficiariesPage() {
   const [formData, setFormData] = useState<FormData>({
     firstName: '', lastName: '', fiscalCode: '', birthDate: '',
     address: '', houseNumber: '', cap: '', city: '', province: '', isee: '',
+    latitude: '', longitude: '',
   });
   const [creating, setCreating] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   const fetchBeneficiaries = useCallback(async () => {
     try {
@@ -82,6 +88,7 @@ export default function StreetBeneficiariesPage() {
         setFormData({
           firstName: '', lastName: '', fiscalCode: '', birthDate: '',
           address: '', houseNumber: '', cap: '', city: '', province: '', isee: '',
+          latitude: '', longitude: '',
         });
         setShowForm(false);
         fetchBeneficiaries();
@@ -93,6 +100,41 @@ export default function StreetBeneficiariesPage() {
       setError('Errore di connessione');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const geocodeFromAddress = async () => {
+    if (!formData.address || !formData.city) {
+      setLocationError('Inserisci prima indirizzo e città');
+      return;
+    }
+    setGeocoding(true);
+    setLocationError('');
+    try {
+      const res = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: formData.address,
+          city: formData.city,
+          cap: formData.cap,
+          province: formData.province,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLocationError(data.error || 'Errore nel calcolo della posizione');
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        latitude: data.latitude.toString(),
+        longitude: data.longitude.toString(),
+      }));
+    } catch {
+      setLocationError('Errore di connessione');
+    } finally {
+      setGeocoding(false);
     }
   };
 
@@ -164,19 +206,44 @@ export default function StreetBeneficiariesPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
                 <input type="text" value={formData.cap} onChange={(e) => setFormData({ ...formData, cap: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" maxLength={5} />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
-                <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-                <input type="text" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" maxLength={2} placeholder="RM" />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Città e Provincia</label>
+                <CitySelector
+                  selectedProvince={formData.province}
+                  selectedCity={formData.city}
+                  onProvinceChange={(sigla) => setFormData(prev => ({ ...prev, province: sigla }))}
+                  onCityChange={(name) => setFormData(prev => ({ ...prev, city: name }))}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">ISEE (€)</label>
                 <input type="number" step="0.01" value={formData.isee} onChange={(e) => setFormData({ ...formData, isee: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="0.00" />
               </div>
             </div>
+
+            {/* Geolocation */}
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
+                <span>📍</span> Geolocalizzazione
+              </h3>
+              <p className="text-xs text-gray-500 mb-3">
+                {formData.latitude && formData.longitude
+                  ? `Posizione: ${parseFloat(formData.latitude).toFixed(4)}, ${parseFloat(formData.longitude).toFixed(4)}`
+                  : 'Non rilevata'}
+              </p>
+              <button
+                type="button"
+                onClick={geocodeFromAddress}
+                disabled={geocoding || !formData.address || !formData.city}
+                className="px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center gap-1"
+              >
+                {geocoding ? '⏳ Calcolo...' : '🏠 Calcola da indirizzo'}
+              </button>
+              {locationError && (
+                <p className="text-xs text-red-600 mt-2">{locationError}</p>
+              )}
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
               <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50">Annulla</button>
               <button type="submit" disabled={creating} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">{creating ? 'Creazione...' : 'Crea beneficiario'}</button>
