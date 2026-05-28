@@ -229,6 +229,7 @@ export default function IntermediaryProfilePage() {
     longitude: '',
     autoApproveRequests: false,
     hoursInfo: '',
+    dioceseId: '',
   });
 
   useEffect(() => {
