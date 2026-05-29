@@ -102,11 +102,22 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     });
 
-    // Fetch GoodsRequest (Richieste di beni/servizi) for this beneficiary
+    // Fetch GoodsRequest (Richieste di beni/servizi) for this beneficiary with offers
     const goodsRequests = await prisma.goodsRequest.findMany({
       where: {
         beneficiaryId,
         status: { in: ['PENDING', 'APPROVED', 'FULFILLED', 'DELIVERED', 'COMPLETED', 'CANCELLED'] },
+      },
+      include: {
+        offers: {
+          where: { status: { in: ['PENDING', 'ACCEPTED', 'REJECTED'] } },
+          include: {
+            offeredBy: {
+              select: { id: true, name: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -126,6 +137,14 @@ export async function GET(
       objectId?: string;
       createdAt: Date;
       qrLink?: string;
+      offers?: Array<{
+        id: string;
+        message: string | null;
+        status: string;
+        imageUrls: string[];
+        offeredBy: { id: string; name: string };
+        createdAt: Date;
+      }>;
     }> = [];
 
     // Object requests
@@ -161,6 +180,14 @@ export async function GET(
         imageUrls: [],
         createdAt: gr.createdAt,
         qrLink: gr.status === 'DELIVERED' ? `/operator/goods-deposit/${gr.id}` : undefined,
+        offers: gr.offers.map(o => ({
+          id: o.id,
+          message: o.message,
+          status: o.status,
+          imageUrls: o.imageUrls || [],
+          offeredBy: { id: o.offeredBy.id, name: o.offeredBy.name },
+          createdAt: o.createdAt,
+        })),
       });
     }
 

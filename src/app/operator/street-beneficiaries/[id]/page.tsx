@@ -61,6 +61,14 @@ interface UnifiedItem {
   objectId?: string;
   createdAt: string;
   qrLink?: string;
+  offers?: Array<{
+    id: string;
+    message: string | null;
+    status: string;
+    imageUrls: string[];
+    offeredBy: { id: string; name: string };
+    createdAt: string;
+  }>;
 }
 
 export default function StreetBeneficiaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -78,6 +86,26 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
   const [savingOperators, setSavingOperators] = useState(false);
   const [loadingOperators, setLoadingOperators] = useState(false);
   const [unifiedItems, setUnifiedItems] = useState<UnifiedItem[]>([]);
+  const [acceptingOfferId, setAcceptingOfferId] = useState<string | null>(null);
+
+  const handleOfferAction = async (offerId: string, action: 'accept' | 'reject') => {
+    setAcceptingOfferId(offerId);
+    try {
+      const res = await fetch('/api/operator/goods-offers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, action }),
+      });
+      if (res.ok) {
+        // Refresh the unified items
+        fetchUnifiedItems();
+      }
+    } catch (err) {
+      console.error('Error handling offer:', err);
+    } finally {
+      setAcceptingOfferId(null);
+    }
+  };
 
   useEffect(() => {
     fetchBeneficiary();
@@ -350,35 +378,58 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
               <p className="text-gray-500">Nessuna disponibilità per questo beneficiario</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {unifiedItems.map(item => (
-                <div key={`${item.type}-${item.id}`} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-                      {item.imageUrls && item.imageUrls.length > 0 ? (
-                        <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-lg">📦</span>
+                <div key={`${item.type}-${item.id}`} className="border rounded-lg overflow-hidden">
+                  {/* Header row */}
+                  <div className="flex items-center justify-between p-3 bg-gray-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                        {item.imageUrls && item.imageUrls.length > 0 ? (
+                          <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-lg">📦</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{item.title}</p>
+                        <p className="text-sm text-gray-500">
+                          {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category}
+                          {item.type === 'GOODS' ? ' (Richiesta)' : ' (Oggetto)'}
+                          {' • '}
+                          {new Date(item.createdAt).toLocaleDateString('it-IT')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getStatusVariant(item.status)}>{item.statusLabel}</Badge>
+                      {item.qrLink && (
+                        <Button variant="ghost" size="sm" onClick={() => router.push(item.qrLink!)}>
+                          QR
+                        </Button>
                       )}
                     </div>
-                    <div>
-                      <p className="font-medium">{item.title}</p>
-                      <p className="text-sm text-gray-500">
-                        {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category}
-                        {item.type === 'GOODS' ? ' (Richiesta)' : item.type === 'OBJECT' ? ' (Oggetto)' : ''}
-                        {' • '}
-                        {new Date(item.createdAt).toLocaleDateString('it-IT')}
-                      </p>
+                  </div>
+
+                  {/* Offers for GOODS type */}
+                  {item.type === 'GOODS' && item.offers && item.offers.length > 0 && (
+                    <div className="border-t">
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Offerte ({item.offers.length})</p>
+                        <div className="space-y-2">
+                          {item.offers.map(offer => (
+                            <OfferItem
+                              key={offer.id}
+                              offer={offer}
+                              onAccept={(offerId) => handleOfferAction(offerId, 'accept')}
+                              onReject={(offerId) => handleOfferAction(offerId, 'reject')}
+                              acceptingId={acceptingOfferId}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getStatusVariant(item.status)}>{item.statusLabel}</Badge>
-                    {item.qrLink && (
-                      <Button variant="ghost" size="sm" onClick={() => router.push(item.qrLink!)}>
-                        QR
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -455,6 +506,83 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
           </Button>
         </ModalFooter>
       </Modal>
+    </div>
+  );
+}
+
+function OfferItem({
+  offer,
+  onAccept,
+  onReject,
+  acceptingId,
+}: {
+  offer: {
+    id: string;
+    message: string | null;
+    status: string;
+    imageUrls: string[];
+    offeredBy: { id: string; name: string };
+    createdAt: string;
+  };
+  onAccept: (id: string) => void;
+  onReject: (id: string) => void;
+  acceptingId: string | null;
+}) {
+  const getOfferStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING': return <Badge variant="warning">In attesa</Badge>;
+      case 'ACCEPTED': return <Badge variant="success">Accettata</Badge>;
+      case 'REJECTED': return <Badge variant="danger">Rifiutata</Badge>;
+      default: return <Badge variant="default">{status}</Badge>;
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-3 p-2 border rounded-lg bg-white">
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-sm font-medium">Donatore</span>
+          {getOfferStatusBadge(offer.status)}
+        </div>
+        {offer.message && (
+          <p className="text-sm text-gray-600 mb-1">{offer.message}</p>
+        )}
+        {offer.imageUrls && offer.imageUrls.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {offer.imageUrls.map((url, i) => (
+              <img
+                key={i}
+                src={url}
+                alt={`Immagine ${i + 1}`}
+                className="w-12 h-12 object-cover rounded border border-gray-200"
+              />
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-gray-400 mt-1">
+          {new Date(offer.createdAt).toLocaleDateString('it-IT')}
+        </p>
+      </div>
+      {offer.status === 'PENDING' && (
+        <div className="flex gap-1">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => onAccept(offer.id)}
+            loading={acceptingId === offer.id}
+          >
+            Accetta
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => onReject(offer.id)}
+            disabled={acceptingId === offer.id}
+          >
+            Rifiuta
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
