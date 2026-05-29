@@ -46,6 +46,9 @@ function RegisterForm() {
   const oauthName = searchParams.get('name') || '';
   const defaultRole = (searchParams.get('role')?.toUpperCase() || 'DONOR') as Role;
 
+  // Force DONOR if INTERMEDIARY is passed via URL (registration by admins only)
+  const initialRole = (defaultRole === 'INTERMEDIARY' ? 'DONOR' : defaultRole) as Role;
+
   const [intermediaries, setIntermediaries] = useState<Intermediary[]>([]);
   const [dioceses, setDioceses] = useState<Diocese[]>([]);
 
@@ -55,7 +58,7 @@ function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Role-specific fields
-  const [role, setRole] = useState<Role>(defaultRole);
+  const [role, setRole] = useState<Role>(initialRole);
 
   // Personal info
   const [firstName, setFirstName] = useState('');
@@ -355,7 +358,7 @@ function RegisterForm() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Ruolo</label>
             <div className="grid grid-cols-2 gap-3">
-              {(['DONOR', 'RECIPIENT', 'INTERMEDIARY'] as Role[]).map((r) => (
+              {(['DONOR', 'RECIPIENT'] as Role[]).map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -369,12 +372,10 @@ function RegisterForm() {
                   <span className="block text-2xl mb-1">
                     {r === 'DONOR' && '🎁'}
                     {r === 'RECIPIENT' && '🙏'}
-                    {r === 'INTERMEDIARY' && '🏢'}
                   </span>
                   <span className="text-sm font-medium">
                     {r === 'DONOR' && 'Donatore'}
                     {r === 'RECIPIENT' && 'Beneficiario'}
-                    {r === 'INTERMEDIARY' && 'Ente'}
                   </span>
                 </button>
               ))}
