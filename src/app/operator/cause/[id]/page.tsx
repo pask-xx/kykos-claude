@@ -46,6 +46,7 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const [notifyMessage, setNotifyMessage] = useState('');
   const [sendEmail, setSendEmail] = useState(false);
+  const [notifySuccess, setNotifySuccess] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -109,7 +110,8 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
         setShowNotifyModal(false);
         setNotifyMessage('');
         setSendEmail(false);
-        alert('Messaggio inviato!');
+        setNotifySuccess(true);
+        setTimeout(() => setNotifySuccess(false), 3000);
       }
     } catch (err) {
       console.error('Error:', err);
@@ -253,6 +255,14 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
           Invia comunicazione
         </button>
       </div>
+
+      {/* Success message */}
+      {notifySuccess && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
+          <span className="text-xl">✓</span>
+          <span>Messaggio inviato ai partecipanti</span>
+        </div>
+      )}
 
       {/* Participants List */}
       {cause.participants.length === 0 ? (
