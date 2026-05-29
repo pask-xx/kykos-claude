@@ -79,6 +79,9 @@ function RegisterForm() {
   const [orgType, setOrgType] = useState('');
   const [dioceseId, setDioceseId] = useState('');
 
+  // Diocese field (mandatory for all roles)
+  const [selectedDioceseId, setSelectedDioceseId] = useState('');
+
   // Recipient fields
   const [referenceEntityId, setReferenceEntityId] = useState('');
   const [isee, setIsee] = useState('');
@@ -107,11 +110,9 @@ function RegisterForm() {
   // Fetch intermediaries and dioceses when location is detected
   useEffect(() => {
     if (latitude && longitude) {
+      fetchDioceses();
       if (role === 'RECIPIENT') {
         fetchIntermediaries();
-      }
-      if (role === 'INTERMEDIARY') {
-        fetchDioceses();
       }
     }
   }, [role, latitude, longitude]);
@@ -209,6 +210,12 @@ function RegisterForm() {
       return;
     }
 
+    // Diocese is mandatory for all roles
+    if (!selectedDioceseId) {
+      setError('Seleziona una diocesi di appartenenza');
+      return;
+    }
+
     if (role === 'RECIPIENT') {
       if (!firstName || !lastName || !birthDate || !fiscalCode || !address || !cap || !city || !houseNumber) {
         setError('Tutti i campi anagrafici sono obbligatori per i riceventi');
@@ -285,6 +292,9 @@ function RegisterForm() {
         payload.longitude = lng;
       }
 
+      // Diocese is mandatory for all roles
+      payload.dioceseId = selectedDioceseId;
+
       if (role === 'INTERMEDIARY') {
         if (!orgName || !orgType) {
           setError('Nome e tipo organizzazione sono obbligatori per gli enti');
@@ -292,9 +302,6 @@ function RegisterForm() {
         }
         payload.orgName = orgName;
         payload.orgType = orgType;
-        if (dioceseId) {
-          payload.dioceseId = dioceseId;
-        }
       }
 
       const res = await fetch('/api/auth/register', {
@@ -583,6 +590,35 @@ function RegisterForm() {
                 </p>
               )}
             </div>
+
+            {/* Diocese Selection - Mandatory for all roles */}
+            <div className="mt-4">
+              <label htmlFor="diocese" className="block text-sm font-medium text-gray-700 mb-2">
+                Diocesi di appartenenza <span className="text-red-500">*</span>
+              </label>
+              {!latitude || !longitude ? (
+                <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                  Rileva prima la posizione per vedere le diocesi vicine
+                </div>
+              ) : (
+                <select
+                  id="diocese"
+                  value={selectedDioceseId}
+                  onChange={(e) => setSelectedDioceseId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+                >
+                  <option value="">Seleziona diocesi ({dioceses.length} trovate)</option>
+                  {dioceses.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} - {d.seat} ({d.distance.toFixed(1)} km)
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="text-xs text-gray-400 mt-1">
+                Obbligatoria. Ti permette di vedere le richieste della tua diocesi.
+              </p>
+            </div>
           </div>
 
           {/* Intermediary specific fields */}
@@ -619,33 +655,6 @@ function RegisterForm() {
                   <option value="CHARITY">Associazione / Fondazione</option>
                   <option value="ASSOCIATION">Altro</option>
                 </select>
-              </div>
-              <div>
-                <label htmlFor="diocese" className="block text-sm font-medium text-gray-700 mb-2">
-                  Diocesi di appartenenza
-                </label>
-                {!latitude || !longitude ? (
-                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
-                    Rileva prima la posizione per vedere le diocesi vicine
-                  </div>
-                ) : (
-                  <select
-                    id="diocese"
-                    value={dioceseId}
-                    onChange={(e) => setDioceseId(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
-                  >
-                    <option value="">Seleziona diocesi ({dioceses.length} trovate)</option>
-                    {dioceses.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} - {d.seat} ({d.distance.toFixed(1)} km)
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <p className="text-xs text-gray-400 mt-1">
-                  Facoltativo. Ti aiuterà a trovare enti vicini alla tua diocesi.
-                </p>
               </div>
             </div>
           )}

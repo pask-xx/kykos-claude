@@ -260,6 +260,7 @@ export async function POST(request: Request) {
         houseNumber: houseNumber || null,
         latitude: lat,
         longitude: lng,
+        dioceseId: dioceseId || null, // Diocese is now mandatory for all roles (set in UI)
         referenceEntityId: role === 'RECIPIENT' ? referenceEntityId : null,
         isee: role === 'RECIPIENT' && isee ? Math.round(parseFloat(isee) * 100) / 100 : null,
         authorized: false, // Will be authorized after email confirmation
