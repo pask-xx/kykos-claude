@@ -47,6 +47,22 @@ interface AssignedOperator {
   email: string | null;
 }
 
+interface UnifiedItem {
+  id: string;
+  type: 'OBJECT' | 'GOODS';
+  title: string;
+  category: string;
+  condition?: string;
+  status: string;
+  statusLabel: string;
+  priority: number;
+  imageUrls: string[];
+  depositLocation?: string | null;
+  objectId?: string;
+  createdAt: string;
+  qrLink?: string;
+}
+
 export default function StreetBeneficiaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -61,11 +77,12 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
   const [selectedOperatorIds, setSelectedOperatorIds] = useState<string[]>([]);
   const [savingOperators, setSavingOperators] = useState(false);
   const [loadingOperators, setLoadingOperators] = useState(false);
+  const [unifiedItems, setUnifiedItems] = useState<UnifiedItem[]>([]);
 
   useEffect(() => {
     fetchBeneficiary();
-    fetchRequests();
     fetchAssignedOperators();
+    fetchUnifiedItems();
   }, [id]);
 
   const fetchBeneficiary = async () => {
@@ -102,6 +119,18 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
       }
     } catch (err) {
       console.error('Error fetching assigned operators:', err);
+    }
+  };
+
+  const fetchUnifiedItems = async () => {
+    try {
+      const res = await fetch(`/api/operator/street-beneficiaries/${id}/objects`);
+      if (res.ok) {
+        const data = await res.json();
+        setUnifiedItems(data.items || []);
+      }
+    } catch (err) {
+      console.error('Error fetching unified items:', err);
     }
   };
 
@@ -179,10 +208,25 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
       case 'PENDING': return <Badge variant="warning">In attesa</Badge>;
       case 'APPROVED': return <Badge variant="success">Approvata</Badge>;
       case 'FULFILLED': return <Badge variant="info">Soddisfatta</Badge>;
-      case 'DELIVERED': return <Badge variant="success">Consegnata</Badge>;
+      case 'DELIVERED': return <Badge variant="success">Depositata</Badge>;
       case 'REJECTED': return <Badge variant="danger">Rifiutata</Badge>;
       case 'CANCELLED': return <Badge variant="default">Cancellata</Badge>;
       default: return <Badge variant="default">{status}</Badge>;
+    }
+  };
+
+  const getStatusVariant = (status: string): "default" | "primary" | "success" | "warning" | "danger" | "info" => {
+    switch (status) {
+      case 'DEPOSITED': return 'success';
+      case 'RESERVED': return 'warning';
+      case 'AVAILABLE': return 'primary';
+      case 'DONATED': return 'info';
+      case 'CANCELLED': return 'default';
+      case 'PENDING': return 'warning';
+      case 'APPROVED': return 'success';
+      case 'FULFILLED': return 'info';
+      case 'COMPLETED': return 'default';
+      default: return 'default';
     }
   };
 
@@ -295,42 +339,45 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
         </CardContent>
       </Card>
 
-      {/* Requests */}
+      {/* Disponibilita */}
       <Card>
         <CardHeader>
-          <CardTitle>Richieste ({requests.length})</CardTitle>
+          <CardTitle>Disponibilità ({unifiedItems.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {requests.length === 0 ? (
+          {unifiedItems.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">Nessuna richiesta per questo beneficiario</p>
-              <Button
-                variant="primary"
-                className="mt-4"
-                onClick={() => router.push(`/operator/street-beneficiaries/${id}/requests/new`)}
-              >
-                Crea prima richiesta
-              </Button>
+              <p className="text-gray-500">Nessuna disponibilità per questo beneficiario</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {requests.map(req => (
-                <div key={req.id} className="flex items-center justify-between p-3 border rounded-lg">
+              {unifiedItems.map(item => (
+                <div key={`${item.type}-${item.id}`} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                      {item.imageUrls && item.imageUrls.length > 0 ? (
+                        <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-lg">📦</span>
+                      )}
+                    </div>
                     <div>
-                      <p className="font-medium">{req.title}</p>
+                      <p className="font-medium">{item.title}</p>
                       <p className="text-sm text-gray-500">
-                        {CATEGORY_LABELS[req.category as keyof typeof CATEGORY_LABELS] || req.category}
+                        {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category}
+                        {item.type === 'GOODS' ? ' (Richiesta)' : item.type === 'OBJECT' ? ' (Oggetto)' : ''}
                         {' • '}
-                        {req.type === 'GOODS' ? 'Bene' : 'Servizio'}
-                        {' • '}
-                        {new Date(req.createdAt).toLocaleDateString('it-IT')}
+                        {new Date(item.createdAt).toLocaleDateString('it-IT')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getStatusBadge(req.status)}
-                    <Button variant="ghost" size="sm">Dettagli</Button>
+                    <Badge variant={getStatusVariant(item.status)}>{item.statusLabel}</Badge>
+                    {item.qrLink && (
+                      <Button variant="ghost" size="sm" onClick={() => router.push(item.qrLink!)}>
+                        QR
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
