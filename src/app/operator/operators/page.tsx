@@ -13,6 +13,8 @@ interface Operator {
   lastName: string;
   role: OperatorRole;
   active: boolean;
+  isOfficeOperator: boolean;
+  isStreetOperator: boolean;
   createdAt: string;
 }
 
@@ -71,6 +73,7 @@ export default function OperatorsPage() {
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operatore</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contatti</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruolo</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stato</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Azioni</th>
@@ -94,6 +97,16 @@ export default function OperatorsPage() {
                     {op.email && <div className="text-gray-700">{op.email}</div>}
                     {op.phone && <div className="text-gray-500">{op.phone}</div>}
                     {!op.email && !op.phone && <span className="text-gray-400">—</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {op.isOfficeOperator && (
+                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Ufficio</span>
+                      )}
+                      {op.isStreetOperator && (
+                        <span className="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded">Strada</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">

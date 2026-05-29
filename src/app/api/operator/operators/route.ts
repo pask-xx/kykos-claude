@@ -62,6 +62,8 @@ export async function GET() {
         role: true,
         permissions: true,
         active: true,
+        isOfficeOperator: true,
+        isStreetOperator: true,
         createdAt: true,
         updatedAt: true,
       },
