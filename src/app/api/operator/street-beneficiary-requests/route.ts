@@ -51,18 +51,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify the beneficiary exists and is street-managed
+    // Verify the beneficiary exists and is street-managed by this operator
     const beneficiary = await prisma.user.findFirst({
       where: {
         id: beneficiaryId,
         role: 'RECIPIENT',
         isStreetManaged: true,
-        referenceEntity: {
-          operators: {
-            some: {
-              id: session.operatorId,
-              active: true,
-            },
+        managedByStreetOperators: {
+          some: {
+            streetOperatorId: session.operatorId,
           },
         },
       },

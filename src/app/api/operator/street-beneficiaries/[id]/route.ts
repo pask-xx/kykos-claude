@@ -46,17 +46,15 @@ export async function GET(
 
     const { id } = await params;
 
+    // Find beneficiary managed by this street operator (via StreetOperatorBeneficiary)
     const beneficiary = await prisma.user.findFirst({
       where: {
         id,
         role: 'RECIPIENT',
         isStreetManaged: true,
-        referenceEntity: {
-          operators: {
-            some: {
-              id: session.operatorId,
-              active: true,
-            },
+        managedByStreetOperators: {
+          some: {
+            streetOperatorId: session.operatorId,
           },
         },
       },
@@ -66,7 +64,7 @@ export async function GET(
         firstName: true,
         lastName: true,
         fiscalCode: true,
-birthDate: true,
+        birthDate: true,
         address: true,
         houseNumber: true,
         cap: true,
