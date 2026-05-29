@@ -848,8 +848,8 @@ export default function RegisterPage() {
   return (
     <RegistrationGate>
     <div className="min-h-screen flex">
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-secondary-600 to-secondary-800 p-12 flex-col justify-between relative overflow-hidden">
+      {/* Left side - Branding (fixed, non scrollabile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-secondary-600 to-secondary-800 p-12 flex-col justify-between relative overflow-hidden sticky top-0 h-screen">
         {/* Decorative elements */}
         <div className="absolute top-20 left-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
@@ -862,7 +862,7 @@ export default function RegisterPage() {
           <p className="text-secondary-100 mt-3 text-lg">Dona con amore, ricevi con dignità</p>
         </div>
 
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 space-y-8 flex-1 flex flex-col justify-center">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <span className="text-3xl">🎁</span>
