@@ -31,6 +31,67 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
+// GET /api/operator/street-beneficiary-requests?beneficiaryId=xxx - lista richieste per beneficiario
+export async function GET(request: Request) {
+  try {
+    const session = await getOperatorSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    if (!session.isStreetOperator) {
+      return NextResponse.json({ error: 'Solo operatori di strada' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const beneficiaryId = searchParams.get('beneficiaryId');
+
+    if (!beneficiaryId) {
+      return NextResponse.json({ error: 'beneficiaryId è obbligatorio' }, { status: 400 });
+    }
+
+    // Verify the beneficiary exists and is street-managed by this operator
+    const beneficiary = await prisma.user.findFirst({
+      where: {
+        id: beneficiaryId,
+        role: 'RECIPIENT',
+        isStreetManaged: true,
+        managedByStreetOperators: {
+          some: {
+            streetOperatorId: session.operatorId,
+          },
+        },
+      },
+    });
+
+    if (!beneficiary) {
+      return NextResponse.json(
+        { error: 'Beneficiario non trovato o non gestito da te' },
+        { status: 404 }
+      );
+    }
+
+    const requests = await prisma.goodsRequest.findMany({
+      where: { beneficiaryId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        type: true,
+        status: true,
+        createdAt: true,
+        description: true,
+      },
+    });
+
+    return NextResponse.json({ requests });
+  } catch (error) {
+    console.error('Street beneficiary requests GET error:', error);
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getOperatorSession();

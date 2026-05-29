@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Spinner } from '@/components/ui';
+import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Spinner, Modal, ModalFooter } from '@/components/ui';
 import { CATEGORY_LABELS } from '@/types';
 
 interface StreetBeneficiary {
@@ -65,6 +65,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
   useEffect(() => {
     fetchBeneficiary();
     fetchRequests();
+    fetchAssignedOperators();
   }, [id]);
 
   const fetchBeneficiary = async () => {
@@ -89,6 +90,18 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
       }
     } catch (err) {
       console.error('Error fetching requests:', err);
+    }
+  };
+
+  const fetchAssignedOperators = async () => {
+    try {
+      const res = await fetch(`/api/operator/street-beneficiaries/${id}/operators`);
+      if (res.ok) {
+        const data = await res.json();
+        setAssignedOperators(data.operators || []);
+      }
+    } catch (err) {
+      console.error('Error fetching assigned operators:', err);
     }
   };
 
@@ -377,7 +390,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
           )}
         </div>
 
-        <div className="flex gap-3 p-4 border-t bg-gray-50">
+        <ModalFooter className="flex gap-3">
           <Button
             variant="secondary"
             onClick={() => setShowOperatorsModal(false)}
@@ -393,40 +406,8 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
           >
             Salva
           </Button>
-        </div>
+        </ModalFooter>
       </Modal>
-    </div>
-  );
-}
-
-function Modal({ isOpen, onClose, title, children, size = 'md' }: {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-}) {
-  if (!isOpen) return null;
-
-  const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative bg-white rounded-xl shadow-xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col`}>
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            ✕
-          </button>
-        </div>
-        {children}
-      </div>
     </div>
   );
 }
