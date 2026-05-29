@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import CitySelector from '@/components/geo/CitySelector';
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Modal, ModalFooter, Spinner } from '@/components/ui';
 
@@ -429,88 +430,28 @@ export default function StreetBeneficiariesPage() {
       ) : (
         <div className="space-y-3">
           {beneficiaries.map((b) => (
-            <Card key={b.id} padding="none">
-              <div
-                className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => setExpandedId(expandedId === b.id ? null : b.id)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-xl">👤</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{b.firstName} {b.lastName}</h3>
-                    <p className="text-sm text-gray-500">{[b.address, b.city].filter(Boolean).join(', ')}</p>
-                    {b.nickname && (
-                      <Badge variant="primary" size="sm" className="mt-1 font-mono">@{b.nickname}</Badge>
-                    )}
-                  </div>
-                  <span className={`text-gray-400 transition-transform ${expandedId === b.id ? 'rotate-180' : ''}`}>▼</span>
-                </div>
-              </div>
-
-              {expandedId === b.id && (
-                <div className="border-t border-gray-100 p-4 bg-gray-50">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    {b.nickname && (
-                      <div>
-                        <span className="text-gray-500">Nickname:</span>
-                        <p className="font-medium font-mono">@{b.nickname}</p>
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-gray-500">Codice Fiscale:</span>
-                      <p className="font-medium">{b.fiscalCode || '-'}</p>
+            <Link key={b.id} href={`/operator/street-beneficiaries/${b.id}`}>
+              <Card padding="none" className="hover:border-primary-300 transition-colors cursor-pointer">
+                <div className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-xl">👤</span>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Data nascita:</span>
-                      <p className="font-medium">{b.birthDate ? new Date(b.birthDate).toLocaleDateString('it-IT') : '-'}</p>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{b.firstName} {b.lastName}</h3>
+                      <p className="text-sm text-gray-500">{[b.address, b.city].filter(Boolean).join(', ')}</p>
+                      {b.nickname && (
+                        <Badge variant="primary" size="sm" className="mt-1 font-mono">@{b.nickname}</Badge>
+                      )}
                     </div>
-                    <div>
-                      <span className="text-gray-500">ISEE:</span>
-                      <p className="font-medium">{b.isee ? `€${parseFloat(b.isee).toLocaleString('it-IT')}` : '-'}</p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="secondary" size="sm" onClick={(e) => { e.preventDefault(); startEdit(b); }}>Modifica</Button>
+                      <span className="text-gray-400">→</span>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Indirizzo:</span>
-                      <p className="font-medium">{b.address || '-'}{b.houseNumber ? `, ${b.houseNumber}` : ''}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">CAP:</span>
-                      <p className="font-medium">{b.cap || '-'}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Città:</span>
-                      <p className="font-medium">{b.city || '-'} {b.province ? `(${b.province})` : ''}</p>
-                    </div>
-                    {b.latitude && b.longitude && (
-                      <div>
-                        <span className="text-gray-500">Coords:</span>
-                        <p className="font-medium">{b.latitude.toFixed(4)}, {b.longitude.toFixed(4)}</p>
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-gray-500">Creato il:</span>
-                      <p className="font-medium">{new Date(b.createdAt).toLocaleDateString('it-IT')}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Assegnato il:</span>
-                      <p className="font-medium">{new Date(b.assignedAt).toLocaleDateString('it-IT')}</p>
-                    </div>
-                    {b.referenceEntity && (
-                      <div>
-                        <span className="text-gray-500">Ente:</span>
-                        <p className="font-medium">{b.referenceEntity.name}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <Button variant="secondary" size="sm" onClick={() => startEdit(b)}>Modifica</Button>
-                    <Button variant="secondary" size="sm" onClick={() => openOperatorsModal(b)}>Assegna operatori</Button>
-                    <Button variant="secondary" size="sm" onClick={() => router.push(`/operator/street-beneficiaries/${b.id}/requests/new`)}>Crea richiesta</Button>
                   </div>
                 </div>
-              )}
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
