@@ -75,6 +75,8 @@ export async function POST(request: Request) {
       organizationId: operator.organizationId,
       username: operator.username,
       role: operator.role,
+      isStreetOperator: operator.isStreetOperator,
+      isOfficeOperator: operator.isOfficeOperator,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -100,6 +102,8 @@ export async function POST(request: Request) {
         firstName: operator.firstName,
         lastName: operator.lastName,
         role: operator.role,
+        isStreetOperator: operator.isStreetOperator,
+        isOfficeOperator: operator.isOfficeOperator,
         organization: {
           id: operator.organization.id,
           name: operator.organization.name,
