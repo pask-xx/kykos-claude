@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Spinner, Modal, ModalFooter } from '@/components/ui';
 import { CATEGORY_LABELS } from '@/types';
+import ImageGallery from '@/components/ImageGallery';
 
 interface StreetBeneficiary {
   id: string;
@@ -548,15 +549,8 @@ function OfferItem({
           <p className="text-sm text-gray-600 mb-1">{offer.message}</p>
         )}
         {offer.imageUrls && offer.imageUrls.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {offer.imageUrls.map((url, i) => (
-              <img
-                key={i}
-                src={url}
-                alt={`Immagine ${i + 1}`}
-                className="w-12 h-12 object-cover rounded border border-gray-200"
-              />
-            ))}
+          <div className="mt-2">
+            <ImageGallery images={offer.imageUrls} alt="Foto offerta" />
           </div>
         )}
         <p className="text-xs text-gray-400 mt-1">
