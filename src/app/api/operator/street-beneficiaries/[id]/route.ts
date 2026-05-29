@@ -46,7 +46,8 @@ export async function GET(
 
     const { id } = await params;
 
-    // Find beneficiary managed by this street operator (via StreetOperatorBeneficiary)
+    // Find beneficiary: must be RECIPIENT, isStreetManaged, and has at least one street operator assigned
+    // (authorization: operator must be among the assigned ones)
     const beneficiary = await prisma.user.findFirst({
       where: {
         id,
@@ -73,6 +74,7 @@ export async function GET(
         isee: true,
         latitude: true,
         longitude: true,
+        isStreetManaged: true,
         createdAt: true,
         referenceEntity: {
           select: {
