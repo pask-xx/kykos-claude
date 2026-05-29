@@ -384,6 +384,7 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
             </button>
           </div>
         </div>
+        )}
       </form>
 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
