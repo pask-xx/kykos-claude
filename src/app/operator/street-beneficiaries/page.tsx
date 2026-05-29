@@ -28,6 +28,14 @@ interface StreetBeneficiary {
   };
 }
 
+interface StreetOperator {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+}
+
 interface FormData {
   nickname: string;
   firstName: string;
@@ -60,6 +68,12 @@ export default function StreetBeneficiariesPage() {
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [generatingNickname, setGeneratingNickname] = useState(false);
+  const [showOperatorsModal, setShowOperatorsModal] = useState(false);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState<StreetBeneficiary | null>(null);
+  const [streetOperators, setStreetOperators] = useState<StreetOperator[]>([]);
+  const [assignedOperatorIds, setAssignedOperatorIds] = useState<string[]>([]);
+  const [loadingOperators, setLoadingOperators] = useState(false);
+  const [savingOperators, setSavingOperators] = useState(false);
 
   const fetchBeneficiaries = useCallback(async () => {
     try {
@@ -165,6 +179,59 @@ export default function StreetBeneficiariesPage() {
       setLocationError('Errore di connessione');
     } finally {
       setGeocoding(false);
+    }
+  };
+
+  const openOperatorsModal = async (b: StreetBeneficiary) => {
+    setSelectedBeneficiary(b);
+    setShowOperatorsModal(true);
+    setLoadingOperators(true);
+    setAssignedOperatorIds([]);
+
+    try {
+      // Fetch all street operators
+      const opsRes = await fetch('/api/operator/street-operators');
+      if (opsRes.ok) {
+        const data = await opsRes.json();
+        setStreetOperators(data.streetOperators || []);
+      }
+
+      // Fetch currently assigned operators
+      const assignedRes = await fetch(`/api/operator/street-beneficiaries/${b.id}/operators`);
+      if (assignedRes.ok) {
+        const data = await assignedRes.json();
+        setAssignedOperatorIds(data.operators?.map((op: StreetOperator) => op.id) || []);
+      }
+    } catch (err) {
+      console.error('Error loading operators:', err);
+    } finally {
+      setLoadingOperators(false);
+    }
+  };
+
+  const saveOperatorsAssignment = async () => {
+    if (!selectedBeneficiary) return;
+    setSavingOperators(true);
+
+    try {
+      const res = await fetch(`/api/operator/street-beneficiaries/${selectedBeneficiary.id}/operators`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operatorIds: assignedOperatorIds }),
+      });
+
+      if (res.ok) {
+        setShowOperatorsModal(false);
+        setSelectedBeneficiary(null);
+        fetchBeneficiaries();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nel salvataggio');
+      }
+    } catch (err) {
+      setError('Errore di connessione');
+    } finally {
+      setSavingOperators(false);
     }
   };
 
@@ -309,6 +376,86 @@ export default function StreetBeneficiariesPage() {
         </div>
       )}
 
+      {/* Assegna Operatori Modal */}
+      {showOperatorsModal && selectedBeneficiary && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Assegna operatori</h3>
+                <button
+                  onClick={() => setShowOperatorsModal(false)}
+                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Beneficiario: <strong>{selectedBeneficiary.firstName} {selectedBeneficiary.lastName}</strong>
+              </p>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              {loadingOperators ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                </div>
+              ) : streetOperators.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Nessun operatore di strada disponibile</p>
+              ) : (
+                <div className="space-y-2">
+                  {streetOperators.map(op => (
+                    <label
+                      key={op.id}
+                      className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+                        assignedOperatorIds.includes(op.id)
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-primary-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={assignedOperatorIds.includes(op.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAssignedOperatorIds(prev => [...prev, op.id]);
+                          } else {
+                            setAssignedOperatorIds(prev => prev.filter(id => id !== op.id));
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-primary-600"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">{op.firstName} {op.lastName}</p>
+                        <p className="text-sm text-gray-500">{op.email || op.phone || '-'}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t bg-gray-50">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowOperatorsModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={saveOperatorsAssignment}
+                  disabled={savingOperators}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
+                >
+                  {savingOperators ? 'Salvataggio...' : 'Salva'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista */}
       {beneficiaries.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
@@ -353,7 +500,7 @@ export default function StreetBeneficiariesPage() {
                   </div>
                   <div className="mt-4 flex gap-2">
                     <button onClick={() => startEdit(b)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Modifica</button>
-                    <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Assegna operatori</button>
+                    <button onClick={() => openOperatorsModal(b)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Assegna operatori</button>
                     <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">Crea richiesta</button>
                   </div>
                 </div>

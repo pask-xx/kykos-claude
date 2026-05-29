@@ -88,6 +88,15 @@ export async function POST(
     }
 
     // Aggiungi le associazioni (ignora duplicati)
+    // Prima elimina quelle esistenti non più selezionate
+    await prisma.streetOperatorBeneficiary.deleteMany({
+      where: {
+        beneficiaryId: id,
+        streetOperatorId: { notIn: operatorIds },
+      },
+    });
+
+    // Poi aggiungi le nuove
     await prisma.streetOperatorBeneficiary.createMany({
       data: operatorIds.map(streetOperatorId => ({
         streetOperatorId,
