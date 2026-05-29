@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import CitySelector from '@/components/geo/CitySelector';
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Modal, ModalFooter, Spinner } from '@/components/ui';
 
@@ -75,6 +76,8 @@ export default function StreetBeneficiariesPage() {
   const [assignedOperatorIds, setAssignedOperatorIds] = useState<string[]>([]);
   const [loadingOperators, setLoadingOperators] = useState(false);
   const [savingOperators, setSavingOperators] = useState(false);
+
+  const router = useRouter();
 
   const fetchBeneficiaries = useCallback(async () => {
     try {
@@ -503,7 +506,7 @@ export default function StreetBeneficiariesPage() {
                   <div className="mt-4 flex gap-2">
                     <Button variant="secondary" size="sm" onClick={() => startEdit(b)}>Modifica</Button>
                     <Button variant="secondary" size="sm" onClick={() => openOperatorsModal(b)}>Assegna operatori</Button>
-                    <Button variant="secondary" size="sm">Crea richiesta</Button>
+                    <Button variant="secondary" size="sm" onClick={() => router.push(`/operator/street-beneficiaries/${b.id}/requests/new`)}>Crea richiesta</Button>
                   </div>
                 </div>
               )}

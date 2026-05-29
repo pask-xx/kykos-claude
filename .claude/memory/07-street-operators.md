@@ -219,3 +219,15 @@ type OperatorCapabilities = {
 
 - Donatore NON visibile agli street operators
 - Street operator vede: titolo, descrizione, categoria, condizione, stato, immagini, ente
+
+### Richieste per Beneficiari Street
+
+- `/operator/street-beneficiaries/[id]/requests/new` — crea richiesta beni/servizi per un beneficiario street
+  - Form simile a `/recipient/requests-entity/requests/new`
+  - Visibile a tutti i donatori della diocesi
+  - AUTO-APPROVED (come tutte le azioni street operator)
+
+### API
+
+- `GET /api/operator/street-beneficiaries/[id]` — dettaglio singolo beneficiario
+- `POST /api/operator/street-beneficiary-requests` — crea richiesta per beneficiario street
