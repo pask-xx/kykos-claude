@@ -61,7 +61,7 @@ export default function StreetBeneficiariesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    nickname: '', firstName: '', lastName: '', fiscalCode: '', birthDate: '',
+    nickname: '', firstName: '', lastName: '', fiscalCode: (b.fiscalCode || '').toUpperCase(), birthDate: '',
     address: '', houseNumber: '', cap: '', city: '', province: '', isee: '',
     latitude: '', longitude: '',
   });
@@ -113,7 +113,7 @@ export default function StreetBeneficiariesPage() {
 
       if (res.ok) {
         setFormData({
-          nickname: '', firstName: '', lastName: '', fiscalCode: '', birthDate: '',
+          nickname: '', firstName: '', lastName: '', fiscalCode: (b.fiscalCode || '').toUpperCase(), birthDate: '',
           address: '', houseNumber: '', cap: '', city: '', province: '', isee: '',
           latitude: '', longitude: '',
         });
@@ -137,7 +137,7 @@ export default function StreetBeneficiariesPage() {
       nickname: b.nickname || '',
       firstName: b.firstName,
       lastName: b.lastName,
-      fiscalCode: b.fiscalCode || '',
+      fiscalCode: (b.fiscalCode || '').toUpperCase(),
       birthDate: b.birthDate ? new Date(b.birthDate).toISOString().split('T')[0] : '',
       address: b.address || '',
       houseNumber: b.houseNumber || '',
@@ -402,7 +402,7 @@ export default function StreetBeneficiariesPage() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);
-                    setFormData({ nickname: '', firstName: '', lastName: '', fiscalCode: '', birthDate: '', address: '', houseNumber: '', cap: '', city: '', province: '', isee: '', latitude: '', longitude: '' });
+                    setFormData({ nickname: '', firstName: '', lastName: '', fiscalCode: (b.fiscalCode || '').toUpperCase(), birthDate: '', address: '', houseNumber: '', cap: '', city: '', province: '', isee: '', latitude: '', longitude: '' });
                   }}
                 >
                   Annulla
