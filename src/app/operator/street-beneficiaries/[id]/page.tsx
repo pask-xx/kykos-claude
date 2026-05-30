@@ -93,6 +93,9 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
   const [unifiedItems, setUnifiedItems] = useState<UnifiedItem[]>([]);
   const [acceptingOfferId, setAcceptingOfferId] = useState<string | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
+  const [editingScore, setEditingScore] = useState(false);
+  const [scoreValue, setScoreValue] = useState<number>(50);
+  const [savingScore, setSavingScore] = useState(false);
 
   const handleOfferAction = async (offerId: string, action: 'accept' | 'reject') => {
     setAcceptingOfferId(offerId);
@@ -125,10 +128,35 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
       if (!res.ok) throw new Error('Beneficiario non trovato');
       const data = await res.json();
       setBeneficiary(data.beneficiary);
+      setScoreValue(data.beneficiary.needScore || 50);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore nel caricamento');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateNeedScore = async (newScore: number) => {
+    setSavingScore(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/operator/street-beneficiaries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ needScore: newScore }),
+      });
+
+      if (res.ok) {
+        setBeneficiary(prev => prev ? { ...prev, needScore: newScore } : null);
+        setEditingScore(false);
+      } else {
+        const err = await res.json();
+        setError(err.error || 'Errore');
+      }
+    } catch (err) {
+      setError('Errore di rete');
+    } finally {
+      setSavingScore(false);
     }
   };
 
@@ -318,6 +346,117 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
           <Button variant="primary" onClick={() => router.push(`/operator/street-beneficiaries/${id}/requests/new`)}>
             + Nuova richiesta
           </Button>
+        </div>
+      </div>
+
+      {/* Score di Bisogno */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-2 border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <span className="text-xl">📊</span> Score di Bisogno
+          </h2>
+          {!editingScore && (
+            <button
+              onClick={() => setEditingScore(true)}
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+            >
+              modifica
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-6">
+          {/* Gauge */}
+          <div className="relative w-32 h-32 flex-shrink-0">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              {/* Background circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="12"
+              />
+              {/* Colored arc */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke={
+                  (beneficiary.needScore || 0) >= 80 ? '#dc2626' :
+                  (beneficiary.needScore || 0) >= 50 ? '#f59e0b' :
+                  (beneficiary.needScore || 0) >= 20 ? '#3b82f6' :
+                  '#6b7280'
+                }
+                strokeWidth="12"
+                strokeLinecap="round"
+                strokeDasharray={`${((beneficiary.needScore || 0) / 100) * 264} 264`}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`text-3xl font-bold ${
+                (beneficiary.needScore || 0) >= 80 ? 'text-red-600' :
+                (beneficiary.needScore || 0) >= 50 ? 'text-amber-600' :
+                (beneficiary.needScore || 0) >= 20 ? 'text-blue-600' :
+                'text-gray-600'
+              }`}>
+                {beneficiary.needScore || 0}
+              </span>
+              <span className="text-xs text-gray-400">/100</span>
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1">
+            {editingScore ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={scoreValue}
+                    onChange={(e) => setScoreValue(Number(e.target.value))}
+                    className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                  />
+                  <span className="font-bold text-xl w-14 text-center">{scoreValue}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => updateNeedScore(scoreValue)}
+                    disabled={savingScore}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                  >
+                    {savingScore ? 'Salvataggio...' : 'Salva'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingScore(false); setScoreValue(beneficiary.needScore || 50); }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-gray-600 mb-2">
+                  {(beneficiary.needScore || 0) >= 80 ? (
+                    <span className="text-red-600 font-medium">🚨 Alta priorità</span>
+                  ) : (beneficiary.needScore || 0) >= 50 ? (
+                    <span className="text-amber-600 font-medium">⚠️ Media priorità</span>
+                  ) : (beneficiary.needScore || 0) >= 20 ? (
+                    <span className="text-blue-600 font-medium">ℹ️ Bassa priorità</span>
+                  ) : (
+                    <span className="text-gray-500 font-medium">✓ Priorità minima</span>
+                  )}
+                </p>
+                <p className="text-sm text-gray-400">
+                  0 = poco bisogno, 100 = molto bisogno
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
