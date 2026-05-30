@@ -179,7 +179,7 @@ export async function GET(
         priority: getGoodsPriority(gr.status),
         imageUrls: [],
         createdAt: gr.createdAt,
-        qrLink: gr.status === 'DELIVERED' ? `/operator/goods-deposit/${gr.id}` : undefined,
+        qrLink: gr.status === 'DELIVERED' ? `/operator/goods-pickup-qr/${gr.id}` : undefined,
         offers: gr.offers.map(o => ({
           id: o.id,
           message: o.message,

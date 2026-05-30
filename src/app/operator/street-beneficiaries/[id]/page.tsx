@@ -406,8 +406,8 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
                     <div className="flex items-center gap-2">
                       <Badge variant={getStatusVariant(item.status)}>{item.statusLabel}</Badge>
                       {item.qrLink && (
-                        <Button variant="ghost" size="sm" onClick={() => router.push(item.qrLink!)}>
-                          QR
+                        <Button variant="ghost" size="sm" onClick={() => router.push(item.qrLink!)} title="Mostra QR ritiro">
+                          📱
                         </Button>
                       )}
                     </div>
