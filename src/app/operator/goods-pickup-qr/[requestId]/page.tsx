@@ -5,8 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 
 interface GoodsPickupQrData {
   title: string;
-  beneficiaryName: string;
-  fulfilledByName: string;
+  beneficiaryNickname: string;
   status: string;
   pickupQrData: string;
   pickupQrImageUrl: string;
@@ -31,10 +30,12 @@ export default function GoodsPickupQrPage() {
       const res = await fetch(`/api/operator/goods-requests/${requestId}/qr`);
       if (res.ok) {
         const apiData = await res.json();
+        // Use beneficiary nickname (generate from name if not available)
+        const beneficiaryName = apiData.goodsRequest.beneficiary?.name || 'Beneficiario';
+        const nickname = beneficiaryName.split(' ')[0]; // Use first name as nickname fallback
         setData({
           title: apiData.goodsRequest.title,
-          beneficiaryName: apiData.goodsRequest.beneficiary?.name || 'Beneficiario',
-          fulfilledByName: apiData.goodsRequest.fulfilledBy?.name || 'Donatore',
+          beneficiaryNickname: apiData.goodsRequest.beneficiary?.nickname || nickname,
           status: apiData.goodsRequest.status,
           pickupQrData: apiData.qrCodes.pickup.data,
           pickupQrImageUrl: apiData.qrCodes.pickup.imageUrl,
@@ -52,48 +53,52 @@ export default function GoodsPickupQrPage() {
   const handlePrint = () => {
     if (!data) return;
 
-    const printWindow = window.open('', '', 'width=400,height=300');
+    const printWindow = window.open('', '', 'width=600,height=800');
     if (!printWindow) return;
 
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Stampa QR - Ritiro</title>
+          <title>QR Ritiro - KYKOS</title>
           <style>
-            @page { size: 50mm 30mm; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body { width: 50mm; height: 30mm; }
-            .label { width: 50mm; height: 30mm; display: flex; gap: 2mm; padding: 2mm; background: white; }
-            .qr-area { width: 23mm; height: 26mm; flex-shrink: 0; }
-            .qr-area img { width: 23mm; height: 23mm; }
-            .info-area { width: 23mm; height: 26mm; display: flex; flex-direction: column; justify-content: space-between; }
-            .logo-row { display: flex; align-items: center; gap: 1mm; }
-            .logo-row img { height: 4mm; width: auto; }
-            .logo-row span { font-size: 4mm; font-weight: bold; color: #374151; }
-            .data { font-size: 3mm; line-height: 1.3; }
-            .data-id { font-weight: bold; }
-            .data-name { color: #4b5563; }
-            .data-item { color: #6b7280; font-size: 2.5mm; }
-            .data-date { color: #9ca3af; font-size: 2.5mm; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+            .container { max-width: 400px; margin: 0 auto; text-align: center; }
+            .logo-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; }
+            .logo-row img { height: 40px; width: auto; }
+            .logo-row span { font-size: 24px; font-weight: bold; color: #374151; }
+            .qr-box { border: 2px dashed #d1d5db; border-radius: 12px; padding: 30px; background: #f9fafb; }
+            .qr-box img { width: 250px; height: 250px; }
+            .info { margin-top: 20px; }
+            .info h2 { font-size: 18px; color: #111827; margin-bottom: 8px; }
+            .info p { color: #6b7280; font-size: 14px; }
+            .nickname { font-size: 24px; font-weight: bold; color: #059669; margin-top: 15px; }
+            .id-badge { background: #e5e7eb; padding: 4px 12px; border-radius: 20px; font-size: 12px; color: #374151; margin-top: 10px; display: inline-block; }
+            .footer { margin-top: 30px; font-size: 12px; color: #9ca3af; }
+            @media print {
+              body { padding: 0; }
+              .no-print { display: none; }
+            }
           </style>
         </head>
         <body>
-          <div class="label">
-            <div class="qr-area">
-              <img src="${data.pickupQrImageUrl}" alt="QR Ritiro" />
+          <div class="container">
+            <div class="logo-row">
+              <img src="${window.location.origin}/albero.svg" alt="logo" />
+              <span>KYKOS</span>
             </div>
-            <div class="info-area">
-              <div class="logo-row">
-                <img src="${window.location.origin}/albero.svg" alt="logo" />
-                <img src="${window.location.origin}/LogoKykosTesto.svg" alt="Kykos" />
+            <div class="qr-box">
+              <img src="${data.pickupQrImageUrl}" alt="QR Ritiro" />
+              <div class="info">
+                <h2>${data.title}</h2>
+                <p>Ritiro beneficiario</p>
+                <div class="nickname">${data.beneficiaryNickname}</div>
+                <div class="id-badge">#${requestId.slice(0, 8)}</div>
               </div>
-              <div class="data">
-                <div class="data-id">#${requestId.slice(0, 8)}</div>
-                <div class="data-name">${data.beneficiaryName}</div>
-                <div class="data-item">${data.title.slice(0, 20)}</div>
-                <div class="data-date">Ritiro</div>
-              </div>
+            </div>
+            <div class="footer">
+              Kykos - Ritiro beni
             </div>
           </div>
         </body>
@@ -162,14 +167,11 @@ export default function GoodsPickupQrPage() {
             <p className="text-gray-500 text-sm mt-1">Mostra questo QR al beneficiario per il ritiro</p>
           </div>
 
-          {/* Item Info */}
+          {/* Item Info - shows title only, NO donor name per anonymity rules */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h2 className="font-semibold text-gray-900 mb-1">{data.title}</h2>
             <p className="text-sm text-gray-500">
-              Donato da: {data.fulfilledByName}
-            </p>
-            <p className="text-sm text-gray-500">
-              Per: <strong>{data.beneficiaryName}</strong>
+              Beneficiario: <strong className="text-primary-600">{data.beneficiaryNickname}</strong>
             </p>
           </div>
 
