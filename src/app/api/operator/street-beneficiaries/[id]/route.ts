@@ -65,6 +65,7 @@ export async function GET(
         authUserId: true,
         emailConfirmed: true,
         nickname: true,
+        needScore: true,
         firstName: true,
         lastName: true,
         fiscalCode: true,
@@ -136,8 +137,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Beneficiario non trovato' }, { status: 404 });
     }
 
-    // Validate email format if provided
-    if (body.email) {
+    // Validate email format if provided (not required, but if provided must be valid)
+    if (body.email !== undefined && body.email !== null && body.email !== '') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(body.email)) {
         return NextResponse.json({ error: 'Formato email non valido' }, { status: 400 });
@@ -175,6 +176,7 @@ export async function PATCH(
     if (body.city !== undefined) updateData.city = body.city;
     if (body.province !== undefined) updateData.province = body.province;
     if (body.isee !== undefined) updateData.isee = body.isee;
+    if (body.needScore !== undefined) updateData.needScore = body.needScore;
     if (body.latitude !== undefined) updateData.latitude = body.latitude ? parseFloat(body.latitude) : null;
     if (body.longitude !== undefined) updateData.longitude = body.longitude ? parseFloat(body.longitude) : null;
 

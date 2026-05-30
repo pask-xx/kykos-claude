@@ -26,6 +26,7 @@ interface StreetBeneficiary {
   createdAt: string;
   authUserId: string | null;
   emailConfirmed: boolean;
+  needScore: number | null;
   referenceEntity?: {
     id: string;
     name: string;
@@ -46,6 +47,7 @@ interface FormData {
   city: string;
   province: string;
   isee: string;
+  needScore: string;
   latitude: string;
   longitude: string;
 }
@@ -76,6 +78,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
     city: '',
     province: '',
     isee: '',
+    needScore: '',
     latitude: '',
     longitude: '',
   });
@@ -105,6 +108,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
         city: b.city || '',
         province: b.province || '',
         isee: b.isee || '',
+        needScore: b.needScore?.toString() || '',
         latitude: b.latitude?.toString() || '',
         longitude: b.longitude?.toString() || '',
       });
@@ -156,6 +160,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
           city: formData.city || null,
           province: formData.province || null,
           isee: formData.isee || null,
+          needScore: formData.needScore ? parseInt(formData.needScore) : null,
           latitude: formData.latitude || null,
           longitude: formData.longitude || null,
         }),
@@ -476,6 +481,23 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
                 onChange={(e) => setFormData(prev => ({ ...prev, isee: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 placeholder="0.00"
+              />
+            </div>
+
+            {/* Need Score */}
+            <div>
+              <label htmlFor="needScore" className="block text-sm font-medium text-gray-700 mb-1">
+                Score di bisogno (0-100)
+              </label>
+              <input
+                id="needScore"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.needScore}
+                onChange={(e) => setFormData(prev => ({ ...prev, needScore: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                placeholder="0-100"
               />
             </div>
 
