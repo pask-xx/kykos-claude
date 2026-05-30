@@ -61,6 +61,9 @@ export async function GET(
       },
       select: {
         id: true,
+        email: true,
+        authUserId: true,
+        emailConfirmed: true,
         nickname: true,
         firstName: true,
         lastName: true,

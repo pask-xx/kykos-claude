@@ -10,6 +10,9 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface StreetBeneficiary {
   id: string;
+  email: string | null;
+  authUserId: string | null;
+  emailConfirmed: boolean;
   nickname: string | null;
   firstName: string;
   lastName: string;
@@ -89,6 +92,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
   const [loadingOperators, setLoadingOperators] = useState(false);
   const [unifiedItems, setUnifiedItems] = useState<UnifiedItem[]>([]);
   const [acceptingOfferId, setAcceptingOfferId] = useState<string | null>(null);
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
   const handleOfferAction = async (offerId: string, action: 'accept' | 'reject') => {
     setAcceptingOfferId(offerId);
@@ -212,6 +216,25 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
     }
   };
 
+  const handleCreateAccount = async () => {
+    setCreatingAccount(true);
+    try {
+      const res = await fetch(`/api/operator/street-beneficiaries/${id}/create-account`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        fetchBeneficiary(); // Refresh to update account status
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nella creazione account');
+      }
+    } catch (err) {
+      setError('Errore di connessione');
+    } finally {
+      setCreatingAccount(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -276,6 +299,19 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
           )}
         </div>
         <div className="flex gap-2">
+          {!beneficiary.authUserId && !beneficiary.emailConfirmed && beneficiary.email && (
+            <ConfirmDialog
+              title="Crea account"
+              message={`Creare un account per ${beneficiary.firstName} ${beneficiary.lastName}? Riceverà un'email di conferma.`}
+              confirmLabel="Crea account"
+              variant="warning"
+              onConfirm={handleCreateAccount}
+            >
+              <Button variant="success" disabled={creatingAccount}>
+                {creatingAccount ? 'Creazione...' : '🔑 Crea account'}
+              </Button>
+            </ConfirmDialog>
+          )}
           <Button variant="secondary" onClick={() => router.push(`/operator/street-beneficiaries/${id}/edit`)}>
             Modifica
           </Button>
