@@ -87,9 +87,24 @@ export async function POST(
       return NextResponse.json({ error: 'Questo beneficiario ha già un account' }, { status: 400 });
     }
 
-    // Check if email is configured
+    // Check if email is configured and valid
     if (!beneficiary.email) {
-      return NextResponse.json({ error: 'Email non configurata per questo beneficiario. Aggiungi prima un\'email.' }, { status: 400 });
+      return NextResponse.json({ error: 'Email non configurata. Aggiungi prima un\'email al beneficiario.' }, { status: 400 });
+    }
+
+    // Check if email is a placeholder (system-generated fake email)
+    const isPlaceholderEmail = beneficiary.email.includes('@street.kykos.local') ||
+                               beneficiary.email.includes('@placeholder') ||
+                               beneficiary.email.startsWith('street.');
+
+    if (isPlaceholderEmail) {
+      return NextResponse.json({ error: 'Email non valida. Aggiungi una email reale al beneficiario prima di creare l\'account.' }, { status: 400 });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(beneficiary.email)) {
+      return NextResponse.json({ error: 'Formato email non valido. Aggiungi una email valida al beneficiario.' }, { status: 400 });
     }
 
     // Check if email already exists in KYKOS DB (shouldn't happen since we checked above, but safety check)
