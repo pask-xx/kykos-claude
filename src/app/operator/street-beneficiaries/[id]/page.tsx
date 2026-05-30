@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Spinner, Modal, ModalFooter } from '@/components/ui';
 import { CATEGORY_LABELS } from '@/types';
 import ImageGallery from '@/components/ImageGallery';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface StreetBeneficiary {
   id: string;
@@ -559,22 +560,36 @@ function OfferItem({
       </div>
       {offer.status === 'PENDING' && (
         <div className="flex gap-1">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => onAccept(offer.id)}
-            loading={acceptingId === offer.id}
+          <ConfirmDialog
+            title="Accetta offerta"
+            message="Sei sicuro di voler accettare questa offerta? Il donatore riceverà un QR code per la consegna."
+            confirmLabel="Accetta"
+            variant="warning"
+            onConfirm={() => onAccept(offer.id)}
           >
-            Accetta
-          </Button>
-          <Button
+            <Button
+              variant="primary"
+              size="sm"
+              loading={acceptingId === offer.id}
+            >
+              Accetta
+            </Button>
+          </ConfirmDialog>
+          <ConfirmDialog
+            title="Rifiuta offerta"
+            message="Sei sicuro di voler rifiutare questa offerta?"
+            confirmLabel="Rifiuta"
             variant="danger"
-            size="sm"
-            onClick={() => onReject(offer.id)}
-            disabled={acceptingId === offer.id}
+            onConfirm={() => onReject(offer.id)}
           >
-            Rifiuta
-          </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={acceptingId === offer.id}
+            >
+              Rifiuta
+            </Button>
+          </ConfirmDialog>
         </div>
       )}
     </div>
