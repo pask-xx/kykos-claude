@@ -255,6 +255,117 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         {recipient.authorized ? 'Attivo' : 'Disattivato'}
       </div>
 
+      {/* Score di Bisogno */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-2 border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <span className="text-xl">📊</span> Score di Bisogno
+          </h2>
+          {!editingScore && (
+            <button
+              onClick={() => setEditingScore(true)}
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+            >
+              modifica
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-6">
+          {/* Gauge */}
+          <div className="relative w-32 h-32 flex-shrink-0">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              {/* Background circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="12"
+              />
+              {/* Colored arc */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke={
+                  recipient.needScore >= 80 ? '#dc2626' :
+                  recipient.needScore >= 50 ? '#f59e0b' :
+                  recipient.needScore >= 20 ? '#3b82f6' :
+                  '#6b7280'
+                }
+                strokeWidth="12"
+                strokeLinecap="round"
+                strokeDasharray={`${(recipient.needScore / 100) * 264} 264`}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`text-3xl font-bold ${
+                recipient.needScore >= 80 ? 'text-red-600' :
+                recipient.needScore >= 50 ? 'text-amber-600' :
+                recipient.needScore >= 20 ? 'text-blue-600' :
+                'text-gray-600'
+              }`}>
+                {recipient.needScore}
+              </span>
+              <span className="text-xs text-gray-400">/100</span>
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1">
+            {editingScore ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={scoreValue}
+                    onChange={(e) => setScoreValue(Number(e.target.value))}
+                    className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                  />
+                  <span className="font-bold text-xl w-14 text-center">{scoreValue}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => updateNeedScore(scoreValue)}
+                    disabled={savingScore}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                  >
+                    {savingScore ? 'Salvataggio...' : 'Salva'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingScore(false); setScoreValue(recipient.needScore); }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-gray-600 mb-2">
+                  {recipient.needScore >= 80 ? (
+                    <span className="text-red-600 font-medium">🚨 Alta priorità</span>
+                  ) : recipient.needScore >= 50 ? (
+                    <span className="text-amber-600 font-medium">⚠️ Media priorità</span>
+                  ) : recipient.needScore >= 20 ? (
+                    <span className="text-blue-600 font-medium">ℹ️ Bassa priorità</span>
+                  ) : (
+                    <span className="text-gray-500 font-medium">✓ Priorità minima</span>
+                  )}
+                </p>
+                <p className="text-sm text-gray-400">
+                  0 = poco bisogno, 100 = molto bisogno
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Permissions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Permessi richieste</h2>
@@ -322,55 +433,6 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               <p className="font-medium text-gray-900">€{recipient.isee}</p>
             </div>
           )}
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Score di bisogno</p>
-            {editingScore ? (
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={scoreValue}
-                  onChange={(e) => setScoreValue(Number(e.target.value))}
-                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <span className="font-bold text-lg w-12 text-center">{scoreValue}</span>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => updateNeedScore(scoreValue)}
-                    disabled={savingScore}
-                    className="px-2 py-1 bg-green-600 text-white rounded text-xs font-medium disabled:opacity-50"
-                  >
-                    {savingScore ? '...' : '✓'}
-                  </button>
-                  <button
-                    onClick={() => { setEditingScore(false); setScoreValue(recipient.needScore); }}
-                    className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs font-medium"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  recipient.needScore >= 80 ? 'bg-red-100 text-red-700' :
-                  recipient.needScore >= 50 ? 'bg-amber-100 text-amber-700' :
-                  recipient.needScore >= 20 ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-700'
-                }`}>
-                  {recipient.needScore}
-                </span>
-                <button
-                  onClick={() => setEditingScore(true)}
-                  className="text-xs text-primary-600 hover:text-primary-700"
-                >
-                  modifica
-                </button>
-              </div>
-            )}
-            <p className="text-xs text-gray-400 mt-1">0 = poco bisogno, 100 = molto bisogno</p>
-          </div>
           {recipient.address && (
             <div className="md:col-span-2">
               <p className="text-xs text-gray-500 uppercase">Indirizzo</p>
