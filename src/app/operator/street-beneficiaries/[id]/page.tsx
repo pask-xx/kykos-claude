@@ -28,6 +28,7 @@ interface StreetBeneficiary {
   longitude: number | null;
   createdAt: string;
   isStreetManaged: boolean;
+  needScore: number;
   referenceEntity?: {
     id: string;
     name: string;
@@ -384,24 +385,24 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
                 r="42"
                 fill="none"
                 stroke={
-                  (beneficiary.needScore || 0) >= 80 ? '#dc2626' :
-                  (beneficiary.needScore || 0) >= 50 ? '#f59e0b' :
-                  (beneficiary.needScore || 0) >= 20 ? '#3b82f6' :
+                  beneficiary.needScore >= 80 ? '#dc2626' :
+                  beneficiary.needScore >= 50 ? '#f59e0b' :
+                  beneficiary.needScore >= 20 ? '#3b82f6' :
                   '#6b7280'
                 }
                 strokeWidth="12"
                 strokeLinecap="round"
-                strokeDasharray={`${((beneficiary.needScore || 0) / 100) * 264} 264`}
+                strokeDasharray={`${(beneficiary.needScore / 100) * 264} 264`}
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={`text-3xl font-bold ${
-                (beneficiary.needScore || 0) >= 80 ? 'text-red-600' :
-                (beneficiary.needScore || 0) >= 50 ? 'text-amber-600' :
-                (beneficiary.needScore || 0) >= 20 ? 'text-blue-600' :
+                beneficiary.needScore >= 80 ? 'text-red-600' :
+                beneficiary.needScore >= 50 ? 'text-amber-600' :
+                beneficiary.needScore >= 20 ? 'text-blue-600' :
                 'text-gray-600'
               }`}>
-                {beneficiary.needScore || 0}
+                {beneficiary.needScore}
               </span>
               <span className="text-xs text-gray-400">/100</span>
             </div>
@@ -431,7 +432,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
                     {savingScore ? 'Salvataggio...' : 'Salva'}
                   </button>
                   <button
-                    onClick={() => { setEditingScore(false); setScoreValue(beneficiary.needScore || 50); }}
+                    onClick={() => { setEditingScore(false); setScoreValue(beneficiary.needScore); }}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
                   >
                     Annulla
@@ -441,11 +442,11 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
             ) : (
               <div>
                 <p className="text-gray-600 mb-2">
-                  {(beneficiary.needScore || 0) >= 80 ? (
+                  {beneficiary.needScore >= 80 ? (
                     <span className="text-red-600 font-medium">🚨 Alta priorità</span>
-                  ) : (beneficiary.needScore || 0) >= 50 ? (
+                  ) : beneficiary.needScore >= 50 ? (
                     <span className="text-amber-600 font-medium">⚠️ Media priorità</span>
-                  ) : (beneficiary.needScore || 0) >= 20 ? (
+                  ) : beneficiary.needScore >= 20 ? (
                     <span className="text-blue-600 font-medium">ℹ️ Bassa priorità</span>
                   ) : (
                     <span className="text-gray-500 font-medium">✓ Priorità minima</span>
