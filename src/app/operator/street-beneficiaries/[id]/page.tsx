@@ -307,7 +307,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
               variant="warning"
               onConfirm={handleCreateAccount}
             >
-              <Button variant="success" disabled={creatingAccount}>
+              <Button variant="primary" disabled={creatingAccount}>
                 {creatingAccount ? 'Creazione...' : '🔑 Crea account'}
               </Button>
             </ConfirmDialog>
