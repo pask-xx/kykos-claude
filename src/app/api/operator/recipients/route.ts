@@ -101,6 +101,11 @@ export async function GET(request: Request) {
           city: true,
           province: true,
           isStreetManaged: true,
+          authorized: true,
+          authorizedAt: true,
+          needScore: true,
+          email: true,
+          createdAt: true,
           referenceEntity: {
             select: {
               id: true,
@@ -144,6 +149,11 @@ export async function GET(request: Request) {
           city: true,
           province: true,
           isStreetManaged: true,
+          authorized: true,
+          authorizedAt: true,
+          needScore: true,
+          email: true,
+          createdAt: true,
           referenceEntity: {
             select: {
               id: true,
