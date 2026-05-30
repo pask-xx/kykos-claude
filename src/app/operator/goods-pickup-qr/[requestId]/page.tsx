@@ -27,8 +27,8 @@ export default function GoodsPickupQrPage() {
 
   const fetchData = async () => {
     try {
-      // Fetch from the QR endpoint that both donor and beneficiary use
-      const res = await fetch(`/api/entity-requests/${requestId}/qr`);
+      // Fetch from the operator goods requests QR endpoint
+      const res = await fetch(`/api/operator/goods-requests/${requestId}/qr`);
       if (res.ok) {
         const apiData = await res.json();
         setData({
