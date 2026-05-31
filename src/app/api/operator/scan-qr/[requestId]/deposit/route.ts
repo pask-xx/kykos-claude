@@ -137,13 +137,12 @@ export async function POST(
 
       // Create notifications for each street operator
       for (const assignment of streetOperatorAssignments) {
-        const beneficiaryName = req.recipient.firstName + ' ' + req.recipient.lastName;
         await prisma.notification.create({
           data: {
             recipientOperatorId: assignment.streetOperator.id,
             recipientType: RecipientType.OPERATOR,
             title: 'Oggetto depositato per beneficiario street',
-            message: 'Deposito effettuato per ' + beneficiaryName + ': "' + req.object.title + '". Consegna da effettuare.',
+            message: 'Deposito effettuato per ' + req.recipient.name + ': "' + req.object.title + '". Consegna da effettuare.',
             type: NotificationType.STREET_OBJECT_DEPOSITED,
             link: '/operator/street-beneficiaries/' + req.recipient.id,
             data: JSON.stringify({
@@ -158,7 +157,7 @@ export async function POST(
 
       return NextResponse.json({
         success: true,
-        message: 'Posizione deposito registrata! Notificati ' + streetOperatorAssignments.length + ' operatore(i) di strada per ' + req.recipient.firstName + ' ' + req.recipient.lastName + '.',
+        message: 'Posizione deposito registrata! Notificati ' + streetOperatorAssignments.length + ' operatore(i) di strada per ' + req.recipient.name + '.',
         showLabelDialog: false, // Street beneficiaries don't print labels
         isStreetBeneficiary: true,
       });
