@@ -69,7 +69,7 @@ export default function StreetToDeliverPage() {
 
       await navigator.share({
         title: `KYKOS - ${item.statusLabel}`,
-        text: `${item.statusLabel}: "${item.title}" per @${item.beneficiaryNickname || item.beneficiaryName}`,
+        text: `${item.statusLabel}: "${item.title}" per ${item.beneficiaryName}`,
         files: [file],
       });
     } catch (err) {
@@ -86,14 +86,15 @@ export default function StreetToDeliverPage() {
 
     setSharing(true);
     try {
-      const subject = encodeURIComponent(`KYKOS - ${item.statusLabel}`);
+      const subject = encodeURIComponent('KYKOS - ' + item.statusLabel);
       const body = encodeURIComponent(
-        `${item.statusLabel}: "${item.title}"\n` +
-        `Per: @${item.beneficiaryNickname || item.beneficiaryName}\n` +
-        `QR Code: ${item.qrData}\n\n` +
-        `Download QR: ${item.qrImageUrl}`
+        item.statusLabel + ': "' + item.title + '"\n' +
+        'Per: ' + item.beneficiaryName + '\n' +
+        (item.beneficiaryAddress ? 'Indirizzo: ' + item.beneficiaryAddress + '\n' : '') +
+        'QR Code: ' + item.qrData + '\n\n' +
+        'Download QR: ' + item.qrImageUrl
       );
-      window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+      window.open('mailto:?subject=' + subject + '&body=' + body, '_blank');
     } catch (err) {
       console.error('Email share error:', err);
     } finally {
@@ -104,8 +105,8 @@ export default function StreetToDeliverPage() {
   const handleWhatsAppShare = async (item: StreetDeliveryItem) => {
     if (!item.qrImageUrl) return;
 
-    const message = `${item.statusLabel}: "${item.title}"\nPer: @${item.beneficiaryNickname || item.beneficiaryName}\n\nQR Code: ${item.qrData}\n\nDownload QR: ${item.qrImageUrl}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    const message = item.statusLabel + ': "' + item.title + '"\nPer: ' + item.beneficiaryName + (item.beneficiaryAddress ? '\nIndirizzo: ' + item.beneficiaryAddress : '') + '\n\nQR Code: ' + item.qrData + '\n\nDownload QR: ' + item.qrImageUrl;
+    window.open('https://wa.me/?text=' + encodeURIComponent(message), '_blank');
   };
 
   const handleDownload = (item: StreetDeliveryItem) => {
@@ -119,7 +120,7 @@ export default function StreetToDeliverPage() {
   const handlePrintQR = (item: StreetDeliveryItem) => {
     if (!item.qrImageUrl) return;
 
-    const printWindow = window.open('', '', 'width=400,height=500');
+    const printWindow = window.open('', '', 'width=400,height=600');
     if (!printWindow) return;
 
     printWindow.document.write(`
@@ -128,17 +129,18 @@ export default function StreetToDeliverPage() {
         <head>
           <title>Stampa QR - KYKOS</title>
           <style>
-            @page { size: 60mm 80mm; margin: 0; }
+            @page { size: 80mm 100mm; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body { width: 60mm; height: 80mm; }
-            body { display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Arial, sans-serif; padding: 5mm; }
-            .logo-row { display: flex; align-items: center; gap: 2mm; margin-bottom: 3mm; }
-            .logo-row img { height: 8mm; width: auto; }
-            .beneficiary { font-size: 11pt; font-weight: bold; margin-bottom: 2mm; text-align: center; }
-            .title { font-size: 9pt; color: #666; margin-bottom: 3mm; text-align: center; max-width: 55mm; }
-            .qr-area { border: 1px solid #eee; padding: 2mm; background: white; }
-            .qr-area img { width: 50mm; height: 50mm; }
-            .footer { font-size: 7pt; color: #999; margin-top: 3mm; text-align: center; }
+            html, body { width: 80mm; height: 100mm; }
+            body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; font-family: Arial, sans-serif; padding: 4mm; }
+            .logo-row { display: flex; align-items: center; gap: 2mm; margin-bottom: 2mm; }
+            .logo-row img { height: 6mm; width: auto; }
+            .beneficiary { font-size: 10pt; font-weight: bold; margin-bottom: 1mm; text-align: center; }
+            .address { font-size: 8pt; color: #666; margin-bottom: 2mm; text-align: center; }
+            .title { font-size: 8pt; color: #888; margin-bottom: 2mm; text-align: center; max-width: 70mm; }
+            .qr-area { border: 1px solid #eee; padding: 1mm; background: white; }
+            .qr-area img { width: 45mm; height: 45mm; }
+            .footer { font-size: 6pt; color: #999; margin-top: 2mm; text-align: center; }
           </style>
         </head>
         <body>
@@ -146,7 +148,8 @@ export default function StreetToDeliverPage() {
             <img src="${window.location.origin}/albero.svg" alt="KYKOS" />
             <img src="${window.location.origin}/LogoKykosTesto.svg" alt="Kykos" />
           </div>
-          <div class="beneficiary">@${item.beneficiaryNickname || item.beneficiaryName}</div>
+          <div class="beneficiary">${item.beneficiaryName}</div>
+          ${item.beneficiaryAddress ? '<div class="address">' + item.beneficiaryAddress + '</div>' : ''}
           <div class="title">${item.title}</div>
           <div class="qr-area">
             <img src="${item.qrImageUrl}" alt="QR Code" />
@@ -231,9 +234,7 @@ export default function StreetToDeliverPage() {
           <div className="grid gap-3 sm:gap-4">
             {items.map((item) => {
               const colors = TYPE_COLORS[item.type];
-              const displayName = item.beneficiaryNickname
-                ? `@${item.beneficiaryNickname}`
-                : item.beneficiaryName;
+              const displayName = item.beneficiaryName;
 
               return (
                 <div
@@ -310,7 +311,7 @@ export default function StreetToDeliverPage() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="font-medium text-gray-900">{selectedItem.title}</p>
                 <p className="text-sm text-gray-500">
-                  Per: <span className="font-medium">@{selectedItem.beneficiaryNickname || selectedItem.beneficiaryName}</span>
+                  Per: <span className="font-medium">{selectedItem.beneficiaryName}</span>
                 </p>
                 {selectedItem.depositLocation && (
                   <p className="text-sm text-gray-500">
