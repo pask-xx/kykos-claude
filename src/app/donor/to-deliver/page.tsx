@@ -14,11 +14,12 @@ export default async function DonorToDeliverPage() {
     redirect(`/${session.role.toLowerCase()}/dashboard`);
   }
 
-  // Fetch object donations (RESERVED status - object assigned to a request)
+  // Fetch object donations (RESERVED status - object assigned to a request, not yet donated)
   const objectDonations = await prisma.donation.findMany({
     where: {
       donorId: session.id,
       object: { status: 'RESERVED' },
+      request: { status: { notIn: ['FULFILLED', 'COMPLETED'] } },
     },
     include: {
       object: {
@@ -30,11 +31,14 @@ export default async function DonorToDeliverPage() {
     },
   });
 
-  // Fetch accepted goods offers (ACCEPTED status)
+  // Fetch accepted goods offers (ACCEPTED status) where request is not yet fulfilled/delivered
   const acceptedGoodsOffers = await prisma.goodsOffer.findMany({
     where: {
       offeredById: session.id,
       status: 'ACCEPTED',
+      request: {
+        status: { notIn: ['FULFILLED', 'DELIVERED', 'COMPLETED'] },
+      },
     },
     include: {
       request: {
