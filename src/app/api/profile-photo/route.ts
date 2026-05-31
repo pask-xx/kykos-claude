@@ -82,17 +82,22 @@ export async function POST(request: Request) {
     // Get public URL
     const publicUrl = `${supabaseUrl}/storage/v1/object/public/profile-photos/${filename}`;
 
+    console.log('Profile photo uploaded:', publicUrl);
+    console.log('Updating user ID:', userId, 'isOperator:', isOperator);
+
     // Update user or operator record
     if (isOperator && operatorId) {
-      await prisma.operator.update({
+      const updated = await prisma.operator.update({
         where: { id: operatorId },
         data: { profileImageUrl: publicUrl },
       });
+      console.log('Operator updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
     } else if (userId) {
-      await prisma.user.update({
+      const updated = await prisma.user.update({
         where: { id: userId },
         data: { profileImageUrl: publicUrl },
       });
+      console.log('User updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
     }
 
     return NextResponse.json({ url: publicUrl });
