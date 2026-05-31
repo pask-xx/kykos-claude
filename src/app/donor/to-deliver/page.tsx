@@ -75,7 +75,7 @@ export default async function DonorToDeliverPage() {
         {objectDonations.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📦</span> Oggetti
+              <span>📦</span> Disponibilità
             </h2>
             <div className="space-y-3">
               {objectDonations.map((donation) => (
@@ -107,7 +107,7 @@ export default async function DonorToDeliverPage() {
         {acceptedGoodsOffers.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>🎁</span> Beni e Servizi
+              <span>🎁</span> Richieste
             </h2>
             <div className="space-y-3">
               {acceptedGoodsOffers.map((offer) => (
