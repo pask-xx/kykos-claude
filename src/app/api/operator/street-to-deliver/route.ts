@@ -103,6 +103,7 @@ export async function GET() {
             nickname: true,
             address: true,
             houseNumber: true,
+            city: true,
           },
         },
       },
