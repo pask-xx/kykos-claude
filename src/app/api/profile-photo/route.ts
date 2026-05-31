@@ -25,10 +25,16 @@ export async function POST(request: Request) {
     const session = await getSession();
     const operatorId = await getOperatorId();
 
+    console.log('Profile photo upload - session:', session);
+    console.log('Profile photo upload - operatorId:', operatorId);
+
     const userId = session?.id;
     const isOperator = !!operatorId;
 
+    console.log('User ID from session:', userId);
+
     if (!userId && !operatorId) {
+      console.log('Unauthorized - no user or operator session');
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
@@ -36,6 +42,7 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File | null;
 
     if (!file) {
+      console.log('No file provided');
       return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
     }
 
