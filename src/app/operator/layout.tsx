@@ -45,6 +45,16 @@ export default async function OperatorLayout({ children }: { children: React.Rea
     },
   });
 
+  // Also check if this operator has a linked user account with a profile photo
+  let userProfileImageUrl: string | null = null;
+  if (operator?.supabaseAuthId) {
+    const linkedUser = await prisma.user.findFirst({
+      where: { authUserId: operator.supabaseAuthId },
+      select: { profileImageUrl: true },
+    });
+    userProfileImageUrl = linkedUser?.profileImageUrl || null;
+  }
+
   if (!operator || !operator.active) {
     redirect('/operator/login');
   }
@@ -54,7 +64,7 @@ export default async function OperatorLayout({ children }: { children: React.Rea
       operatorRole={operator.role}
       operatorPermissions={operator.permissions}
       operatorName={`${operator.firstName} ${operator.lastName}`}
-      operatorProfileImageUrl={operator.profileImageUrl}
+      operatorProfileImageUrl={operator.profileImageUrl || userProfileImageUrl}
       organizationName={operator.organization.name}
       isOfficeOperator={operator.isOfficeOperator}
       isStreetOperator={operator.isStreetOperator}
