@@ -23,6 +23,7 @@ export default async function RecipientLayout({ children }: { children: React.Re
       firstName: true,
       lastName: true,
       role: true,
+      profileImageUrl: true,
     },
   });
 
@@ -64,6 +65,7 @@ export default async function RecipientLayout({ children }: { children: React.Re
     email: user.email,
     name: `${user.firstName} ${user.lastName}`.trim(),
     role: user.role,
+    profileImageUrl: user.profileImageUrl,
   } : null;
 
   return (
