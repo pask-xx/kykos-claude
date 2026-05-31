@@ -93,18 +93,22 @@ export async function POST(request: Request) {
     console.log('Updating user ID:', userId, 'isOperator:', isOperator);
 
     // Update user or operator record
-    if (isOperator && operatorId) {
-      const updated = await prisma.operator.update({
-        where: { id: operatorId },
-        data: { profileImageUrl: publicUrl },
-      });
-      console.log('Operator updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
-    } else if (userId) {
+    // Priority: if userId exists, update the user profile (even if also operator)
+    // Only update operator if there's no user session
+    if (userId) {
+      console.log('Updating user record with ID:', userId);
       const updated = await prisma.user.update({
         where: { id: userId },
         data: { profileImageUrl: publicUrl },
       });
       console.log('User updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
+    } else if (operatorId) {
+      console.log('Updating operator record with ID:', operatorId);
+      const updated = await prisma.operator.update({
+        where: { id: operatorId },
+        data: { profileImageUrl: publicUrl },
+      });
+      console.log('Operator updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
     }
 
     return NextResponse.json({ url: publicUrl });
