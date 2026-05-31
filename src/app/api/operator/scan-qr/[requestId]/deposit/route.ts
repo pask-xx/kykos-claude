@@ -115,7 +115,7 @@ export async function POST(
 
     // Generate pickup QR for recipient notification
     const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png');
+    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, 'pickup-' + requestId + '.png');
 
     // Generate DELIVER QR for object label (for pickup verification)
     const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
@@ -143,9 +143,9 @@ export async function POST(
             recipientOperatorId: assignment.streetOperator.id,
             recipientType: RecipientType.OPERATOR,
             title: 'Oggetto depositato per beneficiario street',
-            message: `È stato depositato un oggetto per @${nickname}: "${req.object.title}". Consegna da effettuare.`,
+            message: 'Deposito effettuato per ' + nickname + ': "' + req.object.title + '". Consegna da effettuare.',
             type: NotificationType.STREET_OBJECT_DEPOSITED,
-            link: `/operator/street-beneficiaries/${req.recipient.id}`,
+            link: '/operator/street-beneficiaries/' + req.recipient.id,
             data: JSON.stringify({
               objectId: req.objectId,
               requestId: requestId,
@@ -158,7 +158,7 @@ export async function POST(
 
       return NextResponse.json({
         success: true,
-        message: `Posizione deposito registrata! Notificati ${streetOperatorAssignments.length} operatore(i) di strada per @${req.recipient.nickname || req.recipient.name}.`,
+        message: 'Posizione deposito registrata! Notificati ' + streetOperatorAssignments.length + ' operatore(i) di strada per @' + (req.recipient.nickname || req.recipient.name) + '.',
         showLabelDialog: false, // Street beneficiaries don't print labels
         isStreetBeneficiary: true,
       });
