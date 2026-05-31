@@ -36,6 +36,17 @@ export async function POST(request: Request) {
         status: true,
         beneficiaryId: true,
         fulfilledById: true,
+        intermediaryId: true,
+        title: true,
+        beneficiary: {
+          select: {
+            id: true,
+            isStreetManaged: true,
+            firstName: true,
+            lastName: true,
+            referenceEntityId: true,
+          },
+        },
       },
     });
 
@@ -85,6 +96,27 @@ export async function POST(request: Request) {
         link: '/recipient/requests-entity/requests',
       },
     });
+
+    // If beneficiary is street-managed, notify the street operators who created the request
+    if (goodsRequest.beneficiary.isStreetManaged) {
+      const streetOperatorAssignments = await prisma.streetOperatorBeneficiary.findMany({
+        where: { beneficiaryId: goodsRequest.beneficiary.id },
+        include: { streetOperator: { select: { id: true, username: true } } },
+      });
+
+      for (const assignment of streetOperatorAssignments) {
+        await prisma.notification.create({
+          data: {
+            recipientOperatorId: assignment.streetOperator.id,
+            recipientType: 'OPERATOR' as any,
+            title: 'Offerta per il tuo beneficiario',
+            message: 'Un donatore ha fatto un\'offerta per "' + goodsRequest.title + '". L\'ente valuterà l\'offerta.',
+            type: 'GOODS_OFFER_RECEIVED' as any,
+            link: '/operator/street-beneficiaries/' + goodsRequest.beneficiary.id,
+          },
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,

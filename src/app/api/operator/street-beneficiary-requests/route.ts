@@ -172,16 +172,17 @@ export async function POST(request: Request) {
     });
 
     const typeLabel = requestType === 'GOODS' ? 'beni' : 'servizi';
+    const beneficiaryName = beneficiary.firstName + ' ' + beneficiary.lastName;
 
     for (const op of operators) {
       await prisma.notification.create({
         data: {
           recipientOperatorId: op.id,
           recipientType: RecipientType.OPERATOR,
-          title: `Nuova richiesta ${typeLabel} per beneficiario street`,
-          message: `${session.username} ha creato una richiesta di ${typeLabel} per @{beneficiary.nickname}: "${title}"`,
+          title: 'Nuova richiesta ' + typeLabel + ' per beneficiario street',
+          message: session.username + ' ha creato una richiesta di ' + typeLabel + ' per ' + beneficiaryName + ': "' + title + '"',
           type: NotificationType.GOODS_REQUEST_CREATED,
-          link: `/operator/requests-entity/${entityRequest.id}`,
+          link: '/operator/requests-entity/' + entityRequest.id,
         },
       });
     }
