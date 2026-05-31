@@ -116,6 +116,8 @@ enum NotificationType {
   GOODS_OFFER_RECEIVED
   // Cause notifications
   CAUSE_MESSAGE
+  // Street operator notifications
+  STREET_OBJECT_DEPOSITED
 }
 
 enum RequestType {

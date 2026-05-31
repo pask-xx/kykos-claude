@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { parseQrCodeData } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
 import { generatePickupQrCode, generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
+import { NotificationType, RecipientType } from '@prisma/client';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -81,7 +82,9 @@ export async function POST(
           select: {
             id: true,
             name: true,
+            nickname: true,
             email: true,
+            isStreetManaged: true,
           },
         },
       },
@@ -112,11 +115,56 @@ export async function POST(
 
     // Generate pickup QR for recipient notification
     const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png');
 
     // Generate DELIVER QR for object label (for pickup verification)
     const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
 
+    // For street-managed beneficiaries, notify street operators instead of sending email
+    if (req.recipient.isStreetManaged) {
+      // Find all street operators assigned to this beneficiary
+      const streetOperatorAssignments = await prisma.streetOperatorBeneficiary.findMany({
+        where: { beneficiaryId: req.recipient.id },
+        include: {
+          streetOperator: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      });
+
+      // Create notifications for each street operator
+      for (const assignment of streetOperatorAssignments) {
+        const nickname = req.recipient.nickname || req.recipient.name;
+        await prisma.notification.create({
+          data: {
+            recipientOperatorId: assignment.streetOperator.id,
+            recipientType: RecipientType.OPERATOR,
+            title: 'Oggetto depositato per beneficiario street',
+            message: `È stato depositato un oggetto per @${nickname}: "${req.object.title}". Consegna da effettuare.`,
+            type: NotificationType.STREET_OBJECT_DEPOSITED,
+            link: `/operator/street-beneficiaries/${req.recipient.id}`,
+            data: JSON.stringify({
+              objectId: req.objectId,
+              requestId: requestId,
+              beneficiaryId: req.recipient.id,
+              depositLocation,
+            }),
+          },
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Posizione deposito registrata! Notificati ${streetOperatorAssignments.length} operatore(i) di strada per @${req.recipient.nickname || req.recipient.name}.`,
+        showLabelDialog: false, // Street beneficiaries don't print labels
+        isStreetBeneficiary: true,
+      });
+    }
+
+    // Standard flow: send pickup QR email to regular beneficiary
     await sendPickupQrNotification(
       req.recipient.email,
       req.recipientId,
