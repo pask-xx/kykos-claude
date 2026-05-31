@@ -161,6 +161,7 @@ export default function StreetToDeliverPage() {
             .entity-name { font-size: 11pt; font-weight: bold; margin-bottom: 3px; }
             .entity-address { font-size: 10pt; color: #666; }
             .entity-hours { font-size: 9pt; color: #888; margin-top: 5px; }
+            .entity-hours p { margin: 2px 0; }
             .qr-container { text-align: center; margin: 15px 0; }
             .qr-container img { width: 180px; height: 180px; }
             .footer { font-size: 8pt; color: #999; text-align: center; margin-top: 15px; }
@@ -179,7 +180,7 @@ export default function StreetToDeliverPage() {
           <div class="entity-box">
             <div class="entity-name">${item.entity.name}</div>
             <div class="entity-address">${entityAddress}</div>
-            ${item.entity.hoursInfo ? '<div class="entity-hours">Orari: ' + item.entity.hoursInfo + '</div>' : ''}
+            ${item.entity.hoursInfo ? '<div class="entity-hours">' + item.entity.hoursInfo + '</div>' : ''}
           </div>
           <div class="qr-container">
             <img src="${item.qrImageUrl}" alt="QR Code" />
@@ -354,9 +355,7 @@ export default function StreetToDeliverPage() {
                   {selectedItem.entity.address && ', ' + selectedItem.entity.address}{selectedItem.entity.houseNumber && ' ' + selectedItem.entity.houseNumber}{selectedItem.entity.cap && ' - ' + selectedItem.entity.cap}{selectedItem.entity.city && ' ' + selectedItem.entity.city}
                 </p>
                 {selectedItem.entity.hoursInfo && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Orari: {selectedItem.entity.hoursInfo}
-                  </p>
+                  <div className="text-xs text-gray-500 mt-1" dangerouslySetInnerHTML={{ __html: 'Orari: ' + selectedItem.entity.hoursInfo }}></div>
                 )}
                 {selectedItem.depositLocation && (
                   <p className="text-sm text-gray-500 mt-1">
