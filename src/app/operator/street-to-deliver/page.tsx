@@ -157,9 +157,9 @@ export default function StreetToDeliverPage() {
             .beneficiary { font-size: 18pt; font-weight: bold; margin-bottom: 5px; text-align: center; }
             .address { font-size: 11pt; color: #666; margin-bottom: 10px; text-align: center; }
             .title { font-size: 12pt; color: #888; margin-bottom: 15px; text-align: center; }
-            .entity-box { background: #f5f5f5; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
+            .entity-box { background: #f5f5f5; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; }
             .entity-name { font-size: 11pt; font-weight: bold; margin-bottom: 3px; }
-            .entity-address { font-size: 10pt; color: #666; }
+            .entity-address { font-size: 10pt; color: #666; text-align: center; }
             .entity-hours { font-size: 9pt; color: #888; margin-top: 5px; }
             .entity-hours p { margin: 2px 0; }
             .qr-container { text-align: center; margin: 15px 0; }
