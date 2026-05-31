@@ -137,7 +137,7 @@ export async function GET() {
       // Generate QR image URL
       let qrImageUrl: string | undefined;
       try {
-        qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, `street-pickup-${req.id}.png`);
+        qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, 'street-pickup-' + req.id + '.png');
       } catch (err) {
         console.error('Error generating QR for object request:', err);
       }
@@ -148,14 +148,14 @@ export async function GET() {
         title: req.object.title,
         category: req.object.category,
         status: req.object.status,
-        statusLabel: 'Ritiro Oggetto',
+        statusLabel: 'Ritiro Disponibilita',
         imageUrls: req.object.imageUrls || [],
         depositLocation: req.object.depositLocation,
         objectId: req.object.id,
         beneficiaryId: req.recipient.id,
-        beneficiaryName: `${req.recipient.firstName} ${req.recipient.lastName}`,
+        beneficiaryName: req.recipient.firstName + ' ' + req.recipient.lastName,
         beneficiaryNickname: req.recipient.nickname,
-        beneficiaryAddress: req.recipient.address ? `${req.recipient.address}${req.recipient.houseNumber ? `, ${req.recipient.houseNumber}` : ''}` : null,
+        beneficiaryAddress: req.recipient.address ? req.recipient.address + (req.recipient.houseNumber ? ', ' + req.recipient.houseNumber : '') : null,
         createdAt: req.createdAt.toISOString(),
         qrData,
         qrImageUrl,
@@ -169,7 +169,7 @@ export async function GET() {
 
       let qrImageUrl: string | undefined;
       try {
-        qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, `street-goods-${gr.id}.png`);
+        qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, 'street-goods-' + gr.id + '.png');
       } catch (err) {
         console.error('Error generating QR for goods request:', err);
       }
@@ -183,9 +183,9 @@ export async function GET() {
         statusLabel: 'Consegna Richiesta',
         imageUrls: [],
         beneficiaryId: gr.beneficiary.id,
-        beneficiaryName: `${gr.beneficiary.firstName} ${gr.beneficiary.lastName}`,
+        beneficiaryName: gr.beneficiary.firstName + ' ' + gr.beneficiary.lastName,
         beneficiaryNickname: gr.beneficiary.nickname,
-        beneficiaryAddress: gr.beneficiary.address ? `${gr.beneficiary.address}${gr.beneficiary.houseNumber ? `, ${gr.beneficiary.houseNumber}` : ''}` : null,
+        beneficiaryAddress: gr.beneficiary.address ? gr.beneficiary.address + (gr.beneficiary.houseNumber ? ', ' + gr.beneficiary.houseNumber : '') : null,
         createdAt: gr.createdAt.toISOString(),
         qrData,
         qrImageUrl,

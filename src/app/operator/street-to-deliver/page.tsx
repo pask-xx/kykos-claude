@@ -197,17 +197,11 @@ export default function StreetToDeliverPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Consegne e Ritiri</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Ritiri</h1>
               <p className="text-gray-500 text-sm mt-1">
                 {totalItems} elementi per i tuoi beneficiari
               </p>
             </div>
-            <Link
-              href="/operator/scan-qr"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm"
-            >
-              📷 Scansiona QR
-            </Link>
           </div>
         </div>
 
@@ -215,11 +209,11 @@ export default function StreetToDeliverPage() {
         <div className="flex gap-4 text-sm mb-6 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-green-500"></span>
-            <span className="text-gray-600">Ritiri Oggetti</span>
+            <span className="text-gray-600">Ritiro Disponibilita</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-            <span className="text-gray-600">Consegne Richieste</span>
+            <span className="text-gray-600">Ritiro Richiesta</span>
           </div>
         </div>
 
