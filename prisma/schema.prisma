@@ -469,6 +469,7 @@ model Operator {
   active           Boolean      @default(true)
   isOfficeOperator Boolean      @default(true) // operatore d'ufficio (comportamento attuale)
   isStreetOperator Boolean      @default(false) // operatore di strada
+  profileImageUrl  String?      // URL pubblica della foto profilo
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 

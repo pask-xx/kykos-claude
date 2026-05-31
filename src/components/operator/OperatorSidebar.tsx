@@ -40,6 +40,7 @@ interface OperatorSidebarProps {
   operatorRole: string;
   operatorPermissions: string[];
   operatorName: string;
+  operatorProfileImageUrl: string | null;
   organizationName: string;
   isOfficeOperator: boolean;
   isStreetOperator: boolean;
@@ -50,6 +51,7 @@ export default function OperatorSidebar({
   operatorRole,
   operatorPermissions,
   operatorName,
+  operatorProfileImageUrl,
   organizationName,
   isOfficeOperator,
   isStreetOperator,
@@ -129,8 +131,15 @@ export default function OperatorSidebar({
           })}
         </nav>
         <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="truncate">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {operatorProfileImageUrl ? (
+                <img src={operatorProfileImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">👤</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0 truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
             </div>
@@ -168,8 +177,15 @@ export default function OperatorSidebar({
           })}
         </nav>
         <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="truncate">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {operatorProfileImageUrl ? (
+                <img src={operatorProfileImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">👤</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0 truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
               <p className="text-xs text-gray-400 truncate">{organizationName}</p>

@@ -64,6 +64,7 @@ export async function GET() {
         lastName: operator.lastName,
         role: operator.role,
         permissions: operator.permissions,
+        profileImageUrl: operator.profileImageUrl,
         organization: operator.organization,
         isStreetOperator: operator.isStreetOperator,
         isOfficeOperator: operator.isOfficeOperator,

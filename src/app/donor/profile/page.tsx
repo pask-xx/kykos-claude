@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProfileForm from '@/components/profile/ProfileForm';
 import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
+import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 
 interface User {
   id: string;
@@ -17,6 +18,7 @@ interface User {
   houseNumber: string;
   city: string;
   cap: string;
+  profileImageUrl: string | null;
   donorProfile: {
     level: string;
     totalDonations: number;
@@ -65,6 +67,17 @@ export default function DonorProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-3xl font-medium text-gray-900 mb-8">Il mio profilo</h1>
+
+        {/* Profile Photo */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Foto profilo</h2>
+          <ProfilePhotoUploader
+            currentUrl={user.profileImageUrl}
+            onUploadComplete={(url) => {
+              setUser(prev => prev ? { ...prev, profileImageUrl: url } : null);
+            }}
+          />
+        </div>
 
         {/* Editable Form */}
         <div className="mb-8">
