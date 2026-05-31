@@ -105,6 +105,7 @@ export async function POST(request: Request) {
       });
 
       const beneficiaryName = goodsRequest.beneficiary.firstName + ' ' + goodsRequest.beneficiary.lastName;
+      for (const assignment of streetOperatorAssignments) {
         await prisma.notification.create({
           data: {
             recipientOperatorId: assignment.streetOperator.id,
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
             link: '/operator/street-beneficiaries/' + goodsRequest.beneficiary.id,
           },
         });
+      }
     }
 
     return NextResponse.json({
