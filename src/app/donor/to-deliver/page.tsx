@@ -95,7 +95,7 @@ export default async function DonorToDeliverPage() {
                     <p className="text-xs text-blue-600">QR Code pronto</p>
                   </div>
                   <Link
-                    href={`/donor/qr/${donation.object.id}`}
+                    href={`/donor/qr/${donation.request.id}`}
                     className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium flex-shrink-0"
                   >
                     📱 QR Code
