@@ -104,18 +104,17 @@ export async function POST(request: Request) {
         include: { streetOperator: { select: { id: true, username: true } } },
       });
 
-      for (const assignment of streetOperatorAssignments) {
+      const beneficiaryName = goodsRequest.beneficiary.firstName + ' ' + goodsRequest.beneficiary.lastName;
         await prisma.notification.create({
           data: {
             recipientOperatorId: assignment.streetOperator.id,
             recipientType: 'OPERATOR' as any,
             title: 'Offerta per il tuo beneficiario',
-            message: 'Un donatore ha fatto un\'offerta per "' + goodsRequest.title + '". L\'ente valuterà l\'offerta.',
+            message: 'Un donatore ha fatto un\'offerta per "' + goodsRequest.title + '" per ' + beneficiaryName + '. L\'ente valuterà l\'offerta.',
             type: 'GOODS_OFFER_RECEIVED' as any,
             link: '/operator/street-beneficiaries/' + goodsRequest.beneficiary.id,
           },
         });
-      }
     }
 
     return NextResponse.json({
