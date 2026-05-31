@@ -45,6 +45,7 @@ export async function GET() {
       referenceEntity: user.referenceEntity,
       authorized: user.authorized,
       isee: user.isee,
+      profileImageUrl: user.profileImageUrl,
     },
   });
 }
