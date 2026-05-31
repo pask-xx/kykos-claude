@@ -71,6 +71,7 @@ export async function GET() {
         canProvideServices: true,
         canProvideServicesAt: true,
         createdAt: true,
+        profileImageUrl: true,
         donorProfile: {
           select: {
             totalDonations: true,
