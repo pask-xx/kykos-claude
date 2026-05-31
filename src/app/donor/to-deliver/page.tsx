@@ -19,7 +19,6 @@ export default async function DonorToDeliverPage() {
     where: {
       donorId: session.id,
       object: { status: 'RESERVED' },
-      request: { status: { notIn: ['FULFILLED', 'COMPLETED'] } },
     },
     include: {
       object: {
