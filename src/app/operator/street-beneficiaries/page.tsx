@@ -24,6 +24,7 @@ interface StreetBeneficiary {
   isStreetManaged: boolean;
   createdAt: string;
   assignedAt: string;
+  profileImageUrl: string | null;
   referenceEntity?: {
     id: string;
     name: string;
@@ -434,8 +435,12 @@ export default function StreetBeneficiariesPage() {
               <Card padding="none" className="hover:border-primary-300 transition-colors cursor-pointer">
                 <div className="p-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-xl">👤</span>
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                      {b.profileImageUrl ? (
+                        <img src={b.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xl">👤</span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{b.firstName} {b.lastName}</h3>

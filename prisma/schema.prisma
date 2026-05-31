@@ -212,6 +212,7 @@ model User {
   canRequestGoods      Boolean       @default(true)
   canRequestServices   Boolean       @default(false)
   isStreetManaged      Boolean       @default(false) // true = senza account, gestito da street operators
+  profileImageUrl      String?       // URL pubblica della foto profilo
 
   // Diocese (for DONOR and RECIPIENT, organization diocese is stored on Organization model)
   dioceseId String?

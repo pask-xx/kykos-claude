@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
+import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 
 interface RecipientStats {
   totalRequests: number;
@@ -48,6 +49,7 @@ interface Recipient {
   canRequestGoods: boolean;
   canRequestServices: boolean;
   createdAt: string;
+  profileImageUrl: string | null;
 }
 
 interface Notification {
@@ -253,6 +255,17 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       }`}>
         <span className={`w-2 h-2 rounded-full ${recipient.authorized ? 'bg-green-500' : 'bg-gray-400'}`} />
         {recipient.authorized ? 'Attivo' : 'Disattivato'}
+      </div>
+
+      {/* Profile Photo */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Foto profilo</h2>
+        <ProfilePhotoUploader
+          currentUrl={recipient.profileImageUrl}
+          onUploadComplete={(url) => {
+            setRecipient(prev => prev ? { ...prev, profileImageUrl: url } : null);
+          }}
+        />
       </div>
 
       {/* Score di Bisogno */}

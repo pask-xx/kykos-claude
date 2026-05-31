@@ -1,0 +1,75 @@
+import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+export async function POST(request: Request) {
+  try {
+    // Check user session (not operator)
+    const session = await getSession();
+    if (!session?.id) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+    }
+
+    const userId = session.id;
+
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
+
+    if (!file) {
+      return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: 'Tipo di file non supportato. Usa JPG, PNG o WebP.' }, { status: 400 });
+    }
+
+    // Validate file size (max 2MB for profile photos)
+    if (file.size > 2 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File troppo grande (max 2MB)' }, { status: 400 });
+    }
+
+    // Convert file to array buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload via Supabase REST API to profile-photos bucket
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+    const filename = `${userId}/photo.jpg`;
+
+    const uploadRes = await fetch(
+      `${supabaseUrl}/storage/v1/object/profile-photos/${filename}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': file.type,
+          'x-upsert': 'true',
+        },
+        body: buffer,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const errorText = await uploadRes.text();
+      console.error('Profile photo upload error:', uploadRes.status, errorText);
+      return NextResponse.json({ error: 'Errore durante upload' }, { status: 500 });
+    }
+
+    // Get public URL
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/profile-photos/${filename}`;
+
+    // Update user record
+    await prisma.user.update({
+      where: { id: userId },
+      data: { profileImageUrl: publicUrl },
+    });
+
+    return NextResponse.json({ url: publicUrl });
+  } catch (error) {
+    console.error('Profile photo upload error:', error);
+    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  }
+}

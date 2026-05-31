@@ -78,6 +78,7 @@ export async function GET(
         canRequestGoods: true,
         canRequestServices: true,
         createdAt: true,
+        profileImageUrl: true,
       },
     });
 

@@ -106,6 +106,7 @@ export async function GET(request: Request) {
           needScore: true,
           email: true,
           createdAt: true,
+          profileImageUrl: true,
           referenceEntity: {
             select: {
               id: true,
@@ -154,6 +155,7 @@ export async function GET(request: Request) {
           needScore: true,
           email: true,
           createdAt: true,
+          profileImageUrl: true,
           referenceEntity: {
             select: {
               id: true,

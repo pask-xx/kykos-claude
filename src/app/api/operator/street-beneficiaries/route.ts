@@ -71,6 +71,7 @@ export async function GET() {
             latitude: true,
             longitude: true,
             createdAt: true,
+            profileImageUrl: true,
             referenceEntity: {
               select: {
                 id: true,
