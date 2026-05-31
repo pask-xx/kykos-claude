@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CATEGORY_LABELS } from '@/types';
 
+interface EntityInfo {
+  id: string;
+  name: string;
+  address: string | null;
+  houseNumber: string | null;
+  cap: string | null;
+  city: string | null;
+  province: string | null;
+  hoursInfo: string | null;
+}
+
 interface StreetDeliveryItem {
   id: string;
   type: 'OBJECT' | 'GOODS';
@@ -22,6 +33,7 @@ interface StreetDeliveryItem {
   createdAt: string;
   qrData: string;
   qrImageUrl?: string;
+  entity: EntityInfo;
 }
 
 const TYPE_COLORS: Record<string, { border: string; badge: string; icon: string }> = {
@@ -120,8 +132,15 @@ export default function StreetToDeliverPage() {
   const handlePrintQR = (item: StreetDeliveryItem) => {
     if (!item.qrImageUrl) return;
 
-    const printWindow = window.open('', '', 'width=400,height=600');
+    const printWindow = window.open('', '', 'width=500,height=700');
     if (!printWindow) return;
+
+    // Build entity address string
+    var entityAddress = item.entity.name;
+    if (item.entity.address) entityAddress += ', ' + item.entity.address;
+    if (item.entity.houseNumber) entityAddress += ' ' + item.entity.houseNumber;
+    if (item.entity.cap) entityAddress += ' - ' + item.entity.cap;
+    if (item.entity.city) entityAddress += ' ' + item.entity.city;
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -129,29 +148,40 @@ export default function StreetToDeliverPage() {
         <head>
           <title>Stampa QR - KYKOS</title>
           <style>
-            @page { size: 80mm 100mm; margin: 0; }
+            @page { size: A4; margin: 15mm; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body { width: 80mm; height: 100mm; }
-            body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; font-family: Arial, sans-serif; padding: 4mm; }
-            .logo-row { display: flex; align-items: center; gap: 2mm; margin-bottom: 2mm; }
-            .logo-row img { height: 6mm; width: auto; }
-            .beneficiary { font-size: 10pt; font-weight: bold; margin-bottom: 1mm; text-align: center; }
-            .address { font-size: 8pt; color: #666; margin-bottom: 2mm; text-align: center; }
-            .title { font-size: 8pt; color: #888; margin-bottom: 2mm; text-align: center; max-width: 70mm; }
-            .qr-area { border: 1px solid #eee; padding: 1mm; background: white; }
-            .qr-area img { width: 45mm; height: 45mm; }
-            .footer { font-size: 6pt; color: #999; margin-top: 2mm; text-align: center; }
+            body { font-family: Arial, sans-serif; padding: 10px; }
+            .header { text-align: center; margin-bottom: 15px; }
+            .logo-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+            .logo-row img { height: 40px; width: auto; }
+            .beneficiary { font-size: 18pt; font-weight: bold; margin-bottom: 5px; text-align: center; }
+            .address { font-size: 11pt; color: #666; margin-bottom: 10px; text-align: center; }
+            .title { font-size: 12pt; color: #888; margin-bottom: 15px; text-align: center; }
+            .entity-box { background: #f5f5f5; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
+            .entity-name { font-size: 11pt; font-weight: bold; margin-bottom: 3px; }
+            .entity-address { font-size: 10pt; color: #666; }
+            .entity-hours { font-size: 9pt; color: #888; margin-top: 5px; }
+            .qr-container { text-align: center; margin: 15px 0; }
+            .qr-container img { width: 180px; height: 180px; }
+            .footer { font-size: 8pt; color: #999; text-align: center; margin-top: 15px; }
           </style>
         </head>
         <body>
-          <div class="logo-row">
-            <img src="${window.location.origin}/albero.svg" alt="KYKOS" />
-            <img src="${window.location.origin}/LogoKykosTesto.svg" alt="Kykos" />
+          <div class="header">
+            <div class="logo-row">
+              <img src="${window.location.origin}/albero.svg" alt="KYKOS" />
+              <img src="${window.location.origin}/LogoKykosTesto.svg" alt="Kykos" />
+            </div>
           </div>
           <div class="beneficiary">${item.beneficiaryName}</div>
           ${item.beneficiaryAddress ? '<div class="address">' + item.beneficiaryAddress + '</div>' : ''}
           <div class="title">${item.title}</div>
-          <div class="qr-area">
+          <div class="entity-box">
+            <div class="entity-name">${item.entity.name}</div>
+            <div class="entity-address">${entityAddress}</div>
+            ${item.entity.hoursInfo ? '<div class="entity-hours">Orari: ' + item.entity.hoursInfo + '</div>' : ''}
+          </div>
+          <div class="qr-container">
             <img src="${item.qrImageUrl}" alt="QR Code" />
           </div>
           <div class="footer">KYKOS - ${item.statusLabel}</div>
@@ -257,7 +287,13 @@ export default function StreetToDeliverPage() {
 
                       <p className="text-xs text-gray-500 mt-0.5">
                         Per: <span className="font-medium">{displayName}</span>
-                        {item.depositLocation && ` • ${item.depositLocation}`}
+                        {item.beneficiaryAddress && ' - ' + item.beneficiaryAddress}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Presso: <span className="font-medium">{item.entity.name}</span>{item.entity.city && ', ' + item.entity.city}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {item.depositLocation && 'Posizione: ' + item.depositLocation}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-1 mt-1">
@@ -311,16 +347,20 @@ export default function StreetToDeliverPage() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="font-medium text-gray-900">{selectedItem.title}</p>
                 <p className="text-sm text-gray-500">
-                  Per: <span className="font-medium">{selectedItem.beneficiaryName}</span>
+                  Per: <span className="font-medium">{selectedItem.beneficiaryName}</span>{selectedItem.beneficiaryAddress && ' - ' + selectedItem.beneficiaryAddress}
                 </p>
-                {selectedItem.depositLocation && (
-                  <p className="text-sm text-gray-500">
-                    Posizione: <span className="font-medium">{selectedItem.depositLocation}</span>
+                <p className="text-sm text-gray-500 mt-1">
+                  Presso: <span className="font-medium">{selectedItem.entity.name}</span>
+                  {selectedItem.entity.address && ', ' + selectedItem.entity.address}{selectedItem.entity.houseNumber && ' ' + selectedItem.entity.houseNumber}{selectedItem.entity.cap && ' - ' + selectedItem.entity.cap}{selectedItem.entity.city && ' ' + selectedItem.entity.city}
+                </p>
+                {selectedItem.entity.hoursInfo && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Orari: {selectedItem.entity.hoursInfo}
                   </p>
                 )}
-                {selectedItem.beneficiaryAddress && (
-                  <p className="text-sm text-gray-500">
-                    Indirizzo: <span className="font-medium">{selectedItem.beneficiaryAddress}</span>
+                {selectedItem.depositLocation && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Posizione: <span className="font-medium">{selectedItem.depositLocation}</span>
                   </p>
                 )}
               </div>

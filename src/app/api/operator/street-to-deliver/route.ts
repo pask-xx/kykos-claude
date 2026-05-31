@@ -73,6 +73,18 @@ export async function GET() {
             depositLocation: true,
           },
         },
+        intermediary: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            houseNumber: true,
+            cap: true,
+            city: true,
+            province: true,
+            hoursInfo: true,
+          },
+        },
         recipient: {
           select: {
             id: true,
@@ -95,6 +107,18 @@ export async function GET() {
         status: 'DELIVERED',
       },
       include: {
+        intermediary: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            houseNumber: true,
+            cap: true,
+            city: true,
+            province: true,
+            hoursInfo: true,
+          },
+        },
         beneficiary: {
           select: {
             id: true,
@@ -111,6 +135,17 @@ export async function GET() {
     });
 
     // Build unified list
+    type EntityInfo = {
+      id: string;
+      name: string;
+      address: string | null;
+      houseNumber: string | null;
+      cap: string | null;
+      city: string | null;
+      province: string | null;
+      hoursInfo: string | null;
+    };
+
     const items: Array<{
       id: string;
       type: 'OBJECT' | 'GOODS';
@@ -129,6 +164,7 @@ export async function GET() {
       createdAt: string;
       qrData: string;
       qrImageUrl?: string;
+      entity: EntityInfo;
     }> = [];
 
     // Process Object Requests (ritiri - object deposited, beneficiary comes to pick up)
@@ -161,6 +197,16 @@ export async function GET() {
         createdAt: req.createdAt.toISOString(),
         qrData,
         qrImageUrl,
+        entity: {
+          id: req.intermediary.id,
+          name: req.intermediary.name,
+          address: req.intermediary.address,
+          houseNumber: req.intermediary.houseNumber,
+          cap: req.intermediary.cap,
+          city: req.intermediary.city,
+          province: req.intermediary.province,
+          hoursInfo: req.intermediary.hoursInfo,
+        },
       });
     }
 
@@ -182,7 +228,7 @@ export async function GET() {
         title: gr.title,
         category: gr.category,
         status: gr.status,
-        statusLabel: 'Consegna Richiesta',
+        statusLabel: 'Ritiro Richiesta',
         imageUrls: [],
         beneficiaryId: gr.beneficiary.id,
         beneficiaryName: gr.beneficiary.firstName + ' ' + gr.beneficiary.lastName,
@@ -191,6 +237,16 @@ export async function GET() {
         createdAt: gr.createdAt.toISOString(),
         qrData,
         qrImageUrl,
+        entity: {
+          id: gr.intermediary.id,
+          name: gr.intermediary.name,
+          address: gr.intermediary.address,
+          houseNumber: gr.intermediary.houseNumber,
+          cap: gr.intermediary.cap,
+          city: gr.intermediary.city,
+          province: gr.intermediary.province,
+          hoursInfo: gr.intermediary.hoursInfo,
+        },
       });
     }
 
