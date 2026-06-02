@@ -85,6 +85,7 @@ export const mockPrisma = {
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
   },
   /**
    * $transaction passthrough: executes the callback with the same mockPrisma
@@ -142,6 +143,7 @@ vi.mock('@/lib/email', () => ({
   sendGoodsDeliveryQrNotification: vi.fn().mockResolvedValue(true),
   sendGoodsPickupQrNotification: vi.fn().mockResolvedValue(true),
   sendPickupQrNotification: vi.fn().mockResolvedValue(true),
+  sendMultiAvailabilityQrNotification: vi.fn().mockResolvedValue(true),
   sendConfirmationEmail: vi.fn().mockResolvedValue(true),
   sendWelcomeEmail: vi.fn().mockResolvedValue(true),
 }));
