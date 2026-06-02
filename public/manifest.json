@@ -2,7 +2,7 @@
   "name": "KYKOS",
   "short_name": "KYKOS",
   "description": "Dona con amore, ricevi con dignità",
-  "start_url": "/donor/dashboard",
+  "start_url": "/pwa",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#2563eb",

@@ -4,6 +4,14 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import OperatorSidebar from '@/components/operator/OperatorSidebar';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#2563eb',
+};
+
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
 );

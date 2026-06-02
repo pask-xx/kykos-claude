@@ -3,6 +3,14 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import DashboardLayoutClient from '@/components/dashboard/DashboardLayoutClient';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#2563eb',
+};
+
 export default async function IntermediaryLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
 
