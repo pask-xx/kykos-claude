@@ -3,15 +3,10 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { getJwtSecret } from '@/lib/auth';
+import { KYKOS_VIEWPORT } from '@/lib/layout-helper';
 import OperatorSidebar from '@/components/operator/OperatorSidebar';
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#2563eb',
-};
+export const viewport = KYKOS_VIEWPORT;
 
 const JWT_SECRET = getJwtSecret();
 
