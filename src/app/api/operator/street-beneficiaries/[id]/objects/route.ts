@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { getJwtSecret } from '@/lib/auth';
+import { OBJECT_STATUS_LABELS, GOODS_REQUEST_STATUS_LABELS } from '@/types';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -204,26 +205,11 @@ export async function GET(
 }
 
 function getObjectStatusLabel(status: string): string {
-  switch (status) {
-    case 'DEPOSITED': return 'Depositata';
-    case 'RESERVED': return 'Riservata';
-    case 'AVAILABLE': return 'Disponibile';
-    case 'DONATED': return 'Ritirata';
-    case 'CANCELLED': return 'Cancellata';
-    default: return status;
-  }
+  return OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status;
 }
 
 function getGoodsStatusLabel(status: string): string {
-  switch (status) {
-    case 'PENDING': return 'In attesa';
-    case 'APPROVED': return 'Approvata';
-    case 'FULFILLED': return 'Soddisfatta';
-    case 'DELIVERED': return 'Depositata';
-    case 'COMPLETED': return 'Completata';
-    case 'CANCELLED': return 'Cancellata';
-    default: return status;
-  }
+  return GOODS_REQUEST_STATUS_LABELS[status as keyof typeof GOODS_REQUEST_STATUS_LABELS] ?? status;
 }
 
 function getGoodsPriority(status: string): number {

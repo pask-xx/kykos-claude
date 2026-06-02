@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { OBJECT_STATUS_LABELS } from '@/types';
 
 interface Object {
   id: string;
@@ -41,20 +42,18 @@ export default function DonorObjectsPage() {
     : objects;
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Ritirato</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
-      case 'CANCELLED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Cancellato</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
+    // Color class is per-status; label comes from the central registry
+    // (covers ALL ObjectStatus values, including BLOCKED).
+    const colorClass =
+      status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
+      status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
+      status === 'DEPOSITED' ? 'bg-blue-100 text-blue-700' :
+      status === 'DONATED' ? 'bg-gray-100 text-gray-700' :
+      status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+      status === 'BLOCKED' ? 'bg-purple-100 text-purple-700' :
+      'bg-gray-100 text-gray-700';
+    const label = OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status;
+    return <span className={`px-2 py-1 text-xs rounded ${colorClass}`}>{label}</span>;
   };
 
   return (

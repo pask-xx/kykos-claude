@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
-import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
+import { CATEGORY_LABELS, CONDITION_LABELS, OBJECT_STATUS_LABELS } from '@/types';
 import QRCode from 'qrcode';
 
 const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
@@ -88,20 +88,16 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">Disponibile</span>;
-      case 'RESERVED':
-        return <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm rounded-full">Riservato</span>;
-      case 'DONATED':
-        return <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">Donato</span>;
-      case 'DEPOSITED':
-        return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Depositato</span>;
-      case 'CANCELLED':
-        return <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">Cancellato</span>;
-      default:
-        return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">{status}</span>;
-    }
+    const colorClass =
+      status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
+      status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
+      status === 'DEPOSITED' ? 'bg-gray-100 text-gray-700' :
+      status === 'DONATED' ? 'bg-blue-100 text-blue-700' :
+      status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+      status === 'BLOCKED' ? 'bg-purple-100 text-purple-700' :
+      'bg-gray-100 text-gray-700';
+    const label = OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status;
+    return <span className={`px-3 py-1 text-sm rounded-full ${colorClass}`}>{label}</span>;
   };
 
   const handlePrintLabel = async () => {
