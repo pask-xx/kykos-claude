@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { OperatorPermission } from '@/types';
+import { hasPermission as checkPermission } from '@/lib/permissions';
 import NotificationBell from '@/components/NotificationBell';
 import OperatorLogoutForm from '@/components/operator/OperatorLogoutForm';
 
@@ -61,18 +62,6 @@ export default function OperatorSidebar({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const hasPermission = (permission: OperatorPermission): boolean => {
-    if (operatorRole === 'ADMIN') return true;
-    const rolePerms: Record<string, OperatorPermission[]> = {
-      GESTORE_RICHIESTE: ['RECIPIENT_AUTHORIZE', 'REQUEST_PROXY'],
-      GESTORE_OGGETTI: ['OBJECT_RECEIVE', 'OBJECT_DELIVER'],
-      GESTORE_VOLONTARI: ['VOLUNTEER_MANAGE'],
-      OPERATORE: [],
-    };
-    const defaultPerms = rolePerms[operatorRole] || [];
-    return defaultPerms.includes(permission) || operatorPermissions.includes(permission);
-  };
-
   const navItems = allNavItems.filter(item => {
     // Filtra per tipo operatore
     if (item.streetOnly && !isStreetOperator) return false;
@@ -80,7 +69,7 @@ export default function OperatorSidebar({
 
     // Filtra per permesso
     if (!item.permission) return true;
-    return hasPermission(item.permission);
+    return checkPermission(operatorRole, operatorPermissions, item.permission);
   });
 
   return (
