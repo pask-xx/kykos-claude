@@ -84,7 +84,7 @@ export default function OperatorSidebar({
   });
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50">
+    <div className="min-h-[100svh] bg-gray-50">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -217,7 +217,7 @@ export default function OperatorSidebar({
       </div>
 
       {/* Main Content */}
-      <main className="min-h-[100dvh] lg:ml-64 pt-14 lg:pt-0">
+      <main className="min-h-[100svh] lg:ml-64 pt-14 lg:pt-0">
         <div className="px-4 sm:px-6 py-4 sm:py-6">
           {children}
         </div>

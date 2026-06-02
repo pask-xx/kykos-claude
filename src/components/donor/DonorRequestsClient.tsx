@@ -124,7 +124,8 @@ export default function DonorRequestsClient() {
   // Auto-refresh when user reached the end
   useEffect(() => {
     if (!hasNextPage && requests.length > 0) {
-      refreshIntervalRef.current = setInterval(() => {
+      const tick = () => {
+        if (document.visibilityState !== 'visible') return;
         fetch('/api/donor/requests?limit=1')
           .then(res => res.json())
           .then(data => {
@@ -133,7 +134,9 @@ export default function DonorRequestsClient() {
             }
           })
           .catch(() => {});
-      }, 30000);
+      };
+
+      refreshIntervalRef.current = setInterval(tick, 30000);
 
       return () => {
         if (refreshIntervalRef.current) {
