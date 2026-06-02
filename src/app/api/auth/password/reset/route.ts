@@ -2,10 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SignJWT } from 'jose';
 import { sendPasswordResetEmail } from '@/lib/email';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 function getBaseUrl(request: Request): string {
   const host = request.headers.get('host') || 'localhost:3000';

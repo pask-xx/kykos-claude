@@ -5,10 +5,9 @@ import { RecipientType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getNotifications, getUnreadCount, markAllAsRead, createNotification } from '@/lib/notification-service';
 import { hasAnyPermission } from '@/lib/permissions';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;

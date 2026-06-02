@@ -3,10 +3,9 @@ import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 export async function POST(request: Request) {
   try {

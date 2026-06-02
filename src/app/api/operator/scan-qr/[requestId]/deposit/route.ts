@@ -6,10 +6,9 @@ import { parseQrCodeData } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
 import { generatePickupQrCode, generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 import { NotificationType, RecipientType } from '@prisma/client';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;

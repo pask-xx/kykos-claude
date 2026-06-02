@@ -1,8 +1,7 @@
 import { SignJWT } from 'jose';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 export async function createUserSessionCookie(userId: string, role: string = 'DONOR') {
   const token = await new SignJWT({ user: { id: userId, role } })

@@ -2,9 +2,24 @@ import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import { Role } from '@prisma/client';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+/**
+ * Single source of truth for the JWT secret.
+ * Throws on import if JWT_SECRET is not set, so misconfigured deployments
+ * fail loudly at startup rather than silently signing tokens with a public key.
+ */
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error(
+      'JWT_SECRET environment variable is required. ' +
+        'Set it in .env (or in Vercel project settings) before starting the app.'
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
+
+export { getJwtSecret };
+const JWT_SECRET = getJwtSecret();
 
 export interface SessionUser {
   id: string;

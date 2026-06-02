@@ -6,10 +6,9 @@ import { NotificationType, RecipientType } from '@prisma/client';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 import { sendGoodsDeliveryQrNotification } from '@/lib/email';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;

@@ -3,10 +3,9 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 const APP_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://kykos.it';
 const LOGO_URL = `${APP_URL}/albero.svg`;
 

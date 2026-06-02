@@ -4,10 +4,9 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission } from '@/lib/permissions';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;

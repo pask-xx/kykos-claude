@@ -6,10 +6,9 @@ import { hasAnyPermission } from '@/lib/permissions';
 import { randomBytes } from 'crypto';
 import { sendMultiAvailabilityQrNotification } from '@/lib/email';
 import { generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;

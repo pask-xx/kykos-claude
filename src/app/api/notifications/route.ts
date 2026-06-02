@@ -3,10 +3,9 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { RecipientType } from '@prisma/client';
 import { getNotifications, getUnreadCount, markAllAsRead } from '@/lib/notification-service';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface UserSession {
   userId: string;

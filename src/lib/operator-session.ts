@@ -3,10 +3,9 @@ import { jwtVerify } from 'jose';
 import { OperatorPermission } from '@/types';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || (() => { throw new Error('JWT_SECRET env var is required'); })()
-);
+const JWT_SECRET = getJwtSecret();
 
 export interface OperatorSession {
   operatorId: string;

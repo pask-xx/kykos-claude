@@ -132,3 +132,33 @@ describe('requireOperatorWithPermission', () => {
     expect(result.operator.role).toBe('ADMIN');
   });
 });
+
+describe('getJwtSecret (A6 — security)', () => {
+  const ORIGINAL_ENV = process.env.JWT_SECRET;
+
+  it('throws a clear error when JWT_SECRET is not set', async () => {
+    // Force the module to reload without JWT_SECRET.
+    delete process.env.JWT_SECRET;
+    vi.resetModules();
+    await expect(async () => {
+      await import('@/lib/auth');
+    }).rejects.toThrow(/JWT_SECRET.*required/i);
+    process.env.JWT_SECRET = ORIGINAL_ENV;
+  });
+
+  it('does NOT fall back to a hardcoded public string', async () => {
+    // Defense in depth: even if someone bypasses the throw and returns
+    // a Uint8Array, the secret must not be the well-known 'kykos-secret-key-...'.
+    delete process.env.JWT_SECRET;
+    vi.resetModules();
+    let caught: unknown = null;
+    try {
+      await import('@/lib/auth');
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).not.toContain('kykos-secret-key');
+    process.env.JWT_SECRET = ORIGINAL_ENV;
+  });
+});

@@ -7,10 +7,9 @@ import { sendConfirmationEmail } from '@/lib/email';
 import { Role, OrgType, NotificationType, RecipientType } from '@prisma/client';
 import { generateOrgCode, generateFantasyNickname } from '@/lib/utils';
 import { SignJWT } from 'jose';
+import { getJwtSecret } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 async function generateConfirmationToken(userId: string, email: string): Promise<string> {
   return await new SignJWT({ userId, email, purpose: 'email_confirmation' })
