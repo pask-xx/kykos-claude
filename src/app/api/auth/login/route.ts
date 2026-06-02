@@ -15,8 +15,11 @@ export async function POST(request: Request) {
     }
 
     // Authenticate with Supabase Auth (case insensitive for email)
+    // Normalize: trim whitespace and lowercase, so users can paste emails
+    // with accidental spaces without losing the match.
+    const normalizedEmail = email.trim().toLowerCase();
     const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password,
     });
 
@@ -27,8 +30,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find or create user in KYKOS DB (email already lowercase from auth)
-    const normalizedEmail = email.toLowerCase();
+    // Find or create user in KYKOS DB (email already normalized)
     let user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });

@@ -43,9 +43,6 @@ export async function GET(request: Request) {
         ...typeFilter,
       },
       include: {
-        beneficiary: {
-          select: { id: true }, // Just need ID, no personal data (anonymity)
-        },
         intermediary: {
           select: { id: true, name: true },
         },
@@ -62,12 +59,22 @@ export async function GET(request: Request) {
     const items = hasNextPage ? requests.slice(0, -1) : requests;
     const nextCursor = hasNextPage ? items[items.length - 1]?.id : null;
 
-    // Map to add offer status (whether donor already made an offer)
+    // Map to add offer status (whether donor already made an offer).
+    // Note: we intentionally do NOT include the `beneficiary` relation or
+    // `beneficiaryId` field in the response. Donors must not be able to
+    // re-identify recipients, even by ID (correlation with timeline etc).
     const mappedRequests = items.map(req => ({
-      ...req,
+      id: req.id,
+      title: req.title,
+      description: req.description,
+      category: req.category,
+      status: req.status,
+      type: req.type,
+      fulfilledById: req.fulfilledById,
+      createdAt: req.createdAt,
+      intermediary: req.intermediary,
+      _count: req._count,
       alreadyOffered: offeredRequestIds.includes(req.id),
-      // Don't include beneficiary ID for anonymity
-      beneficiaryId: undefined,
     }));
 
     return NextResponse.json({

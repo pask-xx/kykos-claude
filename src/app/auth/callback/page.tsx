@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import { dashboardPathForRole } from '@/lib/role-routes';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -43,13 +44,7 @@ function CallbackContent() {
         const data = await res.json();
 
         if (data.exists && data.user) {
-          const redirectMap: Record<string, string> = {
-            DONOR: '/donor/dashboard',
-            RECIPIENT: '/recipient/dashboard',
-            INTERMEDIARY: '/intermediary/dashboard',
-            ADMIN: '/admin/dashboard',
-          };
-          router.push(redirectMap[data.user.role] || '/');
+          router.push(dashboardPathForRole(data.user.role));
         } else {
           const registerUrl = new URL('/auth/register', window.location.origin);
           registerUrl.searchParams.set('oauth', '1');
