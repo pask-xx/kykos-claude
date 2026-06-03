@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import PdfViewerModal from '@/components/PdfViewerModal';
 
 interface DocumentState {
   current: string;
@@ -30,6 +31,7 @@ function CheckLegalContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [pdfOpen, setPdfOpen] = useState<null | { url: string; title: string }>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,14 +161,15 @@ function CheckLegalContent() {
                   </span>
                 )}
               </p>
-              <a
-                href={status.documents.TERMS.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() =>
+                  setPdfOpen({ url: status!.documents.TERMS.url, title: `Condizioni d'uso v${status!.documents.TERMS.current}` })
+                }
                 className="inline-block text-sm text-secondary-600 hover:text-secondary-700 underline font-medium mb-3"
               >
-                Apri il PDF (v{status.documents.TERMS.current}) in nuova tab ↗
-              </a>
+                Apri il PDF (v{status.documents.TERMS.current}) ↗
+              </button>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -193,14 +196,15 @@ function CheckLegalContent() {
                   </span>
                 )}
               </p>
-              <a
-                href={status.documents.PRIVACY.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() =>
+                  setPdfOpen({ url: status!.documents.PRIVACY.url, title: `Informativa Privacy v${status!.documents.PRIVACY.current}` })
+                }
                 className="inline-block text-sm text-secondary-600 hover:text-secondary-700 underline font-medium mb-3"
               >
-                Apri il PDF (v{status.documents.PRIVACY.current}) in nuova tab ↗
-              </a>
+                Apri il PDF (v{status.documents.PRIVACY.current}) ↗
+              </button>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -254,6 +258,15 @@ function CheckLegalContent() {
           </button>
         </div>
       </div>
+
+      {/* PDF viewer modal (in-page, niente cambio tab) */}
+      {pdfOpen && (
+        <PdfViewerModal
+          url={pdfOpen.url}
+          title={pdfOpen.title}
+          onClose={() => setPdfOpen(null)}
+        />
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
+import PdfViewerModal from '@/components/PdfViewerModal';
 
 const REGISTRATION_ENABLED = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED === 'true';
 
@@ -106,6 +107,11 @@ function RegisterForm() {
   // the proof. See src/app/api/auth/register/route.ts and src/lib/legal.ts.
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+
+  // PDF viewer modal: 'privacy' | 'terms' | null. Apre il PDF in-page invece
+  // di un nuovo tab (più affidabile su mobile, dove alcuni browser non
+  // tornano agevolmente alla pagina precedente).
+  const [pdfOpen, setPdfOpen] = useState<null | { url: string; title: string }>(null);
 
   const isStagingSecretEnabled = process.env.NEXT_PUBLIC_STAGING_REGISTRATION_SECRET_ENABLED === 'true';
 
@@ -819,15 +825,17 @@ function RegisterForm() {
               />
               <span className="text-sm text-gray-700 leading-relaxed">
                 Ho letto e accetto l&apos;
-                <a
-                  href="/legal/privacy-v1.0.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPdfOpen({ url: '/legal/privacy-v1.0.pdf', title: 'Informativa Privacy' });
+                  }}
                   className="text-secondary-600 hover:text-secondary-700 underline font-medium"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   Informativa Privacy
-                </a>
+                </button>
                 {' '}ai sensi dell&apos;art. 13 del Regolamento UE 2016/679 (GDPR).
               </span>
             </label>
@@ -842,15 +850,17 @@ function RegisterForm() {
               />
               <span className="text-sm text-gray-700 leading-relaxed">
                 Ho letto e accetto le{' '}
-                <a
-                  href="/legal/terms-v1.0.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPdfOpen({ url: '/legal/terms-v1.0.pdf', title: 'Condizioni d\'uso' });
+                  }}
                   className="text-secondary-600 hover:text-secondary-700 underline font-medium"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   Condizioni d&apos;uso
-                </a>
+                </button>
                 {' '}del servizio KYKOS.
               </span>
             </label>
@@ -881,6 +891,15 @@ function RegisterForm() {
             )}
           </button>
         </form>
+
+        {/* PDF viewer modal (apre Privacy o ToS in-page, niente cambio tab) */}
+        {pdfOpen && (
+          <PdfViewerModal
+            url={pdfOpen.url}
+            title={pdfOpen.title}
+            onClose={() => setPdfOpen(null)}
+          />
+        )}
 
         <div className="mt-6">
           <div className="relative">
