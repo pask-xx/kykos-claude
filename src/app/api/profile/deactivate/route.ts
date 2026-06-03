@@ -244,9 +244,13 @@ export async function POST() {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
-    // Start transaction
-    const result = await prisma.$transaction(async (tx) => {
-      const actions: string[] = [];
+    // ===================================================================
+    // Step 1: cascade logico (DENTRO $transaction Prisma) ----------------
+    // Tutte le mutazioni di stato delle entità correlate. Se fallisce,
+    // rollback completo. La transazione NON tocca Supabase Auth.
+    // ===================================================================
+    const actions = await prisma.$transaction(async (tx) => {
+      const out: string[] = [];
 
       // 1. Get all objects published by this user (as donor)
       const objects = await tx.object.findMany({
@@ -308,7 +312,7 @@ export async function POST() {
               where: { id: obj.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Oggetto "${obj.title}" → CANCELLED`);
+            out.push(`Oggetto "${obj.title}" → CANCELLED`);
             break;
 
           case 'RESERVED':
@@ -344,14 +348,14 @@ export async function POST() {
               where: { id: obj.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Oggetto "${obj.title}" → CANCELLED (Request annullata)`);
+            out.push(`Oggetto "${obj.title}" → CANCELLED (Request annullata)`);
             break;
 
           case 'DEPOSITED':
           case 'DONATED':
           case 'CANCELLED':
           case 'BLOCKED':
-            actions.push(`Oggetto "${obj.title}" → ${obj.status} (invariato)`);
+            out.push(`Oggetto "${obj.title}" → ${obj.status} (invariato)`);
             break;
         }
       }
@@ -364,7 +368,7 @@ export async function POST() {
               where: { id: offer.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Offerta per "${offer.request.title}" → CANCELLED`);
+            out.push(`Offerta per "${offer.request.title}" → CANCELLED`);
             break;
 
           case 'ACCEPTED':
@@ -392,12 +396,12 @@ export async function POST() {
               },
             });
 
-            actions.push(`Offerta per "${offer.request.title}" → CANCELLED + richiesta torna APPROVATA`);
+            out.push(`Offerta per "${offer.request.title}" → CANCELLED + richiesta torna APPROVATA`);
             break;
 
           case 'REJECTED':
           case 'CANCELLED':
-            actions.push(`Offerta per "${offer.request.title}" → ${offer.status} (invariata)`);
+            out.push(`Offerta per "${offer.request.title}" → ${offer.status} (invariata)`);
             break;
         }
       }
@@ -417,7 +421,7 @@ export async function POST() {
               data: { status: 'AVAILABLE' },
             });
 
-            actions.push(`Richiesta per "${req.object.title}" → CANCELLED, oggetto torna disponibile`);
+            out.push(`Richiesta per "${req.object.title}" → CANCELLED, oggetto torna disponibile`);
             break;
 
           case 'DEPOSITED':
@@ -443,16 +447,16 @@ export async function POST() {
               });
             }
 
-            actions.push(`Richiesta per "${req.object.title}" → CANCELLED + notifica ENTE`);
+            out.push(`Richiesta per "${req.object.title}" → CANCELLED + notifica ENTE`);
             break;
 
           case 'DONATED':
-            actions.push(`Richiesta per "${req.object.title}" → DONATED (invariata - già completata)`);
+            out.push(`Richiesta per "${req.object.title}" → DONATED (invariata - già completata)`);
             break;
 
           case 'CANCELLED':
           case 'BLOCKED':
-            actions.push(`Richiesta per "${req.object.title}" → ${req.object.status} (invariata)`);
+            out.push(`Richiesta per "${req.object.title}" → ${req.object.status} (invariata)`);
             break;
         }
       }
@@ -465,7 +469,7 @@ export async function POST() {
               where: { id: gr.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Richiesta beni "${gr.title}" → CANCELLED`);
+            out.push(`Richiesta beni "${gr.title}" → CANCELLED`);
             break;
 
           case 'APPROVED':
@@ -481,7 +485,7 @@ export async function POST() {
               where: { id: gr.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Richiesta beni "${gr.title}" → CANCELLED + ${gr.offers.length} offerte cancellate`);
+            out.push(`Richiesta beni "${gr.title}" → CANCELLED + ${gr.offers.length} offerte cancellate`);
             break;
 
           case 'FULFILLED':
@@ -502,7 +506,7 @@ export async function POST() {
               where: { id: gr.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Richiesta beni "${gr.title}" → CANCELLED + notifica DONATORE`);
+            out.push(`Richiesta beni "${gr.title}" → CANCELLED + notifica DONATORE`);
             break;
 
           case 'DELIVERED':
@@ -523,52 +527,123 @@ export async function POST() {
               where: { id: gr.id },
               data: { status: 'CANCELLED' },
             });
-            actions.push(`Richiesta beni "${gr.title}" → CANCELLED + notifica ENTE`);
+            out.push(`Richiesta beni "${gr.title}" → CANCELLED + notifica ENTE`);
             break;
 
           case 'COMPLETED':
           case 'CANCELLED':
-            actions.push(`Richiesta beni "${gr.title}" → ${gr.status} (invariata)`);
+            out.push(`Richiesta beni "${gr.title}" → ${gr.status} (invariata)`);
             break;
         }
       }
 
-      // 5. Delete from Supabase Auth (if authUserId exists)
-      const user = await tx.user.findUnique({
+      // 5. Soft-delete del record User KYKOS (B2: NON più user.delete)
+      //    - Preserva lo storico (donazioni, transazioni completate)
+      //    - Rende idempotente l'operazione
+      //    - Permette di uscire puliti anche se lo step 3 (Supabase) fallisce
+      await tx.user.update({
         where: { id: session.id },
-        select: { authUserId: true, email: true },
+        data: {
+          deactivatedAt: new Date(),
+          deactivatedActions: out,
+          // NB: NON azzeriamo authUserId qui. Lo step 3 lo farà se riesce,
+          //     altrimenti un cron di cleanup potrà ritentare.
+        },
       });
 
-      if (user?.authUserId) {
-        try {
-          await supabaseAdmin.auth.admin.deleteUser(user.authUserId);
-          actions.push('Utente Supabase Auth eliminato');
-        } catch (supabaseError) {
-          console.error('Supabase Auth deletion error:', supabaseError);
-          actions.push('Supabase Auth: eliminazione saltata');
-        }
-      }
-
-      // 6. Delete the KYKOS user record
-      await tx.user.delete({
-        where: { id: session.id },
-      });
-
-      actions.push('Account KYKOS eliminato');
-
-      return actions;
+      out.push('Account KYKOS soft-deleted (deactivatedAt valorizzato)');
+      return out;
     });
 
-    // Clear session cookie
+    // ===================================================================
+    // Step 2: Supabase Auth deleteUser (FUORI dalla tx) -----------------
+    // - Se fallisce dopo i retry, l'utente KYKOS è già soft-deleted e
+    //   abbiamo ancora authUserId per ritentare (cron futuro).
+    // - Rispondiamo 500 SOLO se TUTTI i retry falliscono, perché a quel
+    //   punto è probabile un problema sistemico di Supabase.
+    // ===================================================================
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { authUserId: true, email: true },
+    });
+
+    let supabaseOk = true;
+    if (user?.authUserId) {
+      supabaseOk = await deleteSupabaseUserWithRetry(user.authUserId, 3);
+      if (supabaseOk) {
+        actions.push('Utente Supabase Auth eliminato');
+        // Una volta che Supabase ha confermato la cancellazione, l'authUserId
+        // non è più un riferimento valido → lo azzeriamo per evitare di
+        // ritentare in futuro.
+        await prisma.user.update({
+          where: { id: session.id },
+          data: { authUserId: null },
+        });
+      } else {
+        actions.push('Supabase Auth: eliminazione fallita dopo 3 tentativi (authUserId mantenuto per cron)');
+      }
+    }
+
+    // Step 3: clear session cookie (sempre, anche in caso di fallimento Supabase)
     await clearSessionCookie();
+
+    if (!supabaseOk) {
+      // Lo stato KYKOS è già soft-deleted: il cascade è committed, l'utente
+      // non può più fare login perché la sessione è invalidata. Ma
+      // avvisiamo il client che l'auth provider ha avuto un problema.
+      return NextResponse.json({
+        success: false,
+        message: 'Account KYKOS disattivato, ma Supabase Auth non ha risposto. Riprova tra qualche minuto.',
+        actions,
+        supabaseOk: false,
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Account disattivato con successo',
-      actions: result,
+      actions,
     });
   } catch (error) {
     console.error('Deactivation error:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
+}
+
+/**
+ * Tenta `supabaseAdmin.auth.admin.deleteUser` con retry e backoff esponenziale.
+ * Ritorna `true` se la cancellazione riesce (o se l'utente non esiste già),
+ * `false` se tutti i tentativi falliscono.
+ *
+ * NB: Supabase ritorna errore "user not found" se l'authUserId è già stato
+ * cancellato da un tentativo precedente. Trattiamo questo come successo,
+ * perché significa che lo stato finale è quello desiderato.
+ */
+async function deleteSupabaseUserWithRetry(
+  authUserId: string,
+  maxAttempts: number
+): Promise<boolean> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const { error } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
+      if (!error) return true;
+      // "user not found" = già cancellato, consideriamo successo idempotente
+      if (error.message?.toLowerCase().includes('not found')) return true;
+      console.error(
+        `Supabase deleteUser attempt ${attempt}/${maxAttempts} failed:`,
+        error.message
+      );
+    } catch (err) {
+      console.error(
+        `Supabase deleteUser attempt ${attempt}/${maxAttempts} threw:`,
+        err
+      );
+    }
+    if (attempt < maxAttempts) {
+      // Backoff esponenziale: 200ms, 600ms
+      const delay = 200 * Math.pow(3, attempt - 1);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  return false;
 }

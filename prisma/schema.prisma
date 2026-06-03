@@ -224,6 +224,10 @@ model User {
   donatedObjects Object[]      @relation("DonorObjects")
   donorProfile   DonorProfile?
 
+  // Deactivation (B2: soft-delete invece di user.delete, per preservare lo storico)
+  deactivatedAt     DateTime?
+  deactivatedActions String[]  @default([]) // log delle azioni di cascade per audit
+
   // Recipient relations
   requests          Request[]  @relation("RecipientRequests")
   receivedDonations Donation[] @relation("ReceivedDonations")
