@@ -4,11 +4,16 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { geocodeAddress } from '@/lib/geocode';
 import { sendWelcomeEmail } from '@/lib/email';
 import { sendConfirmationEmail } from '@/lib/email';
-import { Role, OrgType, NotificationType, RecipientType } from '@prisma/client';
+import { Role, OrgType, NotificationType, RecipientType, LegalDocumentType } from '@prisma/client';
 import { generateOrgCode, generateFantasyNickname } from '@/lib/utils';
 import { SignJWT } from 'jose';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
+import {
+  CURRENT_LEGAL_VERSIONS,
+  getDocumentHash,
+  extractRequestMetadata,
+} from '@/lib/legal';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -43,6 +48,8 @@ export const POST = withErrorHandler(async (request: Request) => {
     longitude,
     secret,
     dioceseId,
+    acceptTerms,
+    acceptPrivacy,
   } = await request.json();
 
   // Generate fantasy nickname if not provided
@@ -110,6 +117,24 @@ export const POST = withErrorHandler(async (request: Request) => {
   if (role === 'INTERMEDIARY' && (!orgName || !orgType)) {
     return NextResponse.json(
       { error: 'Nome e tipo organizzazione sono obbligatori per enti' },
+      { status: 400 }
+    );
+  }
+
+  // GDPR: il consenso a Privacy e ToS è obbligatorio per la registrazione
+  // (Reg. UE 2016/679 + Provv. Garante n. 229/2014). Il client NON può
+  // scegliere la versione: viene usata CURRENT_LEGAL_VERSIONS e l'hash
+  // viene calcolato server-side, così l'utente non può accettare un PDF
+  // diverso da quello che vede.
+  if (acceptTerms !== true && acceptTerms !== 'true') {
+    return NextResponse.json(
+      { error: 'Devi accettare le Condizioni d\'uso per procedere' },
+      { status: 400 }
+    );
+  }
+  if (acceptPrivacy !== true && acceptPrivacy !== 'true') {
+    return NextResponse.json(
+      { error: 'Devi accettare l\'Informativa Privacy per procedere' },
       { status: 400 }
     );
   }
@@ -289,6 +314,56 @@ export const POST = withErrorHandler(async (request: Request) => {
       donorProfile: true,
     },
   });
+
+  // GDPR: registra i consensi legali contestualmente alla creazione del
+  // user. Usiamo upsert con chiave @@unique([userId, documentType, version])
+  // per idempotenza (anche se l'utente dovesse inviare due volte la stessa
+  // registrazione in rapida successione, no P2002 → niente errore). IP e
+  // UA sono estratti dalla request per la prova legale.
+  const { ipAddress, userAgent } = extractRequestMetadata(request);
+  await Promise.all([
+    prisma.legalConsent.upsert({
+      where: {
+        userId_documentType_version: {
+          userId: user.id,
+          documentType: 'TERMS' as LegalDocumentType,
+          version: CURRENT_LEGAL_VERSIONS.TERMS,
+        },
+      },
+      create: {
+        userId: user.id,
+        documentType: 'TERMS' as LegalDocumentType,
+        version: CURRENT_LEGAL_VERSIONS.TERMS,
+        documentHash: getDocumentHash('TERMS'),
+        ipAddress,
+        userAgent,
+      },
+      update: {
+        // No-op: ipAddress/userAgent/hash sono "first-write-wins" per
+        // preservare la prova originaria del consenso.
+      },
+    }),
+    prisma.legalConsent.upsert({
+      where: {
+        userId_documentType_version: {
+          userId: user.id,
+          documentType: 'PRIVACY' as LegalDocumentType,
+          version: CURRENT_LEGAL_VERSIONS.PRIVACY,
+        },
+      },
+      create: {
+        userId: user.id,
+        documentType: 'PRIVACY' as LegalDocumentType,
+        version: CURRENT_LEGAL_VERSIONS.PRIVACY,
+        documentHash: getDocumentHash('PRIVACY'),
+        ipAddress,
+        userAgent,
+      },
+      update: {
+        // No-op: vedi sopra.
+      },
+    }),
+  ]);
 
   // Send our own confirmation email via Resend
   await sendConfirmationEmail(email, fullName, confirmToken);

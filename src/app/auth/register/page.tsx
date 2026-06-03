@@ -100,6 +100,13 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [secret, setSecret] = useState('');
 
+  // Legal consent (GDPR) — both checkboxes must be checked before submit.
+  // The server-side version + hash are recorded together with IP/UA at
+  // registration time, so the user can't accept "an old version" or skip
+  // the proof. See src/app/api/auth/register/route.ts and src/lib/legal.ts.
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+
   const isStagingSecretEnabled = process.env.NEXT_PUBLIC_STAGING_REGISTRATION_SECRET_ENABLED === 'true';
 
   useEffect(() => {
@@ -213,6 +220,15 @@ function RegisterForm() {
       return;
     }
 
+    // Legal consent: obbligatorio ai sensi del GDPR (Reg. UE 2016/679) e
+    // della normativa italiana. L'utente deve dichiarare di aver letto sia
+    // l'informativa privacy sia le condizioni d'uso. Senza → registrazione
+    // non può procedere.
+    if (!acceptTerms || !acceptPrivacy) {
+      setError('Devi accettare l\'Informativa Privacy e le Condizioni d\'uso per procedere');
+      return;
+    }
+
     // Diocese is mandatory for all roles
     if (!selectedDioceseId) {
       setError('Seleziona una diocesi di appartenenza');
@@ -306,6 +322,10 @@ function RegisterForm() {
         payload.orgName = orgName;
         payload.orgType = orgType;
       }
+
+      // Legal consent flags — server-side validates and stores with IP+UA.
+      payload.acceptTerms = acceptTerms ? 'true' : 'false';
+      payload.acceptPrivacy = acceptPrivacy ? 'true' : 'false';
 
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -782,6 +802,66 @@ function RegisterForm() {
               <p className="text-xs text-gray-500 mt-1">Richiesto per completare la registrazione</p>
             </div>
           )}
+
+          {/* Legal consent (GDPR) — required. I link aprono i PDF in nuova tab. */}
+          <div className="border-t pt-5 space-y-3">
+            <p className="text-sm font-medium text-gray-700">
+              Consensi obbligatori *
+            </p>
+
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                required
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                Ho letto e accetto l&apos;
+                <a
+                  href="/legal/privacy-v1.0.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-secondary-600 hover:text-secondary-700 underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Informativa Privacy
+                </a>
+                {' '}ai sensi dell&apos;art. 13 del Regolamento UE 2016/679 (GDPR).
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                required
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                Ho letto e accetto le{' '}
+                <a
+                  href="/legal/terms-v1.0.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-secondary-600 hover:text-secondary-700 underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Condizioni d&apos;uso
+                </a>
+                {' '}del servizio KYKOS.
+              </span>
+            </label>
+
+            <p className="text-xs text-gray-500">
+              I consensi verranno registrati con la versione dei documenti,
+              un hash crittografico del PDF, il tuo indirizzo IP e User-Agent
+              per la prova legale ai sensi del Provvedimento del Garante
+              Privacy n. 229/2014.
+            </p>
+          </div>
 
           <button
             type="submit"

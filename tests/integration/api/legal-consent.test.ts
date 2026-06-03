@@ -81,7 +81,9 @@ describe('POST /api/legal/consent', () => {
     });
     expect(call.create.ipAddress).toBe('203.0.113.42');
     expect(call.create.userAgent).toBe('vitest/1.0');
-    expect(call.create.documentHash).toMatch(/^sha256:/); // 'sha256:missing' in tests
+    // Hash SHA-256 reale (64 hex chars) o fallback 'sha256:missing' se il
+    // PDF non è stato deployato.
+    expect(call.create.documentHash).toMatch(/^([a-f0-9]{64}|sha256:missing)$/);
   });
 
   it('uses first IP from x-forwarded-for list (Vercel proxy)', async () => {
