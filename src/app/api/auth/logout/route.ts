@@ -14,5 +14,5 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
 // Also handle POST for form submissions
 export const POST = withErrorHandler(async (request: NextRequest) => {
-  return GET(request);
+  return GET(request, undefined);
 }, 'POST /api/auth/logout');
