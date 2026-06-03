@@ -10,7 +10,7 @@ Vedi [MANIFESTO.md](./MANIFESTO.md) per i principi fondanti, [ARCHITECTURE.md](.
 
 ## Stato corrente
 
-**Pre-pilota**, in attesa di test utenti reali (DONOR, RECIPIENT, OPERATOR office + street). Audit completo in [REFACTOR-AUDIT.md](./REFACTOR-AUDIT.md), storico modifiche in [CHANGELOG.md](./CHANGELOG.md), istruzioni operative per i tester in [docs/PILOT-RUNBOOK.md](./docs/PILOT-RUNBOOK.md).
+**Pre-pilota**, in attesa di test utenti reali (DONOR, RECIPIENT, OPERATOR office + street). Audit completo in [REFACTOR-AUDIT.md](./REFACTOR-AUDIT.md), storico modifiche in [CHANGELOG.md](./CHANGELOG.md), istruzioni operative per i tester in [docs/PILOT-RUNBOOK.md](./docs/PILOT-RUNBOOK.md), setup del sistema di versionamento documenti legali in [docs/LEGAL-DOCUMENTS-SETUP.md](./docs/LEGAL-DOCUMENTS-SETUP.md).
 
 ---
 
