@@ -87,10 +87,11 @@ WHERE table_name = 'legal_consents';
 -- =====================================================
 -- Verifica enum
 -- =====================================================
-SELECT enumlabel
-FROM pg_enum
-WHERE enumname = 'LegalDocumentType'
-ORDER BY enumsortorder;
+SELECT e.enumlabel
+FROM pg_enum e
+JOIN pg_type t ON t.oid = e.enumtypid
+WHERE t.typname = 'LegalDocumentType'
+ORDER BY e.enumsortorder;
 
 -- Output atteso:
 --  enumlabel
