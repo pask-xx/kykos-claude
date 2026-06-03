@@ -45,6 +45,7 @@ const intermediaryNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { href: '/admin/dashboard', label: 'Enti', icon: '🏢' },
   { href: '/admin/intermediaries/new', label: 'Nuovo Ente', icon: '➕' },
+  { href: '/admin/legal', label: 'Documenti legali', icon: '📄' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
 ];
 
