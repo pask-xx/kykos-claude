@@ -113,6 +113,18 @@ function RegisterForm() {
   // tornano agevolmente alla pagina precedente).
   const [pdfOpen, setPdfOpen] = useState<null | { url: string; title: string }>(null);
 
+  // Versioni correnti dei documenti legali, caricate da /api/legal/current
+  // (pubblica) al mount. null mentre il fetch è in corso: le checkbox sono
+  // disabilitate per evitare che l'utente accetti "una versione sconosciuta".
+  // Se il fetch fallisce, fallback a null e le checkbox restano disabilitate
+  // con un messaggio d'errore — l'utente NON può registrarsi senza aver
+  // prima letto i documenti aggiornati.
+  const [legalDocs, setLegalDocs] = useState<{
+    PRIVACY: { version: string; url: string } | null;
+    TERMS: { version: string; url: string } | null;
+  }>({ PRIVACY: null, TERMS: null });
+  const [legalDocsError, setLegalDocsError] = useState<string | null>(null);
+
   const isStagingSecretEnabled = process.env.NEXT_PUBLIC_STAGING_REGISTRATION_SECRET_ENABLED === 'true';
 
   useEffect(() => {
@@ -122,6 +134,46 @@ function RegisterForm() {
       setLastName(parts.slice(1).join(' ') || '');
     }
   }, [isOAuth, oauthName]);
+
+  // Carica le versioni correnti dei documenti legali da /api/legal/current
+  // (pubblica). Necessario perché /auth/register è una pagina per utenti NON
+  // ancora loggati, quindi /api/legal/status (che richiede auth) non è
+  // accessibile. Senza questi dati le checkbox restano disabilitate e
+  // l'utente NON può registrarsi — l'obiettivo è che legga la versione
+  // corrente, non un PDF statico vecchio.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/legal/current', { cache: 'no-store' });
+        if (!res.ok) {
+          if (!cancelled) {
+            setLegalDocsError(
+              'Impossibile caricare i documenti legali correnti. Riprova più tardi.'
+            );
+          }
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setLegalDocs({
+            PRIVACY: data.documents?.PRIVACY ?? null,
+            TERMS: data.documents?.TERMS ?? null,
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching /api/legal/current:', err);
+        if (!cancelled) {
+          setLegalDocsError(
+            'Impossibile caricare i documenti legali correnti. Riprova più tardi.'
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Fetch intermediaries and dioceses when location is detected
   useEffect(() => {
@@ -230,8 +282,14 @@ function RegisterForm() {
     // della normativa italiana. L'utente deve dichiarare di aver letto sia
     // l'informativa privacy sia le condizioni d'uso. Senza → registrazione
     // non può procedere.
+    // Blocco anche se le versioni correnti non sono state caricate: l'utente
+    // non può aver letto nulla se non conosce la versione da accettare.
+    if (!legalDocs.PRIVACY || !legalDocs.TERMS) {
+      setError('Documenti legali non ancora disponibili, riprova tra qualche secondo.');
+      return;
+    }
     if (!acceptTerms || !acceptPrivacy) {
-      setError('Devi accettare l\'Informativa Privacy e le Condizioni d\'uso per procedere');
+      setError("Devi accettare l'Informativa Privacy e le Condizioni d'uso per procedere");
       return;
     }
 
@@ -815,26 +873,46 @@ function RegisterForm() {
               Consensi obbligatori *
             </p>
 
+            {legalDocsError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {legalDocsError}
+              </div>
+            )}
+
+            {!legalDocsError && (!legalDocs.PRIVACY || !legalDocs.TERMS) && (
+              <div className="p-3 bg-gray-50 border border-gray-200 text-gray-600 rounded-lg text-sm">
+                Caricamento documenti legali in corso…
+              </div>
+            )}
+
             <label className="flex items-start gap-3 cursor-pointer group">
               <input
                 type="checkbox"
                 checked={acceptPrivacy}
                 onChange={(e) => setAcceptPrivacy(e.target.checked)}
                 required
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer"
+                disabled={!legalDocs.PRIVACY}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="text-sm text-gray-700 leading-relaxed">
                 Ho letto e accetto l&apos;
                 <button
                   type="button"
+                  disabled={!legalDocs.PRIVACY}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setPdfOpen({ url: '/legal/privacy-v1.0.pdf', title: 'Informativa Privacy' });
+                    if (legalDocs.PRIVACY) {
+                      setPdfOpen({
+                        url: legalDocs.PRIVACY.url,
+                        title: `Informativa Privacy v${legalDocs.PRIVACY.version}`,
+                      });
+                    }
                   }}
-                  className="text-secondary-600 hover:text-secondary-700 underline font-medium"
+                  className="text-secondary-600 hover:text-secondary-700 underline font-medium disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed"
                 >
                   Informativa Privacy
+                  {legalDocs.PRIVACY && ` v${legalDocs.PRIVACY.version}`}
                 </button>
                 {' '}ai sensi dell&apos;art. 13 del Regolamento UE 2016/679 (GDPR).
               </span>
@@ -846,20 +924,28 @@ function RegisterForm() {
                 checked={acceptTerms}
                 onChange={(e) => setAcceptTerms(e.target.checked)}
                 required
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer"
+                disabled={!legalDocs.TERMS}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="text-sm text-gray-700 leading-relaxed">
                 Ho letto e accetto le{' '}
                 <button
                   type="button"
+                  disabled={!legalDocs.TERMS}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setPdfOpen({ url: '/legal/terms-v1.0.pdf', title: 'Condizioni d\'uso' });
+                    if (legalDocs.TERMS) {
+                      setPdfOpen({
+                        url: legalDocs.TERMS.url,
+                        title: `Condizioni d'uso v${legalDocs.TERMS.version}`,
+                      });
+                    }
                   }}
-                  className="text-secondary-600 hover:text-secondary-700 underline font-medium"
+                  className="text-secondary-600 hover:text-secondary-700 underline font-medium disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed"
                 >
                   Condizioni d&apos;uso
+                  {legalDocs.TERMS && ` v${legalDocs.TERMS.version}`}
                 </button>
                 {' '}del servizio KYKOS.
               </span>

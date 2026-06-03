@@ -6,6 +6,7 @@ import { jwtVerify } from 'jose';
 import { POST as consentPOST } from '@/app/api/legal/consent/route';
 import { GET as statusGET } from '@/app/api/legal/status/route';
 import { GET as checkGET } from '@/app/api/legal/check/route';
+import { GET as currentGET } from '@/app/api/legal/current/route';
 
 const mockCookies = vi.mocked(cookies);
 const mockJwtVerify = vi.mocked(jwtVerify);
@@ -182,5 +183,67 @@ describe('GET /api/legal/check', () => {
     const res = await checkGET();
     const data = await res.json();
     expect(data.requiresReconsent).toBe(false);
+  });
+});
+
+/**
+ * GET /api/legal/current — rotta PUBBLICA (no auth) per pagine tipo
+ * /auth/register che mostrano la versione corrente e linkano il PDF giusto.
+ * Vedi: src/app/api/legal/current/route.ts.
+ */
+describe('GET /api/legal/current', () => {
+  beforeEach(() => {
+    // Reset dei mock: garantisce che ogni test parta con il mock di default
+    // (v1.0 per entrambi i documenti, vedi tests/setup/mocks.ts).
+    resetAllMocks();
+  });
+
+  it('returns 200 without auth (public route)', async () => {
+    // NB: setSession(null) non viene chiamato — la rotta non controlla
+    // la sessione. Non serve nessun mock di cookies.
+    const res = await currentGET();
+    expect(res.status).toBe(200);
+  });
+
+  it('returns documents metadata for both PRIVACY and TERMS', async () => {
+    const res = await currentGET();
+    const data = await res.json();
+    expect(data.documents).toBeDefined();
+    expect(data.documents.PRIVACY).toBeDefined();
+    expect(data.documents.TERMS).toBeDefined();
+    // Default mock ritorna v1.0 per entrambi (vedi tests/setup/mocks.ts).
+    expect(data.documents.PRIVACY.version).toBe('1.0');
+    expect(data.documents.TERMS.version).toBe('1.0');
+    // URL è una stringa (la composizione bucket/path è in
+    // src/lib/legal.ts::getStoragePath, testato indirettamente tramite
+    // il flusso di upload). Qui verifichiamo solo che non sia vuota.
+    expect(typeof data.documents.PRIVACY.url).toBe('string');
+    expect(data.documents.PRIVACY.url.length).toBeGreaterThan(0);
+    expect(typeof data.documents.TERMS.url).toBe('string');
+    expect(data.documents.TERMS.url.length).toBeGreaterThan(0);
+  });
+
+  it('returns updated version after publish (no in-memory cache)', async () => {
+    // NB: la route chiama getActiveVersions() due volte (una per type in
+    // getCurrentDocumentMeta). Mockiamo entrambe le invocazioni: prima con
+    // PRIVACY=v1.1, poi con PRIVACY=v1.1 di nuovo (TERMS=v1.0 invariato).
+    mockPrisma.legalDocumentVersion.findMany.mockResolvedValueOnce([
+      { type: 'TERMS', version: '1.0' },
+      { type: 'PRIVACY', version: '1.1' },
+    ]);
+    mockPrisma.legalDocumentVersion.findMany.mockResolvedValueOnce([
+      { type: 'TERMS', version: '1.0' },
+      { type: 'PRIVACY', version: '1.1' },
+    ]);
+    const res = await currentGET();
+    const data = await res.json();
+    expect(data.documents.PRIVACY.version).toBe('1.1');
+    // TERMS resta v1.0
+    expect(data.documents.TERMS.version).toBe('1.0');
+  });
+
+  it('sets Cache-Control: no-store header', async () => {
+    const res = await currentGET();
+    expect(res.headers.get('Cache-Control')).toContain('no-store');
   });
 });
