@@ -68,7 +68,7 @@ export default function AdminLegalPage() {
   const [confirmAction, setConfirmAction] = useState<
     | null
     | {
-        kind: 'publish' | 'archive';
+        kind: 'publish' | 'archive' | 'delete';
         version: LegalDocVersion;
       }
   >(null);
@@ -81,22 +81,34 @@ export default function AdminLegalPage() {
   const grouped = (type: LegalDocumentType) => versions.filter(v => v.type === type);
   const activeFor = (type: LegalDocumentType) => grouped(type).find(v => v.status === 'active');
 
-  const handlePublishOrArchive = async () => {
+  const handleConfirm = async () => {
     if (!confirmAction) return;
     setActionLoading(true);
     setActionError(null);
     try {
-      const endpoint =
-        confirmAction.kind === 'publish'
-          ? `/api/admin/legal/${confirmAction.version.id}/publish`
-          : `/api/admin/legal/${confirmAction.version.id}/archive`;
-      const res = await fetch(endpoint, { method: 'POST' });
+      let endpoint: string;
+      let method: 'POST' | 'DELETE';
+      if (confirmAction.kind === 'publish') {
+        endpoint = `/api/admin/legal/${confirmAction.version.id}/publish`;
+        method = 'POST';
+      } else if (confirmAction.kind === 'archive') {
+        endpoint = `/api/admin/legal/${confirmAction.version.id}/archive`;
+        method = 'POST';
+      } else {
+        endpoint = `/api/admin/legal/${confirmAction.version.id}`;
+        method = 'DELETE';
+      }
+      const res = await fetch(endpoint, { method });
       const body = await res.json();
       if (!res.ok) {
-        setActionError(body.error || 'Errore durante l\'operazione');
+        setActionError(body.error || "Errore durante l'operazione");
         return;
       }
-      setActionSuccess(body.message ?? 'Operazione completata');
+      const successMsg =
+        confirmAction.kind === 'delete'
+          ? `Versione v${confirmAction.version.version} eliminata.`
+          : body.message ?? 'Operazione completata';
+      setActionSuccess(successMsg);
       setTimeout(() => setActionSuccess(null), 5000);
       setConfirmAction(null);
       mutate();
@@ -210,15 +222,26 @@ export default function AdminLegalPage() {
                           </div>
                           <div className="flex flex-col gap-2 shrink-0">
                             {v.status === 'scheduled' && (
-                              <button
-                                onClick={() => {
-                                  setActionError(null);
-                                  setConfirmAction({ kind: 'publish', version: v });
-                                }}
-                                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-                              >
-                                Pubblica
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setActionError(null);
+                                    setConfirmAction({ kind: 'publish', version: v });
+                                  }}
+                                  className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                                >
+                                  Pubblica
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActionError(null);
+                                    setConfirmAction({ kind: 'delete', version: v });
+                                  }}
+                                  className="px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-medium"
+                                >
+                                  Elimina
+                                </button>
+                              </>
                             )}
                             {v.status === 'active' && (
                               <button
@@ -264,7 +287,11 @@ export default function AdminLegalPage() {
           />
           <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-bold text-gray-900 mb-2">
-              {confirmAction.kind === 'publish' ? 'Conferma pubblicazione' : 'Conferma archiviazione'}
+              {confirmAction.kind === 'publish'
+                ? 'Conferma pubblicazione'
+                : confirmAction.kind === 'archive'
+                ? 'Conferma archiviazione'
+                : 'Conferma eliminazione'}
             </h3>
             {confirmAction.kind === 'publish' ? (
               <p className="text-gray-600 mb-2">
@@ -272,9 +299,15 @@ export default function AdminLegalPage() {
                 <span className="font-mono font-semibold">{confirmAction.version.version}</span> di{' '}
                 <strong>{TYPE_LABELS[confirmAction.version.type]}</strong>.
               </p>
-            ) : (
+            ) : confirmAction.kind === 'archive' ? (
               <p className="text-gray-600 mb-2">
                 Stai per archiviare la versione{' '}
+                <span className="font-mono font-semibold">{confirmAction.version.version}</span> di{' '}
+                <strong>{TYPE_LABELS[confirmAction.version.type]}</strong>.
+              </p>
+            ) : (
+              <p className="text-gray-600 mb-2">
+                Stai per eliminare definitivamente la versione{' '}
                 <span className="font-mono font-semibold">{confirmAction.version.version}</span> di{' '}
                 <strong>{TYPE_LABELS[confirmAction.version.type]}</strong>.
               </p>
@@ -297,6 +330,21 @@ export default function AdminLegalPage() {
                 </p>
               </div>
             )}
+            {confirmAction.kind === 'delete' && (
+              <div className="my-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+                <p>
+                  <strong>⚠️ Operazione irreversibile.</strong> Il record e il file
+                  PDF verranno eliminati definitivamente dal database e da
+                  Supabase Storage. La versione non è mai stata pubblicata, quindi
+                  nessun utente l&apos;ha mai vista — è sicuro eliminarla.
+                </p>
+                <p className="mt-2">
+                  Potrai ricaricare la stessa versione (es. v
+                  {confirmAction.version.version}) tramite il bottone &quot;Carica nuova
+                  versione&quot;.
+                </p>
+              </div>
+            )}
             {actionError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                 {actionError}
@@ -314,19 +362,23 @@ export default function AdminLegalPage() {
                 Annulla
               </button>
               <button
-                onClick={handlePublishOrArchive}
+                onClick={handleConfirm}
                 disabled={actionLoading}
                 className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
                   confirmAction.kind === 'publish'
                     ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-amber-600 hover:bg-amber-700'
+                    : confirmAction.kind === 'archive'
+                    ? 'bg-amber-600 hover:bg-amber-700'
+                    : 'bg-red-600 hover:bg-red-700'
                 }`}
               >
                 {actionLoading
                   ? 'Operazione in corso…'
                   : confirmAction.kind === 'publish'
                   ? 'Pubblica'
-                  : 'Archivia'}
+                  : confirmAction.kind === 'archive'
+                  ? 'Archivia'
+                  : 'Elimina definitivamente'}
               </button>
             </div>
           </div>
