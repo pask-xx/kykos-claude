@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -29,54 +30,51 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET() {
-  try {
-    const session = await getOperatorSession();
+export const GET = withErrorHandler(async () => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    // Check permission
-    if (!hasAnyPermission(operator.role, operator.permissions, ['OBJECT_RECEIVE', 'OBJECT_DELIVER'])) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
 
-    const objects = await prisma.object.findMany({
-      where: { intermediaryId: session.organizationId },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        category: true,
-        condition: true,
-        status: true,
-        imageUrls: true,
-        createdAt: true,
-        depositLocation: true,
-        donor: { select: { id: true, nickname: true, name: true } },
-        requests: {
-          where: { status: 'APPROVED' },
-          select: {
-            id: true,
-            recipient: { select: { id: true, nickname: true, name: true } },
-          },
+  // Check permission
+  if (!hasAnyPermission(operator.role, operator.permissions, ['OBJECT_RECEIVE', 'OBJECT_DELIVER'])) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
+
+  const objects = await prisma.object.findMany({
+    where: { intermediaryId: session.organizationId },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      category: true,
+      condition: true,
+      status: true,
+      imageUrls: true,
+      createdAt: true,
+      depositLocation: true,
+      donor: { select: { id: true, nickname: true, name: true } },
+      requests: {
+        where: { status: 'APPROVED' },
+        select: {
+          id: true,
+          recipient: { select: { id: true, nickname: true, name: true } },
         },
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
-    return NextResponse.json({ objects });
-  } catch (error) {
-    console.error('Operator objects error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
-  }
-}
+  return NextResponse.json({ objects });
+
+}, 'GET /api/operator/objects');

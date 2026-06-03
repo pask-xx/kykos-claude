@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { RecipientType } from '@prisma/client';
 import { markAsRead } from '@/lib/notification-service';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -27,49 +28,43 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const { id: notificationId } = await params;
-
-    await markAsRead(notificationId, session.operatorId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Operator notification mark read error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
 
-export async function DELETE(
+  const { id: notificationId } = await params;
+
+  await markAsRead(notificationId, session.operatorId);
+
+  return NextResponse.json({ success: true });
+
+}, 'PATCH /api/operator/notifications/[id]');
+
+export const DELETE = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const { id: notificationId } = await params;
-
-    const { prisma } = await import('@/lib/prisma');
-    await prisma.notification.deleteMany({
-      where: { id: notificationId, recipientOperatorId: session.operatorId },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Operator notification delete error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  const { id: notificationId } = await params;
+
+  const { prisma } = await import('@/lib/prisma');
+  await prisma.notification.deleteMany({
+    where: { id: notificationId, recipientOperatorId: session.operatorId },
+  });
+
+  return NextResponse.json({ success: true });
+
+}, 'DELETE /api/operator/notifications/[id]');

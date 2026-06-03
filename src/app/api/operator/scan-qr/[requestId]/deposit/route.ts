@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { parseQrCodeData } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
 import { generatePickupQrCode, generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -31,128 +32,125 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function POST(
+export const POST = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ requestId: string }> }
-) {
-  try {
-    const session = await getOperatorSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+) => {
 
-    const { requestId } = await params;
+  const session = await getOperatorSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    const { depositLocation, notes } = await request.json();
+  const { requestId } = await params;
 
-    if (!depositLocation) {
-      return NextResponse.json({ error: 'Posizione di deposito obbligatoria' }, { status: 400 });
-    }
+  const { depositLocation, notes } = await request.json();
 
-    // Find the request with all needed data
-    const req = await prisma.request.findUnique({
-      where: { id: requestId },
-      include: {
-        object: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            donorId: true,
-            donor: { select: { nickname: true, name: true } },
-            intermediary: {
-              select: {
-                name: true,
-                address: true,
-                houseNumber: true,
-                cap: true,
-                city: true,
-                province: true,
-                phone: true,
-                email: true,
-                hoursInfo: true,
-                printLabel: true,
-                labelSize: true,
-              },
+  if (!depositLocation) {
+    return NextResponse.json({ error: 'Posizione di deposito obbligatoria' }, { status: 400 });
+  }
+
+  // Find the request with all needed data
+  const req = await prisma.request.findUnique({
+    where: { id: requestId },
+    include: {
+      object: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          donorId: true,
+          donor: { select: { nickname: true, name: true } },
+          intermediary: {
+            select: {
+              name: true,
+              address: true,
+              houseNumber: true,
+              cap: true,
+              city: true,
+              province: true,
+              phone: true,
+              email: true,
+              hoursInfo: true,
+              printLabel: true,
+              labelSize: true,
             },
           },
         },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+      },
+      recipient: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
         },
       },
-    });
+    },
+  });
 
-    if (!req) {
-      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
-    }
-
-    if (req.intermediaryId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    // Check object is in correct status
-    if (req.object.status !== 'RESERVED' && req.object.status !== 'DEPOSITED') {
-      return NextResponse.json({ error: 'Stato oggetto non valido per questa operazione' }, { status: 400 });
-    }
-
-    // Update object status to DEPOSITED and save deposit location
-    await prisma.object.update({
-      where: { id: req.objectId },
-      data: {
-        status: 'DEPOSITED',
-        depositLocation: depositLocation,
-        depositNotes: notes || null,
-      },
-    });
-
-    // Generate pickup QR for recipient notification
-    const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
-
-    // Generate DELIVER QR for object label (for pickup verification)
-    const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
-
-    await sendPickupQrNotification(
-      req.recipient.email,
-      req.recipientId,
-      req.recipient.name,
-      req.object.title,
-      req.objectId,
-      pickupQrData,
-      pickupQrImage,
-      req.object.intermediary.name,
-      req.object.intermediary.address || null,
-      req.object.intermediary.houseNumber || null,
-      req.object.intermediary.cap || null,
-      req.object.intermediary.city || null,
-      req.object.intermediary.province || null,
-      req.object.intermediary.phone || null,
-      req.object.intermediary.email || null,
-      req.object.intermediary.hoursInfo
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: req.object.intermediary.printLabel
-        ? 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.'
-        : 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.',
-      showLabelDialog: req.object.intermediary.printLabel,
-      labelData: req.object.intermediary.printLabel ? {
-        requestId: req.id,
-        recipientName: req.recipient.name,
-        itemDescription: req.object.title,
-        depositDate: new Date().toISOString().split('T')[0],
-        qrData: deliverQrData,
-        labelSize: req.object.intermediary.labelSize,
-      } : null,
-    });
-  } catch (error) {
-    console.error('Deposit location error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!req) {
+    return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
   }
-}
+
+  if (req.intermediaryId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  // Check object is in correct status
+  if (req.object.status !== 'RESERVED' && req.object.status !== 'DEPOSITED') {
+    return NextResponse.json({ error: 'Stato oggetto non valido per questa operazione' }, { status: 400 });
+  }
+
+  // Update object status to DEPOSITED and save deposit location
+  await prisma.object.update({
+    where: { id: req.objectId },
+    data: {
+      status: 'DEPOSITED',
+      depositLocation: depositLocation,
+      depositNotes: notes || null,
+    },
+  });
+
+  // Generate pickup QR for recipient notification
+  const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
+  const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+
+  // Generate DELIVER QR for object label (for pickup verification)
+  const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
+
+  await sendPickupQrNotification(
+    req.recipient.email,
+    req.recipientId,
+    req.recipient.name,
+    req.object.title,
+    req.objectId,
+    pickupQrData,
+    pickupQrImage,
+    req.object.intermediary.name,
+    req.object.intermediary.address || null,
+    req.object.intermediary.houseNumber || null,
+    req.object.intermediary.cap || null,
+    req.object.intermediary.city || null,
+    req.object.intermediary.province || null,
+    req.object.intermediary.phone || null,
+    req.object.intermediary.email || null,
+    req.object.intermediary.hoursInfo
+  );
+
+  return NextResponse.json({
+    success: true,
+    message: req.object.intermediary.printLabel
+      ? 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.'
+      : 'Posizione deposito registrata! Il beneficiario ha ricevuto il QR code per il ritiro.',
+    showLabelDialog: req.object.intermediary.printLabel,
+    labelData: req.object.intermediary.printLabel ? {
+      requestId: req.id,
+      recipientName: req.recipient.name,
+      itemDescription: req.object.title,
+      depositDate: new Date().toISOString().split('T')[0],
+      qrData: deliverQrData,
+      labelSize: req.object.intermediary.labelSize,
+    } : null,
+  });
+
+}, 'POST /api/operator/scan-qr/[requestId]/deposit');

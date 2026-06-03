@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
@@ -28,68 +29,65 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ requestId: string }> }
-) {
-  try {
-    const session = await getOperatorSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+) => {
 
-    const { requestId } = await params;
+  const session = await getOperatorSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    const req = await prisma.request.findUnique({
-      where: { id: requestId },
-      include: {
-        object: {
-          select: {
-            id: true,
-            title: true,
-            depositLocation: true,
-            depositNotes: true,
-            status: true,
-            donorId: true,
-            intermediary: {
-              select: {
-                printLabel: true,
-                labelSize: true,
-              },
+  const { requestId } = await params;
+
+  const req = await prisma.request.findUnique({
+    where: { id: requestId },
+    include: {
+      object: {
+        select: {
+          id: true,
+          title: true,
+          depositLocation: true,
+          depositNotes: true,
+          status: true,
+          donorId: true,
+          intermediary: {
+            select: {
+              printLabel: true,
+              labelSize: true,
             },
           },
         },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-          },
+      },
+      recipient: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-    });
+    },
+  });
 
-    if (!req) {
-      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
-    }
-
-    if (req.intermediaryId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    return NextResponse.json({
-      title: req.object.title,
-      depositLocation: req.object.depositLocation,
-      depositNotes: req.object.depositNotes || null,
-      objectId: req.object.id,
-      donorId: req.object.donorId,
-      recipientId: req.recipient.id,
-      recipientName: req.recipient.name,
-      objectStatus: req.object.status,
-      showVerifyPrompt: req.object.intermediary.printLabel,
-      labelSize: req.object.intermediary.labelSize,
-    });
-  } catch (error) {
-    console.error('Pickup info error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!req) {
+    return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
   }
-}
+
+  if (req.intermediaryId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  return NextResponse.json({
+    title: req.object.title,
+    depositLocation: req.object.depositLocation,
+    depositNotes: req.object.depositNotes || null,
+    objectId: req.object.id,
+    donorId: req.object.donorId,
+    recipientId: req.recipient.id,
+    recipientName: req.recipient.name,
+    objectStatus: req.object.status,
+    showVerifyPrompt: req.object.intermediary.printLabel,
+    labelSize: req.object.intermediary.labelSize,
+  });
+
+}, 'GET /api/operator/requests/[requestId]/pickup');
