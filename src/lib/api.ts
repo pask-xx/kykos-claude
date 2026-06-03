@@ -81,10 +81,10 @@ export function apiErr(error: string, status: number = 400): NextResponse<ApiErr
  *     return apiOk({ users });
  *   }, 'GET /api/users');
  */
-export function withErrorHandler<P = unknown>(
-  fn: (req: Request, ctx: P) => Promise<Response>,
+export function withErrorHandler<R extends Request = Request, P = unknown>(
+  fn: (req: R, ctx: P) => Promise<Response>,
   label: string
-): (req: Request, ctx: P) => Promise<Response> {
+): (req: R, ctx: P) => Promise<Response> {
   return async (req, ctx) => {
     try {
       return await fn(req, ctx);
