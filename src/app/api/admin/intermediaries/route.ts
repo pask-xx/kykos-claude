@@ -1,194 +1,185 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateOrgCode } from '@/lib/utils';
 import { sendIntermediaryCredentialsEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
+import { withErrorHandler } from '@/lib/api';
 
 function generateTempPassword(length = 12): string {
   return randomBytes(length).toString('base64').slice(0, length);
 }
 
-export async function GET() {
-  try {
-    const session = await getSession();
+export const GET = withErrorHandler(async () => {
+  const session = await getSession();
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Solo admin' }, { status: 403 });
-    }
+  if (session.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Solo admin' }, { status: 403 });
+  }
 
-    const intermediaries = await prisma.organization.findMany({
-      include: {
-        user: {
-          select: { email: true, createdAt: true },
-        },
-        _count: {
-          select: {
-            objects: true,
-            requests: true,
-          },
+  const intermediaries = await prisma.organization.findMany({
+    include: {
+      user: {
+        select: { email: true, createdAt: true },
+      },
+      _count: {
+        select: {
+          objects: true,
+          requests: true,
         },
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
-    return NextResponse.json({ intermediaries });
-  } catch (error) {
-    console.error('Error fetching intermediaries:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  return NextResponse.json({ intermediaries });
+}, 'GET /api/admin/intermediaries');
+
+export const POST = withErrorHandler(async (request: Request) => {
+  const session = await getSession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
 
-export async function POST(request: Request) {
-  try {
-    const session = await getSession();
+  if (session.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Solo admin' }, { status: 403 });
+  }
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const {
+    email,
+    firstName,
+    lastName,
+    orgName,
+    orgType,
+    address,
+    cap,
+    city,
+    province,
+    phone,
+    latitude,
+    longitude,
+    dioceseId,
+  } = await request.json();
 
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Solo admin' }, { status: 403 });
-    }
+  // Validate required fields (no password - we generate temp one)
+  if (!email || !firstName || !lastName || !orgName || !orgType) {
+    return NextResponse.json(
+      { error: 'Tutti i campi sono obbligatori' },
+      { status: 400 }
+    );
+  }
 
-    const {
-      email,
+  if (!['CHARITY', 'CHURCH', 'ASSOCIATION'].includes(orgType)) {
+    return NextResponse.json(
+      { error: 'Tipo organizzazione non valido' },
+      { status: 400 }
+    );
+  }
+
+  // Check if email already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    return NextResponse.json(
+      { error: 'Email già registrata' },
+      { status: 400 }
+    );
+  }
+
+  // Generate temp password
+  const tempPassword = generateTempPassword();
+
+  // Create user in Supabase Auth with email already confirmed
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true, // Email verified immediately
+    user_metadata: {
+      role: 'INTERMEDIARY',
       firstName,
       lastName,
-      orgName,
-      orgType,
-      address,
-      cap,
-      city,
-      province,
-      phone,
-      latitude,
-      longitude,
-      dioceseId,
-    } = await request.json();
+      fullName: `${firstName} ${lastName}`,
+    },
+  });
 
-    // Validate required fields (no password - we generate temp one)
-    if (!email || !firstName || !lastName || !orgName || !orgType) {
-      return NextResponse.json(
-        { error: 'Tutti i campi sono obbligatori' },
-        { status: 400 }
-      );
-    }
+  if (authError || !authData.user) {
+    console.error('Supabase Auth error:', authError);
+    return NextResponse.json(
+      { error: 'Errore durante la creazione dell\'account' },
+      { status: 500 }
+    );
+  }
 
-    if (!['CHARITY', 'CHURCH', 'ASSOCIATION'].includes(orgType)) {
-      return NextResponse.json(
-        { error: 'Tipo organizzazione non valido' },
-        { status: 400 }
-      );
-    }
+  const authUserId = authData.user.id;
 
-    // Check if email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Email già registrata' },
-        { status: 400 }
-      );
-    }
-
-    // Generate temp password
-    const tempPassword = generateTempPassword();
-
-    // Create user in Supabase Auth with email already confirmed
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true, // Email verified immediately
-      user_metadata: {
-        role: 'INTERMEDIARY',
+  // Create user first, then organization
+  const result = await prisma.$transaction(async (tx) => {
+    // Create user first
+    const user = await tx.user.create({
+      data: {
+        authUserId,
+        email,
+        name: `${firstName} ${lastName}`,
         firstName,
         lastName,
-        fullName: `${firstName} ${lastName}`,
+        role: 'INTERMEDIARY',
+        authorized: true,
+        emailConfirmed: true,
       },
     });
 
-    if (authError || !authData.user) {
-      console.error('Supabase Auth error:', authError);
-      return NextResponse.json(
-        { error: 'Errore durante la creazione dell\'account' },
-        { status: 500 }
-      );
-    }
-
-    const authUserId = authData.user.id;
-
-    // Create user first, then organization
-    const result = await prisma.$transaction(async (tx) => {
-      // Create user first
-      const user = await tx.user.create({
-        data: {
-          authUserId,
-          email,
-          name: `${firstName} ${lastName}`,
-          firstName,
-          lastName,
-          role: 'INTERMEDIARY',
-          authorized: true,
-          emailConfirmed: true,
-        },
-      });
-
-      // Create organization linked to user
-      const orgTypeValue = orgType as 'CHARITY' | 'CHURCH' | 'ASSOCIATION';
-      const org = await tx.organization.create({
-        data: {
-          code: generateOrgCode(),
-          name: String(orgName),
-          type: orgTypeValue,
-          address: address ? String(address) : null,
-          cap: cap ? String(cap) : null,
-          city: city ? String(city) : null,
-          province: province ? String(province) : null,
-          phone: phone ? String(phone) : null,
-          latitude: latitude ? parseFloat(String(latitude)) : null,
-          longitude: longitude ? parseFloat(String(longitude)) : null,
-          verified: true,
-          userId: user.id,
-          dioceseId: dioceseId || null,
-        },
-      });
-
-      return { org, user };
-    });
-
-    // Send credentials email
-    const emailSent = await sendIntermediaryCredentialsEmail(
-      email,
-      `${firstName} ${lastName}`,
-      String(orgName),
-      tempPassword
-    );
-
-    if (!emailSent) {
-      console.error('Failed to send credentials email to:', email);
-    }
-
-    return NextResponse.json({
-      success: true,
-      emailSent,
-      intermediary: result.org,
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        name: result.user.name,
+    // Create organization linked to user
+    const orgTypeValue = orgType as 'CHARITY' | 'CHURCH' | 'ASSOCIATION';
+    const org = await tx.organization.create({
+      data: {
+        code: generateOrgCode(),
+        name: String(orgName),
+        type: orgTypeValue,
+        address: address ? String(address) : null,
+        cap: cap ? String(cap) : null,
+        city: city ? String(city) : null,
+        province: province ? String(province) : null,
+        phone: phone ? String(phone) : null,
+        latitude: latitude ? parseFloat(String(latitude)) : null,
+        longitude: longitude ? parseFloat(String(longitude)) : null,
+        verified: true,
+        userId: user.id,
+        dioceseId: dioceseId || null,
       },
-      tempPassword, // Only for admin to see if email failed
     });
-  } catch (error) {
-    console.error('Error creating intermediary:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+
+    return { org, user };
+  });
+
+  // Send credentials email
+  const emailSent = await sendIntermediaryCredentialsEmail(
+    email,
+    `${firstName} ${lastName}`,
+    String(orgName),
+    tempPassword
+  );
+
+  if (!emailSent) {
+    console.error('Failed to send credentials email to:', email);
   }
-}
+
+  return NextResponse.json({
+    success: true,
+    emailSent,
+    intermediary: result.org,
+    user: {
+      id: result.user.id,
+      email: result.user.email,
+      name: result.user.name,
+    },
+    tempPassword, // Only for admin to see if email failed
+  });
+}, 'POST /api/admin/intermediaries');
