@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 import { RecipientType } from '@prisma/client';
 import { getNotifications, getUnreadCount, markAllAsRead } from '@/lib/notification-service';
 import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -28,37 +29,27 @@ async function getUserSession(): Promise<UserSession | null> {
   }
 }
 
-export async function GET() {
-  try {
-    const session = await getUserSession();
+export const GET = withErrorHandler(async () => {
+  const session = await getUserSession();
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    const notifications = await getNotifications(session.userId, RecipientType.USER);
-    const unreadCount = await getUnreadCount(session.userId, RecipientType.USER);
-
-    return NextResponse.json({ notifications, unreadCount });
-  } catch (error) {
-    console.error('Notifications GET error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
 
-export async function PATCH() {
-  try {
-    const session = await getUserSession();
+  const notifications = await getNotifications(session.userId, RecipientType.USER);
+  const unreadCount = await getUnreadCount(session.userId, RecipientType.USER);
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  return NextResponse.json({ notifications, unreadCount });
+}, 'GET /api/notifications');
 
-    await markAllAsRead(session.userId, RecipientType.USER);
+export const PATCH = withErrorHandler(async () => {
+  const session = await getUserSession();
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Notifications PATCH error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  await markAllAsRead(session.userId, RecipientType.USER);
+
+  return NextResponse.json({ success: true });
+}, 'PATCH /api/notifications');
