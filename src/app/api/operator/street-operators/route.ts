@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -28,45 +29,42 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
 }
 
 // GET /api/operator/street-operators - lista tutti gli street operators dell'ente
-export async function GET() {
-  try {
-    const session = await getOperatorSession();
+export const GET = withErrorHandler(async () => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    if (!operator.isStreetOperator) {
-      return NextResponse.json({ error: 'Non è un operatore di strada' }, { status: 403 });
-    }
-
-    const streetOperators = await prisma.operator.findMany({
-      where: {
-        organizationId: session.organizationId,
-        isStreetOperator: true,
-        active: true,
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-      },
-      orderBy: { lastName: 'asc' },
-    });
-
-    return NextResponse.json({ streetOperators });
-  } catch (error) {
-    console.error('Street operators error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
+
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  if (!operator.isStreetOperator) {
+    return NextResponse.json({ error: 'Non è un operatore di strada' }, { status: 403 });
+  }
+
+  const streetOperators = await prisma.operator.findMany({
+    where: {
+      organizationId: session.organizationId,
+      isStreetOperator: true,
+      active: true,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+    },
+    orderBy: { lastName: 'asc' },
+  });
+
+  return NextResponse.json({ streetOperators });
+
+}, 'GET /api/operator/street-operators');

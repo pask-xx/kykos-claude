@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { Category, NotificationType, RecipientType, RequestType, GoodsRequestStatus } from '@prisma/client';
 import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -31,164 +32,158 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
 }
 
 // GET /api/operator/street-beneficiary-requests?beneficiaryId=xxx - lista richieste per beneficiario
-export async function GET(request: Request) {
-  try {
-    const session = await getOperatorSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+export const GET = withErrorHandler(async (request: Request) => {
 
-    if (!session.isStreetOperator) {
-      return NextResponse.json({ error: 'Solo operatori di strada' }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const beneficiaryId = searchParams.get('beneficiaryId');
-
-    if (!beneficiaryId) {
-      return NextResponse.json({ error: 'beneficiaryId è obbligatorio' }, { status: 400 });
-    }
-
-    // Verify the beneficiary exists and is street-managed by this operator
-    const beneficiary = await prisma.user.findFirst({
-      where: {
-        id: beneficiaryId,
-        role: 'RECIPIENT',
-        isStreetManaged: true,
-        managedByStreetOperators: {
-          some: {
-            streetOperatorId: session.operatorId,
-          },
-        },
-      },
-    });
-
-    if (!beneficiary) {
-      return NextResponse.json(
-        { error: 'Beneficiario non trovato o non gestito da te' },
-        { status: 404 }
-      );
-    }
-
-    const requests = await prisma.goodsRequest.findMany({
-      where: { beneficiaryId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        category: true,
-        type: true,
-        status: true,
-        createdAt: true,
-        description: true,
-      },
-    });
-
-    return NextResponse.json({ requests });
-  } catch (error) {
-    console.error('Street beneficiary requests GET error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  const session = await getOperatorSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
 
-export async function POST(request: Request) {
-  try {
-    const session = await getOperatorSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  if (!session.isStreetOperator) {
+    return NextResponse.json({ error: 'Solo operatori di strada' }, { status: 403 });
+  }
 
-    if (!session.isStreetOperator) {
-      return NextResponse.json({ error: 'Solo operatori di strada' }, { status: 403 });
-    }
+  const { searchParams } = new URL(request.url);
+  const beneficiaryId = searchParams.get('beneficiaryId');
 
-    const { beneficiaryId, title, category, type, description } = await request.json();
+  if (!beneficiaryId) {
+    return NextResponse.json({ error: 'beneficiaryId è obbligatorio' }, { status: 400 });
+  }
 
-    if (!beneficiaryId || !title || !category) {
-      return NextResponse.json(
-        { error: 'Beneficiario, titolo e categoria sono obbligatori' },
-        { status: 400 }
-      );
-    }
-
-    // Verify the beneficiary exists and is street-managed by this operator
-    const beneficiary = await prisma.user.findFirst({
-      where: {
-        id: beneficiaryId,
-        role: 'RECIPIENT',
-        isStreetManaged: true,
-        managedByStreetOperators: {
-          some: {
-            streetOperatorId: session.operatorId,
-          },
+  // Verify the beneficiary exists and is street-managed by this operator
+  const beneficiary = await prisma.user.findFirst({
+    where: {
+      id: beneficiaryId,
+      role: 'RECIPIENT',
+      isStreetManaged: true,
+      managedByStreetOperators: {
+        some: {
+          streetOperatorId: session.operatorId,
         },
       },
-      include: {
-        referenceEntity: true,
+    },
+  });
+
+  if (!beneficiary) {
+    return NextResponse.json(
+      { error: 'Beneficiario non trovato o non gestito da te' },
+      { status: 404 }
+    );
+  }
+
+  const requests = await prisma.goodsRequest.findMany({
+    where: { beneficiaryId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      type: true,
+      status: true,
+      createdAt: true,
+      description: true,
+    },
+  });
+
+  return NextResponse.json({ requests });
+
+}, 'GET /api/operator/street-beneficiary-requests');
+
+export const POST = withErrorHandler(async (request: Request) => {
+
+  const session = await getOperatorSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
+
+  if (!session.isStreetOperator) {
+    return NextResponse.json({ error: 'Solo operatori di strada' }, { status: 403 });
+  }
+
+  const { beneficiaryId, title, category, type, description } = await request.json();
+
+  if (!beneficiaryId || !title || !category) {
+    return NextResponse.json(
+      { error: 'Beneficiario, titolo e categoria sono obbligatori' },
+      { status: 400 }
+    );
+  }
+
+  // Verify the beneficiary exists and is street-managed by this operator
+  const beneficiary = await prisma.user.findFirst({
+    where: {
+      id: beneficiaryId,
+      role: 'RECIPIENT',
+      isStreetManaged: true,
+      managedByStreetOperators: {
+        some: {
+          streetOperatorId: session.operatorId,
+        },
       },
-    });
+    },
+    include: {
+      referenceEntity: true,
+    },
+  });
 
-    if (!beneficiary) {
-      return NextResponse.json(
-        { error: 'Beneficiario non trovato o non gestito da te' },
-        { status: 404 }
-      );
-    }
+  if (!beneficiary) {
+    return NextResponse.json(
+      { error: 'Beneficiario non trovato o non gestito da te' },
+      { status: 404 }
+    );
+  }
 
-    if (!beneficiary.referenceEntityId || !beneficiary.referenceEntity) {
-      return NextResponse.json(
-        { error: 'Beneficiario senza ente di riferimento' },
-        { status: 400 }
-      );
-    }
+  if (!beneficiary.referenceEntityId || !beneficiary.referenceEntity) {
+    return NextResponse.json(
+      { error: 'Beneficiario senza ente di riferimento' },
+      { status: 400 }
+    );
+  }
 
-    const requestType = type === 'SERVICES' ? 'SERVICES' : 'GOODS';
+  const requestType = type === 'SERVICES' ? 'SERVICES' : 'GOODS';
 
-    // Street operator requests are auto-approved (same as other street operator actions)
-    const entityRequest = await prisma.goodsRequest.create({
+  // Street operator requests are auto-approved (same as other street operator actions)
+  const entityRequest = await prisma.goodsRequest.create({
+    data: {
+      title,
+      category: category as Category,
+      type: requestType,
+      description,
+      beneficiaryId,
+      intermediaryId: beneficiary.referenceEntityId,
+      status: GoodsRequestStatus.APPROVED, // Auto-approved for street operators
+    },
+    include: {
+      beneficiary: { select: { nickname: true, name: true } },
+      intermediary: { select: { name: true } },
+    },
+  });
+
+  // Notify operators of the entity about the new request
+  const operators = await prisma.operator.findMany({
+    where: {
+      organizationId: beneficiary.referenceEntityId,
+      active: true,
+    },
+    select: { id: true },
+  });
+
+  const typeLabel = requestType === 'GOODS' ? 'beni' : 'servizi';
+  const beneficiaryName = beneficiary.firstName + ' ' + beneficiary.lastName;
+
+  for (const op of operators) {
+    await prisma.notification.create({
       data: {
-        title,
-        category: category as Category,
-        type: requestType,
-        description,
-        beneficiaryId,
-        intermediaryId: beneficiary.referenceEntityId,
-        status: GoodsRequestStatus.APPROVED, // Auto-approved for street operators
-      },
-      include: {
-        beneficiary: { select: { nickname: true, name: true } },
-        intermediary: { select: { name: true } },
+        recipientOperatorId: op.id,
+        recipientType: RecipientType.OPERATOR,
+        title: 'Nuova richiesta ' + typeLabel + ' per beneficiario street',
+        message: session.username + ' ha creato una richiesta di ' + typeLabel + ' per ' + beneficiaryName + ': "' + title + '"',
+        type: NotificationType.GOODS_REQUEST_CREATED,
+        link: '/operator/requests-entity/' + entityRequest.id,
       },
     });
-
-    // Notify operators of the entity about the new request
-    const operators = await prisma.operator.findMany({
-      where: {
-        organizationId: beneficiary.referenceEntityId,
-        active: true,
-      },
-      select: { id: true },
-    });
-
-    const typeLabel = requestType === 'GOODS' ? 'beni' : 'servizi';
-    const beneficiaryName = beneficiary.firstName + ' ' + beneficiary.lastName;
-
-    for (const op of operators) {
-      await prisma.notification.create({
-        data: {
-          recipientOperatorId: op.id,
-          recipientType: RecipientType.OPERATOR,
-          title: 'Nuova richiesta ' + typeLabel + ' per beneficiario street',
-          message: session.username + ' ha creato una richiesta di ' + typeLabel + ' per ' + beneficiaryName + ': "' + title + '"',
-          type: NotificationType.GOODS_REQUEST_CREATED,
-          link: '/operator/requests-entity/' + entityRequest.id,
-        },
-      });
-    }
-
-    return NextResponse.json({ entityRequest }, { status: 201 });
-  } catch (error) {
-    console.error('Street beneficiary requests POST error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
-}
+
+  return NextResponse.json({ entityRequest }, { status: 201 });
+
+}, 'POST /api/operator/street-beneficiary-requests');

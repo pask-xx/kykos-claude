@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
 import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -28,89 +29,86 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    if (!hasAnyPermission(operator.role, operator.permissions, ['OBJECT_RECEIVE', 'OBJECT_DELIVER'])) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
 
-    const { id } = await params;
+  if (!hasAnyPermission(operator.role, operator.permissions, ['OBJECT_RECEIVE', 'OBJECT_DELIVER'])) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
 
-    const object = await prisma.object.findUnique({
-      where: { id },
-      include: {
-        donor: {
-          select: { id: true, nickname: true, name: true },
-        },
-        intermediary: {
-          select: { id: true, name: true },
-        },
-        requests: {
-          select: {
-            recipient: {
-              select: { id: true, nickname: true, name: true },
-            },
+  const { id } = await params;
+
+  const object = await prisma.object.findUnique({
+    where: { id },
+    include: {
+      donor: {
+        select: { id: true, nickname: true, name: true },
+      },
+      intermediary: {
+        select: { id: true, name: true },
+      },
+      requests: {
+        select: {
+          recipient: {
+            select: { id: true, nickname: true, name: true },
           },
         },
       },
-    });
+    },
+  });
 
-    if (!object) {
-      return NextResponse.json({ error: 'Oggetto non trovato' }, { status: 404 });
-    }
+  if (!object) {
+    return NextResponse.json({ error: 'Oggetto non trovato' }, { status: 404 });
+  }
 
-    if (object.intermediaryId !== session.organizationId) {
-      // Check if operator is street operator and object is in same diocese
-      if (operator.isStreetOperator) {
-        const opOrg = await prisma.organization.findUnique({
-          where: { id: session.organizationId },
-          select: { dioceseId: true },
-        });
-        const objOrg = await prisma.organization.findUnique({
-          where: { id: object.intermediaryId },
-          select: { dioceseId: true },
-        });
+  if (object.intermediaryId !== session.organizationId) {
+    // Check if operator is street operator and object is in same diocese
+    if (operator.isStreetOperator) {
+      const opOrg = await prisma.organization.findUnique({
+        where: { id: session.organizationId },
+        select: { dioceseId: true },
+      });
+      const objOrg = await prisma.organization.findUnique({
+        where: { id: object.intermediaryId },
+        select: { dioceseId: true },
+      });
 
-        if (!opOrg?.dioceseId || opOrg.dioceseId !== objOrg?.dioceseId) {
-          return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-        }
-      } else {
+      if (!opOrg?.dioceseId || opOrg.dioceseId !== objOrg?.dioceseId) {
         return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
       }
+    } else {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
-
-    // Get deposit location from object and recipient from request
-    const depositLocation = object.depositLocation;
-
-    // Get recipient through requests if exists (take first one)
-    const recipient = object.requests?.[0]?.recipient || null;
-
-    return NextResponse.json({
-      object: {
-        ...object,
-        depositLocation,
-        recipient,
-      }
-    });
-  } catch (error) {
-    console.error('Operator object detail error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
-}
+
+  // Get deposit location from object and recipient from request
+  const depositLocation = object.depositLocation;
+
+  // Get recipient through requests if exists (take first one)
+  const recipient = object.requests?.[0]?.recipient || null;
+
+  return NextResponse.json({
+    object: {
+      ...object,
+      depositLocation,
+      recipient,
+    }
+  });
+
+}, 'GET /api/operator/objects/[id]');

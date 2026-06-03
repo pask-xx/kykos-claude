@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasPermission } from '@/lib/permissions';
 import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -28,117 +29,111 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET() {
-  try {
-    const session = await getOperatorSession();
+export const GET = withErrorHandler(async () => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    // Only ADMIN can view organization settings
-    if (!hasPermission(operator.role, operator.permissions, 'ORGANIZATION_ADMIN')) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
-
-    const organization = await prisma.organization.findUnique({
-      where: { id: session.organizationId },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        address: true,
-        houseNumber: true,
-        cap: true,
-        city: true,
-        province: true,
-        phone: true,
-        email: true,
-        latitude: true,
-        longitude: true,
-        verified: true,
-        autoApproveRequests: true,
-        autoApproveGoodsRequests: true,
-        autoApproveServicesRequests: true,
-        hoursInfo: true,
-        printLabel: true,
-        labelSize: true,
-      },
-    });
-
-    return NextResponse.json({ organization });
-  } catch (error) {
-    console.error('Operator organization GET error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
 
-export async function PATCH(request: Request) {
-  try {
-    const session = await getOperatorSession();
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    // Only ADMIN can update organization settings
-    if (!hasPermission(operator.role, operator.permissions, 'ORGANIZATION_ADMIN')) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { hoursInfo, autoApproveRequests, autoApproveGoodsRequests, autoApproveServicesRequests, printLabel, labelSize } = body;
-
-    const updateData: Record<string, unknown> = {};
-
-    if (hoursInfo !== undefined) {
-      updateData.hoursInfo = hoursInfo;
-    }
-
-    if (autoApproveRequests !== undefined) {
-      updateData.autoApproveRequests = autoApproveRequests;
-    }
-
-    if (autoApproveGoodsRequests !== undefined) {
-      updateData.autoApproveGoodsRequests = autoApproveGoodsRequests;
-    }
-
-    if (autoApproveServicesRequests !== undefined) {
-      updateData.autoApproveServicesRequests = autoApproveServicesRequests;
-    }
-
-    if (printLabel !== undefined) {
-      updateData.printLabel = printLabel;
-    }
-
-    if (labelSize !== undefined) {
-      updateData.labelSize = labelSize;
-    }
-
-    await prisma.organization.update({
-      where: { id: session.organizationId },
-      data: updateData,
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Operator organization PATCH error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
   }
-}
+
+  // Only ADMIN can view organization settings
+  if (!hasPermission(operator.role, operator.permissions, 'ORGANIZATION_ADMIN')) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: session.organizationId },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      address: true,
+      houseNumber: true,
+      cap: true,
+      city: true,
+      province: true,
+      phone: true,
+      email: true,
+      latitude: true,
+      longitude: true,
+      verified: true,
+      autoApproveRequests: true,
+      autoApproveGoodsRequests: true,
+      autoApproveServicesRequests: true,
+      hoursInfo: true,
+      printLabel: true,
+      labelSize: true,
+    },
+  });
+
+  return NextResponse.json({ organization });
+
+}, 'GET /api/operator/organization');
+
+export const PATCH = withErrorHandler(async (request: Request) => {
+
+  const session = await getOperatorSession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
+
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
+
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  // Only ADMIN can update organization settings
+  if (!hasPermission(operator.role, operator.permissions, 'ORGANIZATION_ADMIN')) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { hoursInfo, autoApproveRequests, autoApproveGoodsRequests, autoApproveServicesRequests, printLabel, labelSize } = body;
+
+  const updateData: Record<string, unknown> = {};
+
+  if (hoursInfo !== undefined) {
+    updateData.hoursInfo = hoursInfo;
+  }
+
+  if (autoApproveRequests !== undefined) {
+    updateData.autoApproveRequests = autoApproveRequests;
+  }
+
+  if (autoApproveGoodsRequests !== undefined) {
+    updateData.autoApproveGoodsRequests = autoApproveGoodsRequests;
+  }
+
+  if (autoApproveServicesRequests !== undefined) {
+    updateData.autoApproveServicesRequests = autoApproveServicesRequests;
+  }
+
+  if (printLabel !== undefined) {
+    updateData.printLabel = printLabel;
+  }
+
+  if (labelSize !== undefined) {
+    updateData.labelSize = labelSize;
+  }
+
+  await prisma.organization.update({
+    where: { id: session.organizationId },
+    data: updateData,
+  });
+
+  return NextResponse.json({ success: true });
+
+}, 'PATCH /api/operator/organization');

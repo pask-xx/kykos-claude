@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
 import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -30,69 +31,66 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
 
 // POST /api/operator/multi-avail-pickup/[requestId]/complete
 // Completa il ritiro di una richiesta multi-availability
-export async function POST(
+export const POST = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ requestId: string }> }
-) {
-  try {
-    const { requestId } = await params;
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const { requestId } = await params;
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    if (!hasAnyPermission(operator.role, operator.permissions, ['ORGANIZATION_ADMIN'])) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
 
-    // Trova la richiesta
-    const multiAvailRequest = await prisma.multiAvailabilityRequest.findUnique({
-      where: { id: requestId },
-      include: {
-        multiAvailability: {
-          select: {
-            id: true,
-            organizationId: true,
-          }
+  if (!hasAnyPermission(operator.role, operator.permissions, ['ORGANIZATION_ADMIN'])) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
+
+  // Trova la richiesta
+  const multiAvailRequest = await prisma.multiAvailabilityRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      multiAvailability: {
+        select: {
+          id: true,
+          organizationId: true,
         }
       }
-    });
-
-    if (!multiAvailRequest) {
-      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
     }
+  });
 
-    // Verifica che appartenga alla stessa organizzazione
-    if (multiAvailRequest.multiAvailability.organizationId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    // Verifica che sia in stato ASSIGNED
-    if (multiAvailRequest.status !== 'ASSIGNED') {
-      return NextResponse.json({ error: 'Stato non valido per il completamento' }, { status: 400 });
-    }
-
-    // Aggiorna lo stato a FULFILLED
-    await prisma.multiAvailabilityRequest.update({
-      where: { id: requestId },
-      data: {
-        status: 'FULFILLED',
-        fulfilledAt: new Date(),
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('MultiAvail pickup complete error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!multiAvailRequest) {
+    return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
   }
-}
+
+  // Verifica che appartenga alla stessa organizzazione
+  if (multiAvailRequest.multiAvailability.organizationId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  // Verifica che sia in stato ASSIGNED
+  if (multiAvailRequest.status !== 'ASSIGNED') {
+    return NextResponse.json({ error: 'Stato non valido per il completamento' }, { status: 400 });
+  }
+
+  // Aggiorna lo stato a FULFILLED
+  await prisma.multiAvailabilityRequest.update({
+    where: { id: requestId },
+    data: {
+      status: 'FULFILLED',
+      fulfilledAt: new Date(),
+    },
+  });
+
+  return NextResponse.json({ success: true });
+
+}, 'POST /api/operator/multi-avail-pickup/[requestId]/complete');
