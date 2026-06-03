@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { withErrorHandler } from '@/lib/api';
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   const session = await getSession();
 
   if (!session) {
@@ -48,4 +49,4 @@ export async function GET() {
       profileImageUrl: user.profileImageUrl,
     },
   });
-}
+}, 'GET /api/auth/me');
