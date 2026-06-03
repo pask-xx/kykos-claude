@@ -6,50 +6,6 @@ interface PdfViewerModalProps {
   url: string;
   title: string;
   onClose: () => void;
-  /**
-   * Nome del file suggerito quando l'utente clicca "Scarica PDF".
-   * Se omesso, viene derivato dal `title` (es. "Informativa Privacy v1.1"
-   * → "kykos-privacy-v1.1.pdf"). Specificarlo esplicitamente nei call site
-   * è preferibile per evitare ambiguità (es. titoli localizzati).
-   *
-   * Perché serve: di default il browser usa il path del file, che per il
-   * bucket Supabase è `documents/privacy/v1.1.pdf` → l'utente scarica un
-   * file chiamato "v1.1.pdf" senza sapere cos'è. Con un nome esplicito
-   * tipo "kykos-privacy-v1.1.pdf" la cartella Download è leggibile.
-   */
-  downloadFilename?: string;
-}
-
-/**
- * Deriva un filename "kykos-{type}-v{version}.pdf" da un titolo come
- * "Informativa Privacy v1.1" o "Condizioni d'uso v1.0".
- *
- * Ritorna null se il titolo non matcha il pattern atteso: in quel caso il
- * download userà il nome di default del browser.
- *
- * Esportato per i test. NON usare direttamente altrove: passare il
- * `downloadFilename` al componente o un `title` che la funzione sa parsare.
- */
-export function deriveFilename(title: string): string | null {
-  const t = title.toLowerCase();
-  let type: 'privacy' | 'terms' | null = null;
-  let version: string | null = null;
-
-  if (t.includes('privacy')) {
-    type = 'privacy';
-  } else if (t.includes('condizioni') || t.includes('termini')) {
-    type = 'terms';
-  }
-
-  const versionMatch = title.match(/v(\d+\.\d+(?:\.\d+)?)/);
-  if (versionMatch) {
-    version = versionMatch[1];
-  }
-
-  if (type && version) {
-    return `kykos-${type}-v${version}.pdf`;
-  }
-  return null;
 }
 
 /**
@@ -63,6 +19,12 @@ export function deriveFilename(title: string): string | null {
  * visibile. Niente cambio di contesto, niente dipendenza dal viewer
  * nativo del browser.
  *
+ * Filename del download: NON specifichiamo noi un nome. Il file nel bucket
+ * Supabase è già nominato correttamente all'origine
+ * (es. `documents/kykos-privacy-v1.1.pdf`) — il browser userà quel nome
+ * automaticamente quando l'utente clicca "Scarica PDF". Vedi
+ * `getStoragePath()` in `src/lib/legal.ts` per la convenzione.
+ *
  * Accessibilità:
  * - Click sull'overlay chiude il modal (standard pattern).
  * - Tasto ESC chiude il modal.
@@ -73,7 +35,7 @@ export function deriveFilename(title: string): string | null {
  * stock), l'iframe mostrerà un errore. In tal caso l'utente può usare
  * "Scarica" o "Apri in nuova tab" come fallback.
  */
-export default function PdfViewerModal({ url, title, onClose, downloadFilename }: PdfViewerModalProps) {
+export default function PdfViewerModal({ url, title, onClose }: PdfViewerModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -138,38 +100,32 @@ export default function PdfViewerModal({ url, title, onClose, downloadFilename }
         </div>
 
         {/* Footer con azioni */}
-        {(() => {
-          // Calcola il filename suggerito una sola volta. Priorità:
-          // 1. downloadFilename passato esplicito (più affidabile)
-          // 2. derivato dal title (es. "Informativa Privacy v1.1" → "kykos-privacy-v1.1.pdf")
-          // 3. fallback: lascia che il browser usi il path (raro, ma meglio di niente)
-          const suggestedName = downloadFilename ?? deriveFilename(title);
-          return (
-            <div className="flex flex-col sm:flex-row gap-2 p-3 border-t bg-gray-50">
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 px-4 py-2.5 text-center text-sm font-medium text-secondary-700 bg-secondary-50 border border-secondary-200 rounded-lg hover:bg-secondary-100 transition"
-              >
-                Apri in nuova tab
-              </a>
-              <a
-                href={url}
-                download={suggestedName ?? undefined}
-                className="flex-1 px-4 py-2.5 text-center text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-              >
-                Scarica PDF
-              </a>
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-secondary-600 rounded-lg hover:bg-secondary-700 transition"
-              >
-                Chiudi
-              </button>
-            </div>
-          );
-        })()}
+        <div className="flex flex-col sm:flex-row gap-2 p-3 border-t bg-gray-50">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 px-4 py-2.5 text-center text-sm font-medium text-secondary-700 bg-secondary-50 border border-secondary-200 rounded-lg hover:bg-secondary-100 transition"
+          >
+            Apri in nuova tab
+          </a>
+          {/* `download` (senza valore) dice al browser di scaricare invece di
+              navigare. Il filename viene dal Content-Disposition del bucket
+              Supabase, che riflette il path del file (es. "kykos-privacy-v1.1.pdf"). */}
+          <a
+            href={url}
+            download
+            className="flex-1 px-4 py-2.5 text-center text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+          >
+            Scarica PDF
+          </a>
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-secondary-600 rounded-lg hover:bg-secondary-700 transition"
+          >
+            Chiudi
+          </button>
+        </div>
       </div>
     </div>
   );

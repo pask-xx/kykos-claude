@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { withErrorHandler } from '@/lib/api';
 import { validateFileMagicBytes, ALLOWED_DOCUMENT_MIMES } from '@/lib/file-validation';
 import { createHash } from 'crypto';
+import { getStoragePath as buildLegalStoragePath } from '@/lib/legal';
 
 const LEGAL_BUCKET = 'legal-documents';
 const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -101,7 +102,7 @@ export const POST = withErrorHandler(async (request: Request) => {
   // SHA-256 calcolato server-side (prova legale dell'esatto contenuto)
   const hash = createHash('sha256').update(buffer).digest('hex');
 
-  const storagePath = `documents/${type.toLowerCase()}/v${version}.pdf`;
+  const storagePath = buildLegalStoragePath(type as LegalDocumentType, version);
 
   // Upload to Supabase Storage. contentType = detected MIME, mai il client type.
   const { error: uploadError } = await supabaseAdmin.storage

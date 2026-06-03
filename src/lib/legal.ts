@@ -66,8 +66,25 @@ export interface DocumentMeta {
 
 const LEGAL_BUCKET = 'legal-documents';
 
-function getStoragePath(type: LegalDocumentType, version: string): string {
-  return `documents/${type.toLowerCase()}/v${version}.pdf`;
+/**
+ * Path canonico di un documento legale nel bucket Supabase Storage.
+ *
+ * Pattern: `documents/kykos-{type}-v{version}.pdf`
+ *
+ * Perché `kykos-` come prefisso: l'utente che scarica il PDF si ritrova
+ * con un filename leggibile ("kykos-privacy-v1.1.pdf") invece dell'opaco
+ * "v1.1.pdf" ereditato dal path bucket. Niente ambiguità tra i due
+ * documenti nella cartella Download. Il bucket è pubblico e l'URL
+ * esposto all'utente, quindi il prefisso è anche branding.
+ *
+ * NB: tutti i call site (upload, download, hash, seed) DEVONO usare
+ * questa funzione, NON replicare l'inline. Vedi `src/app/api/admin/legal/
+ * upload/route.ts` per un esempio (correggibile in caso di regression).
+ *
+ * Esportata perché usata anche dal route upload (single source of truth).
+ */
+export function getStoragePath(type: LegalDocumentType, version: string): string {
+  return `documents/kykos-${type.toLowerCase()}-v${version}.pdf`;
 }
 
 /**

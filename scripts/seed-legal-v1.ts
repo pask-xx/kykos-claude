@@ -128,7 +128,7 @@ async function uploadPlaceholder(type: 'TERMS' | 'PRIVACY', version: string): Pr
   const title = `KYKOS - ${type} v${version} (SEGNAPOSTO)`;
   const buffer = buildPlaceholderPdf(title);
   const hash = createHash('sha256').update(buffer).digest('hex');
-  const path = `documents/${type.toLowerCase()}/v${version}.pdf`;
+  const path = `documents/kykos-${type.toLowerCase()}-v${version}.pdf`;
 
   console.log(`  → Uploading ${path} (${buffer.length} bytes, sha256=${hash.slice(0, 16)}...)`);
 
