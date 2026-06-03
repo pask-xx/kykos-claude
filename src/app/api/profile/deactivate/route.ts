@@ -3,6 +3,7 @@ import { getSession, clearSessionCookie } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
 import { ObjectStatus, GoodsOfferStatus, GoodsRequestStatus } from '@prisma/client';
+import { withErrorHandler } from '@/lib/api';
 
 interface ObjectPreview {
   id: string;
@@ -48,12 +49,11 @@ interface DeactivationPreview {
   blockingReasons: string[];
 }
 
-export async function GET() {
-  try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+export const GET = withErrorHandler(async () => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
     // 1. Get all objects published by this user (as donor)
     const objects = await prisma.object.findMany({
@@ -231,18 +231,13 @@ export async function GET() {
     }
 
     return NextResponse.json({ preview });
-  } catch (error) {
-    console.error('Deactivation preview error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
-  }
-}
+}, 'GET /api/profile/deactivate');
 
-export async function POST() {
-  try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+export const POST = withErrorHandler(async () => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
     // ===================================================================
     // Step 1: cascade logico (DENTRO $transaction Prisma) ----------------
@@ -604,11 +599,7 @@ export async function POST() {
       message: 'Account disattivato con successo',
       actions,
     });
-  } catch (error) {
-    console.error('Deactivation error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
-  }
-}
+}, 'POST /api/profile/deactivate');
 
 /**
  * Tenta `supabaseAdmin.auth.admin.deleteUser` con retry e backoff esponenziale.

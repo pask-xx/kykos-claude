@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { jwtVerify } from 'jose';
 import { getJwtSecret } from '@/lib/auth';
 import { validateFileMagicBytes, ALLOWED_IMAGE_MIMES } from '@/lib/file-validation';
+import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -19,102 +20,97 @@ async function getOperatorId(): Promise<string | null> {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    // Check user session OR operator session
-    const session = await getSession();
-    const operatorId = await getOperatorId();
+export const POST = withErrorHandler(async (request: Request) => {
+  // Check user session OR operator session
+  const session = await getSession();
+  const operatorId = await getOperatorId();
 
-    console.log('Profile photo upload - session:', session);
-    console.log('Profile photo upload - operatorId:', operatorId);
+  console.log('Profile photo upload - session:', session);
+  console.log('Profile photo upload - operatorId:', operatorId);
 
-    const userId = session?.id;
-    const isOperator = !!operatorId;
+  const userId = session?.id;
+  const isOperator = !!operatorId;
 
-    console.log('User ID from session:', userId);
+  console.log('User ID from session:', userId);
 
-    if (!userId && !operatorId) {
-      console.log('Unauthorized - no user or operator session');
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-
-    if (!file) {
-      console.log('No file provided');
-      return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
-    }
-
-    // Validate file size (max 2MB for profile photos)
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File troppo grande (max 2MB)' }, { status: 400 });
-    }
-
-    // Convert file to array buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // A7: validate magic bytes (NOT the client-declared file.type)
-    const validation = await validateFileMagicBytes(buffer, ALLOWED_IMAGE_MIMES);
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.reason }, { status: 400 });
-    }
-
-    // Upload via Supabase REST API to profile-photos bucket
-    // Use detected ext (real format), not a hardcoded .jpg
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
-    const targetId = userId || operatorId;
-    const filename = `${targetId}/photo.${validation.detectedExt}`;
-
-    const uploadRes = await fetch(
-      `${supabaseUrl}/storage/v1/object/profile-photos/${filename}`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': validation.detectedMime,
-          'x-upsert': 'true',
-        },
-        body: buffer,
-      }
-    );
-
-    if (!uploadRes.ok) {
-      const errorText = await uploadRes.text();
-      console.error('Profile photo upload error:', uploadRes.status, errorText);
-      return NextResponse.json({ error: 'Errore durante upload' }, { status: 500 });
-    }
-
-    // Get public URL
-    const publicUrl = `${supabaseUrl}/storage/v1/object/public/profile-photos/${filename}`;
-
-    console.log('Profile photo uploaded:', publicUrl);
-    console.log('Updating user ID:', userId, 'isOperator:', isOperator);
-
-    // Update user or operator record
-    // Priority: if userId exists, update the user profile (even if also operator)
-    // Only update operator if there's no user session
-    if (userId) {
-      console.log('Updating user record with ID:', userId);
-      const updated = await prisma.user.update({
-        where: { id: userId },
-        data: { profileImageUrl: publicUrl },
-      });
-      console.log('User updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
-    } else if (operatorId) {
-      console.log('Updating operator record with ID:', operatorId);
-      const updated = await prisma.operator.update({
-        where: { id: operatorId },
-        data: { profileImageUrl: publicUrl },
-      });
-      console.log('Operator updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
-    }
-
-    return NextResponse.json({ url: publicUrl });
-  } catch (error) {
-    console.error('Profile photo upload error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!userId && !operatorId) {
+    console.log('Unauthorized - no user or operator session');
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  const formData = await request.formData();
+  const file = formData.get('file') as File | null;
+
+  if (!file) {
+    console.log('No file provided');
+    return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
+  }
+
+  // Validate file size (max 2MB for profile photos)
+  if (file.size > 2 * 1024 * 1024) {
+    return NextResponse.json({ error: 'File troppo grande (max 2MB)' }, { status: 400 });
+  }
+
+  // Convert file to array buffer
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  // A7: validate magic bytes (NOT the client-declared file.type)
+  const validation = await validateFileMagicBytes(buffer, ALLOWED_IMAGE_MIMES);
+  if (!validation.valid) {
+    return NextResponse.json({ error: validation.reason }, { status: 400 });
+  }
+
+  // Upload via Supabase REST API to profile-photos bucket
+  // Use detected ext (real format), not a hardcoded .jpg
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+  const targetId = userId || operatorId;
+  const filename = `${targetId}/photo.${validation.detectedExt}`;
+
+  const uploadRes = await fetch(
+    `${supabaseUrl}/storage/v1/object/profile-photos/${filename}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': validation.detectedMime,
+        'x-upsert': 'true',
+      },
+      body: buffer,
+    }
+  );
+
+  if (!uploadRes.ok) {
+    const errorText = await uploadRes.text();
+    console.error('Profile photo upload error:', uploadRes.status, errorText);
+    return NextResponse.json({ error: 'Errore durante upload' }, { status: 500 });
+  }
+
+  // Get public URL
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/profile-photos/${filename}`;
+
+  console.log('Profile photo uploaded:', publicUrl);
+  console.log('Updating user ID:', userId, 'isOperator:', isOperator);
+
+  // Update user or operator record
+  // Priority: if userId exists, update the user profile (even if also operator)
+  // Only update operator if there's no user session
+  if (userId) {
+    console.log('Updating user record with ID:', userId);
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { profileImageUrl: publicUrl },
+    });
+    console.log('User updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
+  } else if (operatorId) {
+    console.log('Updating operator record with ID:', operatorId);
+    const updated = await prisma.operator.update({
+      where: { id: operatorId },
+      data: { profileImageUrl: publicUrl },
+    });
+    console.log('Operator updated:', updated.id, 'profileImageUrl:', updated.profileImageUrl);
+  }
+
+  return NextResponse.json({ url: publicUrl });
+}, 'POST /api/profile-photo');
