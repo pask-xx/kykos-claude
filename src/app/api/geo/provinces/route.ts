@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withErrorHandler } from '@/lib/api';
 
-export async function GET() {
-  try {
-    const provinces = await prisma.province.findMany({
-      orderBy: { name: 'asc' },
-    });
+export const GET = withErrorHandler(async () => {
+  const provinces = await prisma.province.findMany({
+    orderBy: { name: 'asc' },
+  });
 
-    return NextResponse.json({ provinces });
-  } catch (error) {
-    console.error('Error fetching provinces:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
-  }
-}
+  return NextResponse.json({ provinces });
+}, 'GET /api/geo/provinces');
