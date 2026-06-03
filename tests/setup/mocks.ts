@@ -60,6 +60,7 @@ export const mockPrisma = {
   },
   request: {
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -68,6 +69,7 @@ export const mockPrisma = {
     findUnique: vi.fn(),
     findMany: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
   },
   donation: {
     findUnique: vi.fn(),
@@ -146,6 +148,8 @@ vi.mock('@/lib/email', () => ({
   sendMultiAvailabilityQrNotification: vi.fn().mockResolvedValue(true),
   sendConfirmationEmail: vi.fn().mockResolvedValue(true),
   sendWelcomeEmail: vi.fn().mockResolvedValue(true),
+  sendRequestNotification: vi.fn().mockResolvedValue(true),
+  sendDeliveryQrNotification: vi.fn().mockResolvedValue(true),
 }));
 
 // Mock Supabase storage

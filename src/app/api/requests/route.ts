@@ -31,7 +31,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'ID oggetto mancante' }, { status: 400 });
     }
 
-    // Check if object exists and is available
+    // Pre-fetch read-only: verify object state BEFORE entering the transaction
+    // (these are idempotent reads, no race risk)
     const object = await prisma.object.findUnique({
       where: { id: objectId },
       include: { intermediary: true },
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Oggetto non più disponibile' }, { status: 400 });
     }
 
-    // Check if already requested
+    // Check if already requested (idempotent: same recipient can never get two requests for the same object)
     const existingRequest = await prisma.request.findFirst({
       where: { objectId, recipientId: session.id },
     });
@@ -57,42 +58,66 @@ export async function POST(request: Request) {
     // Create request - check if intermediary auto-approves
     const shouldAutoApprove = object.intermediary.autoApproveRequests;
 
-    const req = await prisma.request.create({
-      data: {
-        objectId,
-        recipientId: session.id,
-        intermediaryId: object.intermediaryId,
-        message,
-        status: shouldAutoApprove ? 'APPROVED' : 'PENDING',
-      },
-      include: {
-        object: {
-          include: {
-            donor: { select: { id: true, name: true, email: true } },
+    // B3 — Race-safe reservation.
+    // We move the entire mutation (request + donation + object -> RESERVED) inside a transaction.
+    // The atomic primitive is `object.updateMany` with a conditional WHERE on `status: 'AVAILABLE'`.
+    // If two recipients race, only one updateMany succeeds (count=1); the other sees count=0
+    // and gets a clear 409 — no orphan donations, no double QR codes sent to the donor.
+    const req = await prisma.$transaction(async (tx) => {
+      if (shouldAutoApprove) {
+        // Atomic reservation: succeed only if object is still AVAILABLE
+        const reserved = await tx.object.updateMany({
+          where: { id: objectId, status: 'AVAILABLE' },
+          data: { status: 'RESERVED' },
+        });
+
+        if (reserved.count === 0) {
+          // Race lost: another recipient reserved this object between our pre-check
+          // and now. Throw inside tx to roll back any partial state.
+          throw new Error('RACE_LOST_OBJECT_RESERVED');
+        }
+      }
+
+      // Create the request first (also in the tx, so the donation.requestId is consistent)
+      const created = await tx.request.create({
+        data: {
+          objectId,
+          recipientId: session.id,
+          intermediaryId: object.intermediaryId,
+          message,
+          status: shouldAutoApprove ? 'APPROVED' : 'PENDING',
+        },
+        include: {
+          object: {
+            include: {
+              donor: { select: { id: true, name: true, email: true } },
+            },
           },
         },
-      },
+      });
+
+      // If auto-approved, create the donation record in the same tx.
+      // The `requestId @unique` constraint means we need the request to exist first —
+      // if donation.create fails (e.g. duplicate objectId from a re-raced race), the
+      // entire tx rolls back, including the object status update.
+      if (shouldAutoApprove) {
+        await tx.donation.create({
+          data: {
+            objectId,
+            donorId: object.donorId,
+            recipientId: session.id,
+            requestId: created.id,
+            amount: 1.00,
+            currency: 'EUR',
+          },
+        });
+      }
+
+      return created;
     });
 
-    // If auto-approved, create donation record and notify
+    // Side effects OUTSIDE the transaction (best-effort, never rolls back DB state)
     if (shouldAutoApprove) {
-      await prisma.donation.create({
-        data: {
-          objectId: req.objectId,
-          donorId: req.object.donorId,
-          recipientId: session.id,
-          requestId: req.id,
-          amount: 1.00,
-          currency: "EUR",
-        },
-      });
-
-      // Update object status
-      await prisma.object.update({
-        where: { id: objectId },
-        data: { status: 'RESERVED' },
-      });
-
       // Generate and send delivery QR code to donor
       try {
         const qrData = generateDeliverQrCode(req.id, req.object.donorId, 'object');
@@ -118,17 +143,27 @@ export async function POST(request: Request) {
       } catch (qrError) {
         console.error('Error generating/sending delivery QR:', qrError);
       }
-    }
-
-    // Notify donor via email and in-app (only when NOT auto-approved - when auto-approved, QR email is sent)
-    if (!shouldAutoApprove) {
-      const donorEmail = req.object.donor.email;
-      const donorName = req.object.donor.name;
-      await sendRequestNotification(donorEmail, req.object.donorId, donorName, object.title, object.id);
+    } else {
+      // Notify donor via email (PENDING path)
+      await sendRequestNotification(
+        req.object.donor.email,
+        req.object.donorId,
+        req.object.donor.name,
+        object.title,
+        object.id
+      );
     }
 
     return NextResponse.json({ request: req, autoApproved: shouldAutoApprove });
   } catch (error) {
+    // B3: surface a 409 (not a 500) when the race is lost, so the client
+    // can show a clear "qualcun altro l'ha appena preso" message.
+    if (error instanceof Error && error.message === 'RACE_LOST_OBJECT_RESERVED') {
+      return NextResponse.json(
+        { error: 'Oggetto appena riservato da un altro ricevente' },
+        { status: 409 }
+      );
+    }
     console.error('Error creating request:', error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
