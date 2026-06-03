@@ -34,7 +34,7 @@ Il progetto KYKOS è in stato **"MVP funzionante, pre-produzione"**. Funzionalit
 | A3 | `src/app/api/operator/cause/[id]/route.ts:53-65` | Ritorna `email+firstName+lastName+role` di tutti i partecipanti (inclusi DONOR che hanno donato) | Anonimato incrociato | 1h | **NON BUG** (modello fiduciario) |
 | A4 | `src/app/api/donor/requests/route.ts:47` | Include `beneficiary: { select: { id: true } }` nonostante commento "for anonymity" | Re-identificazione | 15min | **DA FIXARE** (vera violazione: donor vede ID del beneficiary) |
 | A5 | `src/app/api/donor/requests/route.ts:99-101` | `firstName, lastName, referenceEntityId` nel select del POST offers (branch street-managed) | Anonimato ricevente | 30min | **NON BUG** (street operator è il canale del beneficiario) |
-| A6 | `src/lib/auth.ts:5-7` + 25+ altri file | `JWT_SECRET` fallback hardcoded `kykos-secret-key-change-in-production` — secret pubblico se env manca | Session hijack | 1h | **DA FIXARE** (sicurezza reale) |
+| A6 | `src/lib/auth.ts:5-7` + 25+ altri file | `JWT_SECRET` fallback hardcoded `kykos-secret-key-change-in-production` — secret pubblico se env manca | Session hijack | 1h | ✅ **RISOLTO** (commit `79ddae7` fix(security): remove JWT_SECRET fallback, throw on missing env). Ora `getJwtSecret()` throw se env manca, fail-fast al boot. 70+ file refattorizzati, 91 test pass. |
 | A7 | `src/app/api/upload/route.ts:50-53` | Upload file con estensione da `file.name.split('.').pop()` — `evil.png.php` passa | Esecuzione server-side | 2-3h | **DA FIXARE** (sicurezza reale) |
 
 **Stima effettiva fix (escludendo NON BUG)**: ~3-4 ore (solo A4, A6, A7)
