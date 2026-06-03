@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import {
-  CURRENT_LEGAL_VERSIONS,
+  getActiveVersions,
   getDocumentHash,
   extractRequestMetadata,
   type LegalDocumentType,
@@ -18,10 +18,11 @@ const VALID_TYPES: LegalDocumentType[] = ['TERMS', 'PRIVACY'];
  *
  * Body: { documentType: 'TERMS' | 'PRIVACY' }
  *
- * La versione e l'hash sono derivati lato server da CURRENT_LEGAL_VERSIONS
- * e getDocumentHash() — il client non può forzare una versione vecchia o un
- * hash inventato. Il consenso viene registrato con IP e User-Agent per
- * prova legale in caso di audit Garante.
+ * La versione e l'hash sono derivati lato server da getActiveVersions()
+ * (legge da DB LegalDocumentVersion) e getDocumentHash() (calcola SHA-256
+ * del PDF da Supabase Storage) — il client non può forzare una versione
+ * vecchia o un hash inventato. Il consenso viene registrato con IP e
+ * User-Agent per prova legale in caso di audit Garante.
  *
  * Idempotente: stesso (userId, documentType, version) viene dedupato da
  * @@unique([userId, documentType, version]). Niente P2002 → niente errore
@@ -43,8 +44,9 @@ export const POST = withErrorHandler(async (request: Request) => {
     );
   }
 
-  const version = CURRENT_LEGAL_VERSIONS[documentType];
-  const documentHash = getDocumentHash(documentType);
+  const activeVersions = await getActiveVersions();
+  const version = activeVersions[documentType];
+  const documentHash = await getDocumentHash(documentType);
   const { ipAddress, userAgent } = extractRequestMetadata(request);
 
   // upsert (non create) per gestire il double-click idempotente.

@@ -10,7 +10,7 @@ import { SignJWT } from 'jose';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import {
-  CURRENT_LEGAL_VERSIONS,
+  getActiveVersions,
   getDocumentHash,
   extractRequestMetadata,
 } from '@/lib/legal';
@@ -123,9 +123,10 @@ export const POST = withErrorHandler(async (request: Request) => {
 
   // GDPR: il consenso a Privacy e ToS è obbligatorio per la registrazione
   // (Reg. UE 2016/679 + Provv. Garante n. 229/2014). Il client NON può
-  // scegliere la versione: viene usata CURRENT_LEGAL_VERSIONS e l'hash
-  // viene calcolato server-side, così l'utente non può accettare un PDF
-  // diverso da quello che vede.
+  // scegliere la versione: viene usata getActiveVersions() (legge la
+  // versione attiva da DB) e l'hash viene calcolato server-side con
+  // getDocumentHash(), così l'utente non può accettare un PDF diverso
+  // da quello che vede.
   if (acceptTerms !== true && acceptTerms !== 'true') {
     return NextResponse.json(
       { error: 'Devi accettare le Condizioni d\'uso per procedere' },
@@ -320,21 +321,31 @@ export const POST = withErrorHandler(async (request: Request) => {
   // per idempotenza (anche se l'utente dovesse inviare due volte la stessa
   // registrazione in rapida successione, no P2002 → niente errore). IP e
   // UA sono estratti dalla request per la prova legale.
+  //
+  // Le versioni sono lette da getActiveVersions() (legge da DB) e gli
+  // hash da getDocumentHash() (Scarica + SHA-256 del PDF da Supabase
+  // Storage). Entrambi async, calcolati una volta e riutilizzati nei
+  // due upsert.
   const { ipAddress, userAgent } = extractRequestMetadata(request);
+  const activeVersions = await getActiveVersions();
+  const [termsHash, privacyHash] = await Promise.all([
+    getDocumentHash('TERMS'),
+    getDocumentHash('PRIVACY'),
+  ]);
   await Promise.all([
     prisma.legalConsent.upsert({
       where: {
         userId_documentType_version: {
           userId: user.id,
           documentType: 'TERMS' as LegalDocumentType,
-          version: CURRENT_LEGAL_VERSIONS.TERMS,
+          version: activeVersions.TERMS,
         },
       },
       create: {
         userId: user.id,
         documentType: 'TERMS' as LegalDocumentType,
-        version: CURRENT_LEGAL_VERSIONS.TERMS,
-        documentHash: getDocumentHash('TERMS'),
+        version: activeVersions.TERMS,
+        documentHash: termsHash,
         ipAddress,
         userAgent,
       },
@@ -348,14 +359,14 @@ export const POST = withErrorHandler(async (request: Request) => {
         userId_documentType_version: {
           userId: user.id,
           documentType: 'PRIVACY' as LegalDocumentType,
-          version: CURRENT_LEGAL_VERSIONS.PRIVACY,
+          version: activeVersions.PRIVACY,
         },
       },
       create: {
         userId: user.id,
         documentType: 'PRIVACY' as LegalDocumentType,
-        version: CURRENT_LEGAL_VERSIONS.PRIVACY,
-        documentHash: getDocumentHash('PRIVACY'),
+        version: activeVersions.PRIVACY,
+        documentHash: privacyHash,
         ipAddress,
         userAgent,
       },

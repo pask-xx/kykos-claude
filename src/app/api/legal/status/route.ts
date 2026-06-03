@@ -3,9 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import {
-  CURRENT_LEGAL_VERSIONS,
+  getActiveVersions,
   getCurrentDocumentMeta,
-  hasAcceptedCurrentVersion,
   type LegalDocumentType,
 } from '@/lib/legal';
 
@@ -36,8 +35,14 @@ export const GET = withErrorHandler(async () => {
     PRIVACY: {} as never,
   };
 
-  for (const type of Object.keys(CURRENT_LEGAL_VERSIONS) as LegalDocumentType[]) {
-    const meta = getCurrentDocumentMeta(type);
+  // getActiveVersions() legge da DB (sostituisce la costante
+  // CURRENT_LEGAL_VERSIONS hardcoded). Restituisce la versione attiva
+  // per ciascun type, oppure '0.0' se nessuna versione è stata pubblicata
+  // (es. data migration 009 non ancora eseguita).
+  const activeVersions = await getActiveVersions();
+
+  for (const type of Object.keys(activeVersions) as LegalDocumentType[]) {
+    const meta = await getCurrentDocumentMeta(type);
     const accepted = await prisma.legalConsent.findFirst({
       where: { userId: session.id, documentType: type },
       orderBy: { acceptedAt: 'desc' },

@@ -1,74 +1,158 @@
 import { createHash } from 'crypto';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 import { prisma } from '@/lib/prisma';
+import { getPublicUrl } from '@/lib/supabase';
 
 /**
  * Single source of truth per la versione corrente dei documenti legali.
  *
- * Quando si fa un bump:
- * 1. Aggiornare il PDF e rinominarlo (es. terms-v1.0.pdf -> terms-v1.1.pdf)
- * 2. Aggiornare la costante qui sotto
- * 3. Aggiungere nota in CHANGELOG.md ("Cosa è cambiato")
+ * Le versioni attive sono lette da DB (modello LegalDocumentVersion con
+ * status='active'). Per fare un bump di versione, l'admin carica un nuovo
+ * PDF da /admin/legal/upload, lo pubblica, e il sistema aggiorna lo stato
+ * di tutte le versioni in transazione atomica. Vedi:
+ *   - src/app/api/admin/legal/route.ts (upload)
+ *   - src/app/api/admin/legal/[id]/publish/route.ts (publish + archive)
  *
- * Tutti gli utenti con version < CURRENT riceveranno una schermata di
+ * Tutti gli utenti con versione < active riceveranno una schermata di
  * re-consenso al prossimo accesso (anche per modifiche non sostanziali,
  * come da policy KYKOS). Vedi: src/app/auth/check-legal/page.tsx
+ *
+ * NB: questa funzione è async perché legge da DB. I call site sono tutti
+ * in contesti async (route handler, test), quindi niente impatto.
+ *
+ * Cache: 30 secondi, per evitare query su ogni chiamata. Invalidata
+ * esplicitamente da invalidateActiveVersionsCache() dopo un publish.
  */
-export const CURRENT_LEGAL_VERSIONS = {
-  TERMS: '1.0',
-  PRIVACY: '1.0',
-} as const;
+export type LegalDocumentType = 'TERMS' | 'PRIVACY';
 
-export type LegalDocumentType = keyof typeof CURRENT_LEGAL_VERSIONS;
+interface ActiveVersions {
+  TERMS: string;
+  PRIVACY: string;
+}
+
+let activeVersionsCache: { value: ActiveVersions; expiresAt: number } | null = null;
+const ACTIVE_VERSIONS_TTL_MS = 30 * 1000;
+
+export async function getActiveVersions(): Promise<ActiveVersions> {
+  if (activeVersionsCache && activeVersionsCache.expiresAt > Date.now()) {
+    return activeVersionsCache.value;
+  }
+
+  const active = await prisma.legalDocumentVersion.findMany({
+    where: { status: 'active' },
+    select: { type: true, version: true },
+  });
+
+  // Default '0.0' = "nessuna versione attiva" (es. prima del data migration).
+  // Il check richiedeReconsent ritornerà true in questo caso, costringendo
+  // l'admin a pubblicare almeno una versione v0.1 prima del go-live.
+  const value: ActiveVersions = {
+    TERMS: active.find((v) => v.type === 'TERMS')?.version ?? '0.0',
+    PRIVACY: active.find((v) => v.type === 'PRIVACY')?.version ?? '0.0',
+  };
+
+  activeVersionsCache = { value, expiresAt: Date.now() + ACTIVE_VERSIONS_TTL_MS };
+  return value;
+}
+
+/**
+ * Invalida la cache delle versioni attive. Da chiamare dopo un publish
+ * o rollback per forzare la rilettura da DB.
+ */
+export function invalidateActiveVersionsCache(): void {
+  activeVersionsCache = null;
+}
 
 export interface DocumentMeta {
   type: LegalDocumentType;
   version: string;
   hash: string;
-  url: string; // Path pubblico servito da /public/legal/
+  url: string; // Public URL nel bucket Supabase Storage
+}
+
+const LEGAL_BUCKET = 'legal-documents';
+
+function getStoragePath(type: LegalDocumentType, version: string): string {
+  return `documents/${type.toLowerCase()}/v${version}.pdf`;
 }
 
 /**
- * Path fisico al PDF su disco. In dev = `<root>/public/legal/{name}.pdf`.
- * In produzione (Vercel) i file in `public/` sono bundled, ma `readFileSync`
- * continua a funzionare perché il fs contiene lo snapshot.
+ * Calcola SHA-256 del PDF corrente (versione active) scaricandolo da
+ * Supabase Storage. Cache in-memory con TTL 5 min.
  *
- * NB: se la cache di Vercel ha una versione vecchia del PDF, l'hash cambia
- * e il re-consenso scatterà correttamente (by design).
+ * Se il file non esiste in storage (es. data migration non ancora
+ * eseguita), ritorna 'sha256:missing' come fallback. Il caller (route
+ * /api/legal/consent) accetta questo valore come prova valida — il
+ * flusso non esplode, ma l'audit Garante vedrà un hash non reale.
+ *
+ * Se il download fallisce per altri motivi (network, Supabase down),
+ * logga e ritorna 'sha256:missing' con lo stesso fallback.
  */
-function getPdfPath(type: LegalDocumentType, version: string): string {
-  return join(process.cwd(), 'public', 'legal', `${type.toLowerCase()}-v${version}.pdf`);
-}
+const hashCache = new Map<string, { hash: string; expiresAt: number }>();
+const HASH_CACHE_TTL_MS = 5 * 60 * 1000;
 
-/**
- * Calcola SHA-256 del PDF corrente. Se il file non esiste, ritorna hash
- * fittizio "missing" — il caller deciderà se bloccare o procedere.
- */
-export function getDocumentHash(type: LegalDocumentType, version?: string): string {
-  const v = version ?? CURRENT_LEGAL_VERSIONS[type];
-  const path = getPdfPath(type, v);
-  if (!existsSync(path)) {
-    // In dev/test il PDF potrebbe non essere stato ancora creato.
-    // Ritorniamo un hash stabile così l'API non esplode; in produzione
-    // il check di esistenza è già garantito dal deploy.
-    return 'sha256:missing';
+export async function getDocumentHash(
+  type: LegalDocumentType,
+  version?: string
+): Promise<string> {
+  const ver = version ?? (await getActiveVersions())[type];
+  const cacheKey = `${type}:${ver}`;
+  const cached = hashCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.hash;
   }
-  const buffer = readFileSync(path);
-  return createHash('sha256').update(buffer).digest('hex');
+
+  const url = getPublicUrl(LEGAL_BUCKET, getStoragePath(type, ver));
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[legal] Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+      const fallback = 'sha256:missing';
+      hashCache.set(cacheKey, { hash: fallback, expiresAt: Date.now() + HASH_CACHE_TTL_MS });
+      return fallback;
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const hash = createHash('sha256').update(buffer).digest('hex');
+    hashCache.set(cacheKey, { hash, expiresAt: Date.now() + HASH_CACHE_TTL_MS });
+    return hash;
+  } catch (err) {
+    console.warn(`[legal] Error fetching ${url}:`, err);
+    const fallback = 'sha256:missing';
+    hashCache.set(cacheKey, { hash: fallback, expiresAt: Date.now() + HASH_CACHE_TTL_MS });
+    return fallback;
+  }
 }
 
 /**
- * Metadata del documento corrente: versione, hash, URL pubblico.
- * Usato dal client per mostrare "Termini v1.0" e aprire il PDF in nuova tab.
+ * Invalida la cache hash per un type (tutte le versioni). Da chiamare dopo
+ * un publish o rollback per forzare il ricalcolo.
  */
-export function getCurrentDocumentMeta(type: LegalDocumentType): DocumentMeta {
-  const version = CURRENT_LEGAL_VERSIONS[type];
+export function invalidateDocumentHashCache(type?: LegalDocumentType, version?: string): void {
+  if (type && version) {
+    hashCache.delete(`${type}:${version}`);
+  } else if (type) {
+    for (const key of hashCache.keys()) {
+      if (key.startsWith(`${type}:`)) hashCache.delete(key);
+    }
+  } else {
+    hashCache.clear();
+  }
+}
+
+/**
+ * Metadata del documento corrente (versione, hash, URL pubblico).
+ * Usato dal client per mostrare "Termini v1.0" e aprire il PDF in modal.
+ */
+export async function getCurrentDocumentMeta(
+  type: LegalDocumentType
+): Promise<DocumentMeta> {
+  const active = await getActiveVersions();
+  const version = active[type];
+  const hash = await getDocumentHash(type, version);
   return {
     type,
     version,
-    hash: getDocumentHash(type, version),
-    url: `/legal/${type.toLowerCase()}-v${version}.pdf`,
+    hash,
+    url: getPublicUrl(LEGAL_BUCKET, getStoragePath(type, version)),
   };
 }
 
@@ -82,7 +166,7 @@ export async function hasAcceptedCurrentVersion(
   userId: string,
   type: LegalDocumentType
 ): Promise<boolean> {
-  const current = CURRENT_LEGAL_VERSIONS[type];
+  const current = (await getActiveVersions())[type];
   const consent = await prisma.legalConsent.findUnique({
     where: {
       userId_documentType_version: {
@@ -126,4 +210,4 @@ export function extractRequestMetadata(request: Request): {
 // TODO post-MVP: diritto di recesso del consenso (GDPR art. 7(3)).
 // L'utente dovrà poter ritirare il consenso via profilo. Placeholder qui.
 // L'implementazione sarà: aggiungere `withdrawnAt: DateTime?` al modello
-// e un endpoint DELETE /api/legal/consent che lo valorizza.
+// LegalConsent e un endpoint DELETE /api/legal/consent che lo valorizza.

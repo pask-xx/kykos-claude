@@ -97,6 +97,20 @@ export const mockPrisma = {
     update: vi.fn(),
     upsert: vi.fn(),
   },
+  legalDocumentVersion: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+  },
+  adminAction: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+  },
   /**
    * $transaction passthrough: executes the callback with the same mockPrisma
    * (so the callback can call tx.user.findUnique, etc., which are the same mocks).
@@ -167,6 +181,11 @@ vi.mock('@/lib/email', () => ({
 }));
 
 // Mock Supabase storage
+// NB: getPublicUrl è una funzione pura che ritorna una URL nota (vedi
+// src/lib/supabase.ts:21). Viene usata in src/lib/legal.ts per scaricare
+// i PDF e calcolare lo SHA-256. Il mock sotto ritorna sempre lo stesso
+// URL; i test che vogliono simulare failure fanno override con
+// vi.stubGlobal('fetch', ...) in resetAllMocks (vedi sotto).
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     storage: {
@@ -188,6 +207,7 @@ vi.mock('@/lib/supabase', () => ({
       },
     },
   },
+  getPublicUrl: vi.fn().mockReturnValue('https://test.com/legal/terms/v1.0.pdf'),
 }));
 
 // Mock QR code generation - only mock the async upload functions
@@ -226,4 +246,26 @@ vi.mock('file-type', () => ({
 
 export function resetAllMocks() {
   vi.clearAllMocks();
+  // Default: LegalDocumentVersion.findMany (per getActiveVersions) ritorna
+  // v1.0 attiva per TERMS e PRIVACY. I test che vogliono versioni diverse
+  // (es. outdated scenario) fanno override con mockResolvedValueOnce.
+  mockPrisma.legalDocumentVersion.findMany.mockImplementation(async (args: any) => {
+    if (args?.where?.status === 'active') {
+      return [
+        { type: 'TERMS', version: '1.0' },
+        { type: 'PRIVACY', version: '1.0' },
+      ];
+    }
+    return [];
+  });
+  // Default: mock di fetch per getDocumentHash (legge PDF da Supabase
+  // Storage in src/lib/legal.ts). Ritorna 4 byte fissi → SHA-256 noto.
+  // I test che vogliono simulare storage error fanno override per singola
+  // chiamata con vi.stubGlobal temporaneo.
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    arrayBuffer: async () => new ArrayBuffer(4),
+  } as any));
 }
