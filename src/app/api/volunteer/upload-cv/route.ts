@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { getJwtSecret } from '@/lib/auth';
+import { validateFileMagicBytes, ALLOWED_CV_MIMES } from '@/lib/file-validation';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -41,31 +42,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
     }
 
-    // Validate file type - CV can be PDF, Word, or images
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo di file non supportato. Usa PDF, DOC, DOCX o immagini.' }, { status: 400 });
-    }
-
-    // Validate file size (max 10MB for CV)
+    // Validate file size (max 10MB for CV) - check before reading the buffer
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json({ error: 'File troppo grande (max 10MB)' }, { status: 400 });
     }
 
-    // Generate unique filename
-    const ext = file.name.split('.').pop() || 'pdf';
-    const filename = `cvs/${session.userId}/${Date.now()}.${ext}`;
-
     // Convert file to array buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    // A7: validate magic bytes (NOT the client-declared file.type)
+    // CV can be PDF, DOC, DOCX, or images of a CV
+    const validation = await validateFileMagicBytes(buffer, ALLOWED_CV_MIMES);
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: validation.reason + '. Usa PDF, DOC, DOCX o immagini.' },
+        { status: 400 }
+      );
+    }
+
+    // Generate unique filename using the REAL extension (not from client filename)
+    const filename = `cvs/${session.userId}/${Date.now()}.${validation.detectedExt}`;
 
     // Upload via Supabase REST API
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -77,7 +74,7 @@ export async function POST(request: Request) {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': file.type,
+          'Content-Type': validation.detectedMime,
           'x-upsert': 'false',
         },
         body: buffer,

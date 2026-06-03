@@ -204,6 +204,12 @@ vi.mock('@/lib/qrcode', () => ({
   },
 }));
 
+// Mock file-type — per-test override via mockFileTypeFromBuffer
+export const mockFileTypeFromBuffer = vi.fn();
+vi.mock('file-type', () => ({
+  fileTypeFromBuffer: mockFileTypeFromBuffer,
+}));
+
 export function resetAllMocks() {
   vi.clearAllMocks();
 }

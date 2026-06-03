@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { jwtVerify } from 'jose';
 import { getJwtSecret } from '@/lib/auth';
+import { validateFileMagicBytes, ALLOWED_IMAGE_MIMES } from '@/lib/file-validation';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -45,12 +46,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 });
     }
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo di file non supportato. Usa JPG, PNG o WebP.' }, { status: 400 });
-    }
-
     // Validate file size (max 2MB for profile photos)
     if (file.size > 2 * 1024 * 1024) {
       return NextResponse.json({ error: 'File troppo grande (max 2MB)' }, { status: 400 });
@@ -60,11 +55,18 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // A7: validate magic bytes (NOT the client-declared file.type)
+    const validation = await validateFileMagicBytes(buffer, ALLOWED_IMAGE_MIMES);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.reason }, { status: 400 });
+    }
+
     // Upload via Supabase REST API to profile-photos bucket
+    // Use detected ext (real format), not a hardcoded .jpg
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
     const targetId = userId || operatorId;
-    const filename = `${targetId}/photo.jpg`;
+    const filename = `${targetId}/photo.${validation.detectedExt}`;
 
     const uploadRes = await fetch(
       `${supabaseUrl}/storage/v1/object/profile-photos/${filename}`,
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': file.type,
+          'Content-Type': validation.detectedMime,
           'x-upsert': 'true',
         },
         body: buffer,
