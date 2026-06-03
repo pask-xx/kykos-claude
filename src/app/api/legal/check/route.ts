@@ -24,5 +24,15 @@ export const GET = withErrorHandler(async () => {
   }
 
   const needs = await requiresReconsent(session.id);
-  return NextResponse.json({ requiresReconsent: needs });
+  return NextResponse.json(
+    { requiresReconsent: needs },
+    {
+      headers: {
+        // Versioni legali sono real-time critical: nessuna cache (browser,
+        // CDN, Vercel). Anche se il client chiama subito dopo un publish,
+        // deve vedere lo stato aggiornato.
+        'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      },
+    }
+  );
 }, 'GET /api/legal/check');

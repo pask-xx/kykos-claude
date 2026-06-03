@@ -19,8 +19,13 @@ import { getPublicUrl } from '@/lib/supabase';
  * NB: questa funzione è async perché legge da DB. I call site sono tutti
  * in contesti async (route handler, test), quindi niente impatto.
  *
- * Cache: 30 secondi, per evitare query su ogni chiamata. Invalidata
- * esplicitamente da invalidateActiveVersionsCache() dopo un publish.
+ * Cache: DISABILITATA (TTL=0). In pre-pilota e con traffico minimo, il
+ * costo di una query extra su Prisma è trascurabile. Con la cache
+ * attivata, dopo un publish l'admin vedeva la versione vecchia per
+ * ~30 secondi (o peggio, in caso di multi-istanza Fluid Compute, dove
+ * l'invalidazione esplicita non propaga alle altre istanze).
+ * `invalidateActiveVersionsCache()` resta un no-op per compatibilità.
+ * Vedi decisione: Phase 2, post-deploy 3ddb0f2.
  */
 export type LegalDocumentType = 'TERMS' | 'PRIVACY';
 
@@ -29,14 +34,7 @@ interface ActiveVersions {
   PRIVACY: string;
 }
 
-let activeVersionsCache: { value: ActiveVersions; expiresAt: number } | null = null;
-const ACTIVE_VERSIONS_TTL_MS = 30 * 1000;
-
 export async function getActiveVersions(): Promise<ActiveVersions> {
-  if (activeVersionsCache && activeVersionsCache.expiresAt > Date.now()) {
-    return activeVersionsCache.value;
-  }
-
   const active = await prisma.legalDocumentVersion.findMany({
     where: { status: 'active' },
     select: { type: true, version: true },
@@ -45,21 +43,18 @@ export async function getActiveVersions(): Promise<ActiveVersions> {
   // Default '0.0' = "nessuna versione attiva" (es. prima del data migration).
   // Il check richiedeReconsent ritornerà true in questo caso, costringendo
   // l'admin a pubblicare almeno una versione v0.1 prima del go-live.
-  const value: ActiveVersions = {
+  return {
     TERMS: active.find((v) => v.type === 'TERMS')?.version ?? '0.0',
     PRIVACY: active.find((v) => v.type === 'PRIVACY')?.version ?? '0.0',
   };
-
-  activeVersionsCache = { value, expiresAt: Date.now() + ACTIVE_VERSIONS_TTL_MS };
-  return value;
 }
 
 /**
- * Invalida la cache delle versioni attive. Da chiamare dopo un publish
- * o rollback per forzare la rilettura da DB.
+ * No-op per compatibilità con i call site esistenti. La cache non è più
+ * attiva: `getActiveVersions()` legge sempre da DB.
  */
 export function invalidateActiveVersionsCache(): void {
-  activeVersionsCache = null;
+  // intentionally empty
 }
 
 export interface DocumentMeta {

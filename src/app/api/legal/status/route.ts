@@ -60,8 +60,18 @@ export const GET = withErrorHandler(async () => {
   // Manteniamo anche il flag aggregato per comodità del client
   const requiresReconsent = result.TERMS.outdated || result.PRIVACY.outdated;
 
-  return NextResponse.json({
-    documents: result,
-    requiresReconsent,
-  });
+  return NextResponse.json(
+    {
+      documents: result,
+      requiresReconsent,
+    },
+    {
+      headers: {
+        // Real-time critical: dopo un publish, /auth/register deve
+        // vedere SUBITO la versione nuova. Cache-Control previene cache
+        // del browser, di qualsiasi reverse proxy e di Vercel Edge.
+        'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      },
+    }
+  );
 }, 'GET /api/legal/status');
