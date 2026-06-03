@@ -125,6 +125,11 @@ enum RequestType {
   SERVICES
 }
 
+enum LegalDocumentType {
+  TERMS
+  PRIVACY
+}
+
 enum GoodsRequestStatus {
   PENDING
   APPROVED
@@ -261,7 +266,28 @@ model User {
   // Street operators che gestiscono questo beneficiario (se isStreetManaged=true)
   managedByStreetOperators StreetOperatorBeneficiary[]
 
+  // GDPR art. 7: tracciamento del consenso a privacy + termini.
+  // Una entry per (utente, documento, versione). L'unicità permette di dimostrare
+  // in caso di audit Garante cosa l'utente ha accettato e quando.
+  legalConsents LegalConsent[]
+
   @@map("users")
+}
+
+model LegalConsent {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType  LegalDocumentType
+  version       String            // es. "1.0"
+  documentHash  String            // SHA-256 del PDF al momento dell'accettazione
+  acceptedAt    DateTime          @default(now())
+  ipAddress     String?           // opzionale, prova legale
+  userAgent     String?           // opzionale, prova legale
+
+  @@unique([userId, documentType, version]) // idempotente: stesso user+doc+version
+  @@index([userId])
+  @@index([documentType, version])
 }
 
 model Diocese {

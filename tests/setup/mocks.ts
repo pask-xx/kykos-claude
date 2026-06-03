@@ -89,6 +89,14 @@ export const mockPrisma = {
     update: vi.fn(),
     updateMany: vi.fn(),
   },
+  legalConsent: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    upsert: vi.fn(),
+  },
   /**
    * $transaction passthrough: executes the callback with the same mockPrisma
    * (so the callback can call tx.user.findUnique, etc., which are the same mocks).
@@ -115,13 +123,19 @@ export function mockAuthSession(
   const payload = user ? { ...user } : null;
   const { jwtVerify } = require('jose') as { jwtVerify: ReturnType<typeof vi.fn> };
   if (payload) {
-    jwtVerify.mockResolvedValue({ payload });
+    // mockResolvedValueOnly: imposta solo il valore di successo (no implementation reset issues)
+    jwtVerify.mockImplementation(async () => ({ payload }));
   } else {
-    jwtVerify.mockRejectedValue(new Error('invalid token'));
+    jwtVerify.mockImplementation(async () => { throw new Error('invalid token'); });
   }
   // Also clear the cookie store for completeness (no-op if not present)
   return { kind, payload };
 }
+
+// Re-export the jwtVerify mock so tests can interact with it directly
+// (avoids the `require('jose')` returning an unmocked module in some test envs).
+import { jwtVerify as _jwtVerify } from 'jose';
+export const mockJwtVerify = vi.mocked(_jwtVerify);
 
 // Mock jose JWT library
 vi.mock('jose', () => {
