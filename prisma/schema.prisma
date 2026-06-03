@@ -130,6 +130,12 @@ enum LegalDocumentType {
   PRIVACY
 }
 
+enum LegalDocumentStatus {
+  scheduled
+  active
+  archived
+}
+
 enum GoodsRequestStatus {
   PENDING
   APPROVED
@@ -271,6 +277,11 @@ model User {
   // in caso di audit Garante cosa l'utente ha accettato e quando.
   legalConsents LegalConsent[]
 
+  // Admin ha caricato versioni di documenti legali
+  uploadedLegalDocs LegalDocumentVersion[] @relation("LegalDocUploader")
+  // Audit log delle azioni admin
+  adminActions AdminAction[] @relation("AdminActions")
+
   @@map("users")
 }
 
@@ -288,6 +299,53 @@ model LegalConsent {
   @@unique([userId, documentType, version]) // idempotente: stesso user+doc+version
   @@index([userId])
   @@index([documentType, version])
+}
+
+/// Storico immutabile di tutti i PDF (Privacy/ToS) caricati dall'admin.
+/// Una sola riga per (type, version) con status 'active' — la "versione
+/// corrente" che gli utenti devono accettare. Il flusso di transizione è:
+///   scheduled (appena caricato, non ancora visibile) → active (pubblicato)
+///   active → archived (quando sostituito da un nuovo active)
+/// Solo le righe 'scheduled' sono cancellabili, per preservare la prova
+/// storica in caso di audit Garante. Vedi routes /api/admin/legal/*.
+model LegalDocumentVersion {
+  id           String              @id @default(cuid())
+  type         LegalDocumentType
+  version      String              // semver-like: "1.0", "1.1", "2.0", ...
+  hash         String              // SHA-256 del PDF, calcolato server-side al upload
+  storagePath  String              // path nel bucket Supabase Storage
+  fileSize     Int                 // bytes
+  status       LegalDocumentStatus @default(scheduled)
+  uploadedById String
+  uploadedBy   User                @relation("LegalDocUploader", fields: [uploadedById], references: [id])
+  uploadedAt   DateTime            @default(now())
+  publishedAt  DateTime?           // null finché status = scheduled
+  archivedAt   DateTime?           // null finché status = active
+  notes        String?             // changelog opzionale (es. "Riformulazione art. 5")
+
+  @@unique([type, version])        // un solo PDF per type+version
+  @@index([type, status])          // query "versione attiva per type"
+  @@index([uploadedById])
+  @@map("legal_document_versions")
+}
+
+/// Audit log: chi ha fatto cosa quando sulle risorse admin.
+/// In V1 usato principalmente per legal_doc.* (upload, publish, restore, delete).
+/// Crescerà in V2 con moderation, operator management, ecc.
+model AdminAction {
+  id         String   @id @default(cuid())
+  adminId    String
+  admin      User     @relation("AdminActions", fields: [adminId], references: [id])
+  action     String   // "legal_doc.upload", "legal_doc.publish", "legal_doc.restore", "legal_doc.delete"
+  targetType String?  // es. "LegalDocumentVersion"
+  targetId   String?
+  metadata   Json?    // dettagli: { fromVersion, toVersion, type, ... }
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_actions")
 }
 
 model Diocese {
