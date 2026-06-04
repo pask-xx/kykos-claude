@@ -14,7 +14,7 @@ export default async function DonorToDeliverPage() {
     redirect(`/${session.role.toLowerCase()}/dashboard`);
   }
 
-  // Fetch object donations (RESERVED status - object assigned to a request)
+  // Fetch object donations (RESERVED status - object assigned to a request, not yet donated)
   const objectDonations = await prisma.donation.findMany({
     where: {
       donorId: session.id,
@@ -30,11 +30,14 @@ export default async function DonorToDeliverPage() {
     },
   });
 
-  // Fetch accepted goods offers (ACCEPTED status)
+  // Fetch accepted goods offers (ACCEPTED status) where request is not yet fulfilled/delivered
   const acceptedGoodsOffers = await prisma.goodsOffer.findMany({
     where: {
       offeredById: session.id,
       status: 'ACCEPTED',
+      request: {
+        status: { notIn: ['FULFILLED', 'DELIVERED', 'COMPLETED'] },
+      },
     },
     include: {
       request: {
@@ -75,7 +78,7 @@ export default async function DonorToDeliverPage() {
         {objectDonations.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📦</span> Oggetti
+              <span>📦</span> Disponibilità
             </h2>
             <div className="space-y-3">
               {objectDonations.map((donation) => (
@@ -92,7 +95,7 @@ export default async function DonorToDeliverPage() {
                     <p className="text-xs text-blue-600">QR Code pronto</p>
                   </div>
                   <Link
-                    href={`/donor/qr/${donation.object.id}`}
+                    href={`/donor/qr/${donation.request.id}`}
                     className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium flex-shrink-0"
                   >
                     📱 QR Code
@@ -107,7 +110,7 @@ export default async function DonorToDeliverPage() {
         {acceptedGoodsOffers.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>🎁</span> Beni e Servizi
+              <span>🎁</span> Richieste
             </h2>
             <div className="space-y-3">
               {acceptedGoodsOffers.map((offer) => (

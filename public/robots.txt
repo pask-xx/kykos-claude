@@ -2,16 +2,34 @@
 User-agent: *
 Allow: /
 
-# Disallow dashboard and authenticated routes
-Disallow: /donor/dashboard
-Disallow: /recipient/dashboard
-Disallow: /intermediary/dashboard
-Disallow: /operator/dashboard
-Disallow: /admin/dashboard
-Disallow: /volunteer/dashboard
-
 # Disallow API routes
 Disallow: /api/
+
+# Allow public auth pages (login, register, forgot-password) for SEO
+# Block auth pages with tokens or sensitive flows
+Disallow: /auth/confirm
+Disallow: /auth/callback
+Disallow: /auth/reset-password
+Disallow: /auth/check-legal
+Disallow: /pwa
+Disallow: /aderisci/print
+Disallow: /adesione/confirm
+Disallow: /profile/
+
+# Disallow dashboard and authenticated routes
+Disallow: /donor/
+Disallow: /recipient/
+Disallow: /intermediary/
+Disallow: /operator/
+Disallow: /admin/
+Disallow: /volunteer/apply
+Disallow: /volunteer/dashboard
+
+# Disallow objects browse (auth required)
+Disallow: /objects/
+
+# Disallow query string URLs to avoid duplicate content
+Disallow: /*?*
 
 # Sitemap
 Sitemap: https://kykos.it/sitemap.xml

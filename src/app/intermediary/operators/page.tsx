@@ -14,6 +14,8 @@ interface Operator {
   role: OperatorRole;
   permissions: string[];
   active: boolean;
+  isOfficeOperator: boolean;
+  isStreetOperator: boolean;
   createdAt: string;
 }
 
@@ -29,6 +31,8 @@ export default function IntermediaryOperatorsPage() {
     notifyEmail: '',
     role: 'OPERATORE' as OperatorRole,
     permissions: [] as string[],
+    isOfficeOperator: true,
+    isStreetOperator: false,
   });
   const [createdOp, setCreatedOp] = useState<{ operator: Operator; tempPassword: string; emailSent: boolean; notifyEmail: string } | null>(null);
 
@@ -86,6 +90,8 @@ export default function IntermediaryOperatorsPage() {
           notifyEmail: newOp.notifyEmail || null,
           role: newOp.role,
           permissions: newOp.permissions,
+          isOfficeOperator: newOp.isOfficeOperator,
+          isStreetOperator: newOp.isStreetOperator,
         }),
       });
 
@@ -98,6 +104,8 @@ export default function IntermediaryOperatorsPage() {
           notifyEmail: '',
           role: 'OPERATORE',
           permissions: [],
+          isOfficeOperator: true,
+          isStreetOperator: false,
         });
         fetchOperators();
       } else {
@@ -155,6 +163,7 @@ export default function IntermediaryOperatorsPage() {
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operatore</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contatti</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruolo</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stato</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Azioni</th>
@@ -178,6 +187,16 @@ export default function IntermediaryOperatorsPage() {
                     {op.email && <div className="text-gray-700">{op.email}</div>}
                     {op.phone && <div className="text-gray-500">{op.phone}</div>}
                     {!op.email && !op.phone && <span className="text-gray-400">—</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {op.isOfficeOperator && (
+                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Ufficio</span>
+                      )}
+                      {op.isStreetOperator && (
+                        <span className="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded">Strada</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">
@@ -300,6 +319,32 @@ export default function IntermediaryOperatorsPage() {
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tipo operatore</label>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={newOp.isOfficeOperator}
+                            onChange={(e) => setNewOp(prev => ({ ...prev, isOfficeOperator: e.target.checked }))}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm">Operatore d'ufficio</span>
+                        </label>
+                        <label className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={newOp.isStreetOperator}
+                            onChange={(e) => setNewOp(prev => ({ ...prev, isStreetOperator: e.target.checked }))}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm">Operatore di strada</span>
+                        </label>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Un operatore può avere entrambi i ruoli</p>
+                    </div>
+                    {newOp.isOfficeOperator && (
+                      <>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>
                       <select
                         value={newOp.role}
@@ -329,7 +374,9 @@ export default function IntermediaryOperatorsPage() {
                         ))}
                       </div>
                     </div>
-                  </div>
+                      </>
+                    )}
+                    </div>
 
                   {error && (
                     <p className="mt-3 text-sm text-red-600">{error}</p>

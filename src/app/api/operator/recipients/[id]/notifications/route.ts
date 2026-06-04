@@ -4,10 +4,10 @@ import { jwtVerify } from 'jose';
 import { RecipientType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
+import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;
@@ -29,56 +29,53 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const { id } = await params;
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    if (!hasAnyPermission(operator.role, operator.permissions, ['RECIPIENT_AUTHORIZE'])) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
-
-    // Verify recipient belongs to same organization
-    const recipient = await prisma.user.findUnique({
-      where: { id },
-      select: { referenceEntityId: true },
-    });
-
-    if (!recipient) {
-      return NextResponse.json({ error: 'Beneficiario non trovato' }, { status: 404 });
-    }
-
-    if (recipient.referenceEntityId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    const notifications = await prisma.notification.findMany({
-      where: {
-        recipientUserId: id,
-        recipientType: RecipientType.USER,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
-
-    return NextResponse.json({ notifications });
-  } catch (error) {
-    console.error('Recipient notifications GET error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
+
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  if (!hasAnyPermission(operator.role, operator.permissions, ['RECIPIENT_AUTHORIZE'])) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
+
+  // Verify recipient belongs to same organization
+  const recipient = await prisma.user.findUnique({
+    where: { id },
+    select: { referenceEntityId: true },
+  });
+
+  if (!recipient) {
+    return NextResponse.json({ error: 'Beneficiario non trovato' }, { status: 404 });
+  }
+
+  if (recipient.referenceEntityId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  const notifications = await prisma.notification.findMany({
+    where: {
+      recipientUserId: id,
+      recipientType: RecipientType.USER,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+
+  return NextResponse.json({ notifications });
+
+}, 'GET /api/operator/recipients/[id]/notifications');

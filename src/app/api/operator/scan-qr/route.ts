@@ -5,10 +5,10 @@ import { prisma } from '@/lib/prisma';
 import { parseQrCodeData, generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 import { sendPickupQrNotification } from '@/lib/email';
 import { hasPermission } from '@/lib/permissions';
+import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;
@@ -31,171 +31,168 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const session = await getOperatorSession();
+export const POST = withErrorHandler(async (request: Request) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    if (!hasPermission(operator.role, operator.permissions, 'OBJECT_DELIVER')) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
 
-    const { qrData, depositLocation } = await request.json();
+  if (!hasPermission(operator.role, operator.permissions, 'OBJECT_DELIVER')) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
 
-    console.log('Received qrData:', qrData, 'type:', typeof qrData);
+  const { qrData, depositLocation } = await request.json();
 
-    if (!qrData || typeof qrData !== 'string') {
-      return NextResponse.json({ error: 'QR data mancante o non valida' }, { status: 400 });
-    }
+  console.log('Received qrData:', qrData, 'type:', typeof qrData);
 
-    const parsed = parseQrCodeData(qrData);
-    console.log('Parsed QR result:', parsed);
-    if (!parsed) {
-      return NextResponse.json({ error: 'QR code non valido' }, { status: 400 });
-    }
+  if (!qrData || typeof qrData !== 'string') {
+    return NextResponse.json({ error: 'QR data mancante o non valida' }, { status: 400 });
+  }
 
-    const { type, subType, requestId, userId } = parsed;
+  const parsed = parseQrCodeData(qrData);
+  console.log('Parsed QR result:', parsed);
+  if (!parsed) {
+    return NextResponse.json({ error: 'QR code non valido' }, { status: 400 });
+  }
 
-    // Only handle object type QR codes in this endpoint
-    if (subType !== 'object') {
-      return NextResponse.json({ error: 'Tipo QR non supportato in questo endpoint' }, { status: 400 });
-    }
+  const { type, subType, requestId, userId } = parsed;
 
-    const req = await prisma.request.findUnique({
-      where: { id: requestId },
-      include: {
-        object: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            depositLocation: true,
-            donorId: true,
-            donor: { select: { nickname: true, name: true } },
-            intermediary: { select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true } },
-          },
+  // Only handle object type QR codes in this endpoint
+  if (subType !== 'object') {
+    return NextResponse.json({ error: 'Tipo QR non supportato in questo endpoint' }, { status: 400 });
+  }
+
+  const req = await prisma.request.findUnique({
+    where: { id: requestId },
+    include: {
+      object: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          depositLocation: true,
+          donorId: true,
+          donor: { select: { nickname: true, name: true } },
+          intermediary: { select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true } },
         },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+      },
+      recipient: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
         },
+      },
+    },
+  });
+
+  if (!req) {
+    return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+  }
+
+  if (req.intermediaryId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  if (type === 'deliver') {
+    // DELIVER QR: scanned when donor brings the object
+    // Verify donor ID matches
+    if (req.object.donorId !== userId) {
+      return NextResponse.json({ error: 'QR code non valido per questo donatore' }, { status: 400 });
+    }
+
+    // Check if already delivered (DEPOSITED or DONATED status)
+    if (req.object.status === 'DEPOSITED' || req.object.status === 'DONATED') {
+      return NextResponse.json({ error: 'QR code già utilizzato! La consegna è stata già registrata.' }, { status: 400 });
+    }
+
+    if (req.object.status !== 'RESERVED') {
+      return NextResponse.json({ error: 'Oggetto non disponibile per la consegna' }, { status: 400 });
+    }
+
+    // Update object status to DEPOSITED (object is at entity, waiting for pickup)
+    // Save deposit location if provided
+    await prisma.object.update({
+      where: { id: req.objectId },
+      data: {
+        status: 'DEPOSITED',
+        depositLocation: depositLocation || null,
       },
     });
 
-    if (!req) {
-      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+    // Generate pickup QR and send to beneficiary
+    const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
+    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+    await sendPickupQrNotification(
+      req.recipient.email,
+      req.recipientId,
+      req.recipient.name,
+      req.object.title,
+      req.objectId,
+      pickupQrData,
+      pickupQrImage,
+      req.object.intermediary.name,
+      req.object.intermediary.address || null,
+      req.object.intermediary.houseNumber || null,
+      req.object.intermediary.cap || null,
+      req.object.intermediary.city || null,
+      req.object.intermediary.province || null,
+      req.object.intermediary.phone || null,
+      req.object.intermediary.email || null,
+      req.object.intermediary.hoursInfo
+    );
+
+    return NextResponse.json({
+      success: true,
+      type: 'deliver',
+      message: 'Consegna registrata! Il beneficiario ricevera\' il QR code per il ritiro.',
+      data: {
+        objectTitle: req.object.title,
+        donorName: req.object.donor?.name || 'Donatore',
+      },
+    });
+  } else {
+    // PICKUP QR: scanned when beneficiary comes to pick up
+    // Verify recipient ID matches
+    if (req.recipientId !== userId) {
+      return NextResponse.json({ error: 'QR code non valido per questo destinatario' }, { status: 400 });
     }
 
-    if (req.intermediaryId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+    // Check if already completed (DONATED)
+    if (req.object.status === 'DONATED') {
+      return NextResponse.json({ error: 'Oggetto già ritirato! Il beneficiario ha già completato il ritiro.' }, { status: 400 });
     }
 
-    if (type === 'deliver') {
-      // DELIVER QR: scanned when donor brings the object
-      // Verify donor ID matches
-      if (req.object.donorId !== userId) {
-        return NextResponse.json({ error: 'QR code non valido per questo donatore' }, { status: 400 });
-      }
-
-      // Check if already delivered (DEPOSITED or DONATED status)
-      if (req.object.status === 'DEPOSITED' || req.object.status === 'DONATED') {
-        return NextResponse.json({ error: 'QR code già utilizzato! La consegna è stata già registrata.' }, { status: 400 });
-      }
-
-      if (req.object.status !== 'RESERVED') {
-        return NextResponse.json({ error: 'Oggetto non disponibile per la consegna' }, { status: 400 });
-      }
-
-      // Update object status to DEPOSITED (object is at entity, waiting for pickup)
-      // Save deposit location if provided
-      await prisma.object.update({
-        where: { id: req.objectId },
-        data: {
-          status: 'DEPOSITED',
-          depositLocation: depositLocation || null,
-        },
-      });
-
-      // Generate pickup QR and send to beneficiary
-      const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-      const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
-      await sendPickupQrNotification(
-        req.recipient.email,
-        req.recipientId,
-        req.recipient.name,
-        req.object.title,
-        req.objectId,
-        pickupQrData,
-        pickupQrImage,
-        req.object.intermediary.name,
-        req.object.intermediary.address || null,
-        req.object.intermediary.houseNumber || null,
-        req.object.intermediary.cap || null,
-        req.object.intermediary.city || null,
-        req.object.intermediary.province || null,
-        req.object.intermediary.phone || null,
-        req.object.intermediary.email || null,
-        req.object.intermediary.hoursInfo
-      );
-
-      return NextResponse.json({
-        success: true,
-        type: 'deliver',
-        message: 'Consegna registrata! Il beneficiario ricevera\' il QR code per il ritiro.',
-        data: {
-          objectTitle: req.object.title,
-          donorName: req.object.donor?.name || 'Donatore',
-        },
-      });
-    } else {
-      // PICKUP QR: scanned when beneficiary comes to pick up
-      // Verify recipient ID matches
-      if (req.recipientId !== userId) {
-        return NextResponse.json({ error: 'QR code non valido per questo destinatario' }, { status: 400 });
-      }
-
-      // Check if already completed (DONATED)
-      if (req.object.status === 'DONATED') {
-        return NextResponse.json({ error: 'Oggetto già ritirato! Il beneficiario ha già completato il ritiro.' }, { status: 400 });
-      }
-
-      if (req.object.status !== 'DEPOSITED') {
-        return NextResponse.json({ error: 'Oggetto non ancora pronto per il ritiro' }, { status: 400 });
-      }
-
-      // Mark as DONATED (final delivery)
-      await prisma.object.update({
-        where: { id: req.objectId },
-        data: { status: 'DONATED' },
-      });
-
-      return NextResponse.json({
-        success: true,
-        type: 'pickup',
-        message: 'Ritiro completato! Oggetto consegnato al beneficiario.',
-        data: {
-          objectTitle: req.object.title,
-          recipientName: req.recipient.name,
-          depositLocation: req.object.depositLocation,
-        },
-      });
+    if (req.object.status !== 'DEPOSITED') {
+      return NextResponse.json({ error: 'Oggetto non ancora pronto per il ritiro' }, { status: 400 });
     }
-  } catch (error) {
-    console.error('QR scan error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+
+    // Mark as DONATED (final delivery)
+    await prisma.object.update({
+      where: { id: req.objectId },
+      data: { status: 'DONATED' },
+    });
+
+    return NextResponse.json({
+      success: true,
+      type: 'pickup',
+      message: 'Ritiro completato! Oggetto consegnato al beneficiario.',
+      data: {
+        objectTitle: req.object.title,
+        recipientName: req.recipient.name,
+        depositLocation: req.object.depositLocation,
+      },
+    });
   }
-}
+
+}, 'POST /api/operator/scan-qr');

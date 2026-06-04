@@ -1,73 +1,39 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { KYKOS_VIEWPORT, requireUserSession } from '@/lib/layout-helper';
 import DashboardLayoutClient from '@/components/dashboard/DashboardLayoutClient';
 
+export const viewport = KYKOS_VIEWPORT;
+
 export default async function RecipientLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const { user } = await requireUserSession('RECIPIENT');
 
-  if (!session) {
-    redirect('/auth/login');
-  }
-
-  if (session.role !== 'RECIPIENT') {
-    redirect(`/${session.role.toLowerCase()}/dashboard`);
-  }
-
-  // Fetch full user data on server side
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-    },
-  });
-
-  // Check if user has any approved volunteer associations
-  const hasApprovedVolunteer = await prisma.volunteerAssociation.findFirst({
-    where: {
-      userId: session.id,
-      status: 'APPROVED',
-    },
+  // Recipient-specific extras
+  const hasApprovedVolunteer = !!(await prisma.volunteerAssociation.findFirst({
+    where: { userId: user.id, status: 'APPROVED' },
     select: { id: true },
-  }).then(result => !!result);
+  }));
 
-  // Count pending: Consegne (donations with RESERVED) + Ritiri (requests with DEPOSITED + goodsRequests DELIVERED)
+  // Pending: deliveries (donations RESERVED) + pickups (requests DEPOSITED, goodsRequests DELIVERED)
   const [deliveriesCount, objectPickupsCount, goodsPickupsCount] = await Promise.all([
     prisma.donation.count({
-      where: {
-        donorId: session.id,
-        object: { status: 'RESERVED' },
-      },
+      where: { donorId: user.id, object: { status: 'RESERVED' } },
     }),
     prisma.request.count({
-      where: {
-        recipientId: session.id,
-        object: { status: 'DEPOSITED' },
-      },
+      where: { recipientId: user.id, object: { status: 'DEPOSITED' } },
     }),
     prisma.goodsRequest.count({
-      where: {
-        beneficiaryId: session.id,
-        status: 'DELIVERED',
-      },
+      where: { beneficiaryId: user.id, status: 'DELIVERED' },
     }),
   ]);
-
-  const pendingDeliveryCount = deliveriesCount + objectPickupsCount + goodsPickupsCount;
-
-  const userData = user ? {
-    id: user.id,
-    email: user.email,
-    name: `${user.firstName} ${user.lastName}`.trim(),
-    role: user.role,
-  } : null;
+  const pendingDeliveryCount =
+    deliveriesCount + objectPickupsCount + goodsPickupsCount;
 
   return (
-    <DashboardLayoutClient user={userData} hasApprovedVolunteer={hasApprovedVolunteer} pendingDeliveryCount={pendingDeliveryCount}>
+    <DashboardLayoutClient
+      user={user}
+      hasApprovedVolunteer={hasApprovedVolunteer}
+      pendingDeliveryCount={pendingDeliveryCount}
+    >
       {children}
     </DashboardLayoutClient>
   );

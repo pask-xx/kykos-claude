@@ -43,21 +43,35 @@ export default function LoginPage() {
           return;
         }
 
-        switch (data.user.role) {
-          case 'DONOR':
-            router.push('/donor/dashboard');
-            break;
-          case 'RECIPIENT':
-            router.push('/recipient/dashboard');
-            break;
-          case 'INTERMEDIARY':
-            router.push('/intermediary/dashboard');
-            break;
-          case 'ADMIN':
-            router.push('/admin/dashboard');
-            break;
-          default:
-            router.push('/');
+        // GDPR: se l'utente ha consensi legali outdated (es. ToS/Privacy
+        // bumped dopo la sua registrazione), redirigiamo a /auth/check-legal
+        // PRIMA del dashboard. /api/legal/check ritorna solo un bool, è
+        // pensata per essere chiamata qui.
+        try {
+          const legalRes = await fetch('/api/legal/check');
+          if (legalRes.ok) {
+            const legalData = await legalRes.json();
+            if (legalData.requiresReconsent) {
+              router.push('/auth/check-legal?next=' + encodeURIComponent(dashboardForRole(data.user.role)));
+              return;
+            }
+          }
+        } catch {
+          // Se il check fallisce, non bloccare il login: l'utente può
+          // comunque usare l'app, e il banner /api/legal/status glielo
+          // ricorderà. Meglio del rischio opposto (login bloccato da un
+          // bug dell'endpoint).
+        }
+
+        router.push(dashboardForRole(data.user.role));
+        function dashboardForRole(role: string): string {
+          switch (role) {
+            case 'DONOR': return '/donor/dashboard';
+            case 'RECIPIENT': return '/recipient/dashboard';
+            case 'INTERMEDIARY': return '/intermediary/dashboard';
+            case 'ADMIN': return '/admin/dashboard';
+            default: return '/';
+          }
         }
       } else {
         // Operator login with username

@@ -45,6 +45,7 @@ const intermediaryNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { href: '/admin/dashboard', label: 'Enti', icon: '🏢' },
   { href: '/admin/intermediaries/new', label: 'Nuovo Ente', icon: '➕' },
+  { href: '/admin/legal', label: 'Documenti legali', icon: '📄' },
   { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
 ];
 
@@ -52,6 +53,7 @@ interface SidebarProps {
   role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN';
   userName: string;
   userEmail: string;
+  userProfileImageUrl?: string | null;
   hasApprovedVolunteer?: boolean;
   pendingDeliveryCount?: number;
 }
@@ -94,7 +96,7 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
   return role === 'INTERMEDIARY' ? intermediaryNav : adminNav;
 }
 
-export default function Sidebar({ role, userName, userEmail, hasApprovedVolunteer = false, pendingDeliveryCount = 0 }: SidebarProps) {
+export default function Sidebar({ role, userName, userEmail, userProfileImageUrl, hasApprovedVolunteer = false, pendingDeliveryCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -205,8 +207,15 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
 
         {/* User info */}
         <div className="p-3 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {userProfileImageUrl ? (
+                <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">👤</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
               <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
               <p className="text-xs text-gray-400 truncate">{userEmail}</p>
@@ -283,7 +292,14 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
         {/* User info */}
         <div className={`p-3 border-t border-gray-200 flex-shrink-0 ${expanded ? 'justify-start' : 'justify-center'}`}>
           {expanded ? (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {userProfileImageUrl ? (
+                  <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg">👤</span>
+                )}
+              </div>
               <div className="truncate min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
                 <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
@@ -293,6 +309,13 @@ export default function Sidebar({ role, userName, userEmail, hasApprovedVoluntee
             </div>
           ) : (
             <div className="flex flex-col items-center">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden mb-2">
+                {userProfileImageUrl ? (
+                  <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg">👤</span>
+                )}
+              </div>
               <LogoutForm />
             </div>
           )}

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { clearSessionCookie } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     await clearSessionCookie();
   } catch (error) {
@@ -9,9 +10,9 @@ export async function GET(request: NextRequest) {
   }
   const baseUrl = new URL(request.url).origin;
   return NextResponse.redirect(`${baseUrl}/`);
-}
+}, 'GET /api/auth/logout');
 
 // Also handle POST for form submissions
-export async function POST(request: NextRequest) {
-  return GET(request);
-}
+export const POST = withErrorHandler(async (request: NextRequest) => {
+  return GET(request, undefined);
+}, 'POST /api/auth/logout');

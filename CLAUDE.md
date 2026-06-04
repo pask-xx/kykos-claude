@@ -1,11 +1,19 @@
 # KYKOS — Guida Sessione Claude Code
 
-## Leggi Prima: `.claude/memory/`
+## Leggi Prima: Memorie di Sessione
+
+Le memorie sono file `.md` caricati automaticamente all'inizio di ogni sessione, indicizzati in `MEMORY.md`. Percorso reale (Windows):
+
+```
+C:\Users\promb\.claude\projects\D--PROGETTI-KYKOS-KYKOS-WITH-CLAUDE\memory\
+```
 
 Ad ogni sessione, leggi in ordine:
-1. `01-core-principles.md` — LA REGOLA #1: ANONIMAT + REGOLA #2: ENUMERATI TRADOTTI
-2. `04-anonymity.md` — Regole esatte per ogni ruolo
+1. `01-core-principles.md` — Le 3 regole non negoziabili (anonimato, enum tradotti, compatibilità all'indietro)
+2. `04-anonymity.md` — Regole esatte sull'anonimato con esempi
 3. `05-known-issues.md` — Bug/violazioni attuali da non perpetuare
+
+Poi le memorie specialistiche elencate in `MEMORY.md` quando pertinenti al task in corso.
 
 ## Le Regole Non Negoziabili
 
@@ -41,7 +49,7 @@ Usa sempre le label da `src/types/index.ts`: `STATUS_LABELS`, `CATEGORY_LABELS`,
 
 1. **Check anonimato**: Ogni route API che ritorna dati utente, verifica chi deve vedere cosa
 2. **Select minimo**: Default = `id` e `donorProfile.level`. Aggiungi campi solo se richiesto dal business logic
-3. **Quando in dubbio**: Controlla `.claude/memory/` prima di chiedere
+3. **Quando in dubbio**: Controlla la cartella memorie (vedi sopra) prima di chiedere
 
 ## Stack Tecnologico
 

@@ -3,10 +3,10 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;
@@ -29,62 +29,59 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const session = await getOperatorSession();
+export const POST = withErrorHandler(async (request: Request) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const session = await getOperatorSession();
 
-    const { newPassword } = await request.json();
-
-    if (!newPassword) {
-      return NextResponse.json(
-        { error: 'Nuova password obbligatoria' },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { error: 'La nuova password deve essere di almeno 6 caratteri' },
-        { status: 400 }
-      );
-    }
-
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    // Check if operator has Supabase Auth
-    if (!operator.supabaseAuthId) {
-      return NextResponse.json(
-        { error: 'Operatore non configurato per questo tipo di cambio password' },
-        { status: 400 }
-      );
-    }
-
-    // Update password via Supabase Admin API
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      operator.supabaseAuthId,
-      { password: newPassword }
-    );
-
-    if (updateError) {
-      return NextResponse.json(
-        { error: 'Errore durante il cambio password' },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Operator password change error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  const { newPassword } = await request.json();
+
+  if (!newPassword) {
+    return NextResponse.json(
+      { error: 'Nuova password obbligatoria' },
+      { status: 400 }
+    );
+  }
+
+  if (newPassword.length < 6) {
+    return NextResponse.json(
+      { error: 'La nuova password deve essere di almeno 6 caratteri' },
+      { status: 400 }
+    );
+  }
+
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
+
+  if (!operator) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  // Check if operator has Supabase Auth
+  if (!operator.supabaseAuthId) {
+    return NextResponse.json(
+      { error: 'Operatore non configurato per questo tipo di cambio password' },
+      { status: 400 }
+    );
+  }
+
+  // Update password via Supabase Admin API
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    operator.supabaseAuthId,
+    { password: newPassword }
+  );
+
+  if (updateError) {
+    return NextResponse.json(
+      { error: 'Errore durante il cambio password' },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json({ success: true });
+
+}, 'POST /api/operator/password/change');

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { REQUEST_STATUS_LABELS } from '@/types';
 
 interface ObjectDetails {
   id: string;
@@ -232,9 +233,7 @@ export default function DonorObjectDetailPage() {
                       req.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
-                      {req.status === 'PENDING' ? 'In attesa' :
-                       req.status === 'APPROVED' ? 'Approvata' :
-                       req.status === 'REJECTED' ? 'Rifiutata' : req.status}
+                      {REQUEST_STATUS_LABELS[req.status as keyof typeof REQUEST_STATUS_LABELS] ?? req.status}
                     </span>
                   </div>
                 ))}

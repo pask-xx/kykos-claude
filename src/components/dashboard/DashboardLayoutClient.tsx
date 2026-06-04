@@ -10,6 +10,7 @@ interface User {
   email: string;
   name: string;
   role: 'DONOR' | 'RECIPIENT' | 'INTERMEDIARY' | 'ADMIN';
+  profileImageUrl?: string | null;
 }
 
 interface DashboardLayoutClientProps {
@@ -32,6 +33,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
         role={user.role as 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN'}
         userName={user.name}
         userEmail={user.email}
+        userProfileImageUrl={user.profileImageUrl}
         hasApprovedVolunteer={hasApprovedVolunteer}
         pendingDeliveryCount={pendingDeliveryCount}
       />

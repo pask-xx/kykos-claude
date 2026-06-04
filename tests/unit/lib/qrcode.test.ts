@@ -92,4 +92,40 @@ describe('parseQrCodeData', () => {
       expect(parseQrCodeData(123 as any)).toBeNull();
     });
   });
+
+  describe('new format with subType (goods, object, multiavailability)', () => {
+    it('should parse goods deliver QR code', () => {
+      const result = parseQrCodeData('kykos:goods:deliver:req-123:donor-456');
+      expect(result).toEqual({
+        subType: 'goods',
+        type: 'deliver',
+        requestId: 'req-123',
+        userId: 'donor-456',
+      });
+    });
+
+    it('should parse multiavailability pickup QR code', () => {
+      const result = parseQrCodeData('kykos:multiavailability:pickup:ma-001:ben-001');
+      expect(result).toEqual({
+        subType: 'multiavailability',
+        type: 'pickup',
+        requestId: 'ma-001',
+        userId: 'ben-001',
+      });
+    });
+
+    it('should parse object deliver QR code', () => {
+      const result = parseQrCodeData('kykos:object:deliver:obj-req-1:donor-1');
+      expect(result).toEqual({
+        subType: 'object',
+        type: 'deliver',
+        requestId: 'obj-req-1',
+        userId: 'donor-1',
+      });
+    });
+
+    it('should reject unknown subType', () => {
+      expect(parseQrCodeData('kykos:unknown:deliver:req-123:user-456')).toBeNull();
+    });
+  });
 });

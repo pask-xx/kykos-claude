@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
+import PdfViewerModal from '@/components/PdfViewerModal';
 
 const REGISTRATION_ENABLED = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED === 'true';
 
@@ -46,6 +47,9 @@ function RegisterForm() {
   const oauthName = searchParams.get('name') || '';
   const defaultRole = (searchParams.get('role')?.toUpperCase() || 'DONOR') as Role;
 
+  // Force DONOR if INTERMEDIARY is passed via URL (registration by admins only)
+  const initialRole = (defaultRole === 'INTERMEDIARY' ? 'DONOR' : defaultRole) as Role;
+
   const [intermediaries, setIntermediaries] = useState<Intermediary[]>([]);
   const [dioceses, setDioceses] = useState<Diocese[]>([]);
 
@@ -55,7 +59,7 @@ function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Role-specific fields
-  const [role, setRole] = useState<Role>(defaultRole);
+  const [role, setRole] = useState<Role>(initialRole);
 
   // Personal info
   const [firstName, setFirstName] = useState('');
@@ -79,6 +83,9 @@ function RegisterForm() {
   const [orgType, setOrgType] = useState('');
   const [dioceseId, setDioceseId] = useState('');
 
+  // Diocese field (mandatory for all roles)
+  const [selectedDioceseId, setSelectedDioceseId] = useState('');
+
   // Recipient fields
   const [referenceEntityId, setReferenceEntityId] = useState('');
   const [isee, setIsee] = useState('');
@@ -94,6 +101,30 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [secret, setSecret] = useState('');
 
+  // Legal consent (GDPR) — both checkboxes must be checked before submit.
+  // The server-side version + hash are recorded together with IP/UA at
+  // registration time, so the user can't accept "an old version" or skip
+  // the proof. See src/app/api/auth/register/route.ts and src/lib/legal.ts.
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+
+  // PDF viewer modal: 'privacy' | 'terms' | null. Apre il PDF in-page invece
+  // di un nuovo tab (più affidabile su mobile, dove alcuni browser non
+  // tornano agevolmente alla pagina precedente).
+  const [pdfOpen, setPdfOpen] = useState<null | { url: string; title: string }>(null);
+
+  // Versioni correnti dei documenti legali, caricate da /api/legal/current
+  // (pubblica) al mount. null mentre il fetch è in corso: le checkbox sono
+  // disabilitate per evitare che l'utente accetti "una versione sconosciuta".
+  // Se il fetch fallisce, fallback a null e le checkbox restano disabilitate
+  // con un messaggio d'errore — l'utente NON può registrarsi senza aver
+  // prima letto i documenti aggiornati.
+  const [legalDocs, setLegalDocs] = useState<{
+    PRIVACY: { version: string; url: string } | null;
+    TERMS: { version: string; url: string } | null;
+  }>({ PRIVACY: null, TERMS: null });
+  const [legalDocsError, setLegalDocsError] = useState<string | null>(null);
+
   const isStagingSecretEnabled = process.env.NEXT_PUBLIC_STAGING_REGISTRATION_SECRET_ENABLED === 'true';
 
   useEffect(() => {
@@ -104,14 +135,52 @@ function RegisterForm() {
     }
   }, [isOAuth, oauthName]);
 
+  // Carica le versioni correnti dei documenti legali da /api/legal/current
+  // (pubblica). Necessario perché /auth/register è una pagina per utenti NON
+  // ancora loggati, quindi /api/legal/status (che richiede auth) non è
+  // accessibile. Senza questi dati le checkbox restano disabilitate e
+  // l'utente NON può registrarsi — l'obiettivo è che legga la versione
+  // corrente, non un PDF statico vecchio.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/legal/current', { cache: 'no-store' });
+        if (!res.ok) {
+          if (!cancelled) {
+            setLegalDocsError(
+              'Impossibile caricare i documenti legali correnti. Riprova più tardi.'
+            );
+          }
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setLegalDocs({
+            PRIVACY: data.documents?.PRIVACY ?? null,
+            TERMS: data.documents?.TERMS ?? null,
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching /api/legal/current:', err);
+        if (!cancelled) {
+          setLegalDocsError(
+            'Impossibile caricare i documenti legali correnti. Riprova più tardi.'
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Fetch intermediaries and dioceses when location is detected
   useEffect(() => {
     if (latitude && longitude) {
+      fetchDioceses();
       if (role === 'RECIPIENT') {
         fetchIntermediaries();
-      }
-      if (role === 'INTERMEDIARY') {
-        fetchDioceses();
       }
     }
   }, [role, latitude, longitude]);
@@ -209,6 +278,27 @@ function RegisterForm() {
       return;
     }
 
+    // Legal consent: obbligatorio ai sensi del GDPR (Reg. UE 2016/679) e
+    // della normativa italiana. L'utente deve dichiarare di aver letto sia
+    // l'informativa privacy sia le condizioni d'uso. Senza → registrazione
+    // non può procedere.
+    // Blocco anche se le versioni correnti non sono state caricate: l'utente
+    // non può aver letto nulla se non conosce la versione da accettare.
+    if (!legalDocs.PRIVACY || !legalDocs.TERMS) {
+      setError('Documenti legali non ancora disponibili, riprova tra qualche secondo.');
+      return;
+    }
+    if (!acceptTerms || !acceptPrivacy) {
+      setError("Devi accettare l'Informativa Privacy e le Condizioni d'uso per procedere");
+      return;
+    }
+
+    // Diocese is mandatory for all roles
+    if (!selectedDioceseId) {
+      setError('Seleziona una diocesi di appartenenza');
+      return;
+    }
+
     if (role === 'RECIPIENT') {
       if (!firstName || !lastName || !birthDate || !fiscalCode || !address || !cap || !city || !houseNumber) {
         setError('Tutti i campi anagrafici sono obbligatori per i riceventi');
@@ -285,6 +375,9 @@ function RegisterForm() {
         payload.longitude = lng;
       }
 
+      // Diocese is mandatory for all roles
+      payload.dioceseId = selectedDioceseId;
+
       if (role === 'INTERMEDIARY') {
         if (!orgName || !orgType) {
           setError('Nome e tipo organizzazione sono obbligatori per gli enti');
@@ -292,10 +385,11 @@ function RegisterForm() {
         }
         payload.orgName = orgName;
         payload.orgType = orgType;
-        if (dioceseId) {
-          payload.dioceseId = dioceseId;
-        }
       }
+
+      // Legal consent flags — server-side validates and stores with IP+UA.
+      payload.acceptTerms = acceptTerms ? 'true' : 'false';
+      payload.acceptPrivacy = acceptPrivacy ? 'true' : 'false';
 
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -348,7 +442,7 @@ function RegisterForm() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Ruolo</label>
             <div className="grid grid-cols-2 gap-3">
-              {(['DONOR', 'RECIPIENT', 'INTERMEDIARY'] as Role[]).map((r) => (
+              {(['DONOR', 'RECIPIENT'] as Role[]).map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -362,12 +456,10 @@ function RegisterForm() {
                   <span className="block text-2xl mb-1">
                     {r === 'DONOR' && '🎁'}
                     {r === 'RECIPIENT' && '🙏'}
-                    {r === 'INTERMEDIARY' && '🏢'}
                   </span>
                   <span className="text-sm font-medium">
                     {r === 'DONOR' && 'Donatore'}
                     {r === 'RECIPIENT' && 'Beneficiario'}
-                    {r === 'INTERMEDIARY' && 'Ente'}
                   </span>
                 </button>
               ))}
@@ -583,6 +675,35 @@ function RegisterForm() {
                 </p>
               )}
             </div>
+
+            {/* Diocese Selection - Mandatory for all roles */}
+            <div className="mt-4">
+              <label htmlFor="diocese" className="block text-sm font-medium text-gray-700 mb-2">
+                Diocesi di appartenenza <span className="text-red-500">*</span>
+              </label>
+              {!latitude || !longitude ? (
+                <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                  Rileva prima la posizione per vedere le diocesi vicine
+                </div>
+              ) : (
+                <select
+                  id="diocese"
+                  value={selectedDioceseId}
+                  onChange={(e) => setSelectedDioceseId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+                >
+                  <option value="">Seleziona diocesi ({dioceses.length} trovate)</option>
+                  {dioceses.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} - {d.seat} ({d.distance.toFixed(1)} km)
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="text-xs text-gray-400 mt-1">
+                Obbligatoria. Ti permette di vedere le richieste della tua diocesi.
+              </p>
+            </div>
           </div>
 
           {/* Intermediary specific fields */}
@@ -619,33 +740,6 @@ function RegisterForm() {
                   <option value="CHARITY">Associazione / Fondazione</option>
                   <option value="ASSOCIATION">Altro</option>
                 </select>
-              </div>
-              <div>
-                <label htmlFor="diocese" className="block text-sm font-medium text-gray-700 mb-2">
-                  Diocesi di appartenenza
-                </label>
-                {!latitude || !longitude ? (
-                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
-                    Rileva prima la posizione per vedere le diocesi vicine
-                  </div>
-                ) : (
-                  <select
-                    id="diocese"
-                    value={dioceseId}
-                    onChange={(e) => setDioceseId(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 outline-none transition"
-                  >
-                    <option value="">Seleziona diocesi ({dioceses.length} trovate)</option>
-                    {dioceses.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} - {d.seat} ({d.distance.toFixed(1)} km)
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <p className="text-xs text-gray-400 mt-1">
-                  Facoltativo. Ti aiuterà a trovare enti vicini alla tua diocesi.
-                </p>
               </div>
             </div>
           )}
@@ -773,6 +867,98 @@ function RegisterForm() {
             </div>
           )}
 
+          {/* Legal consent (GDPR) — required. I link aprono i PDF in nuova tab. */}
+          <div className="border-t pt-5 space-y-3">
+            <p className="text-sm font-medium text-gray-700">
+              Consensi obbligatori *
+            </p>
+
+            {legalDocsError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {legalDocsError}
+              </div>
+            )}
+
+            {!legalDocsError && (!legalDocs.PRIVACY || !legalDocs.TERMS) && (
+              <div className="p-3 bg-gray-50 border border-gray-200 text-gray-600 rounded-lg text-sm">
+                Caricamento documenti legali in corso…
+              </div>
+            )}
+
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                required
+                disabled={!legalDocs.PRIVACY}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                Ho letto e accetto l&apos;
+                <button
+                  type="button"
+                  disabled={!legalDocs.PRIVACY}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (legalDocs.PRIVACY) {
+                      setPdfOpen({
+                        url: legalDocs.PRIVACY.url,
+                        title: `Informativa Privacy v${legalDocs.PRIVACY.version}`,
+                      });
+                    }
+                  }}
+                  className="text-secondary-600 hover:text-secondary-700 underline font-medium disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed"
+                >
+                  Informativa Privacy
+                  {legalDocs.PRIVACY && ` v${legalDocs.PRIVACY.version}`}
+                </button>
+                {' '}ai sensi dell&apos;art. 13 del Regolamento UE 2016/679 (GDPR).
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                required
+                disabled={!legalDocs.TERMS}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                Ho letto e accetto le{' '}
+                <button
+                  type="button"
+                  disabled={!legalDocs.TERMS}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (legalDocs.TERMS) {
+                      setPdfOpen({
+                        url: legalDocs.TERMS.url,
+                        title: `Condizioni d'uso v${legalDocs.TERMS.version}`,
+                      });
+                    }
+                  }}
+                  className="text-secondary-600 hover:text-secondary-700 underline font-medium disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed"
+                >
+                  Condizioni d&apos;uso
+                  {legalDocs.TERMS && ` v${legalDocs.TERMS.version}`}
+                </button>
+                {' '}del servizio KYKOS.
+              </span>
+            </label>
+
+            <p className="text-xs text-gray-500">
+              I consensi verranno registrati con la versione dei documenti,
+              un hash crittografico del PDF, il tuo indirizzo IP e User-Agent
+              per la prova legale ai sensi del Provvedimento del Garante
+              Privacy n. 229/2014.
+            </p>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -791,6 +977,15 @@ function RegisterForm() {
             )}
           </button>
         </form>
+
+        {/* PDF viewer modal (apre Privacy o ToS in-page, niente cambio tab) */}
+        {pdfOpen && (
+          <PdfViewerModal
+            url={pdfOpen.url}
+            title={pdfOpen.title}
+            onClose={() => setPdfOpen(null)}
+          />
+        )}
 
         <div className="mt-6">
           <div className="relative">
@@ -839,8 +1034,8 @@ export default function RegisterPage() {
   return (
     <RegistrationGate>
     <div className="min-h-screen flex">
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-secondary-600 to-secondary-800 p-12 flex-col justify-between relative overflow-hidden">
+      {/* Left side - Branding (fixed, non scrollabile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-secondary-600 to-secondary-800 p-12 flex-col justify-between relative overflow-hidden sticky top-0 h-screen">
         {/* Decorative elements */}
         <div className="absolute top-20 left-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
@@ -853,7 +1048,7 @@ export default function RegisterPage() {
           <p className="text-secondary-100 mt-3 text-lg">Dona con amore, ricevi con dignità</p>
         </div>
 
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 space-y-8 flex-1 flex flex-col justify-center">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <span className="text-3xl">🎁</span>

@@ -10,6 +10,11 @@ build/
 .env
 .env.local
 .env.*.local
+.env.staging
+.env.production
+# I template sono committati (non contengono segreti):
+!.env.staging.template
+!.env.production.template
 
 # IDE
 .idea/
@@ -28,8 +33,16 @@ yarn-error.log*
 *.db
 *.db-journal
 
+# TypeScript
+*.tsbuildinfo
+
 # Debug
 npm-debug.log
 
 .vercel
 .env*.local
+.env.staging
+.env.production
+# I template sono committati (non contengono segreti):
+!.env.staging.template
+!.env.production.template

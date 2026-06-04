@@ -3,13 +3,12 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { hasAnyPermission } from '@/lib/permissions';
-import { randomBytes } from 'crypto';
 import { sendMultiAvailabilityQrNotification } from '@/lib/email';
 import { generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
+import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;
@@ -33,128 +32,208 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
 }
 
 // POST /api/operator/multi-availability/[id]/assign - Assegna beneficiari selezionati
-export async function POST(
+//
+// B1 fix: la vecchia implementazione leggeva `currentlyAssigned` e poi scriveva
+// N update in loop, senza lock: due operatori in concorrenza potevano superare
+// `availableQty`. Ora l'assegnazione avviene in una $transaction con update
+// condizionato su `status: 'PENDING'`: ogni updateMany ritorna il numero di
+// righe effettivamente transitate, e l'increment di `assignedQty` è una singola
+// UPDATE atomica. Email e notifiche sono FUORI dalla transazione (best-effort).
+export const POST = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const { id } = await params;
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    if (!hasAnyPermission(operator.role, operator.permissions, ['ORGANIZATION_ADMIN'])) {
-      return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
-    }
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
 
-    const availability = await prisma.multiAvailability.findUnique({
-      where: { id },
-    });
+  if (!hasAnyPermission(operator.role, operator.permissions, ['ORGANIZATION_ADMIN'])) {
+    return NextResponse.json({ error: 'Permessi insufficienti' }, { status: 403 });
+  }
 
-    if (!availability || availability.organizationId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
+  const availability = await prisma.multiAvailability.findUnique({
+    where: { id },
+  });
 
-    const body = await request.json();
-    const { requestIds } = body;
+  if (!availability || availability.organizationId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
 
-    if (!Array.isArray(requestIds)) {
-      return NextResponse.json({ error: 'requestIds deve essere un array' }, { status: 400 });
-    }
+  const body = await request.json();
+  const { requestIds } = body;
 
-    // Ottieni i request IDs e i relativi beneficiary IDs
-    const requests = await prisma.multiAvailabilityRequest.findMany({
-      where: {
-        id: { in: requestIds },
-        multiAvailabilityId: id,
-        status: 'PENDING',
-      },
-      select: {
-        id: true,
-        beneficiaryId: true,
-      },
-    });
+  if (!Array.isArray(requestIds) || requestIds.length === 0) {
+    return NextResponse.json({ error: 'requestIds deve essere un array non vuoto' }, { status: 400 });
+  }
 
-    if (requests.length === 0) {
-      return NextResponse.json({ error: 'Nessuna richiesta trovuta da assegnare' }, { status: 400 });
-    }
+  // Deduplica: requestIds ripetuti nello stesso payload non devono
+  // far transpire la stessa riga due volte.
+  const uniqueRequestIds = Array.from(new Set(requestIds));
 
-    // Verifica che non si superi la quantità disponibile
-    const currentlyAssigned = await prisma.multiAvailabilityRequest.count({
-      where: {
-        multiAvailabilityId: id,
-        status: 'ASSIGNED',
-      }
-    });
+  // Fetch beneficiari per i need score: serve per il needScoreSnapshot
+  // una volta che la transazione è andata a buon fine.
+  const requests = await prisma.multiAvailabilityRequest.findMany({
+    where: {
+      id: { in: uniqueRequestIds },
+      multiAvailabilityId: id,
+    },
+    select: {
+      id: true,
+      beneficiaryId: true,
+      status: true,
+    },
+  });
 
-    const newAssignments = requests.length;
-    if (currentlyAssigned + newAssignments > availability.availableQty) {
-      return NextResponse.json({
-        error: `Superata la quantità disponibile. Disponibili: ${availability.availableQty - currentlyAssigned}`
-      }, { status: 400 });
-    }
+  if (requests.length === 0) {
+    return NextResponse.json({ error: 'Nessuna richiesta trovata da assegnare' }, { status: 400 });
+  }
 
-    // Genera QR code per ogni beneficiario assegnato
-    const qrCodes: string[] = [];
-    for (const req of requests) {
-      // Ottieni tutti i dettagli del beneficiario
-      const beneficiary = await prisma.user.findUnique({
-        where: { id: req.beneficiaryId },
-        select: {
-          needScore: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          name: true,
-          nickname: true,
-        }
+  // --- Fase 1: transazione atomica per status + assignedQty ---------------
+  // updateMany con where condizionato su `status: 'PENDING'` è atomico: la
+  // count ritornata è il numero di righe effettivamente transitate. Se un
+  // altro operatore ha già cambiato lo stato, count = 0.
+  //
+  // Ritorniamo claimedIds (gli id effettivamente transitati) invece di un
+  // semplice count, così il loop successivo sa esattamente per quali
+  // beneficiari inviare QR/email/notifica. Le righe che erano già in
+  // ASSIGNED (race persa) NON vanno toccate.
+  const txResult = await prisma.$transaction(async (tx) => {
+    const claimedIds: string[] = [];
+    for (const reqId of uniqueRequestIds) {
+      const r = await tx.multiAvailabilityRequest.updateMany({
+        where: { id: reqId, multiAvailabilityId: id, status: 'PENDING' },
+        data: { status: 'ASSIGNED' },
       });
+      if (r.count > 0) claimedIds.push(reqId);
+    }
 
-      if (!beneficiary) continue;
+    // Capacity check: dopo l'update, assignedQty + claimed deve stare dentro availableQty.
+    // Rileggo assignedQty aggiornato (altri operatori potrebbero aver
+    // incrementato nello stesso momento) e verifico PRIMA di scrivere.
+    const fresh = await tx.multiAvailability.findUnique({
+      where: { id },
+      select: { availableQty: true, assignedQty: true },
+    });
+    if (!fresh) {
+      throw new Error('MultiAvailability disappeared mid-transaction');
+    }
+    const claimed = claimedIds.length;
+    const free = fresh.availableQty - fresh.assignedQty;
+    if (claimed > free) {
+      // La transazione fa rollback automaticamente (throw).
+      return { assigned: -claimed, remaining: free, claimedIds: [] as string[] };
+    }
+    // Increment atomico di assignedQty. Anche se due transazioni
+    // concorrenti passano il check, l'increment è una singola UPDATE e
+    // Postgres serializza gli update sulla stessa riga; l'eventuale
+    // successiva transazione troverebbe assignedQty+claimed > availableQty
+    // e farebbe rollback.
+    if (claimed > 0) {
+      await tx.multiAvailability.update({
+        where: { id },
+        data: { assignedQty: { increment: claimed } },
+      });
+    }
+    return {
+      assigned: claimed,
+      remaining: fresh.availableQty - fresh.assignedQty - claimed,
+      claimedIds,
+    };
+  });
 
-      // Genera QR code nel nuovo formato
-      const qrCodeData = `kykos:multiavailability:pickup:${req.id}:${req.beneficiaryId}`;
-      const qrCodeImageUrl = await generateAndUploadQrCodeWithLogo(qrCodeData, `multi-avail-${req.id}.png`);
+  if (txResult.assigned < 0) {
+    return NextResponse.json(
+      { error: `Superata la quantità disponibile. Slot liberi: ${txResult.remaining}` },
+      { status: 400 }
+    );
+  }
 
+  const claimedIds = new Set(txResult.claimedIds);
+  const claimedRequests = requests.filter((r) => claimedIds.has(r.id));
+
+  if (claimedRequests.length === 0) {
+    // Tutte le righe richieste erano già in uno stato non-PENDING (vinte da
+    // un'altra race). Niente da fare, nessuna email da inviare.
+    return NextResponse.json({
+      success: true,
+      assigned: 0,
+      qrCodes: [],
+      message: 'Nessuna richiesta era più in stato PENDING',
+    });
+  }
+
+  // --- Fase 2: effetti collaterali (best-effort, FUORI dalla transazione) -
+  // Recupera info organizzazione (singola query, condivisa da tutti i loop).
+  const organization = await prisma.organization.findUnique({
+    where: { id: session.organizationId },
+    select: {
+      name: true,
+      address: true,
+      houseNumber: true,
+      cap: true,
+      city: true,
+      province: true,
+      phone: true,
+      email: true,
+      hoursInfo: true,
+    },
+  });
+
+  // Mappa beneficiari per evitare query N+1 nel loop
+  const beneficiaryIds = requests.map((r) => r.beneficiaryId);
+  const beneficiaries = await prisma.user.findMany({
+    where: { id: { in: beneficiaryIds } },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      name: true,
+      nickname: true,
+      needScore: true,
+    },
+  });
+  const beneficiaryById = new Map(beneficiaries.map((b) => [b.id, b]));
+
+  const qrCodes: string[] = [];
+  for (const req of claimedRequests) {
+    const beneficiary = beneficiaryById.get(req.beneficiaryId);
+    if (!beneficiary) continue;
+
+    const qrCodeData = `kykos:multiavailability:pickup:${req.id}:${req.beneficiaryId}`;
+    const qrCodeImageUrl = await generateAndUploadQrCodeWithLogo(qrCodeData, `multi-avail-${req.id}.png`);
+
+    // Aggiorna qrCode + needScoreSnapshot (best-effort, FUORI tx:
+    // se fallisce, lo stato è già corretto e il beneficiary potrà
+    // richiedere un nuovo QR).
+    try {
       await prisma.multiAvailabilityRequest.update({
         where: { id: req.id },
         data: {
-          status: 'ASSIGNED',
           qrCode: qrCodeData,
           needScoreSnapshot: beneficiary.needScore ?? 50,
         },
       });
-      qrCodes.push(qrCodeData);
+    } catch (err) {
+      console.error(`Failed to attach QR/needScore to request ${req.id}:`, err);
+    }
+    qrCodes.push(qrCodeData);
 
-      // Invia email con QR code
-      const recipientName = [beneficiary.firstName, beneficiary.lastName].filter(Boolean).join(' ') || beneficiary.nickname || beneficiary.name || 'Beneficiario';
-
-      // Recupera info organizzazione per l'email
-      const organization = await prisma.organization.findUnique({
-        where: { id: session.organizationId },
-        select: {
-          name: true,
-          address: true,
-          houseNumber: true,
-          cap: true,
-          city: true,
-          province: true,
-          phone: true,
-          email: true,
-          hoursInfo: true,
-        }
-      });
-
+    // Email + notifica (best-effort, errori loggati)
+    const recipientName = [beneficiary.firstName, beneficiary.lastName].filter(Boolean).join(' ') || beneficiary.nickname || beneficiary.name || 'Beneficiario';
+    try {
       await sendMultiAvailabilityQrNotification(
         beneficiary.email,
         req.beneficiaryId,
@@ -173,8 +252,11 @@ export async function POST(
         organization?.email || null,
         organization?.hoursInfo || undefined
       );
+    } catch (emailErr) {
+      console.error(`Failed to send QR email for request ${req.id}:`, emailErr);
+    }
 
-      // Invia notifica
+    try {
       await prisma.notification.create({
         data: {
           recipientUserId: req.beneficiaryId,
@@ -185,28 +267,15 @@ export async function POST(
           link: '/recipient/dashboard',
         },
       });
+    } catch (notifErr) {
+      console.error(`Failed to create notification for request ${req.id}:`, notifErr);
     }
-
-    // Aggiorna assignedQty
-    const newAssignedCount = await prisma.multiAvailabilityRequest.count({
-      where: {
-        multiAvailabilityId: id,
-        status: { in: ['ASSIGNED', 'FULFILLED'] }
-      }
-    });
-
-    await prisma.multiAvailability.update({
-      where: { id },
-      data: { assignedQty: newAssignedCount },
-    });
-
-    return NextResponse.json({
-      success: true,
-      assigned: requests.length,
-      qrCodes,
-    });
-  } catch (error) {
-    console.error('MultiAvailability assign error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
-}
+
+  return NextResponse.json({
+    success: true,
+    assigned: txResult.assigned,
+    qrCodes,
+  });
+
+}, 'POST /api/operator/multi-availability/[id]/assign');

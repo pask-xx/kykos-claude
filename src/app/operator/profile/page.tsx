@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { OPERATOR_ROLE_LABELS } from '@/types';
 import OperatorPasswordChangeForm from '@/components/operator/OperatorPasswordChangeForm';
+import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 import dynamic from 'next/dynamic';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -43,6 +44,7 @@ interface OperatorData {
   lastName: string;
   role: string;
   permissions: string[];
+  profileImageUrl: string | null;
   organization: {
     id: string;
     name: string;
@@ -207,6 +209,7 @@ export default function OperatorProfilePage() {
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     address: '',
     houseNumber: '',
@@ -231,6 +234,7 @@ export default function OperatorProfilePage() {
       if (opData.operator) {
         const op = opData.operator;
         setOperator(op);
+        setProfileImageUrl(op.profileImageUrl || null);
 
         // If admin, also fetch organization data
         const isOpAdmin = op.role === 'ADMIN' || op.permissions.includes('ORGANIZATION_ADMIN');
@@ -410,15 +414,28 @@ export default function OperatorProfilePage() {
       {/* Profile Card */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-            <span className="text-3xl">👤</span>
+          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl">👤</span>
+            )}
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="text-xl font-semibold text-gray-900">
               {operator.firstName} {operator.lastName}
             </h2>
             <p className="text-gray-500">@{operator.username}</p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b">
+          <ProfilePhotoUploader
+            currentUrl={profileImageUrl}
+            onUploadComplete={(url) => {
+              setProfileImageUrl(url);
+            }}
+          />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">

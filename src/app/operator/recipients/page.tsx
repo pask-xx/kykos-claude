@@ -14,6 +14,7 @@ interface Recipient {
   createdAt: string;
   isee: string | null;
   needScore: number;
+  profileImageUrl: string | null;
 }
 
 const getNeedScoreColor = (score: number) => {
@@ -107,8 +108,12 @@ export default function OperatorRecipientsPage() {
                   <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-amber-200">
                     <div className="flex gap-3">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xl">👤</span>
+                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {recipient.profileImageUrl ? (
+                          <img src={recipient.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xl">👤</span>
+                        )}
                       </div>
 
                       {/* Info */}
@@ -160,8 +165,12 @@ export default function OperatorRecipientsPage() {
                   <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border">
                     <div className="flex gap-3">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xl">👤</span>
+                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {recipient.profileImageUrl ? (
+                          <img src={recipient.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xl">👤</span>
+                        )}
                       </div>
 
                       {/* Info */}

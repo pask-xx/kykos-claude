@@ -116,11 +116,24 @@ enum NotificationType {
   GOODS_OFFER_RECEIVED
   // Cause notifications
   CAUSE_MESSAGE
+  // Street operator notifications
+  STREET_OBJECT_DEPOSITED
 }
 
 enum RequestType {
   GOODS
   SERVICES
+}
+
+enum LegalDocumentType {
+  TERMS
+  PRIVACY
+}
+
+enum LegalDocumentStatus {
+  scheduled
+  active
+  archived
 }
 
 enum GoodsRequestStatus {
@@ -176,11 +189,11 @@ enum MultiAvailabilityRequestStatus {
 
 model User {
   id           String   @id @default(cuid())
-  authUserId   String?  @unique  // Supabase Auth user ID
+  authUserId   String?  @unique // Supabase Auth user ID
   email        String   @unique
   name         String // Keep for backward compat
-  nickname     String?   // User-chosen or auto-generated fantasy name, used for display to intermediaries
-  passwordHash String?           // Nullable - null for Supabase Auth users, kept for migration
+  nickname     String? // User-chosen or auto-generated fantasy name, used for display to intermediaries
+  passwordHash String? // Nullable - null for Supabase Auth users, kept for migration
   role         Role     @default(DONOR)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -209,12 +222,22 @@ model User {
   emailConfirmedAt     DateTime?
   canProvideServices   Boolean       @default(false)
   canProvideServicesAt DateTime?
-  canRequestGoods     Boolean       @default(true)
-  canRequestServices  Boolean       @default(false)
+  canRequestGoods      Boolean       @default(true)
+  canRequestServices   Boolean       @default(false)
+  isStreetManaged      Boolean       @default(false) // true = senza account, gestito da street operators
+  profileImageUrl      String?       // URL pubblica della foto profilo
+
+  // Diocese (for DONOR and RECIPIENT, organization diocese is stored on Organization model)
+  dioceseId String?
+  diocese   Diocese? @relation(fields: [dioceseId], references: [id])
 
   // Donor relations
   donatedObjects Object[]      @relation("DonorObjects")
   donorProfile   DonorProfile?
+
+  // Deactivation (B2: soft-delete invece di user.delete, per preservare lo storico)
+  deactivatedAt     DateTime?
+  deactivatedActions String[]  @default([]) // log delle azioni di cascade per audit
 
   // Recipient relations
   requests          Request[]  @relation("RecipientRequests")
@@ -246,45 +269,122 @@ model User {
   // Cause participation
   causeParticipations CauseParticipant[]
 
+  // Street operators che gestiscono questo beneficiario (se isStreetManaged=true)
+  managedByStreetOperators StreetOperatorBeneficiary[]
+
+  // GDPR art. 7: tracciamento del consenso a privacy + termini.
+  // Una entry per (utente, documento, versione). L'unicità permette di dimostrare
+  // in caso di audit Garante cosa l'utente ha accettato e quando.
+  legalConsents LegalConsent[]
+
+  // Admin ha caricato versioni di documenti legali
+  uploadedLegalDocs LegalDocumentVersion[] @relation("LegalDocUploader")
+  // Audit log delle azioni admin
+  adminActions AdminAction[] @relation("AdminActions")
+
   @@map("users")
 }
 
+model LegalConsent {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType  LegalDocumentType
+  version       String            // es. "1.0"
+  documentHash  String            // SHA-256 del PDF al momento dell'accettazione
+  acceptedAt    DateTime          @default(now())
+  ipAddress     String?           // opzionale, prova legale
+  userAgent     String?           // opzionale, prova legale
+
+  @@unique([userId, documentType, version]) // idempotente: stesso user+doc+version
+  @@index([userId])
+  @@index([documentType, version])
+}
+
+/// Storico immutabile di tutti i PDF (Privacy/ToS) caricati dall'admin.
+/// Una sola riga per (type, version) con status 'active' — la "versione
+/// corrente" che gli utenti devono accettare. Il flusso di transizione è:
+///   scheduled (appena caricato, non ancora visibile) → active (pubblicato)
+///   active → archived (quando sostituito da un nuovo active)
+/// Solo le righe 'scheduled' sono cancellabili, per preservare la prova
+/// storica in caso di audit Garante. Vedi routes /api/admin/legal/*.
+model LegalDocumentVersion {
+  id           String              @id @default(cuid())
+  type         LegalDocumentType
+  version      String              // semver-like: "1.0", "1.1", "2.0", ...
+  hash         String              // SHA-256 del PDF, calcolato server-side al upload
+  storagePath  String              // path nel bucket Supabase Storage
+  fileSize     Int                 // bytes
+  status       LegalDocumentStatus @default(scheduled)
+  uploadedById String
+  uploadedBy   User                @relation("LegalDocUploader", fields: [uploadedById], references: [id])
+  uploadedAt   DateTime            @default(now())
+  publishedAt  DateTime?           // null finché status = scheduled
+  archivedAt   DateTime?           // null finché status = active
+  notes        String?             // changelog opzionale (es. "Riformulazione art. 5")
+
+  @@unique([type, version])        // un solo PDF per type+version
+  @@index([type, status])          // query "versione attiva per type"
+  @@index([uploadedById])
+  @@map("legal_document_versions")
+}
+
+/// Audit log: chi ha fatto cosa quando sulle risorse admin.
+/// In V1 usato principalmente per legal_doc.* (upload, publish, restore, delete).
+/// Crescerà in V2 con moderation, operator management, ecc.
+model AdminAction {
+  id         String   @id @default(cuid())
+  adminId    String
+  admin      User     @relation("AdminActions", fields: [adminId], references: [id])
+  action     String   // "legal_doc.upload", "legal_doc.publish", "legal_doc.restore", "legal_doc.delete"
+  targetType String?  // es. "LegalDocumentVersion"
+  targetId   String?
+  metadata   Json?    // dettagli: { fromVersion, toVersion, type, ... }
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_actions")
+}
+
 model Diocese {
-  id       String  @id @default(cuid())
-  name     String  @unique  // e.g., "Diocesi di Roma", "Arcidiocesi di Milano"
-  seat     String  // e.g., "Roma", "Milano"
-  latitude Float
+  id        String @id @default(cuid())
+  name      String @unique // e.g., "Diocesi di Roma", "Arcidiocesi di Milano"
+  seat      String // e.g., "Roma", "Milano"
+  latitude  Float
   longitude Float
 
   organizations Organization[]
+  users         User[]
 
   @@map("dioceses")
 }
 
 model Organization {
-  id                  String   @id @default(cuid())
-  code                String   @unique
-  name                String
-  type                OrgType
-  vatNumber           String?
-  latitude            Float?
-  longitude           Float?
-  address             String?
-  houseNumber         String?
-  cap                 String?
-  city                String?
-  province            String?
-  phone               String?
-  email               String?
-  verified                   Boolean  @default(false)
-  autoApproveRequests       Boolean  @default(false) // Oggetti dal donatore
-  autoApproveGoodsRequests  Boolean  @default(true)  // Richieste beni
-  autoApproveServicesRequests Boolean @default(false) // Richieste servizi
-  hoursInfo           String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions
-  printLabel          Boolean  @default(false) @map("printlabel")
-  labelSize           String   @default("50x30") @map("labelsize")
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                          String   @id @default(cuid())
+  code                        String   @unique
+  name                        String
+  type                        OrgType
+  vatNumber                   String?
+  latitude                    Float?
+  longitude                   Float?
+  address                     String?
+  houseNumber                 String?
+  cap                         String?
+  city                        String?
+  province                    String?
+  phone                       String?
+  email                       String?
+  verified                    Boolean  @default(false)
+  autoApproveRequests         Boolean  @default(false) // Oggetti dal donatore
+  autoApproveGoodsRequests    Boolean  @default(true) // Richieste beni
+  autoApproveServicesRequests Boolean  @default(false) // Richieste servizi
+  hoursInfo                   String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions
+  printLabel                  Boolean  @default(false) @map("printlabel")
+  labelSize                   String   @default("50x30") @map("labelsize")
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -316,19 +416,19 @@ model Organization {
 // ================== GEOGRAPHY ==================
 
 model Province {
-  id        String   @id @default(cuid())
-  sigla     String   @unique  // e.g., "AG", "TO", "RM"
-  name      String             // e.g., "Agrigento", "Torino", "Roma"
+  id    String @id @default(cuid())
+  sigla String @unique // e.g., "AG", "TO", "RM"
+  name  String // e.g., "Agrigento", "Torino", "Roma"
 
-  comuni    Comune[]
+  comuni Comune[]
 
   @@map("provinces")
 }
 
 model Comune {
-  id         String   @id @default(cuid())
-  istat     String   @unique  // ISTAT code, e.g., "1001"
-  name      String              // e.g., "Agliè", "Roma"
+  id        String @id @default(cuid())
+  istat     String @unique // ISTAT code, e.g., "1001"
+  name      String // e.g., "Agliè", "Roma"
   latitude  Float?
   longitude Float?
 
@@ -347,7 +447,7 @@ model Object {
   status          ObjectStatus @default(AVAILABLE)
   imageUrls       String[]
   depositLocation String?      @map("deposit_location") // Scaffale/doposito dove è stato placed
-  depositNotes    String?      @map("deposit_notes")    // Note aggiuntive sulla consegna
+  depositNotes    String?      @map("deposit_notes") // Note aggiuntive sulla consegna
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -446,19 +546,22 @@ model DonorProfile {
 }
 
 model Operator {
-  id              String       @id @default(cuid())
-  supabaseAuthId  String?      @unique  // Supabase Auth user ID
-  username       String       // unique within organization (format: nome.cognome or nome.cognome.CODICE)
-  email          String?
-  phone          String?
-  firstName      String
-  lastName       String
-  passwordHash   String?
-  role           OperatorRole @default(OPERATORE)
-  permissions    String[]     @default([]) // additional granular permissions
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  supabaseAuthId   String?      @unique // Supabase Auth user ID
+  username         String // unique within organization (format: nome.cognome or nome.cognome.CODICE)
+  email            String?
+  phone            String?
+  firstName        String
+  lastName         String
+  passwordHash     String?
+  role             OperatorRole @default(OPERATORE)
+  permissions      String[]     @default([]) // additional granular permissions
+  active           Boolean      @default(true)
+  isOfficeOperator Boolean      @default(true) // operatore d'ufficio (comportamento attuale)
+  isStreetOperator Boolean      @default(false) // operatore di strada
+  profileImageUrl  String?      // URL pubblica della foto profilo
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -466,8 +569,28 @@ model Operator {
   // Notifications
   notifications Notification[] @relation("NotificationOperator")
 
+  // Street operator: beneficiari gestiti
+  managedBeneficiaries StreetOperatorBeneficiary[]
+
   @@unique([username])
   @@map("operators")
+}
+
+// Associa più street operators allo stesso beneficiario (turnazione/backup)
+model StreetOperatorBeneficiary {
+  id         String   @id @default(cuid())
+  assignedAt DateTime @default(now())
+
+  streetOperatorId String
+  streetOperator   Operator @relation(fields: [streetOperatorId], references: [id], onDelete: Cascade)
+
+  beneficiaryId String
+  beneficiary   User   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@unique([streetOperatorId, beneficiaryId])
+  @@index([streetOperatorId])
+  @@index([beneficiaryId])
+  @@map("street_operator_beneficiaries")
 }
 
 enum ReportStatus {
@@ -509,8 +632,8 @@ model Notification {
   data      String?          @map("data") @db.Text // JSON with extra data
   createdAt DateTime         @default(now())
 
-  recipientType     RecipientType @default(USER)
-  recipientUserId   String?
+  recipientType       RecipientType @default(USER)
+  recipientUserId     String?
   recipientOperatorId String?
 
   recipientUser     User?     @relation("NotificationUser", fields: [recipientUserId], references: [id], onDelete: Cascade, map: "notification_user_fk")
@@ -546,7 +669,7 @@ model GoodsRequest {
   fulfilledAt   DateTime?
 
   depositLocation String? @map("deposit_location") // Scaffale/dove è stato depositato
-  depositNotes    String? @map("deposit_notes")    // Note aggiuntive sulla consegna
+  depositNotes    String? @map("deposit_notes") // Note aggiuntive sulla consegna
 
   offers GoodsOffer[] @relation("GoodsOfferRequest")
 
@@ -557,11 +680,11 @@ model GoodsRequest {
 }
 
 model GoodsOffer {
-  id        String          @id @default(cuid())
+  id        String           @id @default(cuid())
   message   String?
   status    GoodsOfferStatus @default(PENDING)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   requestId String
   request   GoodsRequest @relation("GoodsOfferRequest", fields: [requestId], references: [id], onDelete: Cascade)
@@ -578,19 +701,19 @@ model GoodsOffer {
 // PendingRegistration removed - now using Supabase Auth email confirmation
 
 model VolunteerAssociation {
-  id            String          @id @default(cuid())
-  userId        String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   organizationId String
-  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  status        VolunteerStatus @default(PENDING)
-  skills        String[]        @default([]) // es. ["Distribuzione", "Trasporto", "Assistenza"]
-  note          String?         @db.Text // Note testuali del candidato
-  cvUrl         String?         // URL del CV allegato
-  startDate     DateTime?
-  endDate       DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         VolunteerStatus @default(PENDING)
+  skills         String[]        @default([]) // es. ["Distribuzione", "Trasporto", "Assistenza"]
+  note           String?         @db.Text // Note testuali del candidato
+  cvUrl          String? // URL del CV allegato
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@unique([userId, organizationId])
   @@index([organizationId, status])
@@ -600,7 +723,7 @@ model VolunteerAssociation {
 model AdesioneEnte {
   id                String         @id @default(cuid())
   denominazione     String
-  nomeReferente      String
+  nomeReferente     String
   cognomeReferente  String
   telefono          String
   email             String
@@ -629,18 +752,18 @@ model NotifyEmail {
 }
 
 model MultiAvailability {
-  id                String                 @id @default(cuid())
-  title            String
-  description      String?                @db.Text
-  category         Category
-  imageUrls        String[]               @default([])
-  availableQty     Int                     @default(1)
-  assignedQty      Int                     @default(0)
-  status           MultiAvailabilityStatus @default(OPEN)
-  deadline         DateTime?
-  exhaustMessage   String?                @db.Text
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
+  id             String                  @id @default(cuid())
+  title          String
+  description    String?                 @db.Text
+  category       Category
+  imageUrls      String[]                @default([])
+  availableQty   Int                     @default(1)
+  assignedQty    Int                     @default(0)
+  status         MultiAvailabilityStatus @default(OPEN)
+  deadline       DateTime?
+  exhaustMessage String?                 @db.Text
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -653,15 +776,15 @@ model MultiAvailability {
 }
 
 model MultiAvailabilityRequest {
-  id                   String                         @id @default(cuid())
-  needScoreSnapshot    Int
-  requestedAt          DateTime                       @default(now())
-  status               MultiAvailabilityRequestStatus @default(PENDING)
-  qrCode               String?
-  fulfilledAt          DateTime?
-  notifiedAt           DateTime?
-  createdAt            DateTime                       @default(now())
-  updatedAt            DateTime                       @updatedAt
+  id                String                         @id @default(cuid())
+  needScoreSnapshot Int
+  requestedAt       DateTime                       @default(now())
+  status            MultiAvailabilityRequestStatus @default(PENDING)
+  qrCode            String?
+  fulfilledAt       DateTime?
+  notifiedAt        DateTime?
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
 
   multiAvailabilityId String
   multiAvailability   MultiAvailability @relation(fields: [multiAvailabilityId], references: [id], onDelete: Cascade)
@@ -676,14 +799,14 @@ model MultiAvailabilityRequest {
 }
 
 model Cause {
-  id           String    @id @default(cuid())
-  title        String
-  description  String    @db.Text
-  imageUrls    String[]  @default([])
-  targetQty    Int?
-  deadline     DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  description String    @db.Text
+  imageUrls   String[]  @default([])
+  targetQty   Int?
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -695,15 +818,15 @@ model Cause {
 }
 
 model CauseParticipant {
-  id        String   @id @default(cuid())
-  joinedAt  DateTime @default(now())
-  note      String?  @db.Text
+  id       String   @id @default(cuid())
+  joinedAt DateTime @default(now())
+  note     String?  @db.Text
 
   causeId String
-  cause   Cause @relation(fields: [causeId], references: [id], onDelete: Cascade)
+  cause   Cause  @relation(fields: [causeId], references: [id], onDelete: Cascade)
 
   userId String
-  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([causeId, userId])
   @@index([causeId])

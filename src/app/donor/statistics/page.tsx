@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { DONOR_LEVEL_LABELS } from '@/types';
+import { DONOR_LEVEL_LABELS, OBJECT_STATUS_LABELS } from '@/types';
 
 export default async function DonorStatistics() {
   const session = await getSession();
@@ -177,11 +177,7 @@ export default async function DonorStatistics() {
                     obj.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {obj.status === 'AVAILABLE' ? 'Disponibile' :
-                     obj.status === 'RESERVED' ? 'Riservata' :
-                     obj.status === 'DEPOSITED' ? 'Depositata' :
-                     obj.status === 'DONATED' ? 'Ritirato' :
-                     obj.status === 'CANCELLED' ? 'Cancellato' : obj.status}
+                    {OBJECT_STATUS_LABELS[obj.status as keyof typeof OBJECT_STATUS_LABELS] ?? obj.status}
                   </span>
                 </div>
               ))}

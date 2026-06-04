@@ -14,6 +14,7 @@ interface Donor {
   canProvideServices: boolean;
   canProvideServicesAt: string | null;
   createdAt: string;
+  profileImageUrl: string | null;
   donorProfile: {
     totalDonations: number;
     level: string;
@@ -107,8 +108,12 @@ export default function DonorsListPage() {
               >
                 <div className="flex gap-4">
                   {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl">🎁</span>
+                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {donor.profileImageUrl ? (
+                      <img src={donor.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl">🎁</span>
+                    )}
                   </div>
 
                   {/* Info */}

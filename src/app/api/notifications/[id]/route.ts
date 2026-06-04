@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
+import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface UserSession {
   userId: string;
@@ -28,26 +28,21 @@ async function getUserSession(): Promise<UserSession | null> {
   }
 }
 
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getUserSession();
+) => {
+  const { id } = await params;
+  const session = await getUserSession();
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    await prisma.notification.updateMany({
-      where: { id, recipientUserId: session.userId },
-      data: { read: true },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Notification mark read error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  await prisma.notification.updateMany({
+    where: { id, recipientUserId: session.userId },
+    data: { read: true },
+  });
+
+  return NextResponse.json({ success: true });
+}, 'PATCH /api/notifications/[id]');

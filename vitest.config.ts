@@ -9,6 +9,11 @@ export default defineConfig({
     globals: true,
     include: ['tests/**/*.test.ts'],
     setupFiles: ['./tests/setup/mocks.ts'],
+    env: {
+      JWT_SECRET: 'test-jwt-secret-for-vitest-only-do-not-use-in-prod',
+      NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
     coverage: {
       reporter: ['text', 'html'],
       include: ['src/lib/**/*.ts', 'src/app/api/**/*.ts'],

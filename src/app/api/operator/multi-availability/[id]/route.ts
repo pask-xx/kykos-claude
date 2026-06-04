@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
+import { getJwtSecret } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'kykos-secret-key-change-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 interface OperatorSession {
   operatorId: string;
@@ -28,191 +28,182 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const { id } = await params;
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
 
-    const availability = await prisma.multiAvailability.findUnique({
-      where: { id },
-      include: {
-        requests: {
-          include: {
-            beneficiary: {
-              select: {
-                id: true,
-                nickname: true,
-                name: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                needScore: true,
-              }
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  const availability = await prisma.multiAvailability.findUnique({
+    where: { id },
+    include: {
+      requests: {
+        include: {
+          beneficiary: {
+            select: {
+              id: true,
+              nickname: true,
+              name: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              needScore: true,
             }
-          },
-          orderBy: { needScoreSnapshot: 'desc' },
+          }
         },
-        organization: {
-          select: { id: true, name: true }
-        }
+        orderBy: { needScoreSnapshot: 'desc' },
       },
-    });
-
-    if (!availability) {
-      return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
-    }
-
-    if (availability.organizationId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    // Conta gli assegnati direttamente dal DB
-    const assignedCount = await prisma.multiAvailabilityRequest.count({
-      where: {
-        multiAvailabilityId: id,
-        status: { in: ['ASSIGNED', 'FULFILLED'] }
+      organization: {
+        select: { id: true, name: true }
       }
-    });
+    },
+  });
 
-    console.log(`[DEBUG] MultiAvail ${id}: assignedQty in DB = ${assignedCount}, field = ${availability.assignedQty}`);
-
-    const result = {
-      availability: {
-        ...availability,
-        assignedQty: assignedCount,
-      }
-    };
-
-    console.log('[DEBUG] Returning availability with assignedQty:', result.availability.assignedQty);
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('MultiAvailability detail error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!availability) {
+    return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
   }
-}
 
-export async function PATCH(
+  if (availability.organizationId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  // Conta gli assegnati direttamente dal DB
+  const assignedCount = await prisma.multiAvailabilityRequest.count({
+    where: {
+      multiAvailabilityId: id,
+      status: { in: ['ASSIGNED', 'FULFILLED'] }
+    }
+  });
+
+  console.log(`[DEBUG] MultiAvail ${id}: assignedQty in DB = ${assignedCount}, field = ${availability.assignedQty}`);
+
+  const result = {
+    availability: {
+      ...availability,
+      assignedQty: assignedCount,
+    }
+  };
+
+  console.log('[DEBUG] Returning availability with assignedQty:', result.availability.assignedQty);
+
+  return NextResponse.json(result);
+
+}, 'GET /api/operator/multi-availability/[id]');
+
+export const PATCH = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const { id } = await params;
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    const availability = await prisma.multiAvailability.findUnique({
-      where: { id },
-    });
-
-    if (!availability) {
-      return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
-    }
-
-    if (availability.organizationId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { title, description, availableQty, deadline, exhaustMessage, status, imageUrls } = body;
-
-    const updated = await prisma.multiAvailability.update({
-      where: { id },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(availableQty !== undefined && { availableQty }),
-        ...(deadline !== undefined && { deadline: deadline ? new Date(deadline) : null }),
-        ...(exhaustMessage !== undefined && { exhaustMessage }),
-        ...(status !== undefined && { status }),
-        ...(imageUrls !== undefined && { imageUrls }),
-      },
-    });
-
-    return NextResponse.json({ availability: updated });
-  } catch (error) {
-    console.error('MultiAvailability update error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
 
-export async function DELETE(
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
+
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  const availability = await prisma.multiAvailability.findUnique({
+    where: { id },
+  });
+
+  if (!availability) {
+    return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
+  }
+
+  if (availability.organizationId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { title, description, availableQty, deadline, exhaustMessage, status, imageUrls } = body;
+
+  const updated = await prisma.multiAvailability.update({
+    where: { id },
+    data: {
+      ...(title !== undefined && { title }),
+      ...(description !== undefined && { description }),
+      ...(availableQty !== undefined && { availableQty }),
+      ...(deadline !== undefined && { deadline: deadline ? new Date(deadline) : null }),
+      ...(exhaustMessage !== undefined && { exhaustMessage }),
+      ...(status !== undefined && { status }),
+      ...(imageUrls !== undefined && { imageUrls }),
+    },
+  });
+
+  return NextResponse.json({ availability: updated });
+
+}, 'PATCH /api/operator/multi-availability/[id]');
+
+export const DELETE = withErrorHandler(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getOperatorSession();
+) => {
 
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+  const { id } = await params;
+  const session = await getOperatorSession();
 
-    const operator = await prisma.operator.findUnique({
-      where: { id: session.operatorId },
-    });
-
-    if (!operator || !operator.active) {
-      return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
-    }
-
-    const availability = await prisma.multiAvailability.findUnique({
-      where: { id },
-    });
-
-    if (!availability) {
-      return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
-    }
-
-    if (availability.organizationId !== session.organizationId) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
-    }
-
-    // Solo se non ci sono richieste assegnate già in corso
-    const assignedCount = await prisma.multiAvailabilityRequest.count({
-      where: {
-        multiAvailabilityId: id,
-        status: { in: ['ASSIGNED', 'FULFILLED'] }
-      }
-    });
-
-    if (assignedCount > 0) {
-      return NextResponse.json({
-        error: 'Impossibile eliminare: ci sono richieste già assegnate o evase'
-      }, { status: 400 });
-    }
-
-    await prisma.multiAvailability.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('MultiAvailability delete error:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  const operator = await prisma.operator.findUnique({
+    where: { id: session.operatorId },
+  });
+
+  if (!operator || !operator.active) {
+    return NextResponse.json({ error: 'Operatore non trovato' }, { status: 404 });
+  }
+
+  const availability = await prisma.multiAvailability.findUnique({
+    where: { id },
+  });
+
+  if (!availability) {
+    return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
+  }
+
+  if (availability.organizationId !== session.organizationId) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
+  }
+
+  // Solo se non ci sono richieste assegnate già in corso
+  const assignedCount = await prisma.multiAvailabilityRequest.count({
+    where: {
+      multiAvailabilityId: id,
+      status: { in: ['ASSIGNED', 'FULFILLED'] }
+    }
+  });
+
+  if (assignedCount > 0) {
+    return NextResponse.json({
+      error: 'Impossibile eliminare: ci sono richieste già assegnate o evase'
+    }, { status: 400 });
+  }
+
+  await prisma.multiAvailability.delete({ where: { id } });
+
+  return NextResponse.json({ success: true });
+
+}, 'DELETE /api/operator/multi-availability/[id]');

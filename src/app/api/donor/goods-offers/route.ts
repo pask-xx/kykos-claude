@@ -1,34 +1,30 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-export async function GET() {
-  try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
+export const GET = withErrorHandler(async () => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  }
 
-    // Get all goods offers made by this user with their request info
-    const offers = await prisma.goodsOffer.findMany({
-      where: {
-        offeredById: session.id,
-      },
-      include: {
-        request: {
-          include: {
-            beneficiary: {
-              select: { name: true },
-            },
+  // Get all goods offers made by this user with their request info
+  const offers = await prisma.goodsOffer.findMany({
+    where: {
+      offeredById: session.id,
+    },
+    include: {
+      request: {
+        include: {
+          beneficiary: {
+            select: { name: true },
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
-    return NextResponse.json({ offers });
-  } catch (error) {
-    console.error('Error fetching goods offers:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
-  }
-}
+  return NextResponse.json({ offers });
+}, 'GET /api/donor/goods-offers');

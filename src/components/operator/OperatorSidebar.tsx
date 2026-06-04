@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { OperatorPermission } from '@/types';
+import { hasPermission as checkPermission } from '@/lib/permissions';
 import NotificationBell from '@/components/NotificationBell';
 import OperatorLogoutForm from '@/components/operator/OperatorLogoutForm';
 
@@ -12,6 +13,8 @@ interface NavItem {
   label: string;
   icon: string;
   permission?: OperatorPermission;
+  streetOnly?: boolean;
+  officeOnly?: boolean;
 }
 
 const allNavItems: NavItem[] = [
@@ -30,13 +33,19 @@ const allNavItems: NavItem[] = [
   { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
+  { href: '/operator/street-beneficiaries', label: 'Beneficiari street', icon: '🧑‍🤝‍🧑', streetOnly: true },
+  { href: '/operator/street-to-deliver', label: 'Consegne e Ritiri', icon: '📦', streetOnly: true },
+  { href: '/operator/diocese-objects', label: 'Disponibilità diocesi', icon: '🗺️', streetOnly: true },
 ];
 
 interface OperatorSidebarProps {
   operatorRole: string;
   operatorPermissions: string[];
   operatorName: string;
+  operatorProfileImageUrl: string | null;
   organizationName: string;
+  isOfficeOperator: boolean;
+  isStreetOperator: boolean;
   children: React.ReactNode;
 }
 
@@ -44,31 +53,27 @@ export default function OperatorSidebar({
   operatorRole,
   operatorPermissions,
   operatorName,
+  operatorProfileImageUrl,
   organizationName,
+  isOfficeOperator,
+  isStreetOperator,
   children,
 }: OperatorSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const hasPermission = (permission: OperatorPermission): boolean => {
-    if (operatorRole === 'ADMIN') return true;
-    const rolePerms: Record<string, OperatorPermission[]> = {
-      GESTORE_RICHIESTE: ['RECIPIENT_AUTHORIZE', 'REQUEST_PROXY'],
-      GESTORE_OGGETTI: ['OBJECT_RECEIVE', 'OBJECT_DELIVER'],
-      GESTORE_VOLONTARI: ['VOLUNTEER_MANAGE'],
-      OPERATORE: [],
-    };
-    const defaultPerms = rolePerms[operatorRole] || [];
-    return defaultPerms.includes(permission) || operatorPermissions.includes(permission);
-  };
-
   const navItems = allNavItems.filter(item => {
+    // Filtra per tipo operatore
+    if (item.streetOnly && !isStreetOperator) return false;
+    if (item.officeOnly && !isOfficeOperator) return false;
+
+    // Filtra per permesso
     if (!item.permission) return true;
-    return hasPermission(item.permission);
+    return checkPermission(operatorRole, operatorPermissions, item.permission);
   });
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50">
+    <div className="min-h-[100svh] bg-gray-50">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -116,8 +121,15 @@ export default function OperatorSidebar({
           })}
         </nav>
         <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="truncate">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {operatorProfileImageUrl ? (
+                <img src={operatorProfileImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">👤</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0 truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
             </div>
@@ -155,8 +167,15 @@ export default function OperatorSidebar({
           })}
         </nav>
         <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="truncate">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {operatorProfileImageUrl ? (
+                <img src={operatorProfileImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">👤</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0 truncate">
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
               <p className="text-xs text-gray-400 truncate">{organizationName}</p>
@@ -187,7 +206,7 @@ export default function OperatorSidebar({
       </div>
 
       {/* Main Content */}
-      <main className="min-h-[100dvh] lg:ml-64 pt-14 lg:pt-0">
+      <main className="min-h-[100svh] lg:ml-64 pt-14 lg:pt-0">
         <div className="px-4 sm:px-6 py-4 sm:py-6">
           {children}
         </div>

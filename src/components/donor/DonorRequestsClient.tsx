@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import ImageUploader from '@/components/ImageUploader';
 
 interface GoodsRequest {
   id: string;
@@ -42,6 +43,7 @@ export default function DonorRequestsClient() {
   const [offerSuccess, setOfferSuccess] = useState<string | null>(null);
   const [offerMessage, setOfferMessage] = useState('');
   const [offeringForId, setOfferingForId] = useState<string | null>(null);
+  const [offerImages, setOfferImages] = useState<string[]>([]);
   const [causes, setCauses] = useState<Cause[]>([]);
   const [joiningCauseId, setJoiningCauseId] = useState<string | null>(null);
   const [expandedCauseId, setExpandedCauseId] = useState<string | null>(null);
@@ -122,7 +124,8 @@ export default function DonorRequestsClient() {
   // Auto-refresh when user reached the end
   useEffect(() => {
     if (!hasNextPage && requests.length > 0) {
-      refreshIntervalRef.current = setInterval(() => {
+      const tick = () => {
+        if (document.visibilityState !== 'visible') return;
         fetch('/api/donor/requests?limit=1')
           .then(res => res.json())
           .then(data => {
@@ -131,7 +134,9 @@ export default function DonorRequestsClient() {
             }
           })
           .catch(() => {});
-      }, 30000);
+      };
+
+      refreshIntervalRef.current = setInterval(tick, 30000);
 
       return () => {
         if (refreshIntervalRef.current) {
@@ -150,13 +155,14 @@ export default function DonorRequestsClient() {
       const res = await fetch('/api/donor/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId, message: offerMessage }),
+        body: JSON.stringify({ requestId, message: offerMessage, imageUrls: offerImages }),
       });
 
       if (res.ok) {
         setOfferSuccess('Offerta inviata con successo!');
         setOfferingForId(null);
         setOfferMessage('');
+        setOfferImages([]);
         setRequests(prev => prev.map(r => r.id === requestId ? { ...r, alreadyOffered: true, _count: { ...r._count, offers: r._count.offers + 1 } } : r));
         setTimeout(() => setOfferSuccess(null), 3000);
       } else {
@@ -423,9 +429,13 @@ export default function DonorRequestsClient() {
                       <textarea
                         value={offerMessage}
                         onChange={(e) => setOfferMessage(e.target.value)}
-                        placeholder="Aggiungi un messaggio (facoltativo)..."
+                        placeholder="Aggiungi una descrizione del bene che offri (facoltativo)..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                         rows={3}
+                      />
+                      <ImageUploader
+                        onImagesChange={setOfferImages}
+                        maxFiles={5}
                       />
                       <div className="flex gap-2">
                         <button
@@ -440,12 +450,13 @@ export default function DonorRequestsClient() {
                               : 'bg-primary-600 text-white hover:bg-primary-700'
                           }`}
                         >
-                          {offeringId === req.id ? 'Invio...' : req.type === 'SERVICES' ? 'Offri servizio' : 'Fornisci'}
+                          {offeringId === req.id ? 'Invio...' : req.type === 'SERVICES' ? 'Offri servizio' : 'Invia offerta'}
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setOfferingForId(null);
+                            setOfferImages([]);
                           }}
                           className="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors"
                         >

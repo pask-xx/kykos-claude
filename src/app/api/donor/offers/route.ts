@@ -1,100 +1,129 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { withErrorHandler } from '@/lib/api';
 
-export async function POST(request: Request) {
-  try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    if (session.role !== 'DONOR') {
-      return NextResponse.json({ error: 'Solo i donatori possono fare offerte' }, { status: 403 });
-    }
-
-    const { requestId, message, imageUrls } = await request.json();
-
-    if (!requestId) {
-      return NextResponse.json({ error: 'ID richiesta mancante' }, { status: 400 });
-    }
-
-    // Validate imageUrls if provided
-    if (imageUrls && !Array.isArray(imageUrls)) {
-      return NextResponse.json({ error: 'imageUrls deve essere un array' }, { status: 400 });
-    }
-
-    if (imageUrls && imageUrls.length > 5) {
-      return NextResponse.json({ error: 'Massimo 5 immagini' }, { status: 400 });
-    }
-
-    // Check if request exists and is APPROVED
-    const goodsRequest = await prisma.goodsRequest.findUnique({
-      where: { id: requestId },
-      select: {
-        id: true,
-        status: true,
-        beneficiaryId: true,
-        fulfilledById: true,
-      },
-    });
-
-    if (!goodsRequest) {
-      return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
-    }
-
-    if (goodsRequest.status !== 'APPROVED') {
-      return NextResponse.json({ error: 'La richiesta non è più disponibile' }, { status: 400 });
-    }
-
-    if (goodsRequest.fulfilledById) {
-      return NextResponse.json({ error: 'La richiesta è già stata soddisfatta' }, { status: 400 });
-    }
-
-    // Check if donor already made an offer
-    const existingOffer = await prisma.goodsOffer.findFirst({
-      where: {
-        requestId,
-        offeredById: session.id,
-      },
-    });
-
-    if (existingOffer) {
-      return NextResponse.json({ error: 'Hai già fatto un\'offerta per questa richiesta' }, { status: 400 });
-    }
-
-    // Create the offer
-    const offer = await prisma.goodsOffer.create({
-      data: {
-        requestId,
-        offeredById: session.id,
-        message: message || null,
-        status: 'PENDING',
-        imageUrls: imageUrls || [],
-      },
-    });
-
-    // Notify beneficiary
-    await prisma.notification.create({
-      data: {
-        recipientUserId: goodsRequest.beneficiaryId,
-        recipientType: 'USER' as any,
-        title: 'Nuova offerta per la tua richiesta',
-        message: 'Un donatore ha risposto alla tua richiesta. L\'ente valuterà l\'offerta.',
-        type: 'GOODS_OFFER_RECEIVED' as any,
-        link: '/recipient/requests-entity/requests',
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      offer: {
-        id: offer.id,
-        message: offer.message,
-      },
-    });
-  } catch (error) {
-    console.error('Error creating offer:', error);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+export const POST = withErrorHandler(async (request: Request) => {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
-}
+
+  if (session.role !== 'DONOR') {
+    return NextResponse.json({ error: 'Solo i donatori possono fare offerte' }, { status: 403 });
+  }
+
+  const { requestId, message, imageUrls } = await request.json();
+
+  if (!requestId) {
+    return NextResponse.json({ error: 'ID richiesta mancante' }, { status: 400 });
+  }
+
+  // Validate imageUrls if provided
+  if (imageUrls && !Array.isArray(imageUrls)) {
+    return NextResponse.json({ error: 'imageUrls deve essere un array' }, { status: 400 });
+  }
+
+  if (imageUrls && imageUrls.length > 5) {
+    return NextResponse.json({ error: 'Massimo 5 immagini' }, { status: 400 });
+  }
+
+  // Check if request exists and is APPROVED
+  const goodsRequest = await prisma.goodsRequest.findUnique({
+    where: { id: requestId },
+    select: {
+      id: true,
+      status: true,
+      beneficiaryId: true,
+      fulfilledById: true,
+      intermediaryId: true,
+      title: true,
+      beneficiary: {
+        select: {
+          id: true,
+          isStreetManaged: true,
+          firstName: true,
+          lastName: true,
+          referenceEntityId: true,
+        },
+      },
+    },
+  });
+
+  if (!goodsRequest) {
+    return NextResponse.json({ error: 'Richiesta non trovata' }, { status: 404 });
+  }
+
+  if (goodsRequest.status !== 'APPROVED') {
+    return NextResponse.json({ error: 'La richiesta non è più disponibile' }, { status: 400 });
+  }
+
+  if (goodsRequest.fulfilledById) {
+    return NextResponse.json({ error: 'La richiesta è già stata soddisfatta' }, { status: 400 });
+  }
+
+  // Check if donor already made an offer
+  const existingOffer = await prisma.goodsOffer.findFirst({
+    where: {
+      requestId,
+      offeredById: session.id,
+    },
+  });
+
+  if (existingOffer) {
+    return NextResponse.json({ error: 'Hai già fatto un\'offerta per questa richiesta' }, { status: 400 });
+  }
+
+  // Create the offer
+  const offer = await prisma.goodsOffer.create({
+    data: {
+      requestId,
+      offeredById: session.id,
+      message: message || null,
+      status: 'PENDING',
+      imageUrls: imageUrls || [],
+    },
+  });
+
+  // Notify beneficiary
+  await prisma.notification.create({
+    data: {
+      recipientUserId: goodsRequest.beneficiaryId,
+      recipientType: 'USER' as any,
+      title: 'Nuova offerta per la tua richiesta',
+      message: 'Un donatore ha risposto alla tua richiesta. L\'ente valuterà l\'offerta.',
+      type: 'GOODS_OFFER_RECEIVED' as any,
+      link: '/recipient/requests-entity/requests',
+    },
+  });
+
+  // If beneficiary is street-managed, notify the street operators who created the request
+  if (goodsRequest.beneficiary.isStreetManaged) {
+    const streetOperatorAssignments = await prisma.streetOperatorBeneficiary.findMany({
+      where: { beneficiaryId: goodsRequest.beneficiary.id },
+      include: { streetOperator: { select: { id: true, username: true } } },
+    });
+
+    const beneficiaryName = goodsRequest.beneficiary.firstName + ' ' + goodsRequest.beneficiary.lastName;
+    for (const assignment of streetOperatorAssignments) {
+      await prisma.notification.create({
+        data: {
+          recipientOperatorId: assignment.streetOperator.id,
+          recipientType: 'OPERATOR' as any,
+          title: 'Offerta per il tuo beneficiario',
+          message: 'Un donatore ha fatto un\'offerta per "' + goodsRequest.title + '" per ' + beneficiaryName + '. L\'ente valuterà l\'offerta.',
+          type: 'GOODS_OFFER_RECEIVED' as any,
+          link: '/operator/street-beneficiaries/' + goodsRequest.beneficiary.id,
+        },
+      });
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    offer: {
+      id: offer.id,
+      message: offer.message,
+    },
+  });
+}, 'POST /api/donor/offers');

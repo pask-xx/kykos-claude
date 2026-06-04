@@ -17,3 +17,6 @@ Leggere questi file ad ogni sessione per non violare i principi core.
 ## Feature
 - [multi-availability](multi-availability.md) — Distribuzione multipla con assegnazione manuale
 - [06-cause](06-cause.md) — Cause: raccolta fondi/promozione prodotti dagli enti
+- [07-street-operators](07-street-operators.md) — Operatori di strada, beneficiari senza account, visibilità diocesana
+- [ui-components-library](ui-components-library.md) — UI Components centralizzati: Button, Input, Card, Badge, Alert, Modal, Spinner
+- [diocesi-selection](diocesi-selection.md) — Selezione diocesi in registrazione e profilo con geolocalizzazione
