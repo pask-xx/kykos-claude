@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -16,10 +16,12 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [invalidToken, setInvalidToken] = useState(false);
 
-  // Check token on mount
-  if (!token && !loading && !success) {
-    setInvalidToken(true);
-  }
+  // Check token on mount (must be in useEffect, not in render body)
+  useEffect(() => {
+    if (!token) {
+      setInvalidToken(true);
+    }
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
