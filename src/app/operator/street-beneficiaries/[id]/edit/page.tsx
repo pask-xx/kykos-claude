@@ -273,7 +273,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -324,30 +324,38 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
             />
 
             {/* Name Row */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field name="firstName" label="Nome" required />
               <Field name="lastName" label="Cognome" required />
             </div>
 
-            {/* Nickname — Input (no zod) con normalizzazione onChange */}
+            {/* Nickname — Input raw inline con bottone Genera (pattern auth/register).
+                <Input> primitive non supporta layout flex-1 con bottone adiacente. */}
             <div>
-              <Input
-                label="Nickname"
-                type="text"
-                maxLength={30}
-                placeholder="aggettivo.nome.123"
-                {...register('nickname', {
-                  setValueAs: (v: string) => normalizeNickname(v),
-                })}
-                onChange={(e) =>
-                  setValue('nickname', normalizeNickname(e.target.value), { shouldValidate: true })
-                }
-              />
-              <div className="mt-2">
+              <label
+                htmlFor="nickname"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Nickname
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="nickname"
+                  type="text"
+                  maxLength={30}
+                  placeholder="aggettivo.nome.123"
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  {...register('nickname', {
+                    setValueAs: (v: string) => normalizeNickname(v),
+                  })}
+                  onChange={(e) =>
+                    setValue('nickname', normalizeNickname(e.target.value), { shouldValidate: true })
+                  }
+                />
                 <Button
                   type="button"
                   variant="secondary"
-                  size="sm"
+                  size="md"
                   loading={generatingNickname}
                   onClick={handleGenerateNickname}
                 >
@@ -357,7 +365,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
             </div>
 
             {/* Birth Date & Fiscal Code */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Data di nascita" type="date" {...register('birthDate')} />
               <Input
                 label="Codice Fiscale"
@@ -373,48 +381,49 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
               />
             </div>
 
-            {/* Address */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2">
+            {/* Address — coppia "larga + stretta", breakpoint sm (640px) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
                 <Input label="Indirizzo" type="text" {...register('address')} />
               </div>
               <Input label="N." type="text" {...register('houseNumber')} />
             </div>
 
-            {/* City Selector (custom component) */}
-            <div className="grid grid-cols-3 gap-4">
-              <Input label="CAP" type="text" maxLength={5} {...register('cap')} />
-              <div className="col-span-2">
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  Città
-                </label>
-                <CitySelector
-                  selectedProvince={watch('province') ?? ''}
-                  selectedCity={watch('city') ?? ''}
-                  onProvinceChange={(val) => setValue('province', val, { shouldValidate: false })}
-                  onCityChange={(name) => setValue('city', name, { shouldValidate: false })}
-                />
-              </div>
+            {/* CAP — riga intera */}
+            <Input label="CAP" type="text" maxLength={5} {...register('cap')} />
+
+            {/* CitySelector — riga dedicata con etichetta "Città e Provincia"
+                (pattern street-beneficiaries/page.tsx) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Città e Provincia
+              </label>
+              <CitySelector
+                selectedProvince={watch('province') ?? ''}
+                selectedCity={watch('city') ?? ''}
+                onProvinceChange={(val) => setValue('province', val, { shouldValidate: false })}
+                onCityChange={(name) => setValue('city', name, { shouldValidate: false })}
+              />
             </div>
 
-            {/* ISEE */}
-            <Input
-              label="ISEE"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              {...register('isee')}
-            />
-
-            {/* Need Score */}
-            <Input
-              label="Score di bisogno (0-100)"
-              type="number"
-              min={0}
-              max={100}
-              placeholder="0-100"
-              {...register('needScore')}
-            />
+            {/* ISEE + Need Score — coppia stretta, breakpoint md (768px) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="ISEE"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                {...register('isee')}
+              />
+              <Input
+                label="Score di bisogno (0-100)"
+                type="number"
+                min={0}
+                max={100}
+                placeholder="0-100"
+                {...register('needScore')}
+              />
+            </div>
 
             {/* Geolocation */}
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -427,7 +436,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
                   </Badge>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   type="button"
                   variant="primary"
