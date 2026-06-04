@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
 import PdfViewerModal from '@/components/PdfViewerModal';
+import { Modal, ModalFooter } from '@/components/ui/Modal';
 
 interface Diocese {
   id: string;
@@ -82,6 +83,30 @@ function RegisterForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [secret, setSecret] = useState('');
+
+  // Modale di cortesia: se l'utente prova a registrarsi senza codice (o con
+  // codice sbagliato, 403 lato server) gli proponiamo due opzioni esplicite
+  // invece di redirigerlo a sorpresa. Così chi ha già un invito può
+  // correggere il modulo, chi non ce l'ha atterra sulla landing di
+  // adesione. Vedi handleSubmit per i punti in cui viene aperta.
+  const [showSecretModal, setShowSecretModal] = useState(false);
+  // Ref al campo "Codice di registrazione": quando l'utente sceglie
+  // "Inserisci codice" dalla modale, scrolliamo al campo e gli diamo focus.
+  const secretInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleSecretModalEnterCode = () => {
+    setShowSecretModal(false);
+    // Microtask così la modale finisce di smontarsi prima dello scroll.
+    setTimeout(() => {
+      secretInputRef.current?.focus();
+      secretInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  };
+
+  const handleSecretModalNotify = () => {
+    setShowSecretModal(false);
+    router.push('/registrations-closed');
+  };
 
   // Legal consent (GDPR) — both checkboxes must be checked before submit.
   // The server-side version + hash are recorded together with IP/UA at
@@ -256,10 +281,10 @@ function RegisterForm() {
     }
 
     if (isStagingSecretEnabled && !secret) {
-      // Nessun codice inserito: rimanda alla landing di adesione ("Avvisami
-      // quando apriamo") invece di bloccare qui. Coerente con il flow
-      // 403/codice-sbagliato sotto.
-      router.push('/registrations-closed');
+      // Codice mancante: apri la modale di cortesia ("hai un codice? inseriscilo,
+      // altrimenti lasciaci la mail"). Solo se l'utente sceglie
+      // esplicitamente "Avvisami" lo portiamo sulla landing.
+      setShowSecretModal(true);
       return;
     }
 
@@ -385,13 +410,13 @@ function RegisterForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        // 403 con "Codice di registrazione non valido" → il codice inserito
-        // non corrisponde a STAGING_REGISTRATION_SECRET. Rimandiamo alla
-        // landing di adesione (coerente con il flow "codice mancante" sopra)
-        // invece di mostrare un errore inline: è esattamente il "porto" dove
-        // l'utente può lasciare la mail per essere avvisato del go-live.
+        // 403 con "Codice di registrazione non valido" → codice inserito ma
+        // non corrisponde a STAGING_REGISTRATION_SECRET. Stessa modale del
+        // caso "codice mancante": offriamo all'utente la possibilità di
+        // correggere (magari ha sbagliato a digitarlo) o di andare sulla
+        // landing di adesione. Niente redirect silenzioso.
         if (res.status === 403 && data.error === 'Codice di registrazione non valido') {
-          router.push('/registrations-closed');
+          setShowSecretModal(true);
           return;
         }
         setError(data.error || 'Registrazione fallita');
@@ -848,6 +873,7 @@ function RegisterForm() {
               </label>
               <input
                 id="secret"
+                ref={secretInputRef}
                 type="password"
                 value={secret}
                 onChange={(e) => setSecret(e.target.value.replace(/\D/g, '').slice(0, 4))}
@@ -980,6 +1006,46 @@ function RegisterForm() {
             onClose={() => setPdfOpen(null)}
           />
         )}
+
+        {/* Modale di cortesia: codice mancante o errato. Offre due percorsi
+            espliciti — tornare al campo codice, oppure andare sulla landing
+            di adesione — invece di un redirect silenzioso. */}
+        <Modal
+          isOpen={showSecretModal}
+          onClose={() => setShowSecretModal(false)}
+          title="Registrazione con invito"
+          size="md"
+        >
+          <div className="p-6 space-y-4">
+            <p className="text-gray-700 leading-relaxed">
+              La registrazione a KYKOS è attualmente riservata a chi ha ricevuto
+              un <strong>codice di invito</strong> a 4 cifre.
+            </p>
+            <p className="text-gray-700 leading-relaxed">
+              Se lo hai, inseriscilo nel campo <em>Codice di registrazione</em> del
+              modulo e riprova. Altrimenti lasciaci la tua email e ti avviseremo
+              non appena le iscrizioni saranno aperte a tutti.
+            </p>
+          </div>
+          <ModalFooter>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleSecretModalNotify}
+                className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+              >
+                Avvisami quando aprite
+              </button>
+              <button
+                type="button"
+                onClick={handleSecretModalEnterCode}
+                className="px-5 py-2.5 bg-secondary-600 text-white font-medium rounded-lg hover:bg-secondary-700 transition"
+              >
+                Inserisci il codice
+              </button>
+            </div>
+          </ModalFooter>
+        </Modal>
 
         <div className="mt-6">
           <div className="relative">
