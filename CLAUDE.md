@@ -63,3 +63,14 @@ Prima di committare, cerca:
 - `donor.name` — deve apparire solo in route Intermediario
 - `recipient.name` — deve apparire solo in route Intermediario
 - `select: { name: true }` su relazioni User — verifica necessità
+
+## Design System
+
+**Prima di scrivere codice UI nuovo**, leggi [`docs/DESIGN.md`](docs/DESIGN.md). È il contratto ufficiale del design system KYKOS: design tokens (palette semantica `primary/secondary/success/warning/error/info`), primitives in `src/components/ui/` (Button, Input, Card, Badge, Alert, Modal, Spinner, Table, Tabs, EmptyState, Pagination, Avatar, Skeleton, Toast, Form), pattern ricorrenti (PageHeader, ListPage, Form con zod, azione distruttiva con Modal), e gli anti-pattern vietati (`<div onClick>`, `window.alert`, colori raw `red-*/green-*`, emoji come unica label, `useState` × 15 per un form).
+
+**Regola operativa**:
+- **Codice nuovo** → usa SOLO i primitives. Niente classi Tailwind raw per bottoni/input/badge/modali.
+- **Codice esistente** → se tocchi un file, non riscriverlo, ma se aggiungi un componente nuovo, usa il primitive.
+- **Migrazione massiva** → viene fatta in commit dedicati per modulo, seguendo la roadmap in `docs/DESIGN.md` §12. Le pagine esistenti continuano a funzionare.
+
+Percorso assoluto del documento: `D:\PROGETTI\KYKOS\KYKOS-WITH-CLAUDE\docs\DESIGN.md`.
