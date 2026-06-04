@@ -298,7 +298,6 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 Account attivo
               </Badge>
-              <span className="text-sm text-gray-600">{beneficiary.email}</span>
             </div>
           </CardContent>
         </Card>
