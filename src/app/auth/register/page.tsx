@@ -7,24 +7,6 @@ import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
 import PdfViewerModal from '@/components/PdfViewerModal';
 
-const REGISTRATION_ENABLED = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED === 'true';
-
-function RegistrationGate({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!REGISTRATION_ENABLED) {
-      router.push('/registrations-closed');
-    }
-  }, [router]);
-
-  if (!REGISTRATION_ENABLED) {
-    return null;
-  }
-
-  return <>{children}</>;
-}
-
 interface Diocese {
   id: string;
   name: string;
@@ -274,7 +256,10 @@ function RegisterForm() {
     }
 
     if (isStagingSecretEnabled && !secret) {
-      setError('Inserisci il codice di registrazione');
+      // Nessun codice inserito: rimanda alla landing di adesione ("Avvisami
+      // quando apriamo") invece di bloccare qui. Coerente con il flow
+      // 403/codice-sbagliato sotto.
+      router.push('/registrations-closed');
       return;
     }
 
@@ -400,6 +385,15 @@ function RegisterForm() {
       const data = await res.json();
 
       if (!res.ok) {
+        // 403 con "Codice di registrazione non valido" → il codice inserito
+        // non corrisponde a STAGING_REGISTRATION_SECRET. Rimandiamo alla
+        // landing di adesione (coerente con il flow "codice mancante" sopra)
+        // invece di mostrare un errore inline: è esattamente il "porto" dove
+        // l'utente può lasciare la mail per essere avvisato del go-live.
+        if (res.status === 403 && data.error === 'Codice di registrazione non valido') {
+          router.push('/registrations-closed');
+          return;
+        }
         setError(data.error || 'Registrazione fallita');
         return;
       }
@@ -1032,7 +1026,6 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <RegistrationGate>
     <div className="min-h-screen flex">
       {/* Left side - Branding (fixed, non scrollabile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-secondary-600 to-secondary-800 p-12 flex-col justify-between relative overflow-hidden sticky top-0 h-screen">
@@ -1087,6 +1080,5 @@ export default function RegisterPage() {
         <RegisterForm />
       </Suspense>
     </div>
-    </RegistrationGate>
   );
 }
