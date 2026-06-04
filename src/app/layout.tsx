@@ -23,7 +23,6 @@ export const metadata: Metadata = {
   publisher: "KYKOS",
   metadataBase: new URL("https://kykos.it"),
   alternates: {
-    canonical: "https://kykos.it",
     languages: {
       "it-IT": "https://kykos.it/",
     },
@@ -69,11 +68,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
+    shortcut: ["/favicon.ico"],
     apple: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
 };
@@ -93,6 +94,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={sora.variable}>
+      <head>
+        {/* Performance: preconnect ai font Google, preload dell'immagine LCP */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preload" as="image" href="/albero.svg" type="image/svg+xml" />
+      </head>
       <body className="antialiased font-sans">
         {children}
         <CookieBanner />

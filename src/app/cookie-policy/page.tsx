@@ -1,12 +1,42 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
 import SessionDashboardLink from '@/components/SessionDashboardLink';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Cookie Policy - KYKOS',
   description:
     'KYKOS utilizza esclusivamente cookie tecnici necessari al funzionamento del servizio. Nessun cookie di profilazione o marketing.',
+  keywords: ['cookie policy KYKOS', 'cookie tecnici', 'privacy'],
+  alternates: {
+    canonical: 'https://kykos.it/cookie-policy',
+  },
   robots: { index: true, follow: true },
+  openGraph: {
+    title: 'Cookie Policy - KYKOS',
+    description: 'KYKOS utilizza esclusivamente cookie tecnici necessari al funzionamento del servizio.',
+    type: 'website',
+    url: 'https://kykos.it/cookie-policy',
+  },
+};
+
+const cookiePolicyJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Cookie Policy - KYKOS',
+  description: 'KYKOS utilizza esclusivamente cookie tecnici necessari al funzionamento del servizio.',
+  url: 'https://kykos.it/cookie-policy',
+  inLanguage: 'it-IT',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'KYKOS',
+    url: 'https://kykos.it',
+  },
+  about: {
+    '@type': 'Thing',
+    name: 'Cookie Policy',
+    description: 'Informativa sui cookie tecnici utilizzati da KYKOS.',
+  },
 };
 
 interface CookieInfo {
@@ -55,6 +85,7 @@ const COOKIES: CookieInfo[] = [
 export default function CookiePolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <JsonLd data={cookiePolicyJsonLd} />
       {/* Header (pattern coerente con manifesto) */}
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">

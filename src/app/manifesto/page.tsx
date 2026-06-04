@@ -1,22 +1,54 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
 import SessionDashboardLink from '@/components/SessionDashboardLink';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Il Manifesto KYKOS - Donazione anonima e solidarietà',
   description: 'Scopri i principi fondanti di KYKOS: anonimato, gioia nel donare, sostenibilità. La donazione anonima che preserva la dignità di tutti.',
   keywords: ['manifesto KYKOS', 'donazione anonima', 'solidarietà', 'principi', 'Caritas', 'sostenibilità', 'economia circolare'],
+  alternates: {
+    canonical: 'https://kykos.it/manifesto',
+  },
   openGraph: {
     title: 'Il Manifesto KYKOS',
     description: 'Anonimato, gioia, sostenibilità. I principi che guidano la donazione anonima.',
     url: 'https://kykos.it/manifesto',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Il Manifesto KYKOS - Donazione anonima e solidarietà',
+      },
+    ],
+  },
+};
+
+const manifestoJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'Il Manifesto KYKOS',
+  description: 'I principi fondanti di KYKOS: anonimato, gioia nel donare, sostenibilità.',
+  url: 'https://kykos.it/manifesto',
+  inLanguage: 'it-IT',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'KYKOS',
+    url: 'https://kykos.it',
+  },
+  about: {
+    '@type': 'Thing',
+    name: 'Donazione anonima e solidarietà',
+    description: 'Piattaforma di donazione anonima che preserva la dignità di donatori e riceventi.',
   },
 };
 
 export default function ManifestoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <JsonLd data={manifestoJsonLd} />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
