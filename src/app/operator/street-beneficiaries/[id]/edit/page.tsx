@@ -1,10 +1,16 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { z } from 'zod';
+import { Home, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 import CitySelector from '@/components/geo/CitySelector';
-import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Alert, Spinner } from '@/components/ui';
+import {
+  Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Alert,
+  Form, Field, useZodForm, toast, Skeleton, SkeletonCard, SkeletonText,
+} from '@/components/ui';
+import { generateNickname, normalizeNickname } from '@/lib/nickname';
 
 interface StreetBeneficiary {
   id: string;
@@ -34,22 +40,89 @@ interface StreetBeneficiary {
   };
 }
 
-interface FormData {
-  email: string;
-  nickname: string;
-  firstName: string;
-  lastName: string;
-  fiscalCode: string;
-  birthDate: string;
-  address: string;
-  houseNumber: string;
-  cap: string;
-  city: string;
-  province: string;
-  isee: string;
-  needScore: string;
-  latitude: string;
-  longitude: string;
+// Schema sovrapposto al client esistente: solo le regole già applicate
+// (required su nome/cognome, regex email + check placeholder, max 30 char su nickname,
+// max 16 char su CF, max 5 char su CAP). Niente regole nuove — decisione utente 2026-06-04.
+const editSchema = z
+  .object({
+    email: z.string().optional(),
+    nickname: z.string().max(30).optional(),
+    firstName: z.string().min(1, 'Il nome è obbligatorio'),
+    lastName: z.string().min(1, 'Il cognome è obbligatorio'),
+    fiscalCode: z.string().max(16).optional(),
+    birthDate: z.string().optional(),
+    address: z.string().optional(),
+    houseNumber: z.string().optional(),
+    cap: z.string().max(5).optional(),
+    city: z.string().optional(),
+    province: z.string().optional(),
+    isee: z.string().optional(),
+    needScore: z.string().optional(),
+    latitude: z.string().optional(),
+    longitude: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.email && data.email.length > 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['email'],
+          message: 'Formato email non valido',
+        });
+      }
+      if (
+        data.email.includes('@street.kykos.local') ||
+        data.email.includes('@placeholder') ||
+        data.email.startsWith('street.')
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['email'],
+          message: 'Email non valida. Inserisci una email reale della persona.',
+        });
+      }
+    }
+  });
+
+type EditFormValues = z.infer<typeof editSchema>;
+
+const EMPTY_DEFAULTS: EditFormValues = {
+  email: '',
+  nickname: '',
+  firstName: '',
+  lastName: '',
+  fiscalCode: '',
+  birthDate: '',
+  address: '',
+  houseNumber: '',
+  cap: '',
+  city: '',
+  province: '',
+  isee: '',
+  needScore: '',
+  latitude: '',
+  longitude: '',
+};
+
+function beneficiaryToFormValues(b: StreetBeneficiary): EditFormValues {
+  return {
+    email: b.email || '',
+    nickname: b.nickname || '',
+    firstName: b.firstName,
+    lastName: b.lastName,
+    fiscalCode: (b.fiscalCode || '').toUpperCase(),
+    birthDate: b.birthDate ? new Date(b.birthDate).toISOString().split('T')[0] : '',
+    address: b.address || '',
+    houseNumber: b.houseNumber || '',
+    cap: b.cap || '',
+    city: b.city || '',
+    province: b.province || '',
+    isee: b.isee || '',
+    needScore: b.needScore?.toString() || '',
+    latitude: b.latitude?.toString() || '',
+    longitude: b.longitude?.toString() || '',
+  };
 }
 
 export default function EditStreetBeneficiaryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -58,33 +131,24 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
 
   const [beneficiary, setBeneficiary] = useState<StreetBeneficiary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
+  // useState locali per azioni isolate (geocoding), fuori dal form principale
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [generatingNickname, setGeneratingNickname] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
-    email: '',
-    nickname: '',
-    firstName: '',
-    lastName: '',
-    fiscalCode: '',
-    birthDate: '',
-    address: '',
-    houseNumber: '',
-    cap: '',
-    city: '',
-    province: '',
-    isee: '',
-    needScore: '',
-    latitude: '',
-    longitude: '',
-  });
+  const methods = useZodForm(editSchema, { defaultValues: EMPTY_DEFAULTS });
+  const { register, reset, setValue, watch, handleSubmit, formState } = methods;
+
+  // Osserva i campi usati per abilitare/disabilitare i bottoni dipendenti
+  const address = watch('address');
+  const city = watch('city');
+  const latitude = watch('latitude');
+  const longitude = watch('longitude');
+  const formEmail = watch('email');
 
   useEffect(() => {
     fetchBeneficiary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchBeneficiary = async () => {
@@ -92,97 +156,69 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
       const res = await fetch(`/api/operator/street-beneficiaries/${id}`);
       if (!res.ok) throw new Error('Beneficiario non trovato');
       const data = await res.json();
-      const b = data.beneficiary;
+      const b = data.beneficiary as StreetBeneficiary;
       setBeneficiary(b);
-
-      setFormData({
-        email: b.email || '',
-        nickname: b.nickname || '',
-        firstName: b.firstName,
-        lastName: b.lastName,
-        fiscalCode: (b.fiscalCode || '').toUpperCase(),
-        birthDate: b.birthDate ? new Date(b.birthDate).toISOString().split('T')[0] : '',
-        address: b.address || '',
-        houseNumber: b.houseNumber || '',
-        cap: b.cap || '',
-        city: b.city || '',
-        province: b.province || '',
-        isee: b.isee || '',
-        needScore: b.needScore?.toString() || '',
-        latitude: b.latitude?.toString() || '',
-        longitude: b.longitude?.toString() || '',
-      });
+      reset(beneficiaryToFormValues(b));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nel caricamento');
+      toast.error(err instanceof Error ? err.message : 'Errore nel caricamento');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.firstName || !formData.lastName) return;
-
-    // Validate email if provided
-    if (formData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        setError('Formato email non valido');
-        return;
-      }
-      // Check for placeholder emails
-      if (formData.email.includes('@street.kykos.local') ||
-          formData.email.includes('@placeholder') ||
-          formData.email.startsWith('street.')) {
-        setError('Email non valida. Inserisci una email reale della persona.');
-        return;
-      }
-    }
-
-    setSaving(true);
-    setError(null);
-    setSuccess(false);
-
+  const onSubmit = async (data: EditFormValues) => {
     try {
       const res = await fetch(`/api/operator/street-beneficiaries/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email || null,
-          nickname: formData.nickname || null,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          fiscalCode: formData.fiscalCode || null,
-          birthDate: formData.birthDate || null,
-          address: formData.address || null,
-          houseNumber: formData.houseNumber || null,
-          cap: formData.cap || null,
-          city: formData.city || null,
-          province: formData.province || null,
-          isee: formData.isee || null,
-          needScore: formData.needScore ? parseInt(formData.needScore) : null,
-          latitude: formData.latitude || null,
-          longitude: formData.longitude || null,
+          email: data.email || null,
+          nickname: data.nickname || null,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          fiscalCode: data.fiscalCode || null,
+          birthDate: data.birthDate || null,
+          address: data.address || null,
+          houseNumber: data.houseNumber || null,
+          cap: data.cap || null,
+          city: data.city || null,
+          province: data.province || null,
+          isee: data.isee || null,
+          needScore: data.needScore ? parseInt(data.needScore) : null,
+          latitude: data.latitude || null,
+          longitude: data.longitude || null,
         }),
       });
 
-      if (res.ok) {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-        fetchBeneficiary();
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error || 'Errore durante il salvataggio');
+        return;
+      }
+
+      toast.success('Modifiche salvate');
+      // Aggiorna lo state locale con i valori appena salvati (per coerenza
+      // con la logica originale che rifaceva la fetch)
+      const updated = await res.json();
+      if (updated.beneficiary) {
+        setBeneficiary(updated.beneficiary);
       } else {
-        const data = await res.json();
-        setError(data.error || 'Errore durante il salvataggio');
+        fetchBeneficiary();
       }
     } catch {
-      setError('Errore di connessione');
-    } finally {
-      setSaving(false);
+      toast.error('Errore di connessione');
     }
   };
 
-  const geocodeFromAddress = async () => {
-    if (!formData.address || !formData.city) {
+  const handleGenerateNickname = () => {
+    setGeneratingNickname(true);
+    setValue('nickname', generateNickname(), { shouldValidate: true });
+    // Piccolo delay per feedback visivo del loading state
+    setTimeout(() => setGeneratingNickname(false), 200);
+  };
+
+  const handleGeocode = async () => {
+    if (!address || !city) {
       setLocationError('Inserisci prima indirizzo e città');
       return;
     }
@@ -193,10 +229,10 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          address: formData.address,
-          city: formData.city,
-          cap: formData.cap,
-          province: formData.province,
+          address,
+          city,
+          cap: watch('cap'),
+          province: watch('province'),
         }),
       });
       const data = await res.json();
@@ -204,11 +240,8 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
         setLocationError(data.error || 'Errore nel calcolo della posizione');
         return;
       }
-      setFormData(prev => ({
-        ...prev,
-        latitude: data.latitude.toString(),
-        longitude: data.longitude.toString(),
-      }));
+      setValue('latitude', data.latitude.toString(), { shouldValidate: false });
+      setValue('longitude', data.longitude.toString(), { shouldValidate: false });
     } catch {
       setLocationError('Errore di connessione');
     } finally {
@@ -218,16 +251,18 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Spinner size="lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-64" />
+        <SkeletonCard />
+        <SkeletonText lines={5} />
       </div>
     );
   }
 
   if (!beneficiary) {
     return (
-      <Alert type="error" title="Errore">
-        {error || 'Beneficiario non trovato'}
+      <Alert type="error" title="Errore" icon={<AlertCircle />}>
+        Beneficiario non trovato
         <div className="mt-4">
           <Link href="/operator/street-beneficiaries">
             <Button variant="secondary">Torna ai beneficiari</Button>
@@ -242,7 +277,10 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link href={`/operator/street-beneficiaries/${id}`} className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-flex items-center gap-1">
+          <Link
+            href={`/operator/street-beneficiaries/${id}`}
+            className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-flex items-center gap-1"
+          >
             ← Dettaglio beneficiario
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -251,43 +289,23 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
         </div>
       </div>
 
-      {/* Error/Success Messages */}
-      {error && (
-        <Alert type="error" title="Errore">
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert type="success" title="Salvato">
-          Modifiche salvate con successo
-        </Alert>
-      )}
-
       {/* Account Status */}
       {beneficiary.authUserId || beneficiary.emailConfirmed ? (
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <Badge variant="success">Account attivo</Badge>
-              <span className="text-sm text-gray-600">
-                {beneficiary.email}
-              </span>
+              <Badge variant="success">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Account attivo
+              </Badge>
+              <span className="text-sm text-gray-600">{beneficiary.email}</span>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardContent className="py-4">
-            <div className="flex items-center gap-3">
-              <Badge variant="warning">Senza account</Badge>
-              {!formData.email && (
-                <span className="text-sm text-amber-700">
-                  Per creare un account, inserisci l'email della persona qui sotto
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <Alert type="warning" title="Senza account" icon={<AlertCircle />}>
+          {!formEmail && 'Per creare un account, inserisci l\'email della persona qui sotto'}
+        </Alert>
       )}
 
       {/* Form */}
@@ -296,242 +314,148 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
           <CardTitle>Dati anagrafici</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="email@esempio.com"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Necessaria per creare l'account. Non usare email placeholder.
-              </p>
-            </div>
+          <Form methods={methods} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Email — Field con zod (errore inline) */}
+            <Field
+              name="email"
+              label="Email"
+              type="email"
+              hint="Necessaria per creare l'account. Non usare email placeholder."
+            />
 
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome *
-                </label>
-                <input
-                  id="firstName"
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Cognome *
-                </label>
-                <input
-                  id="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-              </div>
+              <Field name="firstName" label="Nome" required />
+              <Field name="lastName" label="Cognome" required />
             </div>
 
-            {/* Nickname */}
+            {/* Nickname — Input (no zod) con normalizzazione onChange */}
             <div>
-              <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-1">
-                Nickname
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="nickname"
-                  type="text"
-                  value={formData.nickname}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nickname: e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, '') }))}
-                  maxLength={30}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="aggettivo.nome.123"
-                />
-                <button
+              <Input
+                label="Nickname"
+                type="text"
+                maxLength={30}
+                placeholder="aggettivo.nome.123"
+                {...register('nickname', {
+                  setValueAs: (v: string) => normalizeNickname(v),
+                })}
+                onChange={(e) =>
+                  setValue('nickname', normalizeNickname(e.target.value), { shouldValidate: true })
+                }
+              />
+              <div className="mt-2">
+                <Button
                   type="button"
-                  onClick={async () => {
-                    setGeneratingNickname(true);
-                    try {
-                      const adjectives = ['buono', 'gentile', 'caldo', 'luminoso', 'mite', 'sereno', 'solare', 'felice', 'saggio', 'ardito'];
-                      const nouns = ['cuore', 'anima', 'spirito', 'sogno', 'sole', 'stella', 'luna', 'fiore', 'albero', 'vento'];
-                      const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-                      const noun = nouns[Math.floor(Math.random() * nouns.length)];
-                      const num = Math.floor(Math.random() * 999) + 1;
-                      setFormData(prev => ({ ...prev, nickname: `${adj}.${noun}.${num}` }));
-                    } finally {
-                      setGeneratingNickname(false);
-                    }
-                  }}
-                  disabled={generatingNickname}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                  variant="secondary"
+                  size="sm"
+                  loading={generatingNickname}
+                  onClick={handleGenerateNickname}
                 >
-                  {generatingNickname ? '...' : 'Genera'}
-                </button>
+                  Genera
+                </Button>
               </div>
             </div>
 
             {/* Birth Date & Fiscal Code */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  Data di nascita
-                </label>
-                <input
-                  id="birthDate"
-                  type="date"
-                  value={formData.birthDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, birthDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="fiscalCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Codice Fiscale
-                </label>
-                <input
-                  id="fiscalCode"
-                  type="text"
-                  value={formData.fiscalCode}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fiscalCode: e.target.value.toUpperCase() }))}
-                  maxLength={16}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
-                />
-              </div>
+              <Input label="Data di nascita" type="date" {...register('birthDate')} />
+              <Input
+                label="Codice Fiscale"
+                type="text"
+                maxLength={16}
+                className="uppercase"
+                {...register('fiscalCode', {
+                  setValueAs: (v: string) => v.toUpperCase(),
+                })}
+                onChange={(e) =>
+                  setValue('fiscalCode', e.target.value.toUpperCase(), { shouldValidate: true })
+                }
+              />
             </div>
 
             {/* Address */}
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                  Indirizzo
-                </label>
-                <input
-                  id="address"
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
+                <Input label="Indirizzo" type="text" {...register('address')} />
               </div>
-              <div>
-                <label htmlFor="houseNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                  N.
-                </label>
-                <input
-                  id="houseNumber"
-                  type="text"
-                  value={formData.houseNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, houseNumber: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-              </div>
+              <Input label="N." type="text" {...register('houseNumber')} />
             </div>
 
-            {/* City Selector */}
+            {/* City Selector (custom component) */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="cap" className="block text-sm font-medium text-gray-700 mb-1">
-                  CAP
-                </label>
-                <input
-                  id="cap"
-                  type="text"
-                  value={formData.cap}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cap: e.target.value }))}
-                  maxLength={5}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-              </div>
+              <Input label="CAP" type="text" maxLength={5} {...register('cap')} />
               <div className="col-span-2">
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
                   Città
                 </label>
                 <CitySelector
-                  selectedProvince={formData.province}
-                  selectedCity={formData.city}
-                  onProvinceChange={(val) => setFormData(prev => ({ ...prev, province: val }))}
-                  onCityChange={(name) => setFormData(prev => ({ ...prev, city: name }))}
+                  selectedProvince={watch('province') ?? ''}
+                  selectedCity={watch('city') ?? ''}
+                  onProvinceChange={(val) => setValue('province', val, { shouldValidate: false })}
+                  onCityChange={(name) => setValue('city', name, { shouldValidate: false })}
                 />
               </div>
             </div>
 
             {/* ISEE */}
-            <div>
-              <label htmlFor="isee" className="block text-sm font-medium text-gray-700 mb-1">
-                ISEE
-              </label>
-              <input
-                id="isee"
-                type="number"
-                step="0.01"
-                value={formData.isee}
-                onChange={(e) => setFormData(prev => ({ ...prev, isee: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="0.00"
-              />
-            </div>
+            <Input
+              label="ISEE"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              {...register('isee')}
+            />
 
             {/* Need Score */}
-            <div>
-              <label htmlFor="needScore" className="block text-sm font-medium text-gray-700 mb-1">
-                Score di bisogno (0-100)
-              </label>
-              <input
-                id="needScore"
-                type="number"
-                min="0"
-                max="100"
-                value={formData.needScore}
-                onChange={(e) => setFormData(prev => ({ ...prev, needScore: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="0-100"
-              />
-            </div>
+            <Input
+              label="Score di bisogno (0-100)"
+              type="number"
+              min={0}
+              max={100}
+              placeholder="0-100"
+              {...register('needScore')}
+            />
 
             {/* Geolocation */}
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-medium text-gray-700">Geolocalizzazione</label>
-                {formData.latitude && formData.longitude && (
-                  <span className="text-xs text-green-600">
-                    ✓ {parseFloat(formData.latitude).toFixed(4)}, {parseFloat(formData.longitude).toFixed(4)}
-                  </span>
+                {latitude && longitude && (
+                  <Badge variant="success">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Posizione: {parseFloat(latitude).toFixed(4)}, {parseFloat(longitude).toFixed(4)}
+                  </Badge>
                 )}
               </div>
               <div className="flex gap-2">
-                <button
+                <Button
                   type="button"
-                  onClick={geocodeFromAddress}
-                  disabled={geocoding || !formData.address || !formData.city}
-                  className="px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                  variant="primary"
+                  size="sm"
+                  loading={geocoding}
+                  disabled={!address || !city}
+                  leftIcon={<Home className="h-4 w-4" />}
+                  onClick={handleGeocode}
                 >
-                  {geocoding ? '⏳ Calcolo...' : '🏠 Calcola da indirizzo'}
-                </button>
-                {(formData.latitude || formData.longitude) && (
-                  <button
+                  Calcola da indirizzo
+                </Button>
+                {(latitude || longitude) && (
+                  <Button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, latitude: '', longitude: '' }))}
-                    className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-300"
+                    variant="ghost"
+                    size="sm"
+                    leftIcon={<Trash2 className="h-4 w-4" />}
+                    onClick={() => {
+                      setValue('latitude', '', { shouldValidate: false });
+                      setValue('longitude', '', { shouldValidate: false });
+                    }}
                   >
-                    🗑️ Clear
-                  </button>
+                    Pulisci
+                  </Button>
                 )}
               </div>
               {locationError && (
-                <p className="text-xs text-red-600 mt-2">{locationError}</p>
+                <p className="text-xs text-error-600 mt-2">{locationError}</p>
               )}
             </div>
 
@@ -544,15 +468,11 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
               >
                 Annulla
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                loading={saving}
-              >
+              <Button type="submit" variant="primary" loading={formState.isSubmitting}>
                 Salva modifiche
               </Button>
             </div>
-          </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
