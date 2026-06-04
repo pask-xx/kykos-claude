@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -102,6 +103,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased font-sans">
         {children}
+        <ToastProvider />
         <CookieBanner />
       </body>
     </html>
