@@ -164,7 +164,7 @@ export const GET = withErrorHandler(async (
       depositLocation: req.object.depositLocation,
       objectId: req.object.id,
       createdAt: req.createdAt,
-      qrLink: objStatus === 'DEPOSITED' ? `/operator/scan-qr/pickup/${req.id}` : undefined,
+      qrLink: objStatus === 'DEPOSITED' ? `/operator/pickup/${req.id}` : undefined,
     });
   }
 
