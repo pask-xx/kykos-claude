@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { QrCode, PartyPopper, Package, Gift } from 'lucide-react';
 import { CATEGORY_LABELS } from '@/types';
+import { Button, toast } from '@/components/ui';
+import { QrDialog, type QrDialogItem } from '@/components/qr/QrDialog';
 
 interface EntityInfo {
   id: string;
@@ -36,18 +40,20 @@ interface StreetDeliveryItem {
   entity: EntityInfo;
 }
 
-const TYPE_COLORS: Record<string, { border: string; badge: string; icon: string }> = {
-  OBJECT: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', icon: '📦' },
-  GOODS: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', icon: '🎁' },
+const TYPE_STYLES: Record<
+  string,
+  { border: string; badge: string; Icon: typeof Package }
+> = {
+  OBJECT: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', Icon: Package },
+  GOODS: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', Icon: Gift },
 };
 
 export default function StreetToDeliverPage() {
+  const router = useRouter();
   const [items, setItems] = useState<StreetDeliveryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<StreetDeliveryItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<QrDialogItem | null>(null);
   const [showQRDialog, setShowQRDialog] = useState(false);
-  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -60,141 +66,14 @@ export default function StreetToDeliverPage() {
       const data = await res.json();
       setItems(data.items || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore');
+      toast.error(err instanceof Error ? err.message : 'Errore di rete');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleShareQR = async (item: StreetDeliveryItem) => {
-    if (!item.qrImageUrl) return;
-
-    if (!navigator.share) {
-      alert('La condivisione non è supportata su questo dispositivo');
-      return;
-    }
-
-    setSharing(true);
-    try {
-      const blob = await fetch(item.qrImageUrl).then(r => r.blob());
-      const file = new File([blob], `kykos-${item.type.toLowerCase()}-${item.id}.png`, { type: 'image/png' });
-
-      await navigator.share({
-        title: `KYKOS - ${item.statusLabel}`,
-        text: `${item.statusLabel}: "${item.title}" per ${item.beneficiaryName}`,
-        files: [file],
-      });
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        console.error('Share error:', err);
-      }
-    } finally {
-      setSharing(false);
-    }
-  };
-
-  const handleEmailShare = async (item: StreetDeliveryItem) => {
-    if (!item.qrImageUrl) return;
-
-    setSharing(true);
-    try {
-      const subject = encodeURIComponent('KYKOS - ' + item.statusLabel);
-      const body = encodeURIComponent(
-        item.statusLabel + ': "' + item.title + '"\n' +
-        'Per: ' + item.beneficiaryName + '\n' +
-        (item.beneficiaryAddress ? 'Indirizzo: ' + item.beneficiaryAddress + '\n' : '') +
-        'QR Code: ' + item.qrData + '\n\n' +
-        'Download QR: ' + item.qrImageUrl
-      );
-      window.open('mailto:?subject=' + subject + '&body=' + body, '_blank');
-    } catch (err) {
-      console.error('Email share error:', err);
-    } finally {
-      setSharing(false);
-    }
-  };
-
-  const handleWhatsAppShare = async (item: StreetDeliveryItem) => {
-    if (!item.qrImageUrl) return;
-
-    const message = item.statusLabel + ': "' + item.title + '"\nPer: ' + item.beneficiaryName + (item.beneficiaryAddress ? '\nIndirizzo: ' + item.beneficiaryAddress : '') + '\n\nQR Code: ' + item.qrData + '\n\nDownload QR: ' + item.qrImageUrl;
-    window.open('https://wa.me/?text=' + encodeURIComponent(message), '_blank');
-  };
-
-  const handleDownload = (item: StreetDeliveryItem) => {
-    if (!item.qrImageUrl) return;
-    const link = document.createElement('a');
-    link.href = item.qrImageUrl;
-    link.download = `kykos-${item.type.toLowerCase()}-${item.id}.png`;
-    link.click();
-  };
-
-  const handlePrintQR = (item: StreetDeliveryItem) => {
-    if (!item.qrImageUrl) return;
-
-    const printWindow = window.open('', '', 'width=500,height=700');
-    if (!printWindow) return;
-
-    // Build entity address string
-    var entityAddress = item.entity.name;
-    if (item.entity.address) entityAddress += ', ' + item.entity.address;
-    if (item.entity.houseNumber) entityAddress += ' ' + item.entity.houseNumber;
-    if (item.entity.cap) entityAddress += ' - ' + item.entity.cap;
-    if (item.entity.city) entityAddress += ' ' + item.entity.city;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Stampa QR - KYKOS</title>
-          <style>
-            @page { size: A4; margin: 15mm; }
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; padding: 10px; }
-            .header { text-align: center; margin-bottom: 15px; }
-            .logo-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
-            .logo-row img { height: 40px; width: auto; }
-            .beneficiary { font-size: 18pt; font-weight: bold; margin-bottom: 5px; text-align: center; }
-            .address { font-size: 11pt; color: #666; margin-bottom: 10px; text-align: center; }
-            .title { font-size: 12pt; color: #888; margin-bottom: 15px; text-align: center; }
-            .entity-box { background: #f5f5f5; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; }
-            .entity-name { font-size: 11pt; font-weight: bold; margin-bottom: 3px; }
-            .entity-address { font-size: 10pt; color: #666; text-align: center; }
-            .entity-hours { font-size: 9pt; color: #888; margin-top: 5px; }
-            .entity-hours p { margin: 2px 0; }
-            .qr-container { text-align: center; margin: 15px 0; }
-            .qr-container img { width: 180px; height: 180px; }
-            .footer { font-size: 8pt; color: #999; text-align: center; margin-top: 15px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="logo-row">
-              <img src="${window.location.origin}/albero.svg" alt="KYKOS" />
-              <img src="${window.location.origin}/LogoKykosTesto.svg" alt="Kykos" />
-            </div>
-          </div>
-          <div class="beneficiary">${item.beneficiaryName}</div>
-          ${item.beneficiaryAddress ? '<div class="address">' + item.beneficiaryAddress + '</div>' : ''}
-          <div class="title">${item.title}</div>
-          <div class="entity-box">
-            <div class="entity-name">${item.entity.name}</div>
-            <div class="entity-address">${entityAddress}</div>
-            ${item.entity.hoursInfo ? '<div class="entity-hours">' + item.entity.hoursInfo + '</div>' : ''}
-          </div>
-          <div class="qr-container">
-            <img src="${item.qrImageUrl}" alt="QR Code" />
-          </div>
-          <div class="footer">KYKOS - ${item.statusLabel}</div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-  };
-
   const openQRDialog = (item: StreetDeliveryItem) => {
-    setSelectedItem(item);
+    setSelectedItem(toQrDialogItem(item));
     setShowQRDialog(true);
   };
 
@@ -202,21 +81,8 @@ export default function StreetToDeliverPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⏳</div>
+          <div className="animate-spin h-10 w-10 border-[3px] border-primary-600 border-b-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-500">Caricamento...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button onClick={fetchItems} className="text-primary-600 hover:underline">
-            Riprova
-          </button>
         </div>
       </div>
     );
@@ -231,6 +97,13 @@ export default function StreetToDeliverPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-flex items-center gap-1"
+              >
+                ← Indietro
+              </button>
               <h1 className="text-2xl font-bold text-gray-900">Ritiri</h1>
               <p className="text-gray-500 text-sm mt-1">
                 {totalItems} elementi per i tuoi beneficiari
@@ -243,7 +116,7 @@ export default function StreetToDeliverPage() {
         <div className="flex gap-4 text-sm mb-6 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-green-500"></span>
-            <span className="text-gray-600">Ritiro Disponibilita</span>
+            <span className="text-gray-600">Ritiro Disponibilità</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-500"></span>
@@ -252,53 +125,59 @@ export default function StreetToDeliverPage() {
         </div>
 
         {/* Empty state */}
-        {totalItems === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
-            <span className="text-4xl sm:text-5xl mb-4 block">🎉</span>
+        {totalItems === 0 ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
+            <PartyPopper className="mx-auto h-12 w-12 text-primary-300 mb-4" aria-hidden="true" />
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Niente da gestire</h2>
             <p className="text-gray-500">Tutti i tuoi beneficiari hanno ricevuto i loro oggetti!</p>
           </div>
-        )}
-
-        {/* Unified list */}
-        {totalItems > 0 && (
+        ) : (
           <div className="grid gap-3 sm:gap-4">
             {items.map((item) => {
-              const colors = TYPE_COLORS[item.type];
-              const displayName = item.beneficiaryName;
+              const styles = TYPE_STYLES[item.type];
+              const Icon = styles.Icon;
 
               return (
                 <div
                   key={`${item.type}-${item.id}`}
-                  className={`bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border} overflow-hidden`}
+                  className={`bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${styles.border} overflow-hidden`}
                 >
                   <div className="flex gap-2 sm:gap-4">
                     <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                       {item.imageUrls && item.imageUrls.length > 0 ? (
-                        <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
+                        <img
+                          src={item.imageUrls[0]}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <span className="text-base sm:text-xl">{colors.icon}</span>
+                        <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" aria-hidden="true" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{item.title}</h3>
+                        <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">
+                          {item.title}
+                        </h3>
                       </div>
 
                       <p className="text-xs text-gray-500 mt-0.5">
-                        Per: <span className="font-medium">{displayName}</span>
-                        {item.beneficiaryAddress && ' - ' + item.beneficiaryAddress}
+                        Per: <span className="font-medium">{item.beneficiaryName}</span>
+                        {item.beneficiaryAddress && ` - ${item.beneficiaryAddress}`}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Presso: <span className="font-medium">{item.entity.name}</span>{item.entity.city && ', ' + item.entity.city}
+                        Presso: <span className="font-medium">{item.entity.name}</span>
+                        {item.entity.city && `, ${item.entity.city}`}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {item.depositLocation && 'Posizione: ' + item.depositLocation}
-                      </p>
+                      {item.depositLocation && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Posizione: <span className="font-medium">{item.depositLocation}</span>
+                        </p>
+                      )}
 
                       <div className="flex flex-wrap items-center gap-1 mt-1">
-                        <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                        <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${styles.badge}`}>
                           {item.statusLabel}
                         </span>
                         <span className="text-xs text-gray-400">
@@ -307,19 +186,18 @@ export default function StreetToDeliverPage() {
                       </div>
                     </div>
 
-                    {/* QR Button */}
-                    <button
+                    {/* QR button */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => openQRDialog(item)}
-                      className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 bg-primary-50 hover:bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 transition"
+                      aria-label="Mostra QR"
                       title="Mostra QR"
+                      className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 p-0"
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="7" height="7" />
-                        <rect x="14" y="3" width="7" height="7" />
-                        <rect x="14" y="14" width="7" height="7" />
-                        <rect x="3" y="14" width="7" height="7" />
-                      </svg>
-                    </button>
+                      <QrCode className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </Button>
                   </div>
                 </div>
               );
@@ -328,114 +206,34 @@ export default function StreetToDeliverPage() {
         )}
       </main>
 
-      {/* QR Dialog */}
-      {showQRDialog && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-auto">
-            <div className="p-6 space-y-4">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">{selectedItem.statusLabel}</h3>
-                <button
-                  onClick={() => setShowQRDialog(false)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Item info */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="font-medium text-gray-900">{selectedItem.title}</p>
-                <p className="text-sm text-gray-500">
-                  Per: <span className="font-medium">{selectedItem.beneficiaryName}</span>{selectedItem.beneficiaryAddress && ' - ' + selectedItem.beneficiaryAddress}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Presso: <span className="font-medium">{selectedItem.entity.name}</span>
-                  {selectedItem.entity.address && ', ' + selectedItem.entity.address}{selectedItem.entity.houseNumber && ' ' + selectedItem.entity.houseNumber}{selectedItem.entity.cap && ' - ' + selectedItem.entity.cap}{selectedItem.entity.city && ' ' + selectedItem.entity.city}
-                </p>
-                {selectedItem.entity.hoursInfo && (
-                  <div className="text-xs text-gray-500 mt-1" dangerouslySetInnerHTML={{ __html: 'Orari: ' + selectedItem.entity.hoursInfo }}></div>
-                )}
-                {selectedItem.depositLocation && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Posizione: <span className="font-medium">{selectedItem.depositLocation}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* QR Code */}
-              {selectedItem.qrImageUrl && (
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <img src={selectedItem.qrImageUrl} alt="QR Code" className="w-56 h-56" />
-                    <div className="absolute top-2 left-2 bg-white rounded-full p-1 shadow">
-                      <img src="/albero.svg" alt="KYKOS" className="w-6 h-6" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* QR Data */}
-              <p className="text-xs text-gray-400 text-center font-mono truncate px-4">
-                {selectedItem.qrData}
-              </p>
-
-              {/* Actions */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    handleShareQR(selectedItem);
-                    setShowQRDialog(false);
-                  }}
-                  disabled={sharing || !selectedItem.qrImageUrl}
-                  className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 font-medium"
-                >
-                  {sharing ? 'Condivisione...' : 'Condividi QR'}
-                </button>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      handleEmailShare(selectedItem);
-                      setShowQRDialog(false);
-                    }}
-                    disabled={sharing}
-                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm disabled:opacity-50"
-                  >
-                    Email
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleWhatsAppShare(selectedItem);
-                      setShowQRDialog(false);
-                    }}
-                    disabled={sharing}
-                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm disabled:opacity-50"
-                  >
-                    WhatsApp
-                  </button>
-                  <button
-                    onClick={() => handleDownload(selectedItem)}
-                    disabled={!selectedItem.qrImageUrl}
-                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm disabled:opacity-50"
-                  >
-                    Download
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => handlePrintQR(selectedItem)}
-                  disabled={!selectedItem.qrImageUrl}
-                  className="w-full px-4 py-3 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 disabled:opacity-50 font-medium flex items-center justify-center gap-2"
-                >
-                  🖨️ Stampa QR
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* QR Dialog riusato da /components/qr/QrDialog */}
+      <QrDialog
+        isOpen={showQRDialog}
+        onClose={() => setShowQRDialog(false)}
+        item={selectedItem}
+      />
     </div>
   );
+}
+
+function toQrDialogItem(item: StreetDeliveryItem): QrDialogItem {
+  return {
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    statusLabel: item.statusLabel,
+    beneficiaryName: item.beneficiaryName,
+    beneficiaryAddress: item.beneficiaryAddress,
+    entity: {
+      name: item.entity.name,
+      address: item.entity.address,
+      houseNumber: item.entity.houseNumber,
+      cap: item.entity.cap,
+      city: item.entity.city,
+      hoursInfo: item.entity.hoursInfo,
+    },
+    depositLocation: item.depositLocation,
+    qrData: item.qrData,
+    qrImageUrl: item.qrImageUrl,
+  };
 }
