@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import { toast } from '@/components/ui/Toast';
 
 interface Cause {
   id: string;
@@ -46,11 +47,12 @@ export default function DonorCausesPage() {
       if (res.ok) {
         fetchCauses();
       } else {
-        const err = await res.json();
-        alert(err.error || 'Errore');
+        const data = await res.json();
+        toast.error(data?.error || 'Errore');
       }
     } catch (err) {
       console.error('Error:', err);
+      toast.error('Errore di connessione');
     } finally {
       setJoiningId(null);
     }
