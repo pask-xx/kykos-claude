@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Download, Mail, MessageCircle, Printer, Share2 } from 'lucide-react';
+import { Button, toast } from '@/components/ui';
 
 interface QRCodeCardProps {
   type: 'deliver' | 'pickup';
@@ -9,8 +11,29 @@ interface QRCodeCardProps {
   label: string;
   description: string;
   objectTitle: string;
+  /** Callback opzionale per il bottone "Stampa". Se omessa, il bottone non viene mostrato. */
+  onPrint?: () => void;
 }
 
+/**
+ * QRCodeCard — card riusabile con QR + azioni di condivisione/download/stampa.
+ * Usata dalle vecchie pagine QR donor/recipient (mantenuta per retrocompat).
+ *
+ * Le nuove pagine QR migrano al pattern uniforme `<QrPage>` (più ricco:
+ * include anche orari ente, modale separata, gestione errori design system).
+ * QrCodeCard resta qui per i punti di ingresso legacy fino a Fase 7.
+ *
+ * Esempio d'uso:
+ *   <QRCodeCard
+ *     type="deliver"
+ *     data={qr.data}
+ *     imageUrl={qr.imageUrl}
+ *     label={qr.label}
+ *     description={qr.description}
+ *     objectTitle={objectTitle}
+ *     onPrint={handlePrintA4}     // opzionale
+ *   />
+ */
 export default function QRCodeCard({
   type,
   data,
@@ -18,12 +41,17 @@ export default function QRCodeCard({
   label,
   description,
   objectTitle,
+  onPrint,
 }: QRCodeCardProps) {
   const [sharing, setSharing] = useState(false);
 
   const handleWebShare = async () => {
     if (!navigator.share) {
-      alert('La condivisione non è supportata su questo dispositivo');
+      toast.warning('La condivisione non è supportata su questo dispositivo');
+      return;
+    }
+    if (!imageUrl) {
+      toast.warning('Immagine QR non disponibile');
       return;
     }
 
@@ -32,7 +60,7 @@ export default function QRCodeCard({
       const response = await fetch(`/api/qr/image?data=${encodeURIComponent(data)}`);
       const { imageUrl: qrImageUrl } = await response.json();
 
-      const blob = await fetch(qrImageUrl).then(r => r.blob());
+      const blob = await fetch(qrImageUrl).then((r) => r.blob());
       const file = new File([blob], `kykos-${type}-${Date.now()}.png`, { type: 'image/png' });
 
       await navigator.share({
@@ -76,7 +104,10 @@ export default function QRCodeCard({
       const response = await fetch(`/api/qr/image?data=${encodeURIComponent(data)}`);
       const { imageUrl: qrImageUrl } = await response.json();
 
-      const message = `Ecco il QR code per la ${label.toLowerCase()} dell'oggetto "${objectTitle}".\n\nQR Code: ${data}\n\nDownload QR: ${qrImageUrl}`;
+      const message =
+        `Ecco il QR code per la ${label.toLowerCase()} dell'oggetto "${objectTitle}".\n\n` +
+        `QR Code: ${data}\n\n` +
+        `Download QR: ${qrImageUrl}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     } catch (err) {
       console.error('WhatsApp share error:', err);
@@ -86,6 +117,10 @@ export default function QRCodeCard({
   };
 
   const handleDownload = () => {
+    if (!imageUrl) {
+      toast.warning('Immagine QR non disponibile');
+      return;
+    }
     const link = document.createElement('a');
     link.href = imageUrl;
     link.download = `kykos-${type}-${Date.now()}.png`;
@@ -118,36 +153,61 @@ export default function QRCodeCard({
         </p>
 
         <div className="space-y-2">
-          <button
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            leftIcon={<Share2 className="h-4 w-4" />}
+            loading={sharing}
             onClick={handleWebShare}
-            disabled={sharing}
-            className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm font-medium"
+            className="w-full"
           >
             {sharing ? 'Condivisione...' : 'Condividi'}
-          </button>
+          </Button>
 
           <div className="flex gap-2">
-            <button
+            <Button
+              type="button"
+              variant="secondary"
+              leftIcon={<Mail className="h-4 w-4" />}
               onClick={handleEmailShare}
               disabled={sharing}
-              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm disabled:opacity-50"
+              className="flex-1"
             >
               Email
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="success"
+              leftIcon={<MessageCircle className="h-4 w-4" />}
               onClick={handleWhatsAppShare}
               disabled={sharing}
-              className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm disabled:opacity-50"
+              className="flex-1"
             >
               WhatsApp
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              leftIcon={<Download className="h-4 w-4" />}
               onClick={handleDownload}
-              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+              className="flex-1"
             >
               Download
-            </button>
+            </Button>
           </div>
+
+          {onPrint && (
+            <Button
+              type="button"
+              variant="primary"
+              leftIcon={<Printer className="h-4 w-4" />}
+              onClick={onPrint}
+              className="w-full"
+            >
+              Stampa QR
+            </Button>
+          )}
         </div>
       </div>
     </div>
