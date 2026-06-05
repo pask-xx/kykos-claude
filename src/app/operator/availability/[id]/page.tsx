@@ -6,6 +6,7 @@ import ImageUploader from '@/components/ImageUploader';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { formatDate, formatDatetimeForInput } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
+import { toast } from '@/components/ui/Toast';
 
 interface BeneficiaryRequest {
   id: string;
@@ -148,11 +149,12 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
         setSelectedIds(new Set());
         fetchAvailability();
       } else {
-        const err = await res.json();
-        alert(err.error || 'Errore');
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore');
       }
     } catch (err) {
       console.error('Error:', err);
+      toast.error('Errore di connessione');
     } finally {
       setSaving(false);
     }

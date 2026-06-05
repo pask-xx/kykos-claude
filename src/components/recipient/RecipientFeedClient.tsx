@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { CATEGORY_LABELS, Category } from '@/types';
+import { toast } from '@/components/ui/Toast';
 
 interface MultiAvailability {
   id: string;
@@ -246,7 +247,7 @@ export default function RecipientFeedClient() {
         setShowReportModal(false);
         setReportReason('');
         setReportObjectId(null);
-        alert('Segnalazione inviata! Grazie per averci aiutato.');
+        toast.success('Segnalazione inviata! Grazie per averci aiutato.');
       } else {
         const data = await res.json();
         setError(data.error || 'Errore nella segnalazione');
