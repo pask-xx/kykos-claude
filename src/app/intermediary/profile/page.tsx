@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
+import PasswordChangeForm from '@/components/PasswordChangeForm';
 import dynamic from 'next/dynamic';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -691,7 +691,7 @@ export default function IntermediaryProfilePage() {
       </div>
 
       {/* Password Change */}
-      <PasswordChangeForm />
+      <PasswordChangeForm role="user" />
     </div>
   );
 }

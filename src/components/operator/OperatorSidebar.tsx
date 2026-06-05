@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { OperatorPermission } from '@/types';
 import { hasPermission as checkPermission } from '@/lib/permissions';
 import NotificationBell from '@/components/NotificationBell';
-import OperatorLogoutForm from '@/components/operator/OperatorLogoutForm';
+import LogoutButton from '@/components/LogoutButton';
 
 interface NavItem {
   href: string;
@@ -133,7 +133,7 @@ export default function OperatorSidebar({
               <p className="text-sm font-medium text-gray-900 truncate">{operatorName}</p>
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
             </div>
-            <OperatorLogoutForm />
+            <LogoutButton role="operator" />
           </div>
         </div>
       </aside>
@@ -180,7 +180,7 @@ export default function OperatorSidebar({
               <p className="text-xs text-gray-500 truncate">{operatorRole}</p>
               <p className="text-xs text-gray-400 truncate">{organizationName}</p>
             </div>
-            <OperatorLogoutForm />
+            <LogoutButton role="operator" />
           </div>
         </div>
       </aside>

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PdfViewerModal from '@/components/PdfViewerModal';
+import LogoutButton from '@/components/LogoutButton';
 
 interface DocumentState {
   current: string;
@@ -246,16 +247,7 @@ function CheckLegalContent() {
         </form>
 
         <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={async () => {
-              await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
-              router.push('/');
-            }}
-            className="text-sm text-gray-500 hover:text-secondary-600 underline"
-          >
-            Esci (logout)
-          </button>
+          <LogoutButton role="user" label="Esci (logout)" />
         </div>
       </div>
 

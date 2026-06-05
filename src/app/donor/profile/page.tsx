@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProfileForm from '@/components/profile/ProfileForm';
-import PasswordChangeForm from '@/components/profile/PasswordChangeForm';
+import PasswordChangeForm from '@/components/PasswordChangeForm';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 
 interface User {
@@ -119,7 +119,7 @@ export default function DonorProfilePage() {
         </div>
 
         {/* Password Change */}
-        <PasswordChangeForm />
+        <PasswordChangeForm role="user" />
 
         {/* Danger Zone */}
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">

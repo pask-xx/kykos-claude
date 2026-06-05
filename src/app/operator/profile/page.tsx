@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { OPERATOR_ROLE_LABELS } from '@/types';
-import OperatorPasswordChangeForm from '@/components/operator/OperatorPasswordChangeForm';
+import PasswordChangeForm from '@/components/PasswordChangeForm';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 import dynamic from 'next/dynamic';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -480,7 +480,7 @@ export default function OperatorProfilePage() {
       </div>
 
       {/* Password Change */}
-      <OperatorPasswordChangeForm />
+      <PasswordChangeForm role="operator" />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import LogoutForm from '@/components/LogoutForm';
+import LogoutButton from '@/components/LogoutButton';
 import ManifestoModal from '@/components/ManifestoModal';
 
 interface NavItem {
@@ -220,7 +220,7 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
               <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
               <p className="text-xs text-gray-400 truncate">{userEmail}</p>
             </div>
-            <LogoutForm />
+            <LogoutButton role="user" />
           </div>
         </div>
       </aside>
@@ -305,7 +305,7 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                 <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
                 <p className="text-xs text-gray-400 truncate">{userEmail}</p>
               </div>
-              <LogoutForm />
+              <LogoutButton role="user" />
             </div>
           ) : (
             <div className="flex flex-col items-center">
@@ -316,7 +316,7 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                   <span className="text-lg">👤</span>
                 )}
               </div>
-              <LogoutForm />
+              <LogoutButton role="user" />
             </div>
           )}
         </div>
