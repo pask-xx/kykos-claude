@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import dynamic from 'next/dynamic';
+import { toast } from '@/components/ui/Toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
@@ -209,7 +210,6 @@ export default function IntermediaryProfilePage() {
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
@@ -304,7 +304,6 @@ export default function IntermediaryProfilePage() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const res = await fetch('/api/organization/update', {
@@ -333,8 +332,7 @@ export default function IntermediaryProfilePage() {
         throw new Error(data.error || 'Errore durante il salvataggio');
       }
 
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      toast.success('Dati salvati con successo');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -360,7 +358,6 @@ export default function IntermediaryProfilePage() {
         }));
         setCityCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
         setLocating(false);
-        setSuccess(false);
       },
       () => {
         setLocationError('Impossibile ottenere la posizione');
@@ -407,7 +404,6 @@ export default function IntermediaryProfilePage() {
         longitude: data.longitude.toString(),
       }));
       setCityCoords({ lat: data.latitude, lng: data.longitude });
-      setSuccess(false);
     } catch (err) {
       setLocationError(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -450,12 +446,6 @@ export default function IntermediaryProfilePage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
             <span>🏢</span> Dati organizzazione
           </h2>
-
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-              ✓ Dati salvati con successo
-            </div>
-          )}
 
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">

@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from '@/components/ui/Toast';
 
 interface ObjectDetail {
   id: string;
@@ -51,11 +52,11 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
         router.push('/operator/objects');
       } else {
         const data = await res.json();
-        alert(data.error || 'Errore');
+        toast.error(data?.error || 'Errore');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Errore di connessione');
+      toast.error('Errore di connessione');
     } finally {
       setSubmitting(false);
     }

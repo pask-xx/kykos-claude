@@ -731,25 +731,29 @@ Lavori di refactor futuri, in ordine di priorità. Ogni step è un commit
 ### 12.4 P3 — Toast ovunque (5-10 commit, modulo per modulo)
 
 Sostituire `useState(success) + setTimeout(3000)` con `toast.success` in:
-- [ ] `donor/DonorRequestsClient.tsx`
-- [ ] `recipient/RecipientFeedClient.tsx`
-- [ ] `components/profile/ProfileForm.tsx`
-- [ ] `intermediary/profile/page.tsx`
-- [ ] `operator/profile/page.tsx`
-- [ ] `operator/cause/[id]/page.tsx`
-- [ ] `operator/street-beneficiaries/[id]/edit/page.tsx`
-- [ ] `operator/organization/page.tsx`
-- [ ] `admin/dashboard/page.tsx`
-- [ ] `admin/legal/page.tsx`
+- [x] `donor/DonorRequestsClient.tsx`
+- [x] `recipient/RecipientFeedClient.tsx`
+- [x] `components/profile/ProfileForm.tsx`
+- [x] `intermediary/profile/page.tsx`
+- [x] `operator/profile/page.tsx`
+- [x] `operator/cause/[id]/page.tsx`
+- [x] `operator/street-beneficiaries/[id]/edit/page.tsx`
+- [x] `operator/organization/page.tsx`
+- [x] `admin/dashboard/page.tsx`
+- [x] `admin/legal/page.tsx`
 
 E i 10 `window.alert()`:
-- [ ] `recipient/RecipientFeedClient.tsx:249`
-- [ ] `qr/QRCodeCard.tsx:26`
-- [ ] `intermediary/requests/page.tsx:54,58`
-- [ ] `donor/causes/page.tsx:50`
-- [ ] `operator/availability/[id]/page.tsx:152`
-- [ ] `operator/recipients/page.tsx:68,72`
-- [ ] `operator/objects/[id]/deliver/page.tsx:54,58`
+- [x] `recipient/RecipientFeedClient.tsx:249`
+- [x] `qr/QRCodeCard.tsx:26`
+- [x] `intermediary/requests/page.tsx:54,58`
+- [x] `donor/causes/page.tsx:50`
+- [x] `operator/availability/[id]/page.tsx:152`
+- [x] `operator/recipients/page.tsx:68,72`
+- [x] `operator/objects/[id]/deliver/page.tsx:54,58`
+
+> ✅ **Completata in Fase 10 (2026-06-06)**, 11 commit atomici su staging. Vedi [[refactor-state]] § Fase 10 e [[05-known-issues]] § "Anti-pattern eliminati in Fase 10".
+>
+> Casi speciali preservati: `forgot-password` (state-machine con DEV token), `actionError` inline nei modal di conferma, 5 file extra con banner persistiti rimandati a P11 (`PasswordChangeForm`, `intermediary/operators/[id]`, `operator/operators/[id]`, `volunteer/page`, `volunteer/apply`).
 
 ### 12.5 P4 — Modulo operator/street (modello)
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { toast } from '@/components/ui/Toast';
 
 type LegalDocumentType = 'TERMS' | 'PRIVACY';
 type LegalDocumentStatus = 'scheduled' | 'active' | 'archived';
@@ -74,7 +75,6 @@ export default function AdminLegalPage() {
   >(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   const versions = data?.versions ?? [];
 
@@ -108,8 +108,7 @@ export default function AdminLegalPage() {
         confirmAction.kind === 'delete'
           ? `Versione v${confirmAction.version.version} eliminata.`
           : body.message ?? 'Operazione completata';
-      setActionSuccess(successMsg);
-      setTimeout(() => setActionSuccess(null), 5000);
+      toast.success(successMsg);
       setConfirmAction(null);
       mutate();
     } catch (err) {
@@ -129,13 +128,6 @@ export default function AdminLegalPage() {
           pubblicazione forza il re-consenso a tutti gli utenti loggati.
         </p>
       </div>
-
-      {actionSuccess && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-3">
-          <span className="text-xl">✅</span>
-          <p>{actionSuccess}</p>
-        </div>
-      )}
 
       {isLoading ? (
         <p className="text-gray-500 text-center py-8">Caricamento…</p>
@@ -271,8 +263,7 @@ export default function AdminLegalPage() {
           type={uploadModal.type}
           onClose={() => setUploadModal({ open: false, type: null })}
           onSuccess={msg => {
-            setActionSuccess(msg);
-            setTimeout(() => setActionSuccess(null), 5000);
+            toast.success(msg);
             setUploadModal({ open: false, type: null });
             mutate();
           }}

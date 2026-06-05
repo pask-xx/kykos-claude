@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
+import { toast } from '@/components/ui/Toast';
 
 interface Request {
   id: string;
@@ -51,11 +52,11 @@ export default function IntermediaryRequestsPage() {
         fetchRequests();
       } else {
         const data = await res.json();
-        alert(data.error || 'Errore');
+        toast.error(data?.error || 'Errore');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Errore di connessione');
+      toast.error('Errore di connessione');
     } finally {
       setProcessing(null);
     }

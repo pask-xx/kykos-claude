@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import useSWR from 'swr';
+import { toast } from '@/components/ui/Toast';
 
 interface Organization {
   id: string;
@@ -49,12 +50,10 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
-  const [showSuccess, setShowSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'enti' | 'adesioni'>('enti');
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [actionSuccess, setActionSuccess] = useState(false);
 
   // SWR hooks for automatic polling (30 seconds)
   const { data: intermediariesData, isLoading: intermediariesLoading, mutate: mutateIntermediaries } = useSWR<{ intermediaries: Organization[] }>(
@@ -74,11 +73,9 @@ function AdminDashboardContent() {
 
   useEffect(() => {
     if (searchParams.get('created') === 'true') {
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 5000);
+      toast.success('Ente creato e può ora accedere alla piattaforma');
     } else if (searchParams.get('verified') === 'true') {
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 5000);
+      toast.success('Ente verificato con successo');
     }
   }, [searchParams]);
 
@@ -103,8 +100,7 @@ function AdminDashboardContent() {
           window.location.href = `/admin/intermediaries/new?from=adesione&enteId=${confirmAction.id}`;
         } else {
           setConfirmAction(null);
-          setActionSuccess(true);
-          setTimeout(() => setActionSuccess(false), 3000);
+          toast.success('Operazione completata con successo');
         }
       } else {
         setActionError(data.error || 'Errore durante l\'operazione');
@@ -119,13 +115,6 @@ function AdminDashboardContent() {
 
   return (
     <>
-      {showSuccess && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-3">
-          <span className="text-xl">✅</span>
-          <p><strong>Operazione completata!</strong> L&apos;ente è stato creato e può ora accedere alla piattaforma.</p>
-        </div>
-      )}
-
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
@@ -345,13 +334,6 @@ function AdminDashboardContent() {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {actionSuccess && (
-        <div className="fixed top-4 right-4 z-50 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg shadow-lg flex items-center gap-3">
-          <span className="text-xl">✅</span>
-          <p>Operazione completata con successo!</p>
         </div>
       )}
 

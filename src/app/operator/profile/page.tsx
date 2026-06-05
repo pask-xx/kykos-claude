@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { OPERATOR_ROLE_LABELS } from '@/types';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
+import { toast } from '@/components/ui/Toast';
 import dynamic from 'next/dynamic';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -202,7 +203,6 @@ export default function OperatorProfilePage() {
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hoursInfo, setHoursInfo] = useState('');
   const [autoApproveRequests, setAutoApproveRequests] = useState(false);
@@ -269,7 +269,6 @@ export default function OperatorProfilePage() {
   const handleSaveSettings = async () => {
     setSaving(true);
     setError(null);
-    setSuccess(null);
 
     try {
       const res = await fetch('/api/operator/organization', {
@@ -282,8 +281,7 @@ export default function OperatorProfilePage() {
       });
 
       if (res.ok) {
-        setSuccess('Impostazioni salvate con successo');
-        setTimeout(() => setSuccess(null), 3000);
+        toast.success('Impostazioni salvate con successo');
       } else {
         const data = await res.json();
         setError(data.error || 'Errore');
@@ -379,8 +377,7 @@ export default function OperatorProfilePage() {
         body: JSON.stringify({ autoApproveRequests: checked }),
       }).then(res => {
         if (res.ok) {
-          setSuccess(checked ? 'Approvazione automatica attivata' : 'Approvazione automatica disattivata');
-          setTimeout(() => setSuccess(null), 3000);
+          toast.success(checked ? 'Approvazione automatica attivata' : 'Approvazione automatica disattivata');
         }
       }).finally(() => setSaving(false));
     }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/RichTextEditor';
+import { toast } from '@/components/ui/Toast';
 
 interface OrganizationData {
   id: string;
@@ -21,7 +22,6 @@ export default function OrganizationSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
   const [hoursInfo, setHoursInfo] = useState('');
@@ -78,7 +78,6 @@ export default function OrganizationSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     setError(null);
-    setSuccess(null);
 
     try {
       const res = await fetch('/api/operator/organization', {
@@ -95,8 +94,7 @@ export default function OrganizationSettingsPage() {
       });
 
       if (res.ok) {
-        setSuccess('Impostazioni salvate con successo');
-        setTimeout(() => setSuccess(null), 3000);
+        toast.success('Impostazioni salvate con successo');
       } else {
         const data = await res.json();
         setError(data.error || 'Errore nel salvataggio');
@@ -128,8 +126,7 @@ export default function OrganizationSettingsPage() {
           autoApproveGoodsRequests: 'Richieste di beni',
           autoApproveServicesRequests: 'Richieste di servizi',
         };
-        setSuccess(`${labels[field]}: ${checked ? 'Approvazione automatica attivata' : 'disattivata'}`);
-        setTimeout(() => setSuccess(null), 3000);
+        toast.success(`${labels[field]}: ${checked ? 'Approvazione automatica attivata' : 'disattivata'}`);
       } else {
         if (field === 'autoApproveRequests') setAutoApproveRequests(!checked);
         if (field === 'autoApproveGoodsRequests') setAutoApproveGoodsRequests(!checked);
@@ -159,8 +156,7 @@ export default function OrganizationSettingsPage() {
       });
 
       if (res.ok) {
-        setSuccess(`Stampa etichetta: ${checked ? 'attivata' : 'disattivata'}`);
-        setTimeout(() => setSuccess(null), 3000);
+        toast.success(`Stampa etichetta: ${checked ? 'attivata' : 'disattivata'}`);
       } else {
         setPrintLabel(!checked);
         const data = await res.json();
@@ -186,8 +182,7 @@ export default function OrganizationSettingsPage() {
       });
 
       if (res.ok) {
-        setSuccess(`Formato etichetta: ${size}`);
-        setTimeout(() => setSuccess(null), 3000);
+        toast.success(`Formato etichetta: ${size}`);
       } else {
         setLabelSize(size === '50x30' ? '50x40' : '50x30');
         const data = await res.json();
@@ -233,12 +228,6 @@ export default function OrganizationSettingsPage() {
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
           {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-          ✓ {success}
         </div>
       )}
 
