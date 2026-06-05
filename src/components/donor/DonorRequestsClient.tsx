@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ImageUploader from '@/components/ImageUploader';
+import { toast } from '@/components/ui/Toast';
 
 interface GoodsRequest {
   id: string;
@@ -40,7 +41,6 @@ export default function DonorRequestsClient() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [offeringId, setOfferingId] = useState<string | null>(null);
-  const [offerSuccess, setOfferSuccess] = useState<string | null>(null);
   const [offerMessage, setOfferMessage] = useState('');
   const [offeringForId, setOfferingForId] = useState<string | null>(null);
   const [offerImages, setOfferImages] = useState<string[]>([]);
@@ -149,7 +149,6 @@ export default function DonorRequestsClient() {
   const handleOffer = async (requestId: string) => {
     setOfferingId(requestId);
     setError(null);
-    setOfferSuccess(null);
 
     try {
       const res = await fetch('/api/donor/offers', {
@@ -159,12 +158,11 @@ export default function DonorRequestsClient() {
       });
 
       if (res.ok) {
-        setOfferSuccess('Offerta inviata con successo!');
+        toast.success('Offerta inviata con successo!');
         setOfferingForId(null);
         setOfferMessage('');
         setOfferImages([]);
         setRequests(prev => prev.map(r => r.id === requestId ? { ...r, alreadyOffered: true, _count: { ...r._count, offers: r._count.offers + 1 } } : r));
-        setTimeout(() => setOfferSuccess(null), 3000);
       } else {
         const data = await res.json();
         setError(data.error || 'Errore nell\'offerta');
@@ -251,12 +249,7 @@ export default function DonorRequestsClient() {
 
   return (
     <div className="space-y-4">
-      {/* Success/Error Messages */}
-      {offerSuccess && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-center text-sm">
-          {offerSuccess}
-        </div>
-      )}
+      {/* Error Messages */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center text-sm">
           {error}

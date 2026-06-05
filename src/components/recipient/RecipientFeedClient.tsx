@@ -56,7 +56,6 @@ export default function RecipientFeedClient() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [requestingId, setRequestingId] = useState<string | null>(null);
-  const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string; index: number } | null>(null);
   const [confirmRequestId, setConfirmRequestId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState<string>('');
@@ -186,11 +185,10 @@ export default function RecipientFeedClient() {
       });
 
       if (res.ok) {
-        setRequestSuccess('Richiesta inviata con successo!');
+        toast.success('Richiesta inviata con successo!');
         setMultiAvailabilities(prev =>
           prev.map(a => a.id === multiAvailabilityId ? { ...a, hasRequested: true, requestStatus: 'PENDING' } : a)
         );
-        setTimeout(() => setRequestSuccess(null), 3000);
       } else {
         const data = await res.json();
         setError(data.error || 'Errore nella richiesta');
@@ -205,7 +203,6 @@ export default function RecipientFeedClient() {
   const handleRequest = async (objectId: string) => {
     setRequestingId(objectId);
     setError(null);
-    setRequestSuccess(null);
 
     try {
       const res = await fetch('/api/requests', {
@@ -215,10 +212,9 @@ export default function RecipientFeedClient() {
       });
 
       if (res.ok) {
-        setRequestSuccess('Richiesta inviata con successo!');
+        toast.success('Richiesta inviata con successo!');
         setExpandedId(null);
         setObjects(prev => prev.filter(o => o.id !== objectId));
-        setTimeout(() => setRequestSuccess(null), 3000);
       } else {
         const data = await res.json();
         setError(data.error || 'Errore nella richiesta');
@@ -309,12 +305,7 @@ export default function RecipientFeedClient() {
 
   return (
     <div className="space-y-4">
-      {/* Success/Error Messages */}
-      {requestSuccess && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-center">
-          {requestSuccess}
-        </div>
-      )}
+      {/* Error Messages */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center">
           {error}
