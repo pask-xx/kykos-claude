@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ConfirmDialog from '@/components/ConfirmDialog';
 import { OBJECT_STATUS_LABELS } from '@/types';
 
 interface Object {

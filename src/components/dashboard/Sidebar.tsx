@@ -322,8 +322,8 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
         </div>
       </aside>
 
-      {/* Manifesto Modal */}
-      {showManifesto && <ManifestoModal onClose={() => setShowManifesto(false)} />}
+      {/* Manifesto Modal — montato sempre, controllato da isOpen */}
+      <ManifestoModal isOpen={showManifesto} onClose={() => setShowManifesto(false)} />
     </>
   );
 }
