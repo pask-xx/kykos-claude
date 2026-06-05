@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { toast } from '@/components/ui/Toast';
 
 const LocationMap = dynamic(() => import('@/components/map/LocationMap'), {
   ssr: false,
@@ -30,7 +31,6 @@ interface ProfileFormProps {
 export default function ProfileForm({ user, role }: ProfileFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
@@ -53,7 +53,6 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setSuccess(false);
     setError(null);
   };
 
@@ -74,7 +73,6 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
           longitude: position.coords.longitude.toString(),
         }));
         setLocating(false);
-        setSuccess(false);
       },
       (err) => {
         setLocationError('Impossibile ottenere la posizione. Verifica i permessi.');
@@ -117,7 +115,6 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
         latitude: data.latitude.toString(),
         longitude: data.longitude.toString(),
       }));
-      setSuccess(false);
     } catch {
       setLocationError('Errore di connessione');
     } finally {
@@ -129,7 +126,6 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const res = await fetch('/api/profile/update', {
@@ -145,8 +141,7 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
         return;
       }
 
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      toast.success('Salvato con successo');
       router.refresh();
     } catch {
       setError('Errore di connessione');
@@ -166,11 +161,6 @@ export default function ProfileForm({ user, role }: ProfileFormProps) {
         <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
           <span>✏️</span> Modifica profilo
         </h2>
-        {success && (
-          <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-            ✓ Salvato con successo
-          </span>
-        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
