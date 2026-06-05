@@ -721,10 +721,12 @@ Lavori di refactor futuri, in ordine di priorità. Ogni step è un commit
 
 ### 12.3 P2 — Logout & password (2 commit)
 
-- [ ] Unificare le 4 implementazioni di Logout in un unico
+- [x] Unificare le 4 implementazioni di Logout in un unico
       `<LogoutButton role="user|operator">`.
-- [ ] Unificare i 3 form di cambio password in un unico
-      `<PasswordChangeForm role="user|operator">`.
+- [x] Unificare i 2 form di cambio password in un unico
+      `<PasswordChangeForm role="user|operator">` (la roadmap
+      originale diceva "3" ma il 3° flusso, `auth/reset-password`,
+      è forgot-password via email, NON cambio da utente loggato).
 
 ### 12.4 P3 — Toast ovunque (5-10 commit, modulo per modulo)
 

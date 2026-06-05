@@ -186,3 +186,15 @@ Solo un ADMIN dell'ente può creare operatori. L'username deve essere univoco al
 - [x] GESTIONE CATEGORIE ARTICOLI
 - [ ] AFFILIAZIONE SEDI
 - [ ] CONFIGURAZIONE SISTEMA
+
+---
+
+## Bug pre-esistenti (post-pilota, scope creep evitato in refactor)
+
+- [ ] `clearOperatorSessionCookie()` mancante in `src/lib/auth.ts` (gap
+      di Fase 4 E3+E4, identificato in Fase 9). Se l'operator cambia
+      password, il cookie `operator_session` non viene pulito: può
+      rientrare con la sessione vecchia finché non fa logout manuale
+      o il cookie non scade. Fix richiesto: aggiungere helper in
+      `src/lib/auth.ts` simmetrico a `clearSessionCookie()` ma per
+      `operator_session`, e chiamarlo in `/api/operator/password/change`.
