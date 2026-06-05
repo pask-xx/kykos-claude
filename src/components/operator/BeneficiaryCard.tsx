@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { MapPin, ChevronRight } from 'lucide-react';
-import { Avatar, Badge, Button, Card } from '@/components/ui';
+import { Avatar, Badge, Card } from '@/components/ui';
 
 export interface BeneficiaryCardData {
   id: string;
@@ -16,25 +16,22 @@ export interface BeneficiaryCardData {
 
 export interface BeneficiaryCardProps {
   beneficiary: BeneficiaryCardData;
-  onEdit: (id: string) => void;
 }
 
 /**
  * <BeneficiaryCard> — card riusabile per la lista beneficiari street.
  *
- * Pattern: la card è wrappata in `<Link>` per navigare al detail.
- * Il bottone "Modifica" ha `e.preventDefault()` + `e.stopPropagation()`
- * per NON triggerare la navigazione (apre il form in lista).
+ * Wrappata in `<Link>` per navigare al detail (dove si modifica).
+ * La modifica si fa dal detail page, non dalla lista: rimuovere
+ * il bottone "Modifica" inline evita la ridondanza e uniforma
+ * il pattern con le altre card-lista del modulo.
  *
  * 0 useState (componente puro, riusato da page.tsx).
  *
  * Esempio:
- *   <BeneficiaryCard
- *     beneficiary={b}
- *     onEdit={(id) => { setEditingId(id); setShowForm(true); }}
- *   />
+ *   <BeneficiaryCard beneficiary={b} />
  */
-export function BeneficiaryCard({ beneficiary, onEdit }: BeneficiaryCardProps) {
+export function BeneficiaryCard({ beneficiary }: BeneficiaryCardProps) {
   const fullName = `${beneficiary.firstName} ${beneficiary.lastName}`;
   const addressLine = [beneficiary.address, beneficiary.city].filter(Boolean).join(', ');
 
@@ -65,21 +62,7 @@ export function BeneficiaryCard({ beneficiary, onEdit }: BeneficiaryCardProps) {
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onEdit(beneficiary.id);
-                }}
-              >
-                Modifica
-              </Button>
-              <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
-            </div>
+            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
           </div>
         </div>
       </Card>

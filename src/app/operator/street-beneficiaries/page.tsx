@@ -6,7 +6,7 @@ import {
   Button, Card, CardHeader, CardTitle, CardContent,
   EmptyState, SkeletonCard, toast,
 } from '@/components/ui';
-import { BeneficiaryForm, type BeneficiaryFormInitialData } from '@/components/operator/BeneficiaryForm';
+import { BeneficiaryForm } from '@/components/operator/BeneficiaryForm';
 import { BeneficiaryCard, type BeneficiaryCardData } from '@/components/operator/BeneficiaryCard';
 
 interface StreetBeneficiary extends BeneficiaryCardData {
@@ -28,7 +28,6 @@ export default function StreetBeneficiariesPage() {
   const [beneficiaries, setBeneficiaries] = useState<StreetBeneficiary[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchBeneficiaries = useCallback(async () => {
     try {
@@ -46,28 +45,6 @@ export default function StreetBeneficiariesPage() {
   useEffect(() => {
     fetchBeneficiaries();
   }, [fetchBeneficiaries]);
-
-  const editingBeneficiary = editingId
-    ? beneficiaries.find((b) => b.id === editingId) ?? null
-    : null;
-
-  const initialData: BeneficiaryFormInitialData | undefined = editingBeneficiary
-    ? {
-        nickname: editingBeneficiary.nickname,
-        firstName: editingBeneficiary.firstName,
-        lastName: editingBeneficiary.lastName,
-        fiscalCode: editingBeneficiary.fiscalCode,
-        birthDate: editingBeneficiary.birthDate,
-        address: editingBeneficiary.address,
-        houseNumber: editingBeneficiary.houseNumber,
-        cap: editingBeneficiary.cap,
-        city: editingBeneficiary.city,
-        province: editingBeneficiary.province,
-        isee: editingBeneficiary.isee,
-        latitude: editingBeneficiary.latitude,
-        longitude: editingBeneficiary.longitude,
-      }
-    : undefined;
 
   if (loading) {
     return (
@@ -90,10 +67,7 @@ export default function StreetBeneficiariesPage() {
         </div>
         <Button
           variant={showForm ? 'secondary' : 'primary'}
-          onClick={() => {
-            setShowForm((v) => !v);
-            setEditingId(null);
-          }}
+          onClick={() => setShowForm((v) => !v)}
         >
           {showForm ? 'Annulla' : '+ Nuovo beneficiario'}
         </Button>
@@ -102,24 +76,16 @@ export default function StreetBeneficiariesPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>
-              {editingId ? 'Modifica beneficiario' : 'Nuovo beneficiario'}
-            </CardTitle>
+            <CardTitle>Nuovo beneficiario</CardTitle>
           </CardHeader>
           <CardContent>
             <BeneficiaryForm
-              mode={editingId ? 'edit' : 'create'}
-              beneficiaryId={editingId ?? undefined}
-              initialData={initialData}
+              mode="create"
               onSuccess={() => {
                 setShowForm(false);
-                setEditingId(null);
                 fetchBeneficiaries();
               }}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingId(null);
-              }}
+              onCancel={() => setShowForm(false)}
             />
           </CardContent>
         </Card>
@@ -141,14 +107,7 @@ export default function StreetBeneficiariesPage() {
       ) : (
         <div className="space-y-3">
           {beneficiaries.map((b) => (
-            <BeneficiaryCard
-              key={b.id}
-              beneficiary={b}
-              onEdit={(id) => {
-                setEditingId(id);
-                setShowForm(true);
-              }}
-            />
+            <BeneficiaryCard key={b.id} beneficiary={b} />
           ))}
         </div>
       )}
