@@ -1,37 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Bell } from 'lucide-react';
+import NotificationDetailModal, { type NotificationDetail } from './NotificationDetailModal';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  read: boolean;
-  link: string | null;
-  createdAt: string;
+interface Notification extends NotificationDetail {
+  // Identico a NotificationDetail, mantenuto per compatibilita' con il parent
 }
-
-const TYPE_LABELS: Record<string, string> = {
-  DONATION_CONFIRMED: 'Conferma donazione',
-  REQUEST_APPROVED: 'Richiesta approvata',
-  REQUEST_REJECTED: 'Richiesta rifiutata',
-  OBJECT_AVAILABLE: 'Oggetto disponibile',
-  OBJECT_RESERVED: 'Oggetto riservato',
-  OBJECT_DELIVERED: 'Oggetto consegnato',
-  OBJECT_DEPOSITED: 'Oggetto depositato',
-  OBJECT_CANCELLED: 'Oggetto cancellato',
-  REPORT_RECEIVED: 'Segnalazione ricevuta',
-  REPORT_RESOLVED: 'Segnalazione risolta',
-  MESSAGE_FROM_OPERATOR: 'Messaggio dall\'ente',
-  NEW_REQUEST: 'Nuova richiesta',
-  NEW_REPORT: 'Nuova segnalazione',
-  GOODS_REQUEST_CREATED: 'Richiesta beni creata',
-  GOODS_REQUEST_APPROVED: 'Richiesta beni approvata',
-  GOODS_REQUEST_REJECTED: 'Richiesta beni rifiutata',
-  GOODS_REQUEST_FULFILLED: 'Richiesta beni soddisfatta',
-  GOODS_OFFER_RECEIVED: 'Offerta ricevuta',
-};
 
 export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath: string; bellSize?: 'sm' | 'md' }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -91,24 +66,29 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
     }
   };
 
-  const openNotification = async (notification: Notification) => {
-    if (!notification.read) {
-      try {
-        await fetch(`${apiPath}/${notification.id}`, { method: 'PATCH' });
-      } catch (err) {
-        console.error('Error marking notification as read:', err);
-      }
-      setNotifications(prev =>
-        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-      if ('clearAppBadge' in navigator && unreadCount <= 1) {
-        navigator.clearAppBadge();
-      }
+  /**
+   * Callback condiviso con NotificationDetailModal: aggiorna state parent
+   * (notifications + unreadCount) quando il modal segna la notifica come
+   * letta. useCallback per stabilita' referenziale.
+   */
+  const handleMarkedRead = useCallback((id: string) => {
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    if ('clearAppBadge' in navigator) {
+      navigator.clearAppBadge();
     }
+  }, []);
+
+  const openNotification = (notification: Notification) => {
     setSelectedNotification(notification);
     setOpen(false);
   };
+
+  const closeDetail = useCallback(() => {
+    setSelectedNotification(null);
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -122,16 +102,18 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
   };
 
   const sizeClasses = bellSize === 'sm' ? 'w-8 h-8' : 'w-10 h-10';
-  const iconSize = bellSize === 'sm' ? 'text-lg' : 'text-xl';
+  const iconSize = bellSize === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
 
   return (
     <>
       <div className="relative" ref={dropdownRef}>
         <button
+          type="button"
           onClick={() => setOpen(!open)}
+          aria-label="Notifiche"
           className={`${sizeClasses} relative flex items-center justify-center rounded-full hover:bg-gray-100 transition`}
         >
-          <span className={iconSize}>🔔</span>
+          <Bell className={`${iconSize} text-gray-700`} />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1">
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -145,6 +127,7 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
               <h3 className="font-semibold text-gray-900">Notifiche</h3>
               {unreadCount > 0 && (
                 <button
+                  type="button"
                   onClick={markAllRead}
                   className="text-xs text-primary-600 hover:text-primary-700"
                 >
@@ -156,15 +139,16 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="p-6 text-center text-gray-500">
-                  <span className="text-3xl block mb-2">🔔</span>
+                  <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                   <p>Nessuna notifica</p>
                 </div>
               ) : (
                 notifications.map((notification) => (
-                  <div
+                  <button
+                    type="button"
                     key={notification.id}
                     onClick={() => openNotification(notification)}
-                    className={`block p-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer ${
+                    className={`block w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer ${
                       !notification.read ? 'bg-blue-50' : ''
                     }`}
                   >
@@ -178,7 +162,7 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
                         <p className="text-xs text-gray-400 mt-1">{formatDate(notification.createdAt)}</p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))
               )}
             </div>
@@ -186,66 +170,13 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
         )}
       </div>
 
-      {/* Notification Detail Modal */}
       {selectedNotification && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => {
-            if (!selectedNotification.read) {
-              fetch(`${apiPath}/${selectedNotification.id}`, { method: 'PATCH' });
-              setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? { ...n, read: true } : n));
-              setUnreadCount(prev => Math.max(0, prev - 1));
-            }
-            setSelectedNotification(null);
-          }} />
-          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-            <button
-              onClick={() => {
-                if (!selectedNotification.read) {
-                  fetch(`${apiPath}/${selectedNotification.id}`, { method: 'PATCH' });
-                  setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? { ...n, read: true } : n));
-                  setUnreadCount(prev => Math.max(0, prev - 1));
-                }
-                setSelectedNotification(null);
-              }}
-              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
-            >
-              ✕
-            </button>
-
-            <div className="pr-8">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                {TYPE_LABELS[selectedNotification.type] || selectedNotification.type}
-              </p>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{selectedNotification.title}</h3>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <p className="text-gray-700 text-sm whitespace-pre-wrap">{selectedNotification.message}</p>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">
-                {formatDate(selectedNotification.createdAt)}
-              </p>
-              {selectedNotification.link && (
-                <a
-                  href={selectedNotification.link}
-                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  onClick={() => {
-                    if (!selectedNotification.read) {
-                      fetch(`${apiPath}/${selectedNotification.id}`, { method: 'PATCH' });
-                      setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? { ...n, read: true } : n));
-                      setUnreadCount(prev => Math.max(0, prev - 1));
-                    }
-                    setSelectedNotification(null);
-                  }}
-                >
-                  Vai al contenuto →
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+        <NotificationDetailModal
+          notification={selectedNotification}
+          apiPath={apiPath}
+          onClose={closeDetail}
+          onMarkedRead={handleMarkedRead}
+        />
       )}
     </>
   );
