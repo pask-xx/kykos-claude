@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { Home, MapPin, Loader2 } from 'lucide-react';
 import CitySelector from '@/components/geo/CitySelector';
 import {
-  Button, Input,
+  Button,
   Form, Field, useZodForm, toast,
 } from '@/components/ui';
 import { generateNickname, normalizeNickname } from '@/lib/nickname';
@@ -19,29 +19,62 @@ import { generateNickname, normalizeNickname } from '@/lib/nickname';
  * - cap: max 5 char
  * - latitude/longitude/isee: number strings (parse lato server)
  *
- * NON include email: in create è generato server-side, in edit l'edit page
- * lo gestisce separatamente (vedi [[street-beneficiaries]]/[id]/edit).
- * NON include needScore: campo admin-only.
+ * - email: opzionale. Validato SOLO se valorizzato (regex + check placeholder
+ *   KYKOS). L'API PATCH lato server applica gli stessi controlli + check
+ *   unicità.
+ * - needScore: opzionale. Stringa numerica 0-100. Solo admin (mostrato
+ *   solo se `showNeedScore`).
+ *
+ * I campi email/needScore sono sempre nello schema (per evitare schema
+ * dinamici), ma vengono renderizzati e inclusi nel body del submit SOLO
+ * se le relative props sono attive.
  */
-const beneficiarySchema = z.object({
-  nickname: z.string().max(30, 'Massimo 30 caratteri').optional(),
-  firstName: z.string().min(1, 'Il nome è obbligatorio'),
-  lastName: z.string().min(1, 'Il cognome è obbligatorio'),
-  fiscalCode: z.string().max(16, 'Massimo 16 caratteri').optional(),
-  birthDate: z.string().optional(),
-  address: z.string().optional(),
-  houseNumber: z.string().optional(),
-  cap: z.string().max(5, 'Massimo 5 caratteri').optional(),
-  city: z.string().optional(),
-  province: z.string().optional(),
-  isee: z.string().optional(),
-  latitude: z.string().optional(),
-  longitude: z.string().optional(),
-});
+const beneficiarySchema = z
+  .object({
+    email: z.string().optional(),
+    nickname: z.string().max(30, 'Massimo 30 caratteri').optional(),
+    firstName: z.string().min(1, 'Il nome è obbligatorio'),
+    lastName: z.string().min(1, 'Il cognome è obbligatorio'),
+    fiscalCode: z.string().max(16, 'Massimo 16 caratteri').optional(),
+    birthDate: z.string().optional(),
+    address: z.string().optional(),
+    houseNumber: z.string().optional(),
+    cap: z.string().max(5, 'Massimo 5 caratteri').optional(),
+    city: z.string().optional(),
+    province: z.string().optional(),
+    isee: z.string().optional(),
+    needScore: z.string().optional(),
+    latitude: z.string().optional(),
+    longitude: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.email && data.email.length > 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['email'],
+          message: 'Formato email non valido',
+        });
+      }
+      if (
+        data.email.includes('@street.kykos.local') ||
+        data.email.includes('@placeholder') ||
+        data.email.startsWith('street.')
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['email'],
+          message: 'Email non valida. Inserisci una email reale della persona.',
+        });
+      }
+    }
+  });
 
 type BeneficiaryFormValues = z.infer<typeof beneficiarySchema>;
 
 const EMPTY_DEFAULTS: BeneficiaryFormValues = {
+  email: '',
   nickname: '',
   firstName: '',
   lastName: '',
@@ -53,11 +86,13 @@ const EMPTY_DEFAULTS: BeneficiaryFormValues = {
   city: '',
   province: '',
   isee: '',
+  needScore: '',
   latitude: '',
   longitude: '',
 };
 
 export interface BeneficiaryFormInitialData {
+  email?: string | null;
   nickname?: string | null;
   firstName: string;
   lastName: string;
@@ -69,6 +104,7 @@ export interface BeneficiaryFormInitialData {
   city?: string | null;
   province?: string | null;
   isee?: string | null;
+  needScore?: number | null;
   latitude?: number | null;
   longitude?: number | null;
 }
@@ -79,7 +115,11 @@ export interface BeneficiaryFormProps {
   beneficiaryId?: string;
   /** Valori iniziali (per edit mode). */
   initialData?: BeneficiaryFormInitialData;
-  onSuccess: () => void;
+  /** Mostra campo Email con validazione (per edit mode). Default: false. */
+  showEmail?: boolean;
+  /** Mostra campo Score di bisogno 0-100 (admin-only). Default: false. */
+  showNeedScore?: boolean;
+  onSuccess: (data: { id?: string }) => void;
   onCancel: () => void;
 }
 
@@ -88,19 +128,38 @@ export interface BeneficiaryFormProps {
  * beneficiario street-managed. Self-contained: gestisce submit, geocoding,
  * generazione nickname, validazione zod.
  *
- * Pattern uniformato con [[street-beneficiaries]]/[id]/edit (Fase 6.1).
+ * Props opzionali per differenziare create vs edit:
+ * - `showEmail`: aggiunge campo Email (con regex + check placeholder)
+ * - `showNeedScore`: aggiunge campo Score di bisogno 0-100 (admin-only)
  *
- * Esempio:
+ * In `mode='create'` i campi email/needScore sono MAI inclusi nel body
+ * (l'API POST li genera/gestisce diversamente). In `mode='edit'` sono
+ * inclusi SOLO se le relative props sono attive.
+ *
+ * Esempio create:
  *   <BeneficiaryForm
  *     mode="create"
  *     onSuccess={() => router.refresh()}
  *     onCancel={() => setShowForm(false)}
+ *   />
+ *
+ * Esempio edit (con email + needScore):
+ *   <BeneficiaryForm
+ *     mode="edit"
+ *     beneficiaryId={id}
+ *     showEmail
+ *     showNeedScore
+ *     initialData={beneficiary}
+ *     onSuccess={() => router.push(detail)}
+ *     onCancel={() => router.back()}
  *   />
  */
 export function BeneficiaryForm({
   mode,
   beneficiaryId,
   initialData,
+  showEmail = false,
+  showNeedScore = false,
   onSuccess,
   onCancel,
 }: BeneficiaryFormProps) {
@@ -121,6 +180,7 @@ export function BeneficiaryForm({
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       reset({
+        email: (initialData.email && showEmail) ? initialData.email : '',
         nickname: initialData.nickname || '',
         firstName: initialData.firstName,
         lastName: initialData.lastName,
@@ -134,6 +194,7 @@ export function BeneficiaryForm({
         city: initialData.city || '',
         province: initialData.province || '',
         isee: initialData.isee || '',
+        needScore: (initialData.needScore != null && showNeedScore) ? initialData.needScore.toString() : '',
         latitude: initialData.latitude?.toString() || '',
         longitude: initialData.longitude?.toString() || '',
       });
@@ -148,25 +209,36 @@ export function BeneficiaryForm({
       : '/api/operator/street-beneficiaries';
     const method = isEdit ? 'PATCH' : 'POST';
 
+    // Body base — presente in create e edit
+    const body: Record<string, unknown> = {
+      nickname: data.nickname || null,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      fiscalCode: data.fiscalCode || null,
+      birthDate: data.birthDate || null,
+      address: data.address || null,
+      houseNumber: data.houseNumber || null,
+      cap: data.cap || null,
+      city: data.city || null,
+      province: data.province || null,
+      isee: data.isee || null,
+      latitude: data.latitude || null,
+      longitude: data.longitude || null,
+    };
+
+    // Email e needScore SOLO in modalità edit (con prop attiva)
+    if (isEdit && showEmail) {
+      body.email = data.email || null;
+    }
+    if (isEdit && showNeedScore) {
+      body.needScore = data.needScore ? parseInt(data.needScore, 10) : null;
+    }
+
     try {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nickname: data.nickname || null,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          fiscalCode: data.fiscalCode || null,
-          birthDate: data.birthDate || null,
-          address: data.address || null,
-          houseNumber: data.houseNumber || null,
-          cap: data.cap || null,
-          city: data.city || null,
-          province: data.province || null,
-          isee: data.isee || null,
-          latitude: data.latitude || null,
-          longitude: data.longitude || null,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -176,7 +248,16 @@ export function BeneficiaryForm({
       }
 
       toast.success(isEdit ? 'Modifiche salvate' : 'Beneficiario creato');
-      onSuccess();
+
+      // Estrai id dal body della response (POST e PATCH ritornano { beneficiary })
+      let id: string | undefined;
+      try {
+        const json = await res.json();
+        id = json?.beneficiary?.id;
+      } catch {
+        // response senza body JSON — ok
+      }
+      onSuccess({ id });
     } catch {
       toast.error('Errore di connessione');
     }
@@ -222,6 +303,18 @@ export function BeneficiaryForm({
 
   return (
     <Form methods={methods} onSubmit={handleSubmit(onSubmit)}>
+      {/* Email — solo se showEmail (edit mode con prop attiva) */}
+      {showEmail && (
+        <div className="mb-4">
+          <Field
+            name="email"
+            label="Email"
+            type="email"
+            hint="Necessaria per creare l'account. Non usare email placeholder."
+          />
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-4">
         <Field
           name="firstName"
@@ -319,6 +412,16 @@ export function BeneficiaryForm({
           step="0.01"
           placeholder="0.00"
         />
+        {showNeedScore && (
+          <Field
+            name="needScore"
+            label="Score di bisogno (0-100)"
+            type="number"
+            min={0}
+            max={100}
+            placeholder="0-100"
+          />
+        )}
       </div>
 
       {/* Geolocation */}

@@ -1,25 +1,20 @@
 import QRCode from 'qrcode';
-import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 import path from 'path';
+
+// Import + re-export della versione client-safe (vedi `lib/qrcode-client.ts`).
+// Manteniamo l'export da `qrcode.ts` per retro-compat con i 22+ import
+// server-side esistenti (api/*/qr/route.ts ecc.). L'import esplicito è
+// necessario per il type-check (il re-export `export { ... } from` è
+// type-only per il call-site interno).
+import { generateQrCodeDataUrl } from './qrcode-client';
+export { generateQrCodeDataUrl };
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 );
-
-export async function generateQrCodeDataUrl(data: string): Promise<string> {
-  const dataUrl = await QRCode.toDataURL(data, {
-    width: 300,
-    margin: 2,
-    color: {
-      dark: '#059669',
-      light: '#ffffff',
-    },
-  });
-  return dataUrl;
-}
 
 export async function generateQrCodeWithLogo(data: string): Promise<string> {
   // Generate QR code as raw PNG buffer

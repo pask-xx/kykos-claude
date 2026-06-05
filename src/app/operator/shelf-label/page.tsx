@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import QRCode from 'qrcode';
-
-const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
-const LOGO_TEXT_BASE64 = '/logoKykosTestoBase64.txt';
+import { Tag } from 'lucide-react';
+import { Card, CardContent, Button, Spinner, toast } from '@/components/ui';
+import { openPrintWindow, type PrintSize } from '@/components/qr/print-window';
+import { generateQrCodeDataUrl } from '@/lib/qrcode-client';
 
 export default function ShelfLabelPage() {
   const router = useRouter();
@@ -13,156 +13,122 @@ export default function ShelfLabelPage() {
   const [stanza, setStanza] = useState('');
   const [scaffale, setScaffale] = useState('');
   const [piano, setPiano] = useState('');
-  const [labelSize, setLabelSize] = useState('50x30');
+  const [labelSize, setLabelSize] = useState<'50x30' | '50x40'>('50x30');
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [logoAlberoPng, setLogoAlberoPng] = useState<string | null>(null);
-  const [logoTextPng, setLogoTextPng] = useState<string | null>(null);
 
+  // 1) Carica impostazioni organizzazione (labelSize default)
   useEffect(() => {
-    async function fetchOrgSettings() {
+    let cancelled = false;
+    (async () => {
       try {
         const res = await fetch('/api/operator/organization');
-        if (res.ok) {
+        if (!cancelled && res.ok) {
           const data = await res.json();
-          if (data.organization?.labelSize) {
-            setLabelSize(data.organization.labelSize);
+          const size = data.organization?.labelSize;
+          if (size === '50x40' || size === '50x30') {
+            setLabelSize(size);
           }
         }
       } catch (err) {
         console.error('Error fetching org settings:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    }
-
-    fetchOrgSettings();
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    async function preloadLogos() {
-      try {
-        const [alberoRes, textRes] = await Promise.all([
-          fetch(LOGO_ALBERO_BASE64),
-          fetch(LOGO_TEXT_BASE64),
-        ]);
-        const [alberoBase64, textBase64] = await Promise.all([
-          alberoRes.text(),
-          textRes.text(),
-        ]);
-        // Ensure data URI prefix
-        const alberoDataUri = alberoBase64.startsWith('data:') ? alberoBase64 : `data:image/png;base64,${alberoBase64}`;
-        const textDataUri = textBase64.startsWith('data:') ? textBase64 : `data:image/png;base64,${textBase64}`;
-        setLogoAlberoPng(alberoDataUri);
-        setLogoTextPng(textDataUri);
-      } catch (err) {
-        console.error('Error preloading logos:', err);
-      }
-    }
-    preloadLogos();
-  }, []);
-
+  // 2) Rigenera QR ad ogni cambio dei 3 campi (debounce non necessario,
+  //    QRCode.toDataURL è sub-millisecondo per 3 stringhe corte)
   const qrData = `${stanza}\n${scaffale}\n${piano}`;
   const isValid = stanza.trim() && scaffale.trim() && piano.trim();
   const isLarge = labelSize === '50x40';
 
   useEffect(() => {
-    if (!qrData.trim()) {
+    if (!isValid) {
       setQrDataUrl(null);
       return;
     }
-    QRCode.toDataURL(qrData, {
-      width: 105,
-      margin: 0,
-      color: { dark: '#059669', light: '#ffffff' },
-    }).then(setQrDataUrl).catch(() => setQrDataUrl(null));
-  }, [qrData]);
+    let cancelled = false;
+    generateQrCodeDataUrl(qrData)
+      .then((url) => { if (!cancelled) setQrDataUrl(url); })
+      .catch(() => { if (!cancelled) setQrDataUrl(null); });
+    return () => { cancelled = true; };
+  }, [qrData, isValid]);
 
-  const handlePrint = async () => {
-    if (!isValid || !qrDataUrl) return;
-
-    const [logoAlbero, logoText, qrBase64] = await Promise.all([
-      logoAlberoPng ? Promise.resolve(logoAlberoPng) : fetch(`${LOGO_ALBERO_BASE64}`).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-      logoTextPng ? Promise.resolve(logoTextPng) : fetch(`${LOGO_TEXT_BASE64}`).then(r => r.text()).then(t => `data:image/png;base64,${t}`),
-      Promise.resolve(qrDataUrl),
-    ]);
-
+  const handlePrint = () => {
+    if (!isValid || !qrDataUrl) {
+      toast.error('Compila tutti i campi prima di stampare');
+      return;
+    }
+    const size: PrintSize = labelSize;
     const labelHeight = isLarge ? '40mm' : '30mm';
-    const qrSize = isLarge ? 18 : 16;
-    const logoAlberoHeight = 5;
-    const logoTextHeight = logoAlberoHeight * 2;
+    const qrSizeMm = isLarge ? 18 : 16;
+    const infoBoxWidthMm = 50 - qrSizeMm - 4;
+    const logoAlberoHeightMm = 5;
+    const logoTextHeightMm = logoAlberoHeightMm * 2;
 
-    const printWindow = window.open('', '', 'width=400,height=400');
-    if (!printWindow) return;
+    const bodyHtml = `
+      <div class="label">
+        <div class="top-row">
+          <div class="qr-area"><img src="${qrDataUrl}" alt="QR" /></div>
+          <div class="info-box">
+            <div class="data-row"><span class="circle">S</span><span class="data-text">${escapeHtml(stanza)}</span></div>
+            <div class="data-row"><span class="circle">S</span><span class="data-text">${escapeHtml(scaffale)}</span></div>
+            <div class="data-row"><span class="circle">P</span><span class="data-text">${escapeHtml(piano)}</span></div>
+          </div>
+        </div>
+        <div class="logo-row">
+          <img class="albero" src="/albero.svg" alt="Kykos" />
+          <img class="testo" src="/LogoKykosTesto.svg" alt="Kykos" />
+        </div>
+      </div>
+    `;
 
-    printWindow.document.write(`<!DOCTYPE html>
-<html>
-<head>
-<title>Etichetta Scaffale</title>
-<style>
-@page { size: 50mm ${labelHeight}; margin: 0; }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 50mm; height: ${labelHeight}; }
-.label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
-.top-row { display: flex; gap: 2mm; }
-.qr-area { width: ${qrSize}mm; height: ${qrSize}mm; flex-shrink: 0; }
-.qr-area img { width: ${qrSize}mm; height: ${qrSize}mm; }
-.info-box { width: ${50 - qrSize - 4}mm; display: flex; flex-direction: column; justify-content: center; gap: 0.5mm; }
-.data-row { display: flex; align-items: center; gap: 1mm; }
-.circle { display: inline-flex; align-items: center; justify-content: center; width: 4.5mm; height: 4.5mm; border-radius: 50%; border: 0.5mm solid #000; color: #000; font-size: 3.5mm; font-weight: bold; line-height: 1; }
-.data-text { font-size: 3.5mm; font-weight: bold; color: #000; line-height: 1; }
-.logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 0.5mm; }
-.logo-row img { display: block; }
-</style>
-</head>
-<body>
-<div class="label">
-  <div class="top-row">
-    <div class="qr-area">
-      <img src="${qrBase64}" alt="QR" />
-    </div>
-    <div class="info-box">
-      <div class="data-row"><span class="circle">S</span><span class="data-text">${stanza}</span></div>
-      <div class="data-row"><span class="circle">S</span><span class="data-text">${scaffale}</span></div>
-      <div class="data-row"><span class="circle">P</span><span class="data-text">${piano}</span></div>
-    </div>
-  </div>
-  <div class="logo-row">
-    <img src="${logoAlbero}" alt="logo" style="height: ${logoAlberoHeight}mm; width: ${logoAlberoHeight}mm;" />
-    <img src="${logoText}" alt="Kykos" style="height: ${logoTextHeight}mm; width: auto;" />
-  </div>
-</div>
-</body>
-</html>`);
-    printWindow.document.close();
-    printWindow.print();
+    const preStyles = `
+      .label { width: 50mm; height: ${labelHeight}; display: flex; flex-direction: column; padding: 2mm; background: white; }
+      .top-row { display: flex; gap: 2mm; }
+      .qr-area { width: ${qrSizeMm}mm; height: ${qrSizeMm}mm; flex-shrink: 0; }
+      .qr-area img { width: ${qrSizeMm}mm; height: ${qrSizeMm}mm; }
+      .info-box { width: ${infoBoxWidthMm}mm; display: flex; flex-direction: column; justify-content: center; gap: 0.5mm; }
+      .data-row { display: flex; align-items: center; gap: 1mm; }
+      .circle { display: inline-flex; align-items: center; justify-content: center; width: 4.5mm; height: 4.5mm; border-radius: 50%; border: 0.5mm solid #000; color: #000; font-size: 3.5mm; font-weight: bold; line-height: 1; }
+      .data-text { font-size: 3.5mm; font-weight: bold; color: #000; line-height: 1; }
+      .logo-row { display: flex; align-items: center; justify-content: center; gap: 2mm; margin-top: auto; padding-top: 0.5mm; }
+      .logo-row img { display: block; }
+      .logo-row img.albero { height: ${logoAlberoHeightMm}mm; width: ${logoAlberoHeightMm}mm; }
+      .logo-row img.testo { height: ${logoTextHeightMm}mm; width: auto; }
+    `;
+
+    openPrintWindow({
+      size,
+      title: 'Etichetta Scaffale',
+      bodyHtml,
+      preStyles,
+    });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Caricamento...</p>
+      <div className="max-w-xl mx-auto p-4 flex items-center justify-center">
+        <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 font-medium"
-          >
-            ← Indietro
-          </button>
-        </div>
-      </header>
+    <div className="max-w-xl mx-auto p-4 space-y-4">
+      <div>
+        <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          ← Indietro
+        </Button>
+      </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-xl">
-        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
+      <Card>
+        <CardContent className="space-y-6">
           <div className="text-center">
-            <div className="text-5xl mb-4">🏷️</div>
+            <Tag className="h-12 w-12 mx-auto text-primary-600 mb-4" />
             <h1 className="text-2xl font-bold text-gray-900">Etichetta Scaffale</h1>
             <p className="text-gray-500 mt-2">Crea un&apos;etichetta per contrassegnare uno spazio</p>
           </div>
@@ -170,35 +136,33 @@ html, body { width: 50mm; height: ${labelHeight}; }
           {/* Form Fields */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stanza *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stanza *</label>
               <input
                 type="text"
                 value={stanza}
                 onChange={(e) => setStanza(e.target.value.toUpperCase())}
                 placeholder="Es. A, B, MAGAZZINO"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase text-sm"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Scaffale *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Scaffale *</label>
               <input
                 type="text"
                 value={scaffale}
                 onChange={(e) => setScaffale(e.target.value.toUpperCase())}
                 placeholder="Es. 1, 2, A-12"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase text-sm"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Piano *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Piano *</label>
               <input
                 type="text"
                 value={piano}
                 onChange={(e) => setPiano(e.target.value.toUpperCase())}
                 placeholder="Es. 1, 2, 3"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none uppercase text-sm"
               />
             </div>
           </div>
@@ -216,39 +180,28 @@ html, body { width: 50mm; height: ${labelHeight}; }
                   flexDirection: 'column',
                 }}
               >
-                {/* Top row: QR + info */}
                 <div style={{ display: 'flex', gap: '8px', flex: 1 }}>
-                  {/* QR Code */}
                   <div
                     className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center"
                     style={{ width: '90px', height: '90px' }}
                   >
-                    <img
-                      src={qrDataUrl || ''}
-                      alt="QR Code"
-                      style={{ width: '70px', height: '70px' }}
-                    />
+                    {qrDataUrl && (
+                      <img
+                        src={qrDataUrl}
+                        alt="QR Code"
+                        style={{ width: '70px', height: '70px' }}
+                      />
+                    )}
                   </div>
-                  {/* Info box with circled S/S/P */}
                   <div className="flex-1 flex flex-col justify-center gap-1">
-                    <div className="flex items-center gap-1">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">S</span>
-                      <span className="font-bold text-gray-800 text-sm">{stanza}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">S</span>
-                      <span className="font-bold text-gray-800 text-sm">{scaffale}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">P</span>
-                      <span className="font-bold text-gray-800 text-sm">{piano}</span>
-                    </div>
+                    <PreviewRow letter="S" value={stanza} />
+                    <PreviewRow letter="S" value={scaffale} />
+                    <PreviewRow letter="P" value={piano} />
                   </div>
                 </div>
-                {/* Logos at bottom */}
                 <div className="flex items-center justify-center gap-2 pt-2">
-                  <img src={logoAlberoPng || '/albero.png'} alt="logo" className="w-6 h-6" />
-                  <img src={logoTextPng || '/LogoKykosTesto.png'} alt="Kykos" className="h-6 w-auto" />
+                  <img src="/albero.svg" alt="Kykos" className="w-6 h-6" />
+                  <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-6 w-auto" />
                 </div>
               </div>
             </div>
@@ -256,22 +209,48 @@ html, body { width: 50mm; height: ${labelHeight}; }
 
           {/* Actions */}
           <div className="flex gap-3">
-            <button
+            <Button
+              type="button"
+              variant="secondary"
               onClick={() => router.push('/operator/scan-qr')}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+              className="flex-1"
             >
               Annulla
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
               onClick={handlePrint}
               disabled={!isValid}
-              className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1"
             >
               Stampa
-            </button>
+            </Button>
           </div>
-        </div>
-      </main>
+        </CardContent>
+      </Card>
     </div>
   );
+}
+
+/** Riga anteprima: cerchio con lettera + valore (Stanza/Scaffale/Piano). */
+function PreviewRow({ letter, value }: { letter: 'S' | 'P'; value: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-800 text-xs font-bold text-gray-800">
+        {letter}
+      </span>
+      <span className="font-bold text-gray-800 text-sm">{value}</span>
+    </div>
+  );
+}
+
+/** Escape minimo per iniettare testo in HTML costruito a mano. */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
