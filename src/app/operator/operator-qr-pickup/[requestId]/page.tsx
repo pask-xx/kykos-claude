@@ -40,8 +40,6 @@ export default function OperatorQrPickupPage({
     <QrPage
       title="QR Ritiro"
       apiUrl={`/api/operator/operator-qr-pickup/${requestId}`}
-      backHref="/operator/street-to-deliver"
-      backLabel="Torna ai ritiri"
       qrType="pickup"
       transform={(raw) => {
         const r = raw as QrApiResponse;
