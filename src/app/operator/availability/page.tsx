@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
+import { toast } from '@/components/ui/Toast';
+import { Badge, Button, EmptyState, Input, Modal, Spinner, Textarea } from '@/components/ui';
 import ImageUploader from '@/components/ImageUploader';
 
 interface MultiAvailability {
@@ -22,23 +24,22 @@ interface MultiAvailability {
   };
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'OPEN': return 'bg-green-100 text-green-700';
-    case 'CLOSED': return 'bg-gray-100 text-gray-700';
-    case 'EXHAUSTED': return 'bg-red-100 text-red-700';
-    default: return 'bg-gray-100 text-gray-700';
-  }
-};
+const categoryOptions = (Object.entries(CATEGORY_LABELS) as [Category, string][]).map(
+  ([value, label]) => ({ value, label })
+);
 
-const getStatusLabel = (status: string) => {
+/**
+ * Mappa MultiAvailability.status → Badge variant KYKOS.
+ * vedi: src/types/MultiAvailabilityStatus per i 3 stati.
+ */
+function availabilityStatusBadge(status: string) {
   switch (status) {
-    case 'OPEN': return 'Aperta';
-    case 'CLOSED': return 'Chiusa';
-    case 'EXHAUSTED': return 'Esaurita';
-    default: return status;
+    case 'OPEN': return { variant: 'success' as const, label: 'Aperta' };
+    case 'CLOSED': return { variant: 'default' as const, label: 'Chiusa' };
+    case 'EXHAUSTED': return { variant: 'danger' as const, label: 'Esaurita' };
+    default: return { variant: 'default' as const, label: status };
   }
-};
+}
 
 export default function MultiAvailabilityPage() {
   const [availabilities, setAvailabilities] = useState<MultiAvailability[]>([]);
@@ -64,9 +65,13 @@ export default function MultiAvailabilityPage() {
       if (res.ok) {
         const data = await res.json();
         setAvailabilities(data.availabilities || []);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore nel caricamento');
       }
     } catch (err) {
       console.error('Error:', err);
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
@@ -94,9 +99,14 @@ export default function MultiAvailabilityPage() {
         setShowModal(false);
         resetForm();
         fetchAvailabilities();
+        toast.success('Distribuzione creata con successo');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore durante la creazione');
       }
     } catch (err) {
       console.error('Error:', err);
+      toast.error('Errore di connessione');
     } finally {
       setCreating(false);
     }
@@ -118,161 +128,149 @@ export default function MultiAvailabilityPage() {
           <h1 className="text-2xl font-bold text-gray-900">Distribuzione</h1>
           <p className="text-gray-500">Gestisci offerte con assegnazione manuale</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
-        >
+        <Button variant="primary" onClick={() => setShowModal(true)}>
           + Nuova distribuzione
-        </button>
+        </Button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
         </div>
       ) : availabilities.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📦</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna distribuzione</h2>
-          <p className="text-gray-500">Crea la tua prima disponibilità</p>
-        </div>
+        <EmptyState
+          title="Nessuna distribuzione"
+          description="Crea la tua prima disponibilità"
+        />
       ) : (
         <div className="grid gap-4">
-          {availabilities.map((avail) => (
-            <Link
-              key={avail.id}
-              href={`/operator/availability/${avail.id}`}
-              className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition"
-            >
-              <div className="flex gap-4">
-                {avail.imageUrls && avail.imageUrls.length > 0 && (
-                  <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                    <img
-                      src={avail.imageUrls[0]}
-                      alt={avail.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900">{avail.title}</h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(avail.status)}`}>
-                      {getStatusLabel(avail.status)}
-                    </span>
-                  </div>
-                  {avail.description && (
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{avail.description}</p>
+          {availabilities.map((avail) => {
+            const statusBadge = availabilityStatusBadge(avail.status);
+            return (
+              <Link
+                key={avail.id}
+                href={`/operator/availability/${avail.id}`}
+                className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition"
+              >
+                <div className="flex gap-4">
+                  {avail.imageUrls && avail.imageUrls.length > 0 && (
+                    <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={avail.imageUrls[0]}
+                        alt={avail.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   )}
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                    <span>{CATEGORY_LABELS[avail.category]}</span>
-                    <span className="font-medium">{avail.assignedQty}/{avail.availableQty} assegnati</span>
-                    {avail._count?.requests ? (
-                      <span>{avail._count.requests} richieste pendenti</span>
-                    ) : null}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">{avail.title}</h3>
+                      <Badge variant={statusBadge.variant} pill>
+                        {statusBadge.label}
+                      </Badge>
+                    </div>
+                    {avail.description && (
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{avail.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <span>{CATEGORY_LABELS[avail.category]}</span>
+                      <span className="font-medium">{avail.assignedQty}/{avail.availableQty} assegnati</span>
+                      {avail._count?.requests ? (
+                        <span>{avail._count.requests} richieste pendenti</span>
+                      ) : null}
+                    </div>
                   </div>
+                  <span className="text-xs text-gray-400">
+                    {formatDate(avail.createdAt)}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-400">
-                  {formatDate(avail.createdAt)}
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 
       {/* Create Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Nuova distribuzione</h2>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Nuova distribuzione"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setShowModal(false)}
+              className="flex-1"
+              disabled={creating}
+            >
+              Annulla
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleCreate}
+              disabled={creating || !title || availableQty < 1}
+              className="flex-1"
+            >
+              {creating ? 'Creazione...' : 'Crea'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Input
+            type="text"
+            label="Titolo *"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Es. Pacchi alimentari"
+          />
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titolo *</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                  placeholder="Es. Pacchi alimentari"
-                />
-              </div>
+          <Textarea
+            label="Descrizione"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Dettagli sulla disponibilità..."
+          />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                  placeholder="Dettagli sulla disponibilità..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as Category)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                >
-                  {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
-                <ImageUploader
-                  onImagesChange={setImageUrls}
-                  maxFiles={5}
-                  currentImages={imageUrls}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Quantità disponibile *</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={availableQty}
-                  onChange={(e) => setAvailableQty(parseInt(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Scadenza (opzionale)</label>
-                <input
-                  type="datetime-local"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 border text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Annulla
-              </button>
-              <button
-                onClick={handleCreate}
-                disabled={creating || !title || availableQty < 1}
-                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-              >
-                {creating ? 'Creazione...' : 'Crea'}
-              </button>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            >
+              {categoryOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
+            <ImageUploader
+              onImagesChange={setImageUrls}
+              maxFiles={5}
+              currentImages={imageUrls}
+            />
+          </div>
+
+          <Input
+            type="number"
+            label="Quantità disponibile *"
+            min="1"
+            value={availableQty}
+            onChange={(e) => setAvailableQty(parseInt(e.target.value) || 1)}
+          />
+
+          <Input
+            type="datetime-local"
+            label="Scadenza (opzionale)"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+          />
         </div>
-      )}
+      </Modal>
     </div>
   );
 }
