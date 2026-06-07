@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from '@/components/ui/Toast';
 
 interface Organization {
   id: string;
@@ -37,7 +38,6 @@ export default function VolunteerApplyPage() {
   const [uploadingCv, setUploadingCv] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [noLocation, setNoLocation] = useState(false);
 
   useEffect(() => {
@@ -97,7 +97,6 @@ export default function VolunteerApplyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (!selectedOrg) {
       setError('Seleziona un ente');
@@ -118,22 +117,23 @@ export default function VolunteerApplyPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (res.ok) {
-        setSuccess('Candidatura inviata! Riceverai una notifica quando l\'ente la revisionerà.');
-        setSelectedOrg('');
-        setSelectedSkills([]);
-        setNote('');
-        setCvFile(null);
-        setCvUrl('');
-        setPrivacyConsent(false);
-        setTimeout(() => router.push('/donor/dashboard'), 2000);
-      } else {
-        setError(data.error || 'Errore durante l\'invio');
+      if (!res.ok) {
+        toast.error(data?.error || 'Errore durante l\'invio della candidatura');
+        return;
       }
+
+      toast.success('Candidatura inviata! Riceverai una notifica quando l\'ente la revisionerà.');
+      setSelectedOrg('');
+      setSelectedSkills([]);
+      setNote('');
+      setCvFile(null);
+      setCvUrl('');
+      setPrivacyConsent(false);
+      setTimeout(() => router.push('/donor/dashboard'), 2000);
     } catch (err) {
-      setError('Errore di connessione');
+      toast.error('Errore di connessione');
     } finally {
       setSubmitting(false);
     }
@@ -238,12 +238,6 @@ export default function VolunteerApplyPage() {
         {error && !noLocation && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-700 text-sm">{success}</p>
           </div>
         )}
 

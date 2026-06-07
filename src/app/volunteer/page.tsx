@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from '@/components/ui/Toast';
 
 interface Organization {
   id: string;
@@ -55,7 +56,6 @@ export default function VolunteerPage() {
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [confirmWithdraw, setConfirmWithdraw] = useState<VolunteerAssociation | null>(null);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function VolunteerPage() {
 
       if (res.ok) {
         setAssociations(prev => prev.filter(a => a.id !== associationId));
-        setSuccess('Disponibilità ritirata con successo. L\'ente è stato notificato.');
+        toast.success('Disponibilità ritirata con successo. L\'ente è stato notificato.');
         setConfirmWithdraw(null);
       } else {
         setError(data.error || 'Errore durante il ritiro');
@@ -212,7 +212,6 @@ export default function VolunteerPage() {
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (!selectedOrg) {
       setError('Seleziona un ente');
@@ -233,25 +232,26 @@ export default function VolunteerPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (res.ok) {
-        setSuccess('Candidatura inviata! Riceverai una notifica quando l\'ente la revisionerà.');
-        setShowApplyModal(false);
-        setSelectedOrg('');
-        setSelectedSkills([]);
-        setNote('');
-        setCvFile(null);
-        setCvUrl('');
-        setPrivacyConsent(false);
-        // Refresh associations
-        setAssociations([]);
-        fetchUserAndAssociations();
-      } else {
-        setError(data.error || 'Errore durante l\'invio');
+      if (!res.ok) {
+        toast.error(data?.error || 'Errore durante l\'invio della candidatura');
+        return;
       }
+
+      toast.success('Candidatura inviata! Riceverai una notifica quando l\'ente la revisionerà.');
+      setShowApplyModal(false);
+      setSelectedOrg('');
+      setSelectedSkills([]);
+      setNote('');
+      setCvFile(null);
+      setCvUrl('');
+      setPrivacyConsent(false);
+      // Refresh associations
+      setAssociations([]);
+      fetchUserAndAssociations();
     } catch (err) {
-      setError('Errore di connessione');
+      toast.error('Errore di connessione');
     } finally {
       setSubmitting(false);
     }
@@ -300,12 +300,6 @@ export default function VolunteerPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-red-700 text-sm">{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <p className="text-green-700 text-sm">{success}</p>
         </div>
       )}
 
