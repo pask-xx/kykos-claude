@@ -788,12 +788,25 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.6 P5 — Modulo operator/* (3-5 commit)
 
-- [ ] Migrare `operator/requests` a `<Table>` + `<Tabs>` + `<EmptyState>`.
-- [ ] Migrare `operator/objects` a griglia `<Card>` + `<EmptyState>`.
-- [ ] Migrare `operator/recipients` a `<Table>`.
-- [ ] Migrare `operator/availability` a `<Card>` + `<EmptyState>`.
+- [x] Migrare `operator/requests` a `<Table>` + `<Tabs>` + `<EmptyState>`
+      (Fase 13.2, 2026-06-07). Layout a card mantenuto (azioni per riga), tab
+      state sincronizzato in URL via `router.replace`.
+- [x] Migrare `operator/objects` a griglia `<Card>` + `<EmptyState>`
+      (Fase 13.3, 2026-06-07). Card layout mantenuto (detail in /[id]),
+      filtri convertiti a `<Input>` + `<Select>` + `<Checkbox>`.
+- [x] Migrare `operator/recipients` a `<Table>`
+      (Fase 13.1, 2026-06-07). Tabs con counts, Badge per needScore,
+      Avatar primitive, EmptyState.
+- [x] Migrare `operator/availability` a `<Card>` + `<EmptyState>`
+      (Fase 13.4, 2026-06-07). Modal custom sostituito da primitive
+      `<Modal isOpen footer>`, form inputs migrati a `<Input>`/`<Textarea>`.
 - [ ] Migrare `operator/operators` a `<Table>`.
 - [ ] Migrare `operator/volunteers` a `<Table>` + `<Tabs>`.
+
+> ✅ **P5 parzialmente completato in Fase 13** (4/6 file, 2026-06-07), 4
+> commit atomici su staging. Vedi [[refactor-state]] § Fase 13.
+> Le 2 pagine restanti (operators, volunteers) sono routable ma
+> attualmente usate solo da admin ente → priorità P9 o successiva.
 
 ### 12.7 P6 — Modulo donor/* (3-4 commit)
 
