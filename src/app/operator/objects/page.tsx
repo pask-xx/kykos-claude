@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Package, Inbox } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
+import { toast } from '@/components/ui/Toast';
+import { Badge, Button, Checkbox, EmptyState, Input, Select, Spinner } from '@/components/ui';
 
 interface Object {
   id: string;
@@ -16,6 +19,29 @@ interface Object {
   imageUrls: string[];
   createdAt: string;
   donor: { name: string };
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  AVAILABLE: 'Disponibile',
+  RESERVED: 'Riservata',
+  DEPOSITED: 'Depositata',
+  CANCELLED: 'Cancellato',
+  DONATED: 'Ritirato',
+};
+
+/**
+ * Mappa Object.status → Badge variant KYKOS.
+ * vedi: src/types/ObjectStatus per i 5 stati (AVAILABLE, RESERVED, DEPOSITED, DONATED, CANCELLED).
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
+    case 'RESERVED': return { variant: 'warning' as const, label: 'Riservata' };
+    case 'DEPOSITED': return { variant: 'default' as const, label: 'Depositata' };
+    case 'DONATED': return { variant: 'primary' as const, label: 'Ritirato' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Cancellato' };
+    default: return { variant: 'default' as const, label: status };
+  }
 }
 
 export default function OperatorObjectsPage() {
@@ -43,6 +69,7 @@ export default function OperatorObjectsPage() {
       setObjects(data.objects || []);
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
@@ -57,31 +84,24 @@ export default function OperatorObjectsPage() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Ritirato</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
-      case 'CANCELLED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Cancellato</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
-  };
-
   const categories = [...new Set(objects.map(o => o.category))];
   const statuses = [...new Set(objects.map(o => o.status))].filter(s => s !== 'DONATED');
-  const STATUS_LABELS: Record<string, string> = {
-    AVAILABLE: 'Disponibile',
-    RESERVED: 'Riservata',
-    DEPOSITED: 'Depositata',
-    CANCELLED: 'Cancellato',
-  };
+
+  const categoryOptions = [
+    { value: '', label: 'Tutte' },
+    ...categories.map(cat => ({
+      value: cat,
+      label: CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat,
+    })),
+  ];
+
+  const statusOptions = [
+    { value: '', label: 'Tutti gli stati' },
+    ...statuses.map(status => ({
+      value: status,
+      label: STATUS_LABELS[status] || status,
+    })),
+  ];
 
   return (
     <div className="space-y-6">
@@ -90,112 +110,100 @@ export default function OperatorObjectsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Gestione disponibilità</h1>
           <p className="text-gray-500">{filteredObjects.length} oggetti</p>
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            checked={showDonated}
-            onChange={(e) => setShowDonated(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300"
-          />
-          Mostra donati
-        </label>
+        <Checkbox
+          label="Mostra donati"
+          checked={showDonated}
+          onChange={(e) => setShowDonated(e.target.checked)}
+        />
       </div>
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4">
-        <input
+        <Input
           type="text"
           placeholder="Cerca per titolo o descrizione..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
         />
         <div className="flex flex-wrap gap-2">
-          <select
+          <Select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="flex-1 min-w-[140px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-          >
-            <option value="">Tutte</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>
-                {CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}
-              </option>
-            ))}
-          </select>
-          <select
+            options={categoryOptions}
+            className="flex-1 min-w-[140px]"
+          />
+          <Select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="flex-1 min-w-[140px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-          >
-            <option value="">Tutti gli stati</option>
-            {statuses.map(status => (
-              <option key={status} value={status}>{STATUS_LABELS[status] || status}</option>
-            ))}
-          </select>
+            options={statusOptions}
+            className="flex-1 min-w-[140px]"
+          />
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
         </div>
       ) : filteredObjects.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📦</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun oggetto</h2>
-          <p className="text-gray-500">Non ci sono oggetti che corrispondono ai filtri.</p>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          title="Nessun oggetto"
+          description="Non ci sono oggetti che corrispondono ai filtri."
+        />
       ) : (
         <div className="space-y-4">
-          {filteredObjects.map((obj) => (
-            <div
-              key={obj.id}
-              className="bg-white p-4 rounded-xl shadow-sm border cursor-pointer hover:shadow-md transition"
-              onClick={() => navigateToDetail(obj.id)}
-            >
-              <div className="flex gap-3">
-                {/* Image */}
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                  {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                    <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-2xl">📦</span>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
-                    {getStatusBadge(obj.status)}
+          {filteredObjects.map((obj) => {
+            const statusBadge = objectStatusBadge(obj.status);
+            return (
+              <div
+                key={obj.id}
+                className="bg-white p-4 rounded-xl shadow-sm border cursor-pointer hover:shadow-md transition"
+                onClick={() => navigateToDetail(obj.id)}
+              >
+                <div className="flex gap-3">
+                  {/* Image */}
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                      <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="h-8 w-8 text-gray-400" aria-hidden="true" />
+                    )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
-                    <span className="text-gray-400 ml-1">
-                      ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">{formatDate(obj.createdAt)}</p>
-                </div>
-              </div>
 
-              {/* Action for DEPOSITED */}
-              {obj.status === 'DEPOSITED' && (
-                <div
-                  className="mt-3 pt-3 border-t border-gray-100"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Link
-                    href={`/operator/objects/${obj.id}/deliver`}
-                    className="inline-block px-3 py-1.5 bg-green-100 text-green-700 text-xs rounded-lg hover:bg-green-200 font-medium"
-                  >
-                    📦 Conferma consegna
-                  </Link>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
+                      <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
+                      <span className="text-gray-400 ml-1">
+                        ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">{formatDate(obj.createdAt)}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Action for DEPOSITED */}
+                {obj.status === 'DEPOSITED' && (
+                  <div
+                    className="mt-3 pt-3 border-t border-gray-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Link href={`/operator/objects/${obj.id}/deliver`}>
+                      <Button variant="success" size="sm">
+                        <Package className="h-4 w-4 mr-1" aria-hidden="true" />
+                        Conferma consegna
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

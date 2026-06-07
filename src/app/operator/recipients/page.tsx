@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { toast } from '@/components/ui/Toast';
+import { Avatar, Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
 
 interface Recipient {
   id: string;
@@ -18,24 +19,25 @@ interface Recipient {
   profileImageUrl: string | null;
 }
 
-const getNeedScoreColor = (score: number) => {
-  if (score >= 80) return 'bg-red-100 text-red-700';
-  if (score >= 50) return 'bg-amber-100 text-amber-700';
-  if (score >= 20) return 'bg-blue-100 text-blue-700';
-  return 'bg-gray-100 text-gray-700';
-};
+type RecipientTab = 'pending' | 'authorized';
 
-const getNeedScoreLabel = (score: number) => {
-  if (score >= 80) return 'Alto';
-  if (score >= 50) return 'Medio';
-  if (score >= 20) return 'Basso';
-  return 'Minimo';
-};
+/**
+ * Traduzione NeedScore (0-100) → Badge variant KYKOS. Le soglie sono
+ * codificate in `RecipientNeedScore` memory: 80+ = alto (danger), 50+ = medio
+ * (warning), 20+ = basso (info), <20 = minimo (default).
+ */
+function needScoreBadge(score: number) {
+  if (score >= 80) return { variant: 'danger' as const, label: 'Alto' };
+  if (score >= 50) return { variant: 'warning' as const, label: 'Medio' };
+  if (score >= 20) return { variant: 'info' as const, label: 'Basso' };
+  return { variant: 'default' as const, label: 'Minimo' };
+}
 
 export default function OperatorRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [tab, setTab] = useState<RecipientTab>('pending');
 
   useEffect(() => {
     fetchRecipients();
@@ -44,10 +46,15 @@ export default function OperatorRecipientsPage() {
   const fetchRecipients = async () => {
     try {
       const res = await fetch('/api/operator/recipients');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore nel caricamento');
+        return;
+      }
       const data = await res.json();
       setRecipients(data.recipients || []);
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (err) {
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
@@ -65,19 +72,26 @@ export default function OperatorRecipientsPage() {
       if (res.ok) {
         fetchRecipients();
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         toast.error(data?.error || 'Errore');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch {
       toast.error('Errore di connessione');
     } finally {
       setProcessing(null);
     }
   };
 
-  const pendingRecipients = recipients.filter(r => !r.authorized);
-  const authorizedRecipients = recipients.filter(r => r.authorized);
+  const pendingRecipients = recipients.filter((r) => !r.authorized);
+  const authorizedRecipients = recipients.filter((r) => r.authorized);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -86,128 +100,122 @@ export default function OperatorRecipientsPage() {
         <p className="text-gray-500">Autorizza o revoca l&apos;accesso ai beneficiari</p>
       </div>
 
-      {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
-        </div>
-      ) : recipients.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">👥</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun beneficiario</h2>
-          <p className="text-gray-500">Non ci sono beneficiari associati a questo ente.</p>
-        </div>
+      {recipients.length === 0 ? (
+        <EmptyState
+          icon={undefined}
+          title="Nessun beneficiario"
+          description="Non ci sono beneficiari associati a questo ente."
+        />
       ) : (
         <>
-          {/* Pending Recipients */}
-          {pendingRecipients.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                ⏳ In attesa ({pendingRecipients.length})
-              </h2>
-              <div className="space-y-4">
-                {pendingRecipients.map((recipient) => (
+          <Tabs<RecipientTab>
+            value={tab}
+            onChange={setTab}
+            items={[
+              { value: 'pending', label: 'In attesa', count: pendingRecipients.length },
+              { value: 'authorized', label: 'Autorizzati', count: authorizedRecipients.length },
+            ]}
+            variant="default"
+            ariaLabel="Filtra beneficiari per stato autorizzazione"
+          />
+
+          {tab === 'pending' && (
+            <div className="space-y-4">
+              {pendingRecipients.length === 0 ? (
+                <EmptyState
+                  title="Nessuna richiesta in attesa"
+                  description="Tutte le richieste sono state elaborate."
+                />
+              ) : (
+                pendingRecipients.map((recipient) => (
                   <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-amber-200">
                     <div className="flex gap-3">
-                      {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {recipient.profileImageUrl ? (
-                          <img src={recipient.profileImageUrl} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xl">👤</span>
-                        )}
-                      </div>
-
-                      {/* Info */}
+                      <Avatar src={recipient.profileImageUrl} alt={recipient.name} name={recipient.name} size="md" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <Link href={`/operator/recipients/${recipient.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
+                            <Link
+                              href={`/operator/recipients/${recipient.id}`}
+                              className="font-semibold text-gray-900 hover:text-primary-600"
+                            >
                               {recipient.nickname || recipient.name}
                             </Link>
                             <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
                           </div>
                         </div>
-
                         {recipient.isee && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            ISEE: €{recipient.isee}
-                          </p>
+                          <p className="text-sm text-gray-500 mt-1">ISEE: €{recipient.isee}</p>
                         )}
-
                         <p className="text-xs text-gray-400 mt-2">
                           Registrato il {formatDate(recipient.createdAt)}
                         </p>
-
                         <div className="mt-3">
-                          <button
+                          <Button
                             onClick={() => handleAuthorize(recipient.id, true)}
                             disabled={processing === recipient.id}
-                            className="w-full px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm disabled:opacity-50"
+                            variant="primary"
+                            className="w-full"
                           >
-                            {processing === recipient.id ? 'Elaborazione...' : '✓ Autorizza'}
-                          </button>
+                            {processing === recipient.id ? 'Elaborazione...' : 'Autorizza'}
+                          </Button>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </div>
           )}
 
-          {/* Authorized Recipients */}
-          {authorizedRecipients.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                ✓ Autorizzati ({authorizedRecipients.length})
-              </h2>
-              <div className="space-y-4">
-                {authorizedRecipients.map((recipient) => (
-                  <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border">
-                    <div className="flex gap-3">
-                      {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {recipient.profileImageUrl ? (
-                          <img src={recipient.profileImageUrl} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xl">👤</span>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <Link href={`/operator/recipients/${recipient.id}`} className="font-semibold text-gray-900 hover:text-primary-600">
-                              {recipient.nickname || recipient.name}
+          {tab === 'authorized' && (
+            <div className="space-y-4">
+              {authorizedRecipients.length === 0 ? (
+                <EmptyState
+                  title="Nessun beneficiario autorizzato"
+                  description="I beneficiari autorizzati appariranno qui."
+                />
+              ) : (
+                authorizedRecipients.map((recipient) => {
+                  const score = needScoreBadge(recipient.needScore);
+                  return (
+                    <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border">
+                      <div className="flex gap-3">
+                        <Avatar src={recipient.profileImageUrl} alt={recipient.name} name={recipient.name} size="md" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <Link
+                                href={`/operator/recipients/${recipient.id}`}
+                                className="font-semibold text-gray-900 hover:text-primary-600"
+                              >
+                                {recipient.nickname || recipient.name}
+                              </Link>
+                              <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
+                            </div>
+                            <Link href={`/operator/recipients/${recipient.id}`}>
+                              <Button variant="ghost" size="sm">
+                                Gestisci
+                              </Button>
                             </Link>
-                            <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
                           </div>
-                          <Link
-                            href={`/operator/recipients/${recipient.id}`}
-                            className="shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
-                          >
-                            Gestisci
-                          </Link>
-                        </div>
 
-                        {/* Need Score Badge */}
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getNeedScoreColor(recipient.needScore)}`}>
-                            Score: {recipient.needScore} — {getNeedScoreLabel(recipient.needScore)}
-                          </span>
-                        </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant={score.variant}>
+                              Score: {recipient.needScore} — {score.label}
+                            </Badge>
+                          </div>
 
-                        <p className="text-xs text-gray-400 mt-2">
-                          {recipient.authorizedAt && recipient.authorizedAt !== 'null'
-                            ? `Autorizzato il ${formatDate(recipient.authorizedAt)}`
-                            : 'Autorizzato (data non disponibile)'}
-                        </p>
+                          <p className="text-xs text-gray-400 mt-2">
+                            {recipient.authorizedAt && recipient.authorizedAt !== 'null'
+                              ? `Autorizzato il ${formatDate(recipient.authorizedAt)}`
+                              : 'Autorizzato (data non disponibile)'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  );
+                })
+              )}
             </div>
           )}
         </>

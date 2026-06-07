@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Package, Inbox } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { toast } from '@/components/ui/Toast';
+import { Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
 
 interface Request {
   id: string;
@@ -26,6 +28,8 @@ interface Request {
   };
 }
 
+type RequestTab = 'pending' | 'processed';
+
 const categoryLabels: Record<string, string> = {
   FURNITURE: 'Arredamento',
   ELECTRONICS: 'Elettronica',
@@ -45,25 +49,69 @@ const conditionLabels: Record<string, string> = {
   POOR: 'Usurato',
 };
 
-export default function OperatorRequestsPage() {
-  const searchParams = useSearchParams();
-  const statusFilter = searchParams.get('status') || 'pending';
+/**
+ * Mappa Request.status → Badge variant KYKOS.
+ * vedi: src/types/RequestStatus per i 3 stati.
+ */
+function requestStatusBadge(status: string) {
+  switch (status) {
+    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
+    case 'REJECTED': return { variant: 'danger' as const, label: 'Rifiutata' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
 
+/**
+ * Mappa Object.status → Badge variant (per la richiesta dell'oggetto).
+ * vedi: src/types/ObjectStatus per i 5 stati (AVAILABLE, RESERVED, DEPOSITED, DONATED, CANCELLED).
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositato' };
+    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Cancellato' };
+    default: return null;
+  }
+}
+
+export default function OperatorRequestsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('status') as RequestTab) || 'pending';
+
+  const [tab, setTab] = useState<RequestTab>(initialTab);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequests();
-  }, [statusFilter]);
+    // Sincronizza URL per deep-link (sostituisce la history, no scroll)
+    const url = new URL(window.location.href);
+    if (tab === 'pending') {
+      url.searchParams.delete('status');
+    } else {
+      url.searchParams.set('status', tab);
+    }
+    router.replace(`${url.pathname}${url.search}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const fetchRequests = async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/operator/requests');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore nel caricamento');
+        return;
+      }
       const data = await res.json();
       setRequests(data.requests || []);
-    } catch (error) {
-      console.error('Error:', error);
+    } catch {
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
@@ -79,51 +127,22 @@ export default function OperatorRequestsPage() {
       });
 
       if (res.ok) {
+        toast.success(action === 'approve' ? 'Richiesta approvata' : 'Richiesta rifiutata');
         fetchRequests();
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         toast.error(data?.error || 'Errore');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch {
       toast.error('Errore di connessione');
     } finally {
       setProcessing(null);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
-      case 'APPROVED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
-      case 'REJECTED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Rifiutata</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>
-    }
-  };
-
-  const getObjectStatusBadge = (status: string) => {
-    switch (status) {
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Riservata</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Depositato</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Ritirato</span>;
-      default:
-        return null;
-    }
-  };
-
-  const pendingRequests = requests.filter(r => r.status === 'PENDING');
-  const processedRequests = requests.filter(r => r.status !== 'PENDING');
-
-  const displayRequests = statusFilter === 'processed' ? processedRequests : pendingRequests;
-  const currentCount = statusFilter === 'processed' ? processedRequests.length : pendingRequests.length;
-  const otherCount = statusFilter === 'processed' ? pendingRequests.length : processedRequests.length;
+  const pendingRequests = requests.filter((r) => r.status === 'PENDING');
+  const processedRequests = requests.filter((r) => r.status !== 'PENDING');
+  const displayRequests = tab === 'processed' ? processedRequests : pendingRequests;
 
   return (
     <div className="space-y-6">
@@ -132,120 +151,116 @@ export default function OperatorRequestsPage() {
         <p className="text-gray-500">Visualizza e gestisci le richieste degli utenti</p>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-4 overflow-x-auto">
-        <a
-          href="/operator/requests?status=pending"
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition whitespace-nowrap ${
-            statusFilter === 'pending'
-              ? 'bg-amber-100 text-amber-700 border border-amber-300'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          ⏳ In attesa ({pendingRequests.length})
-        </a>
-        <a
-          href="/operator/requests?status=processed"
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition whitespace-nowrap ${
-            statusFilter === 'processed'
-              ? 'bg-green-100 text-green-700 border border-green-300'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          ✓ Elaborate ({processedRequests.length})
-        </a>
-      </div>
+      <Tabs<RequestTab>
+        value={tab}
+        onChange={setTab}
+        items={[
+          { value: 'pending', label: 'In attesa', count: pendingRequests.length },
+          { value: 'processed', label: 'Elaborate', count: processedRequests.length },
+        ]}
+        variant="default"
+        ariaLabel="Filtra richieste per stato"
+      />
 
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
         </div>
       ) : displayRequests.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">{statusFilter === 'pending' ? '📋' : '✅'}</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {statusFilter === 'pending' ? 'Nessuna richiesta in attesa' : 'Nessuna richiesta elaborata'}
-          </h2>
-          <p className="text-gray-500">
-            {statusFilter === 'pending'
+        <EmptyState
+          icon={tab === 'pending' ? Inbox : Package}
+          title={tab === 'pending' ? 'Nessuna richiesta in attesa' : 'Nessuna richiesta elaborata'}
+          description={
+            tab === 'pending'
               ? 'Tutte le richieste sono state elaborate!'
-              : 'Non ci sono richieste elaborate.'}
-          </p>
-        </div>
+              : 'Non ci sono richieste elaborate.'
+          }
+        />
       ) : (
         <div className="space-y-4">
-          {displayRequests.map((req) => (
-            <div key={req.id} className={`bg-white p-4 rounded-xl shadow-sm border-2 flex flex-col gap-3 ${
-              req.status === 'PENDING' ? 'border-amber-200' : 'border-gray-200'
-            }`}>
-              {/* Row 1: Image + Title + Date */}
-              <div className="flex gap-3">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                  {req.object.imageUrls && req.object.imageUrls[0] ? (
-                    <img
-                      src={req.object.imageUrls[0]}
-                      alt={req.object.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-3xl">📦</span>
-                  )}
+          {displayRequests.map((req) => {
+            const requestStatus = requestStatusBadge(req.status);
+            const objectStatus = objectStatusBadge(req.object.status);
+            return (
+              <div
+                key={req.id}
+                className={`bg-white p-4 rounded-xl shadow-sm border-2 flex flex-col gap-3 ${
+                  req.status === 'PENDING' ? 'border-amber-200' : 'border-gray-200'
+                }`}
+              >
+                {/* Row 1: Image + Title + Date */}
+                <div className="flex gap-3">
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    {req.object.imageUrls && req.object.imageUrls[0] ? (
+                      <img
+                        src={req.object.imageUrls[0]}
+                        alt={req.object.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package className="h-8 w-8 text-gray-400" aria-hidden="true" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900">{req.object.title}</h3>
+                    <p className="text-xs text-gray-400">
+                      Richiesta il {formatDate(req.createdAt)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900">{req.object.title}</h3>
-                  <p className="text-xs text-gray-400">
-                    Richiesta il {formatDate(req.createdAt)}
+
+                {/* Row 2: Category + Condition + Object status */}
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Badge variant="default">
+                    {categoryLabels[req.object.category] || req.object.category}
+                  </Badge>
+                  <span>•</span>
+                  <span>{conditionLabels[req.object.condition] || req.object.condition}</span>
+                  {objectStatus && <Badge variant={objectStatus.variant}>{objectStatus.label}</Badge>}
+                </div>
+
+                {/* Row 3: Beneficiary + Request status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-sm">
+                    <span className="text-gray-500">Beneficiario: </span>
+                    <span className="text-gray-700 font-medium">
+                      {req.recipient.nickname || req.recipient.name}
+                    </span>
+                  </div>
+                  <Badge variant={requestStatus.variant}>{requestStatus.label}</Badge>
+                </div>
+
+                {/* Row 4: Message (if exists) */}
+                {req.message && (
+                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    Messaggio: {req.message}
                   </p>
-                </div>
+                )}
+
+                {/* Row 5: Actions */}
+                {req.status === 'PENDING' && (
+                  <div className="flex gap-2 pt-2 border-t border-gray-100">
+                    <Button
+                      variant="success"
+                      className="flex-1"
+                      onClick={() => handleAction(req.id, 'approve')}
+                      disabled={processing === req.id}
+                    >
+                      {processing === req.id ? 'Elaborazione...' : 'Approva'}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      className="flex-1"
+                      onClick={() => handleAction(req.id, 'reject')}
+                      disabled={processing === req.id}
+                    >
+                      Rifiuta
+                    </Button>
+                  </div>
+                )}
               </div>
-
-              {/* Row 2: Category + Condition */}
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
-                  {categoryLabels[req.object.category] || req.object.category}
-                </span>
-                <span>•</span>
-                <span>{conditionLabels[req.object.condition] || req.object.condition}</span>
-                {getObjectStatusBadge(req.object.status)}
-              </div>
-
-              {/* Row 3: Beneficiary + Status */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-sm">
-                  <span className="text-gray-500">Beneficiario: </span>
-                  <span className="text-gray-700 font-medium">{req.recipient.nickname || req.recipient.name}</span>
-                </div>
-                {getStatusBadge(req.status)}
-              </div>
-
-              {/* Row 4: Message (if exists) */}
-              {req.message && (
-                <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                  Messaggio: {req.message}
-                </p>
-              )}
-
-              {/* Row 5: Actions */}
-              {req.status === 'PENDING' && (
-                <div className="flex gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={() => handleAction(req.id, 'approve')}
-                    disabled={processing === req.id}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm disabled:opacity-50"
-                  >
-                    {processing === req.id ? 'Elaborazione...' : 'Approva'}
-                  </button>
-                  <button
-                    onClick={() => handleAction(req.id, 'reject')}
-                    disabled={processing === req.id}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm disabled:opacity-50"
-                  >
-                    Rifiuta
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
