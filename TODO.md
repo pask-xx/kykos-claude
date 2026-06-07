@@ -191,10 +191,10 @@ Solo un ADMIN dell'ente può creare operatori. L'username deve essere univoco al
 
 ## Bug pre-esistenti (post-pilota, scope creep evitato in refactor)
 
-- [ ] `clearOperatorSessionCookie()` mancante in `src/lib/auth.ts` (gap
-      di Fase 4 E3+E4, identificato in Fase 9). Se l'operator cambia
-      password, il cookie `operator_session` non viene pulito: può
-      rientrare con la sessione vecchia finché non fa logout manuale
-      o il cookie non scade. Fix richiesto: aggiungere helper in
-      `src/lib/auth.ts` simmetrico a `clearSessionCookie()` ma per
-      `operator_session`, e chiamarlo in `/api/operator/password/change`.
+- [x] `clearOperatorSessionCookie()` mancante in `src/lib/auth.ts` (gap
+      di Fase 4 E3+E4, identificato in Fase 9). **Risolto in `d345992`**:
+      aggiunti `setOperatorSessionCookie` + `clearOperatorSessionCookie` in
+      `src/lib/auth.ts` simmetrici agli helper user-session; refactor inline
+      di login/logout; chiamata in `/api/operator/password/change` dopo
+      `supabaseAdmin.auth.admin.updateUserById`. 3 nuovi test in
+      `tests/unit/lib/session.test.ts` (182/182 verdi).
