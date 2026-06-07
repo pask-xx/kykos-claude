@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Package, Plus } from 'lucide-react';
 import { OBJECT_STATUS_LABELS } from '@/types';
+import { toast } from '@/components/ui/Toast';
+import { Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
 
 interface Object {
   id: string;
@@ -15,10 +18,28 @@ interface Object {
   createdAt: string;
 }
 
+type ObjectFilter = 'available' | 'all';
+
+/**
+ * Mappa Object.status → Badge variant KYKOS.
+ * vedi: src/types/ObjectStatus per i 6 stati (AVAILABLE, RESERVED, DEPOSITED, DONATED, CANCELLED, BLOCKED).
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
+    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'DONATED': return { variant: 'default' as const, label: 'Donata' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Annullata' };
+    case 'BLOCKED': return { variant: 'warning' as const, label: 'Bloccata' };
+    default: return { variant: 'default' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status };
+  }
+}
+
 export default function DonorObjectsPage() {
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'available'>('available');
+  const [filter, setFilter] = useState<ObjectFilter>('available');
 
   useEffect(() => {
     fetchObjects();
@@ -31,91 +52,96 @@ export default function DonorObjectsPage() {
       setObjects(data.objects || []);
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
   };
 
+  const availableCount = objects.filter((obj) => obj.status === 'AVAILABLE').length;
   const filteredObjects = filter === 'available'
     ? objects.filter(obj => obj.status === 'AVAILABLE')
     : objects;
-
-  const getStatusBadge = (status: string) => {
-    // Color class is per-status; label comes from the central registry
-    // (covers ALL ObjectStatus values, including BLOCKED).
-    const colorClass =
-      status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-      status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
-      status === 'DEPOSITED' ? 'bg-blue-100 text-blue-700' :
-      status === 'DONATED' ? 'bg-gray-100 text-gray-700' :
-      status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-      status === 'BLOCKED' ? 'bg-purple-100 text-purple-700' :
-      'bg-gray-100 text-gray-700';
-    const label = OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status;
-    return <span className={`px-2 py-1 text-xs rounded ${colorClass}`}>{label}</span>;
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-medium text-gray-900">Le mie disponibilità</h1>
-          <Link
-            href="/donor/objects/new"
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm"
-          >
-            + Nuovo oggetto
+          <h1 className="text-2xl font-bold text-gray-900">Le mie disponibilità</h1>
+          <Link href="/donor/objects/new">
+            <Button variant="primary">
+              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+              Nuovo oggetto
+            </Button>
           </Link>
         </div>
 
+        <Tabs<ObjectFilter>
+          value={filter}
+          onChange={setFilter}
+          items={[
+            { value: 'available', label: 'Disponibili', count: availableCount },
+            { value: 'all', label: 'Tutti', count: objects.length },
+          ]}
+          variant="default"
+          ariaLabel="Filtra oggetti per disponibilità"
+        />
+
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
         </div>
       ) : filteredObjects.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📦</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna disponibilità</h2>
-          <p className="text-gray-500 mb-6">
-            {filter === 'available'
+        <EmptyState
+          icon={Package}
+          title="Nessuna disponibilità"
+          description={
+            filter === 'available'
               ? 'Non hai oggetti disponibili al momento.'
-              : 'Non hai ancora pubblicato disponibilità.'}
-          </p>
-          {filter === 'all' && (
-            <Link href="/donor/objects/new" className="text-primary-600 hover:text-primary-700 font-medium">
-              Pubblica il tuo primo oggetto →
-            </Link>
-          )}
-        </div>
+              : 'Non hai ancora pubblicato disponibilità.'
+          }
+          action={
+            filter === 'all' ? (
+              <Link href="/donor/objects/new">
+                <Button variant="primary">Pubblica il tuo primo oggetto</Button>
+              </Link>
+            ) : undefined
+          }
+        />
       ) : (
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredObjects.map((obj) => (
-            <Link
-              key={obj.id}
-              href={`/donor/objects/${obj.id}`}
-              className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
-            >
-              <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                  <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                ) : (
-                  <span className="text-5xl">📦</span>
-                )}
-              </div>
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                    {obj.category.replace('_', ' ')}
-                  </span>
-                  {getStatusBadge(obj.status)}
+          {filteredObjects.map((obj) => {
+            const statusBadge = objectStatusBadge(obj.status);
+            return (
+              <Link
+                key={obj.id}
+                href={`/donor/objects/${obj.id}`}
+                className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+              >
+                <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                  {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                    <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
+                  ) : (
+                    <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
+                  )}
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                <p className="text-sm text-gray-500 line-clamp-2">
-                  {obj.description || 'Nessuna descrizione'}
-                </p>
-              </div>
-            </Link>
-          ))}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <Badge variant="default" size="sm">
+                      {obj.category.replace('_', ' ')}
+                    </Badge>
+                    <Badge variant={statusBadge.variant} size="sm">
+                      {statusBadge.label}
+                    </Badge>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
+                  <p className="text-sm text-gray-500 line-clamp-2">
+                    {obj.description || 'Nessuna descrizione'}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
       </main>
