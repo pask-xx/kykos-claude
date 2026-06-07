@@ -138,7 +138,12 @@ function AdminDashboardContent() {
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border cursor-pointer hover:bg-gray-50" onClick={() => setActiveTab('adesioni')}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('adesioni')}
+          className="bg-white p-6 rounded-xl shadow-sm border cursor-pointer hover:bg-gray-50 text-left transition focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+          aria-label="Vai al tab Richieste adesione"
+        >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <span className="text-2xl">📋</span>
@@ -148,7 +153,7 @@ function AdminDashboardContent() {
               <p className="text-2xl font-bold text-gray-900">{pendingAdesioni}</p>
             </div>
           </div>
-        </div>
+        </button>
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
