@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Heart, Package, Briefcase, ClipboardList, ChevronDown, Check, Lock, Inbox } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ImageUploader from '@/components/ImageUploader';
 import { toast } from '@/components/ui/Toast';
+import { Alert, Badge, Button, EmptyState, Spinner, Textarea } from '@/components/ui';
 
 interface GoodsRequest {
   id: string;
@@ -205,45 +207,47 @@ export default function DonorRequestsClient() {
     OTHER: 'Altro',
   };
 
-  const typeColors: Record<string, string> = {
-    GOODS: 'bg-primary-100 text-primary-700',
-    SERVICES: 'bg-purple-100 text-purple-700',
-  };
-
-  const typeLabels: Record<string, string> = {
-    GOODS: 'Beni',
-    SERVICES: 'Servizi',
-  };
+  /**
+   * Mappa GoodsRequest.type → Badge variant KYKOS.
+   * GOODS = bene materiale, SERVICES = servizio offerto.
+   */
+  function requestTypeBadge(type: string) {
+    switch (type) {
+      case 'GOODS': return { variant: 'primary' as const, label: 'Beni' };
+      case 'SERVICES': return { variant: 'info' as const, label: 'Servizi' };
+      default: return { variant: 'default' as const, label: type };
+    }
+  }
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-600">
-        <p>{error}</p>
-        <button
+      <div className="text-center py-12 space-y-3">
+        <Alert type="error">{error}</Alert>
+        <Button
+          variant="primary"
           onClick={() => { setError(null); setLoading(true); fetchRequests().finally(() => setLoading(false)); }}
-          className="mt-2 text-sm text-primary-600 hover:underline"
         >
           Riprova
-        </button>
+        </Button>
       </div>
     );
   }
 
   if (requests.length === 0 && causes.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-5xl mb-4">📋</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna richiesta</h3>
-        <p className="text-gray-500 text-sm">Al momento non ci sono richieste disponibili.</p>
-      </div>
+      <EmptyState
+        icon={Inbox}
+        title="Nessuna richiesta"
+        description="Al momento non ci sono richieste disponibili."
+      />
     );
   }
 
@@ -251,16 +255,14 @@ export default function DonorRequestsClient() {
     <div className="space-y-4">
       {/* Error Messages */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center text-sm">
-          {error}
-        </div>
+        <Alert type="error">{error}</Alert>
       )}
 
       {/* Causes Section */}
       {causes.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">💝</span>
+            <Heart className="h-5 w-5 text-rose-500" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Cause</h2>
           </div>
           {causes.filter(c => !c.hasJoined).map((cause) => (
@@ -268,16 +270,19 @@ export default function DonorRequestsClient() {
               key={cause.id}
               className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
             >
-              <div
-                className="cursor-pointer"
+              <button
+                type="button"
                 onClick={() => setExpandedCauseId(expandedCauseId === cause.id ? null : cause.id)}
+                className="w-full text-left cursor-pointer focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                aria-expanded={expandedCauseId === cause.id}
+                aria-label={`${expandedCauseId === cause.id ? 'Comprimi' : 'Espandi'} causa ${cause.title}`}
               >
                 <div className="flex gap-4 p-4">
                   <div className="w-24 h-24 flex-shrink-0 bg-rose-50 rounded-lg overflow-hidden flex items-center justify-center">
                     {cause.imageUrls && cause.imageUrls.length > 0 ? (
                       <img src={cause.imageUrls[0]} alt={cause.title} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-3xl">💝</span>
+                      <Heart className="h-10 w-10 text-rose-400" aria-hidden="true" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -291,18 +296,19 @@ export default function DonorRequestsClient() {
                     </div>
                   </div>
                   <div className="flex-shrink-0 flex items-center">
-                    <span className={`text-gray-400 transition-transform duration-200 ${expandedCauseId === cause.id ? 'rotate-180' : ''}`}>▼</span>
+                    <ChevronDown
+                      className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${expandedCauseId === cause.id ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
-              </div>
+              </button>
 
               {expandedCauseId === cause.id && (
                 <div className="border-t border-gray-100 p-4 bg-gray-50">
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-amber-800">
-                      <span className="font-medium">Come aderire:</span> Segui le istruzioni nella descrizione per partecipare a questa causa.
-                    </p>
-                  </div>
+                  <Alert type="warning" className="mb-4">
+                    <span className="font-medium">Come aderire:</span> Segui le istruzioni nella descrizione per partecipare a questa causa.
+                  </Alert>
                   {cause.description && (
                     <p className="text-gray-600 mb-4 whitespace-pre-wrap">{cause.description}</p>
                   )}
@@ -313,12 +319,14 @@ export default function DonorRequestsClient() {
                     variant="warning"
                     onConfirm={() => handleJoinCause(cause.id)}
                   >
-                    <button
+                    <Button
+                      variant="primary"
                       disabled={joiningCauseId === cause.id}
-                      className="w-full py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors disabled:opacity-50"
+                      className="w-full"
                     >
+                      <Heart className="h-4 w-4 mr-1" aria-hidden="true" />
                       {joiningCauseId === cause.id ? 'Iscrizione...' : 'Aderisci alla causa'}
-                    </button>
+                    </Button>
                   </ConfirmDialog>
                 </div>
               )}
@@ -329,7 +337,7 @@ export default function DonorRequestsClient() {
               key={cause.id}
               className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-4 flex items-center gap-4"
             >
-              <span className="text-2xl">✓</span>
+              <Check className="h-5 w-5 text-green-700" aria-hidden="true" />
               <div className="flex-1">
                 <h3 className="font-medium text-green-800">{cause.title}</h3>
                 <p className="text-sm text-green-600">Iscritto il {new Date().toLocaleDateString('it-IT')}</p>
@@ -343,58 +351,68 @@ export default function DonorRequestsClient() {
       {requests.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">📋</span>
+            <ClipboardList className="h-5 w-5 text-gray-700" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Richieste</h2>
           </div>
-          {requests.map((req) => (
-            <div
-              key={req.id}
-              className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
-            >
-              {/* Collapsed Card */}
+          {requests.map((req) => {
+            const typeBadge = requestTypeBadge(req.type);
+            return (
               <div
-                className="cursor-pointer"
-                onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
+                key={req.id}
+                className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
               >
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    {/* Icon */}
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      req.type === 'SERVICES' ? 'bg-purple-100' : 'bg-primary-100'
-                    }`}>
-                      <span className="text-2xl">{req.type === 'SERVICES' ? '🛠️' : '📦'}</span>
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900">{req.title}</h3>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[req.type]}`}>
-                          {typeLabels[req.type]}
-                        </span>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          {categoryLabels[req.category] || req.category}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1.5">
-                        {new Date(req.createdAt).toLocaleDateString('it-IT')}
-                        <span className="mx-1.5">•</span>
-                        {req.intermediary.name}
-                        {req._count.offers > 0 && (
-                          <span className="ml-2 text-amber-600">• {req._count.offers} offerta{req._count.offers !== 1 ? 'e' : ''}</span>
+                {/* Collapsed Card */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
+                  className="w-full text-left cursor-pointer focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                  aria-expanded={expandedId === req.id}
+                  aria-label={`${expandedId === req.id ? 'Comprimi' : 'Espandi'} richiesta ${req.title}`}
+                >
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      {/* Icon */}
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        req.type === 'SERVICES' ? 'bg-purple-100' : 'bg-primary-100'
+                      }`}>
+                        {req.type === 'SERVICES' ? (
+                          <Briefcase className="h-6 w-6 text-purple-600" aria-hidden="true" />
+                        ) : (
+                          <Package className="h-6 w-6 text-primary-600" aria-hidden="true" />
                         )}
-                      </p>
-                    </div>
+                      </div>
 
-                    {/* Expand icon */}
-                    <div className="flex-shrink-0 flex items-center">
-                      <span className={`text-gray-400 transition-transform duration-200 ${expandedId === req.id ? 'rotate-180' : ''}`}>
-                        ▼
-                      </span>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900">{req.title}</h3>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <Badge variant={typeBadge.variant} size="sm" pill>
+                            {typeBadge.label}
+                          </Badge>
+                          <Badge variant="default" size="sm">
+                            {categoryLabels[req.category] || req.category}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1.5">
+                          {new Date(req.createdAt).toLocaleDateString('it-IT')}
+                          <span className="mx-1.5">•</span>
+                          {req.intermediary.name}
+                          {req._count.offers > 0 && (
+                            <span className="ml-2 text-amber-600">• {req._count.offers} offerta{req._count.offers !== 1 ? 'e' : ''}</span>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Expand icon */}
+                      <div className="flex-shrink-0 flex items-center">
+                        <ChevronDown
+                          className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${expandedId === req.id ? 'rotate-180' : ''}`}
+                          aria-hidden="true"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </button>
 
               {/* Expanded Content */}
               {expandedId === req.id && (
@@ -407,23 +425,23 @@ export default function DonorRequestsClient() {
                   )}
 
                   {/* Anonymous notice */}
-                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4 text-xs text-blue-700">
-                    <span className="font-medium">🔒 Anonimato</span>
-                    <p className="mt-1">La richiesta è anonima. Non puoi vedere chi l'ha fatta.</p>
-                  </div>
+                  <Alert type="info" className="mb-4 text-xs">
+                    <Lock className="h-4 w-4 inline mr-1" aria-hidden="true" />
+                    <span className="font-medium">Anonimato:</span> La richiesta è anonima. Non puoi vedere chi l'ha fatta.
+                  </Alert>
 
                   {/* Offer form or already offered */}
                   {req.alreadyOffered ? (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
-                      <span className="text-amber-700 font-medium text-sm">✓ Hai già inviato un'offerta per questa richiesta</span>
-                    </div>
+                    <Alert type="warning" className="text-center">
+                      <Check className="h-4 w-4 inline mr-1" aria-hidden="true" />
+                      Hai già inviato un'offerta per questa richiesta
+                    </Alert>
                   ) : offeringForId === req.id ? (
                     <div className="space-y-3">
-                      <textarea
+                      <Textarea
                         value={offerMessage}
                         onChange={(e) => setOfferMessage(e.target.value)}
                         placeholder="Aggiungi una descrizione del bene che offri (facoltativo)..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                         rows={3}
                       />
                       <ImageUploader
@@ -431,60 +449,53 @@ export default function DonorRequestsClient() {
                         maxFiles={5}
                       />
                       <div className="flex gap-2">
-                        <button
+                        <Button
+                          variant="primary"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOffer(req.id);
                           }}
                           disabled={offeringId === req.id}
-                          className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                            req.type === 'SERVICES'
-                              ? 'bg-purple-600 text-white hover:bg-purple-700'
-                              : 'bg-primary-600 text-white hover:bg-primary-700'
-                          }`}
+                          className="flex-1"
                         >
                           {offeringId === req.id ? 'Invio...' : req.type === 'SERVICES' ? 'Offri servizio' : 'Invia offerta'}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="secondary"
                           onClick={(e) => {
                             e.stopPropagation();
                             setOfferingForId(null);
                             setOfferImages([]);
                           }}
-                          className="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors"
                         >
                           Annulla
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : (
-                    <button
+                    <Button
+                      variant="primary"
                       onClick={(e) => {
                         e.stopPropagation();
                         setOfferingForId(req.id);
                       }}
-                      className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                        req.type === 'SERVICES'
-                          ? 'bg-purple-600 text-white hover:bg-purple-700'
-                          : 'bg-primary-600 text-white hover:bg-primary-700'
-                      }`}
+                      className="w-full"
                     >
                       {req.type === 'SERVICES' ? 'Offri servizio' : 'Fornisci'}
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
             </div>
-          ))}
+          );
+        })}
         </div>
       )}
 
       {/* Load more trigger */}
       {hasNextPage ? (
         <div ref={loadMoreRef} className="flex justify-center py-4">
-          {loadingMore && (
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          )}
+          {loadingMore && <Spinner size="md" />}
         </div>
       ) : (
         <div className="text-center py-4 text-sm text-gray-400">

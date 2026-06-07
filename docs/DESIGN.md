@@ -810,10 +810,22 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.7 P6 — Modulo donor/* (3-4 commit)
 
-- [ ] Migrare `donor/objects` a `<Card>` grid + `<EmptyState>`.
-- [ ] Migrare `donor/requests` a `<Tabs>` + griglia.
-- [ ] Migrare `donor/dashboard` (DonorRequestsClient) a skeleton.
-- [ ] Migrare `donor/statistics` a skeleton.
+- [x] Migrare `donor/objects` a `<Card>` grid + `<EmptyState>`
+      (Fase 14.1, 2026-06-07). Card grid mantenuto, Tabs filtro
+      (disponibili/tutti con counts), Badge 6 status incluso BLOCKED.
+- [x] Migrare `donor/requests` a `<Tabs>` + griglia
+      (Fase 14.2, 2026-06-07). Tabs (oggetti/beni-servizi con counts),
+      Badge 8 status request + 6 status object, console.log debug rimossi.
+- [x] Migrare `donor/dashboard` (DonorRequestsClient) a skeleton
+      (Fase 14.3, 2026-06-07). 2 `<div onClick>` toggle espansi migrati
+      a `<button>`, banner bg-{color}-50 → `<Alert type>`, Textarea/Button
+      primitive, emoji → lucide.
+- [x] Migrare `donor/statistics` a skeleton
+      (Fase 14.4, 2026-06-07). 5 card → `<Card primitive>`, status badge +
+      donor level badge → mapper, 5 emoji → lucide.
+
+> ✅ **P6 completato in Fase 14** (4/4 file, 2026-06-07), 4 commit atomici
+> su staging. Vedi [[refactor-state]] § Fase 14.
 
 ### 12.8 P7 — Modulo recipient/* (3-4 commit)
 
