@@ -74,3 +74,29 @@ export async function clearSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete('session');
 }
+
+/**
+ * Set the operator session cookie (used after `POST /api/operator/login`).
+ * Mirrors `setSessionCookie` for the staff (operator) cookie, which uses a
+ * separate JWT to keep the user and operator sessions independent.
+ */
+export async function setOperatorSessionCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set('operator_session', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
+  });
+}
+
+/**
+ * Clear the operator session cookie (used by `POST /api/operator/logout` and
+ * MUST be called from `POST /api/operator/password/change` so the operator
+ * is forced to re-authenticate with the new credentials).
+ */
+export async function clearOperatorSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.delete('operator_session');
+}

@@ -11,7 +11,7 @@ vi.mock('jose', () => ({
 
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
-import { getSession } from '@/lib/auth';
+import { getSession, setOperatorSessionCookie, clearOperatorSessionCookie } from '@/lib/auth';
 import { getOperatorSession, OperatorAuthError, requireOperator, requireOperatorWithPermission } from '@/lib/operator-session';
 import { mockPrisma, resetAllMocks } from '../../setup/mocks';
 
@@ -160,5 +160,50 @@ describe('getJwtSecret (A6 — security)', () => {
     expect(caught).toBeInstanceOf(Error);
     expect((caught as Error).message).not.toContain('kykos-secret-key');
     process.env.JWT_SECRET = ORIGINAL_ENV;
+  });
+});
+
+describe('setOperatorSessionCookie / clearOperatorSessionCookie', () => {
+  // Mock di un cookie store con metodi set/delete
+  const mockSet = vi.fn();
+  const mockDelete = vi.fn();
+  const fakeCookieStore = { set: mockSet, delete: mockDelete };
+
+  beforeEach(() => {
+    resetAllMocks();
+    mockCookies.mockReset();
+    mockSet.mockReset();
+    mockDelete.mockReset();
+    mockCookies.mockResolvedValue(fakeCookieStore as any);
+  });
+
+  it('setOperatorSessionCookie sets httpOnly+secure+7d+sameSite=lax+path=/', async () => {
+    await setOperatorSessionCookie('jwt-token-abc');
+    expect(mockSet).toHaveBeenCalledTimes(1);
+    const [name, value, opts] = mockSet.mock.calls[0];
+    expect(name).toBe('operator_session');
+    expect(value).toBe('jwt-token-abc');
+    expect(opts).toMatchObject({
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    expect(opts).toHaveProperty('secure'); // valore booleano, dipende da NODE_ENV
+  });
+
+  it('clearOperatorSessionCookie deletes the operator_session cookie', async () => {
+    await clearOperatorSessionCookie();
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    expect(mockDelete).toHaveBeenCalledWith('operator_session');
+  });
+
+  it('setOperatorSessionCookie does NOT touch the user session cookie', async () => {
+    // Regression: l'helper deve operare SOLO su operator_session
+    await setOperatorSessionCookie('token');
+    await clearOperatorSessionCookie();
+    // Le 2 chiamate devono riferirsi solo a operator_session
+    expect(mockSet.mock.calls[0][0]).toBe('operator_session');
+    expect(mockDelete.mock.calls[0][0]).toBe('operator_session');
   });
 });

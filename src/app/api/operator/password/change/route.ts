@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getJwtSecret } from '@/lib/auth';
+import { getJwtSecret, clearOperatorSessionCookie } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
@@ -81,6 +81,12 @@ export const POST = withErrorHandler(async (request: Request) => {
       { status: 400 }
     );
   }
+
+  // Invalida la sessione corrente per forzare re-login con la nuova password.
+  // Senza questo, l'operatore mantiene il cookie operator_session valido (JWT 7d)
+  // anche dopo il cambio password e può rientrare con la sessione vecchia
+  // finché il cookie non scade. Cfr. TODO.md sezione "Bug pre-esistenti".
+  await clearOperatorSessionCookie();
 
   return NextResponse.json({ success: true });
 

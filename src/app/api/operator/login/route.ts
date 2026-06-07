@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getJwtSecret } from '@/lib/auth';
+import { getJwtSecret, setOperatorSessionCookie } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 
 const JWT_SECRET = getJwtSecret();
@@ -83,15 +82,8 @@ export const POST = withErrorHandler(async (request: Request) => {
     .setExpirationTime('7d')
     .sign(JWT_SECRET);
 
-  // Set cookie
-  const cookieStore = await cookies();
-  cookieStore.set('operator_session', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
-  });
+  // Set cookie (helper centralizzato in src/lib/auth.ts)
+  await setOperatorSessionCookie(token);
 
   return NextResponse.json({
     operator: {
