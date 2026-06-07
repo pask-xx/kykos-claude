@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/Toast';
 import { OPERATOR_ROLE_LABELS, OPERATOR_PERMISSION_LABELS, OperatorRole, OperatorPermission } from '@/types';
 
 interface Operator {
@@ -35,7 +36,6 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [form, setForm] = useState({
     firstName: '',
@@ -82,8 +82,6 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const res = await fetch(`/api/operator/${id}`, {
@@ -102,14 +100,15 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
       });
 
       if (res.ok) {
-        setSuccess('Dati salvati con successo');
+        toast.success('Dati salvati con successo');
         setOperator((prev) => prev ? { ...prev, ...form } : null);
       } else {
-        const err = await res.json();
-        setError(err.error || 'Errore durante il salvataggio');
+        const err = await res.json().catch(() => ({}));
+        toast.error(err?.error || 'Errore durante il salvataggio');
+        return;
       }
     } catch (err) {
-      setError('Errore di rete');
+      toast.error('Errore di rete');
     } finally {
       setSaving(false);
     }
@@ -187,12 +186,6 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
           {operator.active ? 'Attivo' : 'Disattivato'}
         </span>
       </div>
-
-      {success && (
-        <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-          ✓ {success}
-        </div>
-      )}
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
