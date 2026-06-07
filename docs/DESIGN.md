@@ -674,7 +674,8 @@ esistente, sostituiscili se stai toccando il file.
 
 | Anti-pattern | Sostituzione |
 |---|---|
-| `<div onClick={...}>` per azione | `<button onClick={...}>` o `<Button>` |
+| `<div onClick={...}>` per azione (tab trigger, card cliccabile) | `<button onClick={...}>` o `<Button>` + `aria-label` + `focus-visible:ring` |
+| `<div className="absolute inset-0 bg-black/50" onClick={close}>` | **NON è anti-pattern**: pattern React standard per click-outside su backdrop modal. Solo fix richiesto: ESC key (P1) |
 | `window.alert('...')` | `toast.success/error/info/warning(...)` |
 | `<button className="bg-primary-600 ...">` inline | `<Button variant="primary">` |
 | `<input className="w-full px-3 py-2 border ...">` inline | `<Input label="..." />` |
@@ -823,8 +824,23 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 - [ ] Aggiungere `htmlFor` ai label orfani in tutti i form esistenti.
 - [ ] Aggiungere `aria-hidden` alle icone decorative.
-- [ ] Sostituire tutti i `<div onClick>` rimasti.
-- [ ] Aggiungere `app/loading.tsx`, `app/error.tsx`, `app/not-found.tsx`.
+- [x] Sostituire tutti i `<div onClick>` rimasti.
+      Analisi 2026-06-06: 15 occorrenze totali, 14 sono backdrop modal
+      (`<div className="absolute inset-0 bg-black/50" onClick={...} />`,
+      pattern React standard per chiusura click-outside, NON anti-pattern).
+      1 solo era tab trigger in `admin/dashboard/page.tsx:141` → fixato
+      in Fase 12.4 con `<button>` + `aria-label` + `focus-visible:ring`.
+- [x] Aggiungere `app/loading.tsx`, `app/error.tsx`, `app/not-found.tsx`.
+      Creati in Fase 12.1-12.3 con primitive del design system:
+      - `loading.tsx` (server component): `<Spinner size="lg" />` + copy
+      - `error.tsx` (client component): `AlertOctagon` lucide + `<Button>`
+        reset + Link home
+      - `not-found.tsx` (server component): `<EmptyState>` + CTA home
+
+> ✅ **Completata Fase 12 (2026-06-06)**, 4 commit tecnici + 1 docs.
+> Vedi [[refactor-state]] § Fase 12 e [[05-known-issues]] § "Anti-pattern
+> eliminati in Fase 12". Le sotto-attività `htmlFor` + `aria-hidden`
+> restano aperte come Fase 12-bis (continuo, non bloccante per pilota).
 
 ---
 
