@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Package, ClipboardList, QrCode } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
+import { Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
 
 interface ObjectWithRequests {
   id: string;
@@ -40,115 +43,101 @@ interface GoodsOffer {
   };
 }
 
+type DonorTab = 'objects' | 'goods';
+
+/**
+ * Mappa Request.status → Badge variant KYKOS.
+ * vedi: src/types/RequestStatus per gli stati.
+ */
+function requestStatusBadge(status: string) {
+  switch (status) {
+    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
+    case 'REJECTED': return { variant: 'danger' as const, label: 'Rifiutata' };
+    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
+    case 'FULFILLED': return { variant: 'success' as const, label: 'Soddisfatta' };
+    case 'DELIVERED': return { variant: 'success' as const, label: 'Depositata' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
+
+/**
+ * Mappa Object.status → Badge variant (per lo stato dell'oggetto donato).
+ * vedi: src/types/ObjectStatus.
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
+    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Annullata' };
+    case 'BLOCKED': return { variant: 'warning' as const, label: 'Bloccata' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
+
 export default function DonorRequestsPage() {
   const [objects, setObjects] = useState<ObjectWithRequests[]>([]);
   const [goodsOffers, setGoodsOffers] = useState<GoodsOffer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'objects' | 'goods'>('objects');
+  const [tab, setTab] = useState<DonorTab>('objects');
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    console.log('Fetching donor requests data...');
-
     let fetchedObjects: ObjectWithRequests[] = [];
     let fetchedOffers: GoodsOffer[] = [];
 
     try {
-      console.log('Fetching objects...');
       const objectsRes = await fetch('/api/donor/objects?filter=requests');
-      console.log('Objects response status:', objectsRes.status);
-
       if (objectsRes.ok) {
         const text = await objectsRes.text();
-        console.log('Objects response text:', text.substring(0, 500));
         try {
           const data = JSON.parse(text);
           fetchedObjects = data.objects || [];
-        } catch (e) {
-          console.error('Failed to parse objects JSON:', e);
+        } catch {
+          toast.error('Risposta server non valida (oggetti)');
         }
+      } else {
+        const data = await objectsRes.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore caricamento oggetti');
       }
-    } catch (e) {
-      console.error('Error fetching objects:', e);
+    } catch {
+      toast.error('Errore di connessione (oggetti)');
     }
 
     try {
-      console.log('Fetching goods offers...');
       const goodsRes = await fetch('/api/donor/goods-offers');
-      console.log('Goods offers response status:', goodsRes.status);
-
       if (goodsRes.ok) {
         const text = await goodsRes.text();
-        console.log('Goods offers response text:', text.substring(0, 500));
         try {
           const data = JSON.parse(text);
           fetchedOffers = data.offers || [];
-        } catch (e) {
-          console.error('Failed to parse goods offers JSON:', e);
+        } catch {
+          toast.error('Risposta server non valida (offerte)');
         }
+      } else {
+        const data = await goodsRes.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore caricamento offerte');
       }
-    } catch (e) {
-      console.error('Error fetching goods offers:', e);
+    } catch {
+      toast.error('Errore di connessione (offerte)');
     }
 
-    console.log('Setting state with objects:', fetchedObjects.length, 'offers:', fetchedOffers.length);
     setObjects(fetchedObjects);
     setGoodsOffers(fetchedOffers);
     setLoading(false);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
-      case 'APPROVED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Riservata</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Depositato</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Ritirato</span>;
-      case 'FULFILLED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Soddisfatta</span>;
-      case 'DELIVERED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Depositata</span>;
-      case 'REJECTED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Rifiutata</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
-  };
-
-  const getObjectStatusBadge = (status: string) => {
-    switch (status) {
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Depositato</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Ritirato</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      FURNITURE: '🪑', ELECTRONICS: '📱', CLOTHING: '👕', BOOKS: '📚',
-      KITCHEN: '🍳', SPORTS: '⚽', TOYS: '🧸', OTHER: '📦',
-    };
-    return icons[category] || '📦';
-  };
-
   if (loading) {
     return (
-      <div className="p-6">
-        <p className="text-gray-500">Caricamento...</p>
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -156,129 +145,126 @@ export default function DonorRequestsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl font-medium text-gray-900 mb-6">Le mie donazioni</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Le mie donazioni</h1>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200 pb-4">
-        <button
-          onClick={() => setTab('objects')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            tab === 'objects' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Oggetti ({objects.length})
-        </button>
-        <button
-          onClick={() => setTab('goods')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            tab === 'goods' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Beni/Servizi ({goodsOffers.length})
-        </button>
-      </div>
+        <Tabs<DonorTab>
+          value={tab}
+          onChange={setTab}
+          items={[
+            { value: 'objects', label: 'Oggetti', count: objects.length },
+            { value: 'goods', label: 'Beni/Servizi', count: goodsOffers.length },
+          ]}
+          variant="default"
+          ariaLabel="Filtra donazioni per tipo"
+        />
 
-      {/* Objects Tab */}
       {tab === 'objects' && (
         objects.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-            <span className="text-5xl mb-4 block">📦</span>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna donazione di oggetti</h2>
-            <p className="text-gray-500">Le tue donazioni di oggetti appariranno qui.</p>
-          </div>
+          <EmptyState
+            icon={Package}
+            title="Nessuna donazione di oggetti"
+            description="Le tue donazioni di oggetti appariranno qui."
+          />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {objects.map((obj) => (
-              <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                <Link
-                  href={`/donor/objects/${obj.id}`}
-                  className="block"
-                >
-                  <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                    {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                      <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                    ) : (
-                      <span className="text-5xl">📦</span>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      {getObjectStatusBadge(obj.status)}
+            {objects.map((obj) => {
+              const statusBadge = objectStatusBadge(obj.status);
+              return (
+                <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                  <Link href={`/donor/objects/${obj.id}`} className="block">
+                    <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                      {obj.imageUrls && obj.imageUrls.length > 0 ? (
+                        <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
+                      ) : (
+                        <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
+                      )}
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      {new Date(obj.createdAt).toLocaleDateString('it-IT')}
-                    </p>
-                  </div>
-                </Link>
-                {['RESERVED', 'DEPOSITED'].includes(obj.status) && obj.requests && obj.requests.length > 0 && (
-                  <div className="px-4 pb-4">
-                    <Link
-                      href={`/donor/delivery-qr/${obj.requests[0].id}`}
-                      className="block w-full text-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm"
-                    >
-                      📱 QR Code per consegna
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ))}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant={statusBadge.variant} size="sm">
+                          {statusBadge.label}
+                        </Badge>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
+                      <p className="text-sm text-gray-500">
+                        {new Date(obj.createdAt).toLocaleDateString('it-IT')}
+                      </p>
+                    </div>
+                  </Link>
+                  {['RESERVED', 'DEPOSITED'].includes(obj.status) && obj.requests && obj.requests.length > 0 && (
+                    <div className="px-4 pb-4">
+                      <Link href={`/donor/delivery-qr/${obj.requests[0].id}`}>
+                        <Button variant="primary" className="w-full">
+                          <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
+                          QR Code per consegna
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )
       )}
 
-      {/* Goods Tab */}
       {tab === 'goods' && (
         goodsOffers.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-            <span className="text-5xl mb-4 block">📋</span>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna donazione di beni</h2>
-            <p className="text-gray-500">Le tue donazioni di beni/servizi appariranno qui.</p>
-          </div>
+          <EmptyState
+            icon={ClipboardList}
+            title="Nessuna donazione di beni"
+            description="Le tue donazioni di beni/servizi appariranno qui."
+          />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {goodsOffers.map((offer) => (
-              <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-green-200 overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
-                      {getCategoryIcon(offer.request?.category)}
+            {goodsOffers.map((offer) => {
+              const statusBadge = requestStatusBadge(offer.status);
+              return (
+                <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-green-200 overflow-hidden">
+                  <div className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Package className="h-6 w-6 text-gray-500" aria-hidden="true" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{offer.request?.title}</h3>
+                        <p className="text-xs text-gray-500">
+                          Accettata il {new Date(offer.createdAt).toLocaleDateString('it-IT')}
+                        </p>
+                      </div>
+                      <Badge variant={statusBadge.variant} size="sm">
+                        {statusBadge.label}
+                      </Badge>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{offer.request?.title}</h3>
-                      <p className="text-xs text-gray-500">
-                        Accettata il {new Date(offer.createdAt).toLocaleDateString('it-IT')}
-                      </p>
-                    </div>
+                    {offer.message && (
+                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">{offer.message}</p>
+                    )}
+                    {offer.imageUrls && offer.imageUrls.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {offer.imageUrls.map((url, i) => (
+                          <img
+                            key={i}
+                            src={url}
+                            alt={`Immagine ${i + 1}`}
+                            className="w-10 h-10 object-cover rounded border border-gray-200"
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {offer.message && (
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{offer.message}</p>
-                  )}
-                  {offer.imageUrls && offer.imageUrls.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {offer.imageUrls.map((url, i) => (
-                        <img
-                          key={i}
-                          src={url}
-                          alt={`Immagine ${i + 1}`}
-                          className="w-10 h-10 object-cover rounded border border-gray-200"
-                        />
-                      ))}
+                  {offer.status === 'ACCEPTED' && (
+                    <div className="bg-green-50 px-4 py-3 border-t border-green-100">
+                      <Link href={`/donor/qr-goods/${offer.requestId}`}>
+                        <Button variant="success" className="w-full">
+                          <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
+                          Vedi QR Code per consegna
+                        </Button>
+                      </Link>
                     </div>
                   )}
                 </div>
-                {offer.status === 'ACCEPTED' && (
-                  <div className="bg-green-50 px-4 py-3 border-t border-green-100">
-                    <Link
-                      href={`/donor/qr-goods/${offer.requestId}`}
-                      className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
-                    >
-                      📱 Vedi QR Code per consegna
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )
       )}
