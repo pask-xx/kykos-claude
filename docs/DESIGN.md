@@ -682,6 +682,7 @@ esistente, sostituiscili se stai toccando il file.
 | `bg-red-100 text-red-700` | `bg-error-100 text-error-700` (token semantico) |
 | `bg-green-100 text-green-700` | `bg-success-100 text-success-700` |
 | `const [success, setSuccess] = useState(false); setTimeout(() => setSuccess(false), 3000);` | `toast.success('...')` |
+| `const [success, setSuccess] = useState<string\|null>(null); {success && <div bg-green-50>…</div>}` (banner persistente) | `toast.success('...')` (auto-dismiss 5s sonner). Eccezione: `<Alert type="success">` primitive se il messaggio è contestuale a un form (es. `PasswordChangeForm`). |
 | `const [x, setX] = useState(''); const [y, setY] = useState(''); ...` × 10 in un form | `<Form methods={useZodForm(schema)}>` + `<Field>` |
 | `setError('Email non valida')` + banner globale per validazione | `<Field error={errors.email}>` (inline sotto il campo) |
 | Emoji come unica label (`<button>✅</button>`) | `<button aria-label="Conferma">✅</button>` + testo |
@@ -754,6 +755,29 @@ E i 10 `window.alert()`:
 > ✅ **Completata in Fase 10 (2026-06-06)**, 11 commit atomici su staging. Vedi [[refactor-state]] § Fase 10 e [[05-known-issues]] § "Anti-pattern eliminati in Fase 10".
 >
 > Casi speciali preservati: `forgot-password` (state-machine con DEV token), `actionError` inline nei modal di conferma, 5 file extra con banner persistiti rimandati a P11 (`PasswordChangeForm`, `intermediary/operators/[id]`, `operator/operators/[id]`, `volunteer/page`, `volunteer/apply`).
+
+### 12.4bis P11 — Banner persistiti (4 commit)
+
+Estensione di P3: i 5 file rimandati sopra sono stati analizzati e 4
+su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
+
+- [x] `volunteer/apply/page.tsx` — banner verde "Candidatura inviata"
+      + redirect `setTimeout(router.push, 2000)`. Migrare a `toast.success`
+      mantiene il redirect (auto-dismiss 5s sonner non blocca la nav).
+- [x] `volunteer/page.tsx` — 2 banner verdi ("Disponibilità ritirata" +
+      "Candidatura inviata"). Entrambi → `toast.success`.
+- [x] `intermediary/operators/[id]/page.tsx` — banner verde "Dati salvati".
+      Banner `tempPassword` (password temporanea generata) MANTENUTO inline:
+      l'admin deve poter leggere e copiare la password prima che scompaia.
+- [x] `operator/operators/[id]/page.tsx` — banner verde "Dati salvati".
+      Stesso preservato: `tempPassword` banner resta inline.
+- [ ] `PasswordChangeForm.tsx` — preservato. Usa primitive `<Alert type="success">`
+      (NON `<div bg-green-50>` raw), è il pattern corretto per i messaggi
+      contestuali al form. Da non migrare a toast.
+
+> ✅ **Completata in Fase 11 (2026-06-06)**, 4 commit atomici su staging.
+> Vedi [[refactor-state]] § Fase 11 e [[05-known-issues]] § "Anti-pattern
+> eliminati in Fase 11".
 
 ### 12.5 P4 — Modulo operator/street (modello)
 
