@@ -421,6 +421,54 @@ function MyForm() {
 - Errori per campo gestiti automaticamente da `<Field>`.
 - `isSubmitting` per disabilitare il bottone.
 
+### 5.16 Switch
+
+Toggle on/off con semantica `role="switch"` WCAG, label visibile e
+annunciata screen reader, descrizione opzionale collegata via
+`aria-describedby`.
+
+```tsx
+import { Switch } from '@/components/ui';
+
+// Base (label obbligatoria, sia visibile sia per aria-label)
+<Switch
+  checked={printLabel}
+  onChange={setPrintLabel}
+  label="Abilita stampa etichetta"
+/>
+
+// Con helper text (consigliato per toggle con effetto complesso)
+<Switch
+  checked={autoApprove}
+  onChange={setAutoApprove}
+  label="Approvazione automatica"
+  description="Le richieste verranno approvate senza intervento operatore"
+/>
+
+// Con loading (chiamata API in corso, disabilitato automaticamente)
+<Switch
+  checked={enabled}
+  onChange={handleToggle}
+  label="Funzione X"
+  loading={isSaving}
+/>
+```
+
+**Differenza da `<Checkbox>`**:
+- `<Switch>` = effetto immediato al click (PATCH on-change).
+- `<Checkbox>` = scelta che diventa effettiva al submit del form.
+- KYKOS usa `<Switch>` per toggle operator (auto-approve, canProvide*, canRequest*).
+
+**Scelte implementative**:
+- Token semantici: `bg-success-500` (acceso) / `bg-gray-300` (spento) dalla palette DESIGN.md §3.
+- Target size 44×24px (h-6 w-11) con knob 20×20px: WCAG 2.5.5 ≥ 24px rispettato.
+- Focus ring `focus:ring-2 focus:ring-primary-500 focus:ring-offset-2` (stessa convenzione di `<Button>`).
+- Label resa come `<label htmlFor={id}>` esterno al button → click sulla label attiva il toggle (pattern standard checkbox/switch).
+- Knob span `aria-hidden="true"` (eredita pattern Fase 22.2).
+- `useId()` di React per id univoco (stessa regola di Fase 20).
+
+**Anti-pattern vietato**: scrivere un toggle custom con `<button role="switch">`. Usare sempre `<Switch>`. La primitive esiste dal 2026-06-08 (Fase 23) e sostituisce ~13 occorrenze del pattern custom introdotto temporaneamente in Fase 22.2.
+
 ---
 
 ## 6. Pattern ricorrenti
@@ -978,7 +1026,9 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 > Sotto-attività `aria-hidden` chiusa in Fasi 15-18 (prevalentemente) +
 > Fase 21 (residui). Sotto-attività `aria-label` su icon-button
 > funzionali + `role="switch"` su toggle chiusa in Fase 22 (3 commit).
-> Vedi [[refactor-state]] § Fasi 12, 20, 21, 22 e [[05-known-issues]]
+> **Fase 23 (2026-06-08)**: estratta primitive `<Switch>` dedicata
+> (§5.16) per sostituire il pattern custom introdotto in Fase 22.2.
+> Vedi [[refactor-state]] § Fasi 12, 20, 21, 22, 23 e [[05-known-issues]]
 > § "Anti-pattern eliminati in Fase 20/21/22".
 
 ---
@@ -998,6 +1048,7 @@ import {
   Skeleton, SkeletonText, SkeletonCard, SkeletonAvatar,
   ToastProvider, toast,
   Form, Field, TextAreaField, SelectField, useZodForm, useForm, useFormContext,
+  Switch,
 } from '@/components/ui';
 
 // Icone (sempre named import)
