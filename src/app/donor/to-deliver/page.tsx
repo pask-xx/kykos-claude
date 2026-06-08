@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowLeft, Gift, Package, QrCode } from 'lucide-react';
+import { Button } from '@/components/ui';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -57,18 +59,18 @@ export default async function DonorToDeliverPage() {
               {objectDonations.length + acceptedGoodsOffers.length} elementi da consegnare
             </p>
           </div>
-          <Link
-            href="/donor/dashboard"
-            className="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
-          >
-            ← Dashboard
+          <Link href="/donor/dashboard">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
+              Dashboard
+            </Button>
           </Link>
         </div>
 
         {/* Empty state */}
         {objectDonations.length === 0 && acceptedGoodsOffers.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-            <span className="text-5xl mb-4 block">📦</span>
+            <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Niente da consegnare</h2>
             <p className="text-gray-500">Tutti i tuoi impegni sono stati evasi!</p>
           </div>
@@ -78,7 +80,8 @@ export default async function DonorToDeliverPage() {
         {objectDonations.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📦</span> Disponibilità
+              <Package className="h-5 w-5 text-gray-600" aria-hidden="true" />
+              Disponibilità
             </h2>
             <div className="space-y-3">
               {objectDonations.map((donation) => (
@@ -87,18 +90,18 @@ export default async function DonorToDeliverPage() {
                     {donation.object.imageUrls && donation.object.imageUrls.length > 0 ? (
                       <img src={donation.object.imageUrls[0]} alt={donation.object.title} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-2xl">📦</span>
+                      <Package className="h-7 w-7 text-gray-500" aria-hidden="true" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">{donation.object.title}</p>
                     <p className="text-xs text-blue-600">QR Code pronto</p>
                   </div>
-                  <Link
-                    href={`/donor/qr/${donation.request.id}`}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium flex-shrink-0"
-                  >
-                    📱 QR Code
+                  <Link href={`/donor/qr/${donation.request.id}`}>
+                    <Button variant="primary" size="sm">
+                      <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
+                      QR Code
+                    </Button>
                   </Link>
                 </div>
               ))}
@@ -110,23 +113,24 @@ export default async function DonorToDeliverPage() {
         {acceptedGoodsOffers.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span>🎁</span> Richieste
+              <Gift className="h-5 w-5 text-gray-600" aria-hidden="true" />
+              Richieste
             </h2>
             <div className="space-y-3">
               {acceptedGoodsOffers.map((offer) => (
                 <div key={offer.id} className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border">
                   <div className="w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                    <span className="text-2xl">🎁</span>
+                    <Gift className="h-7 w-7 text-gray-500" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">{offer.request.title}</p>
                     <p className="text-xs text-gray-400">{offer.request.category}</p>
                   </div>
-                  <Link
-                    href={`/donor/qr-goods/${offer.request.id}`}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex-shrink-0"
-                  >
-                    📱 QR Code
+                  <Link href={`/donor/qr-goods/${offer.request.id}`}>
+                    <Button variant="success" size="sm">
+                      <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
+                      QR Code
+                    </Button>
                   </Link>
                 </div>
               ))}

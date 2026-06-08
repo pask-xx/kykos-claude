@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Mail } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -130,23 +132,20 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                <button
+                <Button
                   type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  variant="primary"
+                  size="lg"
+                  loading={loading}
+                  className="w-full"
                 >
-                  {loading ? (
+                  {loading ? 'Invio in corso...' : (
                     <>
-                      <span className="animate-spin">⏳</span>
-                      <span>Invio in corso...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>📧</span>
-                      <span>Invia istruzioni</span>
+                      <Mail className="h-4 w-4" aria-hidden="true" />
+                      Invia istruzioni
                     </>
                   )}
-                </button>
+                </Button>
               </form>
             )}
 

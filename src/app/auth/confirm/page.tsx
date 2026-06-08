@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { CheckCircle2, Gift, KeyRound, Mail, ShieldCheck, XCircle } from 'lucide-react';
+import { Button, Spinner } from '@/components/ui';
 
 function ConfirmContent() {
   const router = useRouter();
@@ -56,25 +58,28 @@ function ConfirmContent() {
           {status === 'idle' && (
             <>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">📧</span>
+                <Mail className="h-7 w-7 text-blue-600" aria-hidden="true" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Conferma il tuo indirizzo email</h2>
               <p className="text-gray-600 mb-6">
                 Clicca sul pulsante qui sotto per attivare il tuo account KYKOS.
               </p>
-              <button
+              <Button
                 onClick={handleConfirm}
-                className="w-full bg-secondary-600 text-white py-3 rounded-lg font-medium hover:bg-secondary-700 transition"
+                variant="secondary"
+                size="lg"
+                className="w-full"
               >
+                <KeyRound className="h-4 w-4" aria-hidden="true" />
                 Conferma email
-              </button>
+              </Button>
             </>
           )}
 
           {status === 'loading' && (
             <>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl animate-spin">⏳</span>
+                <Spinner size="lg" className="text-blue-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Conferma in corso</h2>
               <p className="text-gray-600">{message}</p>
@@ -84,7 +89,7 @@ function ConfirmContent() {
           {status === 'success' && (
             <>
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">✅</span>
+                <CheckCircle2 className="h-7 w-7 text-green-600" aria-hidden="true" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Email confermata!</h2>
               <p className="text-gray-600 mb-6">{message}</p>
@@ -100,7 +105,7 @@ function ConfirmContent() {
           {status === 'error' && (
             <>
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">❌</span>
+                <XCircle className="h-7 w-7 text-red-600" aria-hidden="true" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Errore</h2>
               <p className="text-gray-600 mb-6">{message}</p>
@@ -141,7 +146,7 @@ function ConfirmNoticeContent() {
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">📧</span>
+            <Mail className="h-7 w-7 text-green-600" aria-hidden="true" />
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Controlla la tua email</h2>
@@ -201,7 +206,7 @@ export default function AuthConfirmPage() {
         <div className="relative z-10 space-y-8">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🔐</span>
+              <ShieldCheck className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Account sicuro</h3>
@@ -210,7 +215,7 @@ export default function AuthConfirmPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🎁</span>
+              <Gift className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Entra a far parte della community</h3>

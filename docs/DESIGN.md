@@ -902,8 +902,11 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.10 P9 — Icone (continuo)
 
-- [ ] Migrazione emoji → lucide per ogni modulo, in coda alle
+- [x] Migrazione emoji → lucide per ogni modulo, in coda alle
       migrazioni di pattern.
+      ✅ **P9 completato in Fase 18** (4 commit atomici: 18.1 donor/dashboard
+      + to-deliver, 18.2 landing, 18.3a/b/c/d auth/* + volunteer/*). Vedi
+      [[refactor-state]] § Fase 18.
 
 ### 12.11 P10 — A11y globale (continuo)
 

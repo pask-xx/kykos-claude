@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Building2, Handshake, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 interface Organization {
@@ -210,7 +211,7 @@ export default function VolunteerApplyPage() {
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-            <span className="text-2xl">🤝</span>
+            <Handshake className="h-7 w-7 text-primary-600" aria-hidden="true" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Diventa Volontario</h1>
@@ -243,7 +244,7 @@ export default function VolunteerApplyPage() {
 
         {!noLocation && organizations.length === 0 && !loading && (
           <div className="text-center py-8">
-            <div className="text-4xl mb-4">🏢</div>
+            <Building2 className="h-10 w-10 mx-auto mb-4 text-gray-400" aria-hidden="true" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nessun ente disponibile</h3>
             <p className="text-gray-500">
               Non ci sono enti verificati nel raggio di 30km dalla tua posizione.
@@ -370,7 +371,7 @@ export default function VolunteerApplyPage() {
                       <span className="text-gray-500">Caricamento...</span>
                     ) : (
                       <>
-                        <span className="text-2xl block mb-1">📄</span>
+                        <Upload className="h-7 w-7 text-gray-400 mx-auto block mb-1" aria-hidden="true" />
                         <span className="text-sm text-gray-600">Clicca per selezionare un file</span>
                         <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, JPG, PNG (max 10MB)</p>
                       </>

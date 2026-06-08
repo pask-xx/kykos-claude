@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Building2, Handshake, MapPin, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 interface Organization {
@@ -289,7 +290,7 @@ export default function VolunteerPage() {
 
       <div className="flex items-center gap-3 mb-6">
         <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-          <span className="text-2xl">🤝</span>
+          <Handshake className="h-7 w-7 text-primary-600" aria-hidden="true" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Volontariato</h1>
@@ -307,7 +308,8 @@ export default function VolunteerPage() {
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <span>🏢</span> Enti dove presto servizio
+            <Building2 className="h-4 w-4 text-gray-600" aria-hidden="true" />
+            Enti dove presto servizio
             {approvedAssociations.length > 0 && (
               <span className="ml-2 bg-green-100 text-green-700 text-sm px-2 py-0.5 rounded-full">
                 {approvedAssociations.length}
@@ -324,7 +326,7 @@ export default function VolunteerPage() {
 
         {approvedAssociations.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-4xl mb-4">🤝</div>
+            <Handshake className="h-10 w-10 mx-auto mb-4 text-gray-400" aria-hidden="true" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nessun ente associato</h3>
             <p className="text-gray-500 mb-4">
               Non sei ancora volontario di nessun ente. Candidati per iniziare!
@@ -357,7 +359,10 @@ export default function VolunteerPage() {
                         {assoc.organization.city} ({assoc.organization.province})
                       </p>
                       {assoc.distance !== null && (
-                        <p className="text-xs text-gray-400 mt-1">📍 {formatDistance(assoc.distance)} da te</p>
+                        <p className="text-xs text-gray-400 mt-1 inline-flex items-center gap-1">
+                          <MapPin className="h-3 w-3" aria-hidden="true" />
+                          {formatDistance(assoc.distance)} da te
+                        </p>
                       )}
                     </td>
                     <td className="py-4 px-4">
@@ -464,7 +469,7 @@ export default function VolunteerPage() {
 
             {availableOrgs.length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-4xl mb-4">🏢</div>
+                <Building2 className="h-10 w-10 mx-auto mb-4 text-gray-400" aria-hidden="true" />
                 <p className="text-gray-500">
                   Non ci sono altri enti disponibili nel raggio di 30km.
                 </p>
@@ -591,7 +596,7 @@ export default function VolunteerPage() {
                           <span className="text-gray-500">Caricamento...</span>
                         ) : (
                           <>
-                            <span className="text-2xl block mb-1">📄</span>
+                            <Upload className="h-7 w-7 text-gray-400 mx-auto block mb-1" aria-hidden="true" />
                             <span className="text-sm text-gray-600">Clicca per selezionare un file</span>
                             <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, JPG, PNG (max 10MB)</p>
                           </>
