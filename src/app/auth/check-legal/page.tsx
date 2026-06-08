@@ -3,8 +3,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { CheckCircle2 } from 'lucide-react';
 import PdfViewerModal from '@/components/PdfViewerModal';
 import LogoutButton from '@/components/LogoutButton';
+import { Button } from '@/components/ui';
 
 interface DocumentState {
   current: string;
@@ -227,23 +229,23 @@ function CheckLegalContent() {
             User-Agent ai sensi del Provvedimento del Garante Privacy n. 229/2014.
           </p>
 
-          <button
+          <Button
             type="submit"
-            disabled={submitting || !acceptTerms || !acceptPrivacy}
-            className="w-full py-3.5 bg-secondary-600 text-white font-semibold rounded-lg hover:bg-secondary-700 focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            variant="secondary"
+            size="lg"
+            loading={submitting}
+            disabled={!acceptTerms || !acceptPrivacy}
+            className="w-full"
           >
             {submitting ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                <span>Salvataggio...</span>
-              </>
+              'Salvataggio...'
             ) : (
               <>
-                <span>✅</span>
-                <span>Conferma e continua</span>
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                Conferma e continua
               </>
             )}
-          </button>
+          </Button>
         </form>
 
         <div className="mt-6 text-center">

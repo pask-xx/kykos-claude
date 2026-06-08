@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { CheckCircle2, KeyRound, Lock } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -73,7 +75,7 @@ function ResetPasswordForm() {
     return (
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">🔒</span>
+          <Lock className="h-7 w-7 text-red-600" aria-hidden="true" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Link non valido</h1>
         <p className="text-gray-600 mb-6">
@@ -93,7 +95,7 @@ function ResetPasswordForm() {
     return (
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border text-center">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">✓</span>
+          <CheckCircle2 className="h-7 w-7 text-green-600" aria-hidden="true" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Password reimpostata!</h1>
         <p className="text-gray-600 mb-6">
@@ -153,23 +155,21 @@ function ResetPasswordForm() {
           />
         </div>
 
-        <button
+        <Button
           type="submit"
-          disabled={loading || !token}
-          className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          variant="primary"
+          size="lg"
+          loading={loading || !token}
+          disabled={!token}
+          className="w-full"
         >
-          {loading ? (
+          {loading ? 'Reimpostazione...' : (
             <>
-              <span className="animate-spin">⏳</span>
-              <span>Reimpostazione...</span>
-            </>
-          ) : (
-            <>
-              <span>🔑</span>
-              <span>Reimposta password</span>
+              <KeyRound className="h-4 w-4" aria-hidden="true" />
+              Reimposta password
             </>
           )}
-        </button>
+        </Button>
       </form>
 
       <div className="mt-6 text-center">
