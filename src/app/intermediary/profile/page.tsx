@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import dynamic from 'next/dynamic';
@@ -224,14 +224,26 @@ export default function IntermediaryProfilePage() {
     cap: '',
     city: '',
     province: '',
-    phone: '',
     email: '',
+    phone: '',
     latitude: '',
     longitude: '',
     autoApproveRequests: false,
     hoursInfo: '',
     dioceseId: '',
   });
+
+  const ragioneSocialeId = useId();
+  const partitaIvaId = useId();
+  const indirizzoId = useId();
+  const civicoId = useId();
+  const capId = useId();
+  const cittaId = useId();
+  const provinciaId = useId();
+  const emailId = useId();
+  const telefonoId = useId();
+  const diocesiId = useId();
+  const autoApproveId = useId();
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -455,8 +467,9 @@ export default function IntermediaryProfilePage() {
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ragione sociale *</label>
+              <label htmlFor={ragioneSocialeId} className="block text-sm font-medium text-gray-700 mb-1">Ragione sociale *</label>
               <input
+                id={ragioneSocialeId}
                 type="text"
                 name="name"
                 value={form.name}
@@ -466,8 +479,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Partita IVA</label>
+              <label htmlFor={partitaIvaId} className="block text-sm font-medium text-gray-700 mb-1">Partita IVA</label>
               <input
+                id={partitaIvaId}
                 type="text"
                 name="vatNumber"
                 value={form.vatNumber}
@@ -476,8 +490,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
+              <label htmlFor={indirizzoId} className="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
               <input
+                id={indirizzoId}
                 type="text"
                 name="address"
                 value={form.address}
@@ -486,8 +501,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Numero civico</label>
+              <label htmlFor={civicoId} className="block text-sm font-medium text-gray-700 mb-1">Numero civico</label>
               <input
+                id={civicoId}
                 type="text"
                 name="houseNumber"
                 value={form.houseNumber}
@@ -496,8 +512,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+              <label htmlFor={capId} className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
               <input
+                id={capId}
                 type="text"
                 name="cap"
                 value={form.cap}
@@ -506,8 +523,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Città *</label>
+              <label htmlFor={cittaId} className="block text-sm font-medium text-gray-700 mb-1">Città *</label>
               <input
+                id={cittaId}
                 type="text"
                 name="city"
                 value={form.city}
@@ -517,8 +535,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+              <label htmlFor={provinciaId} className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
               <input
+                id={provinciaId}
                 type="text"
                 name="province"
                 value={form.province}
@@ -527,8 +546,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label htmlFor={emailId} className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
+                id={emailId}
                 type="email"
                 name="email"
                 value={form.email}
@@ -537,8 +557,9 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+              <label htmlFor={telefonoId} className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
               <input
+                id={telefonoId}
                 type="tel"
                 name="phone"
                 value={form.phone}
@@ -547,9 +568,10 @@ export default function IntermediaryProfilePage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Diocesi</label>
+              <label htmlFor={diocesiId} className="block text-sm font-medium text-gray-700 mb-1">Diocesi</label>
               {dioceses.length > 0 ? (
                 <select
+                  id={diocesiId}
                   name="dioceseId"
                   value={form.dioceseId}
                   onChange={handleChange}
@@ -578,8 +600,9 @@ export default function IntermediaryProfilePage() {
           <div className="mt-6 pt-6 border-t">
             {/* Auto-approve option */}
             <div className="mb-4">
-              <label className="flex items-center gap-3 cursor-pointer">
+              <label htmlFor={autoApproveId} className="flex items-center gap-3 cursor-pointer">
                 <input
+                  id={autoApproveId}
                   type="checkbox"
                   name="autoApproveRequests"
                   checked={form.autoApproveRequests}
