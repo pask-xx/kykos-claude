@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Building2, Globe2, KeyRound, Lock } from 'lucide-react';
+import { Button } from '@/components/ui';
 import InstallAppBanner from '@/components/InstallAppBanner';
 
 export default function LoginPage() {
@@ -149,7 +151,7 @@ export default function LoginPage() {
         <div className="relative z-10 space-y-8">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🔒</span>
+              <Lock className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Anonimato totale</h3>
@@ -158,7 +160,7 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Intermediari fidati</h3>
@@ -167,7 +169,7 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🌍</span>
+              <Globe2 className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Sostenibilità</h3>
@@ -245,23 +247,20 @@ export default function LoginPage() {
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                variant="primary"
+                size="lg"
+                loading={loading}
+                className="w-full"
               >
-                {loading ? (
+                {loading ? 'Accesso in corso...' : (
                   <>
-                    <span className="animate-spin">⏳</span>
-                    <span>Accesso in corso...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>🔑</span>
-                    <span>Accedi</span>
+                    <KeyRound className="h-4 w-4" aria-hidden="true" />
+                    Accedi
                   </>
                 )}
-              </button>
+              </Button>
             </form>
 
             <div className="mt-6">
