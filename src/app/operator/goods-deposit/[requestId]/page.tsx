@@ -301,8 +301,8 @@ export default function GoodsDepositLocationPage() {
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
           {/* Success Message */}
           <div className="text-center">
-            <Check className="w-12 h-12 mx-auto mb-4 text-green-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-green-700">Consegna Ricevuta</h1>
+            <Check className="w-12 h-12 mx-auto mb-4 text-success-600" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-success-700">Consegna Ricevuta</h1>
             <p className="text-gray-500 mt-2">Registra la posizione di deposito</p>
           </div>
 
@@ -316,7 +316,7 @@ export default function GoodsDepositLocationPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
               {error}
             </div>
           )}
@@ -379,7 +379,7 @@ export default function GoodsDepositLocationPage() {
                   />
                 </div>
                 {depositLocation && (
-                  <p className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                  <p className="mt-2 text-sm text-success-600 flex items-center gap-1">
                     <Check className="w-4 h-4 inline-block" aria-hidden="true" />
                     Rilevato: <strong>{depositLocation}</strong>
                   </p>

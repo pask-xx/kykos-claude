@@ -89,8 +89,8 @@ export default function MultiAvailPickupPage() {
         </header>
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-            <XCircle className="w-12 h-12 mx-auto mb-4 text-red-600" aria-hidden="true" />
-            <h1 className="text-xl font-bold text-red-700 mb-2">Errore</h1>
+            <XCircle className="w-12 h-12 mx-auto mb-4 text-error-600" aria-hidden="true" />
+            <h1 className="text-xl font-bold text-error-700 mb-2">Errore</h1>
             <p className="text-gray-600">{error}</p>
           </div>
         </main>
@@ -103,8 +103,8 @@ export default function MultiAvailPickupPage() {
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center space-y-6">
-            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-green-700">Ritiro Completato!</h1>
+            <CheckCircle2 className="w-12 h-12 mx-auto text-success-600" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-success-700">Ritiro Completato!</h1>
             <p className="text-gray-600">
               Il beneficiario ha ritirato la disponibilità con successo.
             </p>
@@ -142,7 +142,7 @@ export default function MultiAvailPickupPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
               {error}
             </div>
           )}
@@ -172,8 +172,8 @@ export default function MultiAvailPickupPage() {
               </div>
 
               {/* Status */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
-                <p className="text-amber-800">
+              <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 text-center">
+                <p className="text-warning-800">
                   <strong>Stato attuale:</strong> {pickupData.status === 'ASSIGNED' ? 'Assegnato' : pickupData.status}
                 </p>
               </div>
@@ -183,7 +183,7 @@ export default function MultiAvailPickupPage() {
                 <button
                   onClick={handleCompletePickup}
                   disabled={completing}
-                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50"
+                  className="w-full py-4 bg-success-600 text-white rounded-lg hover:bg-success-700 font-semibold text-lg disabled:opacity-50"
                 >
                   {completing ? 'Elaborazione...' : 'Conferma Ritiro Completato'}
                 </button>

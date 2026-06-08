@@ -128,7 +128,7 @@ export default function OperatorRecipientsPage() {
                 />
               ) : (
                 pendingRecipients.map((recipient) => (
-                  <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-amber-200">
+                  <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-warning-200">
                     <div className="flex gap-3">
                       <Avatar
                         src={recipient.profileImageUrl}

@@ -76,15 +76,15 @@ export default function OperatorEntityRequestsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
+        return <span className="px-2 py-1 bg-warning-100 text-warning-700 text-xs rounded">In attesa</span>;
       case 'APPROVED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
+        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Approvata</span>;
       case 'FULFILLED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Soddisfatta</span>;
+        return <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded">Soddisfatta</span>;
       case 'DELIVERED':
-        return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Consegnata</span>;
+        return <span className="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs rounded">Consegnata</span>;
       case 'COMPLETED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Completata</span>;
+        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Completata</span>;
       case 'CANCELLED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Cancellata</span>;
       default:
@@ -126,7 +126,7 @@ export default function OperatorEntityRequestsPage() {
         <button
           onClick={() => setTypeFilter('GOODS')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2 ${
-            typeFilter === 'GOODS' ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            typeFilter === 'GOODS' ? 'bg-info-100 text-info-700 border border-info-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           <Armchair className="w-4 h-4" aria-hidden="true" />
@@ -135,7 +135,7 @@ export default function OperatorEntityRequestsPage() {
         <button
           onClick={() => setTypeFilter('SERVICES')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2 ${
-            typeFilter === 'SERVICES' ? 'bg-purple-100 text-purple-700 border border-purple-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            typeFilter === 'SERVICES' ? 'bg-secondary-100 text-secondary-700 border border-secondary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           <Wrench className="w-4 h-4" aria-hidden="true" />
@@ -148,7 +148,7 @@ export default function OperatorEntityRequestsPage() {
         <button
           onClick={() => setFilter('pending')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'pending' ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            filter === 'pending' ? 'bg-warning-100 text-warning-700 border border-warning-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           In attesa ({requests.filter(r => r.status === 'PENDING').length})
@@ -156,7 +156,7 @@ export default function OperatorEntityRequestsPage() {
         <button
           onClick={() => setFilter('approved')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'approved' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            filter === 'approved' ? 'bg-success-100 text-success-700 border border-success-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           Approvate ({requests.filter(r => r.status === 'APPROVED').length})
@@ -164,7 +164,7 @@ export default function OperatorEntityRequestsPage() {
         <button
           onClick={() => setFilter('fulfilled')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'fulfilled' ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            filter === 'fulfilled' ? 'bg-info-100 text-info-700 border border-info-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
           Soddisfatte ({requests.filter(r => r.status === 'FULFILLED').length})
@@ -211,7 +211,7 @@ export default function OperatorEntityRequestsPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-gray-900">{request.title}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded ${request.type === 'GOODS' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded ${request.type === 'GOODS' ? 'bg-info-100 text-info-700' : 'bg-secondary-100 text-secondary-700'}`}>
                           {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
                         </span>
                       </div>
@@ -222,7 +222,7 @@ export default function OperatorEntityRequestsPage() {
                     <div className="flex items-center gap-2">
                       {getStatusBadge(request.status)}
                       {request.offers.length > 0 && (
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">
+                        <span className="px-2 py-0.5 bg-info-50 text-info-700 text-xs rounded">
                           {request.offers.length} offerte
                         </span>
                       )}

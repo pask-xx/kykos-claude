@@ -108,7 +108,7 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Donatore non trovato'}</p>
+          <p className="text-error-600 mb-4">{error || 'Donatore non trovato'}</p>
           <Link href="/operator/donors" className="text-primary-600 hover:underline">
             ← Torna alla lista
           </Link>
@@ -120,11 +120,11 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
   const displayName = donor.nickname || donor.name;
 
   const LEVEL_COLORS: Record<string, string> = {
-    BRONZE: 'bg-amber-700',
+    BRONZE: 'bg-warning-700',
     SILVER: 'bg-gray-400',
     GOLD: 'bg-yellow-500',
     PLATINUM: 'bg-gray-600',
-    DIAMOND: 'bg-blue-400',
+    DIAMOND: 'bg-info-400',
   };
 
   return (
@@ -152,7 +152,7 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
           {error}
         </div>
       )}

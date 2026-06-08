@@ -100,8 +100,8 @@ export default function GoodsPickupPage() {
         </header>
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-            <XCircle className="w-12 h-12 mx-auto mb-4 text-red-600" aria-hidden="true" />
-            <h1 className="text-xl font-bold text-red-700 mb-2">Errore</h1>
+            <XCircle className="w-12 h-12 mx-auto mb-4 text-error-600" aria-hidden="true" />
+            <h1 className="text-xl font-bold text-error-700 mb-2">Errore</h1>
             <p className="text-gray-600">{error}</p>
           </div>
         </main>
@@ -114,8 +114,8 @@ export default function GoodsPickupPage() {
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center space-y-6">
-            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-green-700">Ritiro Completato!</h1>
+            <CheckCircle2 className="w-12 h-12 mx-auto text-success-600" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-success-700">Ritiro Completato!</h1>
             <p className="text-gray-600">
               Il beneficiario ha ritirato il bene con successo.
             </p>
@@ -153,7 +153,7 @@ export default function GoodsPickupPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
               {error}
             </div>
           )}
@@ -170,7 +170,7 @@ export default function GoodsPickupPage() {
                   Donato da: {goodsData.fulfilledByName}
                 </p>
                 {goodsData.depositLocation && (
-                  <p className="text-sm text-green-600 font-medium mt-2 inline-flex items-center gap-1">
+                  <p className="text-sm text-success-600 font-medium mt-2 inline-flex items-center gap-1">
                     <MapPin className="w-4 h-4" aria-hidden="true" />
                     Posizione: <strong>{goodsData.depositLocation}</strong>
                   </p>
@@ -183,8 +183,8 @@ export default function GoodsPickupPage() {
               </div>
 
               {/* Info note */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                <p className="text-sm text-blue-700">
+              <div className="bg-info-50 border border-info-200 rounded-lg p-4 text-center">
+                <p className="text-sm text-info-700">
                   Consegna questo bene al beneficiario indicato
                 </p>
               </div>
@@ -194,7 +194,7 @@ export default function GoodsPickupPage() {
                 <button
                   onClick={handleCompletePickup}
                   disabled={completing}
-                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50"
+                  className="w-full py-4 bg-success-600 text-white rounded-lg hover:bg-success-700 font-semibold text-lg disabled:opacity-50"
                 >
                   {completing ? 'Elaborazione...' : 'Conferma Ritiro Completato'}
                 </button>

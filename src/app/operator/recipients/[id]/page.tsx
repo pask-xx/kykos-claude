@@ -64,22 +64,22 @@ interface Notification {
 }
 
 const CATEGORY_COLORS: Record<Category, string> = {
-  FURNITURE: 'bg-amber-500',
-  ELECTRONICS: 'bg-blue-500',
+  FURNITURE: 'bg-warning-500',
+  ELECTRONICS: 'bg-info-500',
   CLOTHING: 'bg-pink-500',
-  BOOKS: 'bg-green-500',
+  BOOKS: 'bg-success-500',
   KITCHEN: 'bg-orange-500',
   SPORTS: 'bg-teal-500',
-  TOYS: 'bg-purple-500',
+  TOYS: 'bg-secondary-500',
   OTHER: 'bg-gray-500',
 };
 
 const CONDITION_COLORS: Record<Condition, string> = {
-  NEW: 'bg-green-500',
+  NEW: 'bg-success-500',
   LIKE_NEW: 'bg-teal-500',
-  GOOD: 'bg-blue-500',
+  GOOD: 'bg-info-500',
   FAIR: 'bg-yellow-500',
-  POOR: 'bg-red-500',
+  POOR: 'bg-error-500',
 };
 
 export default function RecipientDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -217,7 +217,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Beneficiario non trovato'}</p>
+          <p className="text-error-600 mb-4">{error || 'Beneficiario non trovato'}</p>
           <Link href="/operator/recipients" className="text-primary-600 hover:underline">
             ← Torna alla lista
           </Link>
@@ -244,7 +244,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
           {error}
         </div>
       )}
@@ -252,10 +252,10 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       {/* Status Badge */}
       <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
         recipient.authorized
-          ? 'bg-green-100 text-green-700'
+          ? 'bg-success-100 text-success-700'
           : 'bg-gray-100 text-gray-500'
       }`}>
-        <span className={`w-2 h-2 rounded-full ${recipient.authorized ? 'bg-green-500' : 'bg-gray-400'}`} />
+        <span className={`w-2 h-2 rounded-full ${recipient.authorized ? 'bg-success-500' : 'bg-gray-400'}`} />
         {recipient.authorized ? 'Attivo' : 'Disattivato'}
       </div>
 
@@ -318,9 +318,9 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={`text-3xl font-bold ${
-                recipient.needScore >= 80 ? 'text-red-600' :
-                recipient.needScore >= 50 ? 'text-amber-600' :
-                recipient.needScore >= 20 ? 'text-blue-600' :
+                recipient.needScore >= 80 ? 'text-error-600' :
+                recipient.needScore >= 50 ? 'text-warning-600' :
+                recipient.needScore >= 20 ? 'text-info-600' :
                 'text-gray-600'
               }`}>
                 {recipient.needScore}
@@ -348,7 +348,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
                   <button
                     onClick={() => updateNeedScore(scoreValue)}
                     disabled={savingScore}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                    className="px-4 py-2 bg-success-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     {savingScore ? 'Salvataggio...' : 'Salva'}
                   </button>
@@ -364,17 +364,17 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               <div>
                 <p className="text-gray-600 mb-2">
                   {recipient.needScore >= 80 ? (
-                    <span className="text-red-600 font-medium inline-flex items-center gap-1">
+                    <span className="text-error-600 font-medium inline-flex items-center gap-1">
                       <AlertOctagon className="w-4 h-4 inline-block" aria-hidden="true" />
                       Alta priorità
                     </span>
                   ) : recipient.needScore >= 50 ? (
-                    <span className="text-amber-600 font-medium inline-flex items-center gap-1">
+                    <span className="text-warning-600 font-medium inline-flex items-center gap-1">
                       <AlertTriangle className="w-4 h-4 inline-block" aria-hidden="true" />
                       Media priorità
                     </span>
                   ) : recipient.needScore >= 20 ? (
-                    <span className="text-blue-600 font-medium inline-flex items-center gap-1">
+                    <span className="text-info-600 font-medium inline-flex items-center gap-1">
                       <Info className="w-4 h-4 inline-block" aria-hidden="true" />
                       Bassa priorità
                     </span>
@@ -471,15 +471,15 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <p className="text-sm text-gray-500">Richieste totali</p>
           <p className="text-3xl font-bold text-gray-900">{stats?.totalRequests || 0}</p>
           <div className="mt-2 flex gap-2 text-xs">
-            <span className="text-amber-600">{stats?.pendingRequests || 0} in attesa</span>
-            <span className="text-green-600">{stats?.approvedRequests || 0} approvate</span>
+            <span className="text-warning-600">{stats?.pendingRequests || 0} in attesa</span>
+            <span className="text-success-600">{stats?.approvedRequests || 0} approvate</span>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border">
           <p className="text-sm text-gray-500">Donazioni ricevute</p>
           <p className="text-3xl font-bold text-gray-900">{stats?.totalDonations || 0}</p>
           <div className="mt-2 flex gap-2 text-xs">
-            <span className="text-red-600">{stats?.rejectedRequests || 0} rifiutate</span>
+            <span className="text-error-600">{stats?.rejectedRequests || 0} rifiutate</span>
             <span className="text-gray-400">{stats?.expiredRequests || 0} scadute</span>
           </div>
         </div>
@@ -617,7 +617,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Notifiche inviate</h2>
           <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName} onSent={fetchNotifications}>
-            <button className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg font-medium text-sm flex items-center gap-1.5">
+            <button className="px-3 py-1.5 bg-warning-50 text-warning-700 hover:bg-warning-100 border border-warning-200 rounded-lg font-medium text-sm flex items-center gap-1.5">
               <Send className="w-4 h-4" aria-hidden="true" />
               Nuovo messaggio
             </button>
@@ -631,13 +631,13 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
                 onClick={() => setSelectedNotification(notif)}
                 className={`w-48 p-3 rounded-lg shadow-sm flex flex-col gap-1 cursor-pointer hover:shadow-md transition ${
                   notif.read
-                    ? 'bg-amber-50 border border-amber-100'
-                    : 'bg-amber-100 border border-amber-300'
+                    ? 'bg-warning-50 border border-warning-100'
+                    : 'bg-warning-100 border border-warning-300'
                 }`}
               >
-                <p className="font-semibold text-amber-900 text-sm line-clamp-1">{notif.title}</p>
-                <p className="text-amber-800 text-xs line-clamp-3">{notif.message}</p>
-                <p className="text-amber-600 text-xs mt-auto">{formatDate(notif.createdAt)}</p>
+                <p className="font-semibold text-warning-900 text-sm line-clamp-1">{notif.title}</p>
+                <p className="text-warning-800 text-xs line-clamp-3">{notif.message}</p>
+                <p className="text-warning-600 text-xs mt-auto">{formatDate(notif.createdAt)}</p>
               </div>
             ))}
           </div>
@@ -663,8 +663,8 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               disabled={updating}
               className={`px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 ${
                 recipient.authorized
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  ? 'bg-error-100 text-error-700 hover:bg-error-200'
+                  : 'bg-success-100 text-success-700 hover:bg-success-200'
               }`}
             >
               {updating ? 'Aggiornamento...' : recipient.authorized ? 'Revoca autorizzazione' : 'Attiva autorizzazione'}
@@ -676,18 +676,18 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       {selectedNotification && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedNotification(null)} />
-          <div className="relative bg-amber-50 rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border-2 border-amber-300">
+          <div className="relative bg-warning-50 rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border-2 border-warning-300">
             <button
               type="button"
               aria-label="Chiudi notifica"
               onClick={() => setSelectedNotification(null)}
-              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-amber-700 hover:bg-amber-100 rounded-full"
+              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-warning-700 hover:bg-warning-100 rounded-full"
             >
               <X className="w-4 h-4" aria-hidden="true" />
             </button>
-            <h3 className="text-lg font-bold text-amber-900 mb-2 pr-8">{selectedNotification.title}</h3>
-            <p className="text-amber-800 text-sm mb-4 whitespace-pre-wrap">{selectedNotification.message}</p>
-            <p className="text-amber-600 text-xs">
+            <h3 className="text-lg font-bold text-warning-900 mb-2 pr-8">{selectedNotification.title}</h3>
+            <p className="text-warning-800 text-sm mb-4 whitespace-pre-wrap">{selectedNotification.message}</p>
+            <p className="text-warning-600 text-xs">
               Inviato il {new Date(selectedNotification.createdAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>

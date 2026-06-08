@@ -231,8 +231,8 @@ export default function PickupLocationPage() {
         </header>
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-            <XCircle className="w-12 h-12 mx-auto mb-4 text-red-600" aria-hidden="true" />
-            <h1 className="text-xl font-bold text-red-700 mb-2">Errore</h1>
+            <XCircle className="w-12 h-12 mx-auto mb-4 text-error-600" aria-hidden="true" />
+            <h1 className="text-xl font-bold text-error-700 mb-2">Errore</h1>
             <p className="text-gray-600">{error}</p>
           </div>
         </main>
@@ -245,8 +245,8 @@ export default function PickupLocationPage() {
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center space-y-6">
-            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-green-700">Ritiro Completato!</h1>
+            <CheckCircle2 className="w-12 h-12 mx-auto text-success-600" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-success-700">Ritiro Completato!</h1>
             <p className="text-gray-600">
               Il beneficiario ha ritirato l&apos;oggetto con successo.
             </p>
@@ -284,7 +284,7 @@ export default function PickupLocationPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
               {error}
             </div>
           )}
@@ -301,29 +301,29 @@ export default function PickupLocationPage() {
 
               {/* Deposit Location */}
               {pickupData.depositLocation ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <div className="bg-success-50 border border-success-200 rounded-lg p-6">
                   <div className="flex items-center justify-center mb-4">
-                    <MapPin className="w-10 h-10 text-green-700" aria-hidden="true" />
+                    <MapPin className="w-10 h-10 text-success-700" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-center text-green-800 mb-2">
+                  <h3 className="text-lg font-semibold text-center text-success-800 mb-2">
                     Posizione oggetto
                   </h3>
-                  <p className="text-2xl font-bold text-center text-green-900">
+                  <p className="text-2xl font-bold text-center text-success-900">
                     {pickupData.depositLocation}
                   </p>
                   {pickupData.depositNotes && (
-                    <p className="text-sm text-center text-green-700 mt-2">
+                    <p className="text-sm text-center text-success-700 mt-2">
                       Note: {pickupData.depositNotes}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-                  <AlertTriangle className="w-10 h-10 mx-auto mb-4 text-amber-600" aria-hidden="true" />
-                  <h3 className="font-semibold text-amber-800 mb-2">
+                <div className="bg-warning-50 border border-warning-200 rounded-lg p-6 text-center">
+                  <AlertTriangle className="w-10 h-10 mx-auto mb-4 text-warning-600" aria-hidden="true" />
+                  <h3 className="font-semibold text-warning-800 mb-2">
                     Posizione non registrata
                   </h3>
-                  <p className="text-sm text-amber-600">
+                  <p className="text-sm text-warning-600">
                     L&apos;operatore non ha ancora registrato la posizione di deposito.
                     <br />
                     Assicurati che l&apos;oggetto sia disponibile prima di procedere.
@@ -337,7 +337,7 @@ export default function PickupLocationPage() {
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-gray-700">Verifica oggetto</span>
                     {verified ? (
-                      <span className="text-green-600 font-semibold flex items-center gap-1">
+                      <span className="text-success-600 font-semibold flex items-center gap-1">
                         <Check className="w-4 h-4" aria-hidden="true" />
                         Verificato
                       </span>
@@ -390,7 +390,7 @@ export default function PickupLocationPage() {
                   )}
 
                   {verifyError && (
-                    <p className="mt-2 text-sm text-red-600">{verifyError}</p>
+                    <p className="mt-2 text-sm text-error-600">{verifyError}</p>
                   )}
                 </div>
               )}
@@ -400,7 +400,7 @@ export default function PickupLocationPage() {
                 <button
                   onClick={handleCompletePickup}
                   disabled={completing}
-                  className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-lg disabled:opacity-50"
+                  className="w-full py-4 bg-success-600 text-white rounded-lg hover:bg-success-700 font-semibold text-lg disabled:opacity-50"
                 >
                   {completing ? 'Elaborazione...' : 'Conferma Ritiro Completato'}
                 </button>

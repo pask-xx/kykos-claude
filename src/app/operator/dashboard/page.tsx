@@ -84,8 +84,8 @@ export default async function OperatorDashboard() {
       <div className="grid md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-amber-600" aria-hidden="true" />
+            <div className="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-6 h-6 text-warning-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Richieste in attesa</p>
@@ -95,8 +95,8 @@ export default async function OperatorDashboard() {
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-green-600" aria-hidden="true" />
+            <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-success-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Beneficiari autorizzati</p>

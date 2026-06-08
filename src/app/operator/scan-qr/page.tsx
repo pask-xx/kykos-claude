@@ -291,7 +291,7 @@ export default function ScanQrPage() {
           <div className="mt-4 flex justify-center gap-4">
             <button
               onClick={stopScanning}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+              className="px-6 py-3 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium"
             >
               Ferma scansione
             </button>
@@ -304,39 +304,39 @@ export default function ScanQrPage() {
         <div
           className={`p-6 rounded-xl border ${
             result.success
-              ? 'bg-green-50 border-green-200'
-              : 'bg-red-50 border-red-200'
+              ? 'bg-success-50 border-success-200'
+              : 'bg-error-50 border-error-200'
           }`}
         >
           {result.success ? (
             <>
-              <h3 className="text-lg font-semibold text-green-800 mb-2">
+              <h3 className="text-lg font-semibold text-success-800 mb-2">
                 {result.type === 'deliver' ? 'Consegna registrata!' : 'Ritiro completato!'}
               </h3>
-              <p className="text-green-700 mb-2">{result.message}</p>
+              <p className="text-success-700 mb-2">{result.message}</p>
               {result.objectTitle && (
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-success-600">
                   Oggetto: <strong>{result.objectTitle}</strong>
                 </p>
               )}
               {result.depositLocation && (
-                <p className="text-sm text-green-600 mt-1">
+                <p className="text-sm text-success-600 mt-1">
                   Posizione: <strong>{result.depositLocation}</strong>
                 </p>
               )}
             </>
           ) : (
             <>
-              <h3 className="text-lg font-semibold text-red-800 mb-2">Errore</h3>
-              <p className="text-red-700">{result.message}</p>
+              <h3 className="text-lg font-semibold text-error-800 mb-2">Errore</h3>
+              <p className="text-error-700">{result.message}</p>
             </>
           )}
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-700">{error}</p>
+        <div className="p-4 bg-error-50 border border-error-200 rounded-xl">
+          <p className="text-error-700">{error}</p>
         </div>
       )}
 

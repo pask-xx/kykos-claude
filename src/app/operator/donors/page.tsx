@@ -61,7 +61,7 @@ export default function DonorsListPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-error-600 mb-4">{error}</p>
           <button onClick={fetchDonors} className="text-primary-600 hover:underline">
             Riprova
           </button>
@@ -71,11 +71,11 @@ export default function DonorsListPage() {
   }
 
   const LEVEL_COLORS: Record<string, string> = {
-    BRONZE: 'bg-amber-700',
+    BRONZE: 'bg-warning-700',
     SILVER: 'bg-gray-400',
     GOLD: 'bg-yellow-500',
     PLATINUM: 'bg-gray-600',
-    DIAMOND: 'bg-blue-400',
+    DIAMOND: 'bg-info-400',
   };
 
   const LEVEL_ICON: Record<string, LucideIcon> = {
@@ -147,7 +147,7 @@ export default function DonorsListPage() {
                       <span className="text-sm text-gray-500">
                         {donor.donorProfile?.totalDonations || 0} donazioni
                       </span>
-                      <span className={`px-2 py-0.5 text-xs rounded ${donor.canProvideServices ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`px-2 py-0.5 text-xs rounded ${donor.canProvideServices ? 'bg-success-100 text-success-700' : 'bg-gray-100 text-gray-500'}`}>
                         {donor.canProvideServices ? 'Servizi' : 'Solo beni'}
                       </span>
                     </div>

@@ -113,7 +113,7 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
             <h2 className="text-xl font-semibold text-gray-900">{object.title}</h2>
             <p className="text-sm text-gray-500 mt-1">Donatore: {object.donor.nickname || object.donor.name}</p>
             <div className="mt-3">
-              <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm rounded-full">
+              <span className="px-3 py-1 bg-warning-100 text-warning-700 text-sm rounded-full">
                 Ritirato - in attesa di consegna finale
               </span>
             </div>
@@ -121,16 +121,16 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <div className="bg-green-50 p-6 rounded-xl border border-green-200">
-        <h3 className="font-semibold text-green-800 mb-2">Conferma la consegna definitiva</h3>
-        <p className="text-sm text-green-700 mb-4">
+      <div className="bg-success-50 p-6 rounded-xl border border-success-200">
+        <h3 className="font-semibold text-success-800 mb-2">Conferma la consegna definitiva</h3>
+        <p className="text-sm text-success-700 mb-4">
           Stai per registrare la consegna definitiva dell&apos;oggetto al beneficiario.
           Questa azione marcera&apos; l&apos;oggetto come completamente donato.
         </p>
         <button
           onClick={handleDeliver}
           disabled={submitting}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-50"
+          className="px-6 py-3 bg-success-600 text-white rounded-lg hover:bg-success-700 font-medium disabled:opacity-50"
         >
           {submitting ? 'Elaborazione...' : 'Conferma consegna'}
         </button>
