@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import QrScanner from 'qr-scanner';
 
@@ -32,6 +32,10 @@ export default function GoodsDepositLocationPage() {
   const [error, setError] = useState<string | null>(null);
   const [labelData, setLabelData] = useState<LabelData | null>(null);
   const [showLabelDialog, setShowLabelDialog] = useState(false);
+
+  const locationInputId = useId();
+  const cameraSelectId = useId();
+  const notesId = useId();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
@@ -319,11 +323,12 @@ export default function GoodsDepositLocationPage() {
           {/* Location Input Section */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor={locationInputId} className="block text-sm font-medium text-gray-700 mb-2">
                 Posizione di deposito *
               </label>
               <div className="flex gap-2">
                 <input
+                  id={locationInputId}
                   type="text"
                   value={depositLocation}
                   onChange={(e) => setDepositLocation(e.target.value)}
@@ -348,8 +353,9 @@ export default function GoodsDepositLocationPage() {
             {showScanner && (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <label className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
+                  <label htmlFor={cameraSelectId} className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
                   <select
+                    id={cameraSelectId}
                     value={cameraId}
                     onChange={(e) => setCameraId(e.target.value)}
                     className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
@@ -379,10 +385,11 @@ export default function GoodsDepositLocationPage() {
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor={notesId} className="block text-sm font-medium text-gray-700 mb-2">
                 Note (opzionali)
               </label>
               <textarea
+                id={notesId}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Aggiungi note sulla consegna..."

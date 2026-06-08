@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tag } from 'lucide-react';
 import { Card, CardContent, Button, Spinner, toast } from '@/components/ui';
@@ -13,6 +13,10 @@ export default function ShelfLabelPage() {
   const [stanza, setStanza] = useState('');
   const [scaffale, setScaffale] = useState('');
   const [piano, setPiano] = useState('');
+
+  const stanzaId = useId();
+  const scaffaleId = useId();
+  const pianoId = useId();
   const [labelSize, setLabelSize] = useState<'50x30' | '50x40'>('50x30');
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -136,8 +140,9 @@ export default function ShelfLabelPage() {
           {/* Form Fields */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stanza *</label>
+              <label htmlFor={stanzaId} className="block text-sm font-medium text-gray-700 mb-1">Stanza *</label>
               <input
+                id={stanzaId}
                 type="text"
                 value={stanza}
                 onChange={(e) => setStanza(e.target.value.toUpperCase())}
@@ -146,8 +151,9 @@ export default function ShelfLabelPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Scaffale *</label>
+              <label htmlFor={scaffaleId} className="block text-sm font-medium text-gray-700 mb-1">Scaffale *</label>
               <input
+                id={scaffaleId}
                 type="text"
                 value={scaffale}
                 onChange={(e) => setScaffale(e.target.value.toUpperCase())}
@@ -156,8 +162,9 @@ export default function ShelfLabelPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Piano *</label>
+              <label htmlFor={pianoId} className="block text-sm font-medium text-gray-700 mb-1">Piano *</label>
               <input
+                id={pianoId}
                 type="text"
                 value={piano}
                 onChange={(e) => setPiano(e.target.value.toUpperCase())}

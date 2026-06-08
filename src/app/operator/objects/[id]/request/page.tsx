@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
@@ -48,6 +48,8 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const messageId = useId();
 
   useEffect(() => {
     fetchObject();
@@ -272,10 +274,11 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={messageId} className="block text-sm font-medium text-gray-700 mb-1">
               Messaggio (opzionale)
             </label>
             <textarea
+              id={messageId}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Aggiungi una nota per questa richiesta..."
