@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import {
+  Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box,
+  Wrench, ClipboardList, type LucideIcon,
+} from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface EntityRequest {
@@ -88,12 +92,18 @@ export default function OperatorEntityRequestsPage() {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      FURNITURE: '🪑', ELECTRONICS: '📱', CLOTHING: '👕', BOOKS: '📚',
-      KITCHEN: '🍳', SPORTS: '⚽', TOYS: '🧸', OTHER: '📦',
+  const getCategoryIcon = (category: string): LucideIcon => {
+    const icons: Record<string, LucideIcon> = {
+      FURNITURE: Armchair,
+      ELECTRONICS: Smartphone,
+      CLOTHING: Shirt,
+      BOOKS: Book,
+      KITCHEN: CookingPot,
+      SPORTS: Trophy,
+      TOYS: Baby,
+      OTHER: Box,
     };
-    return icons[category] || '📦';
+    return icons[category] || Box;
   };
 
   return (
@@ -115,19 +125,21 @@ export default function OperatorEntityRequestsPage() {
         </button>
         <button
           onClick={() => setTypeFilter('GOODS')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2 ${
             typeFilter === 'GOODS' ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          🪑 Beni
+          <Armchair className="w-4 h-4" aria-hidden="true" />
+          Beni
         </button>
         <button
           onClick={() => setTypeFilter('SERVICES')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2 ${
             typeFilter === 'SERVICES' ? 'bg-purple-100 text-purple-700 border border-purple-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          🔧 Servizi
+          <Wrench className="w-4 h-4" aria-hidden="true" />
+          Servizi
         </button>
       </div>
 
@@ -173,7 +185,7 @@ export default function OperatorEntityRequestsPage() {
         </div>
       ) : filteredRequests.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">📋</span>
+          <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
           <p className="text-gray-500">
             {filter === 'pending' ? 'Non ci sono richieste da gestire.' : 'Non ci sono richieste.'}
@@ -188,8 +200,11 @@ export default function OperatorEntityRequestsPage() {
               className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition block"
             >
               <div className="flex gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-                  {getCategoryIcon(request.category)}
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  {(() => {
+                    const Icon = getCategoryIcon(request.category);
+                    return <Icon className="w-8 h-8 text-gray-700" aria-hidden="true" />;
+                  })()}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
