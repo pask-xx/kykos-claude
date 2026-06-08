@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
+import { ClipboardList, Package } from 'lucide-react';
 
 interface Report {
   id: string;
@@ -128,7 +129,7 @@ export default function IntermediaryReportsPage() {
 
       {filteredReports.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">📋</span>
+          <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna segnalazione</h2>
           <p className="text-gray-500">
             {filter === 'PENDING' ? 'Non ci sono segnalazioni da gestire.' : 'Non ci sono segnalazioni.'}
@@ -147,7 +148,7 @@ export default function IntermediaryReportsPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-3xl">📦</span>
+                    <Package className="w-8 h-8 text-gray-400" aria-hidden="true" />
                   )}
                 </div>
                 <div className="flex-1">
