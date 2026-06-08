@@ -197,19 +197,19 @@ export default function LoginPage() {
             <p className="text-gray-600 mb-6">Accedi al tuo account</p>
 
             {error && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             {resendMessage && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800 mb-3">{resendMessage}</p>
+              <div className="mb-4 p-4 bg-info-50 border border-info-200 rounded-lg">
+                <p className="text-sm text-info-800 mb-3">{resendMessage}</p>
                 <button
                   type="button"
                   onClick={handleResendConfirmation}
                   disabled={resending}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
+                  className="text-sm text-info-600 hover:text-info-700 font-medium disabled:opacity-50"
                 >
                   {resending ? 'Invio in corso...' : 'Rinvia email di conferma'}
                 </button>

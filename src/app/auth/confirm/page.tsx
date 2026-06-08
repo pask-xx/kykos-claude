@@ -57,8 +57,8 @@ function ConfirmContent() {
         <div className="bg-white rounded-2xl shadow-sm p-8">
           {status === 'idle' && (
             <>
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Mail className="h-7 w-7 text-blue-600" aria-hidden="true" />
+              <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Mail className="h-7 w-7 text-info-600" aria-hidden="true" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Conferma il tuo indirizzo email</h2>
               <p className="text-gray-600 mb-6">
@@ -78,8 +78,8 @@ function ConfirmContent() {
 
           {status === 'loading' && (
             <>
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Spinner size="lg" className="text-blue-600" />
+              <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Spinner size="lg" className="text-info-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Conferma in corso</h2>
               <p className="text-gray-600">{message}</p>
@@ -88,8 +88,8 @@ function ConfirmContent() {
 
           {status === 'success' && (
             <>
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="h-7 w-7 text-green-600" aria-hidden="true" />
+              <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="h-7 w-7 text-success-600" aria-hidden="true" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Email confermata!</h2>
               <p className="text-gray-600 mb-6">{message}</p>
@@ -104,8 +104,8 @@ function ConfirmContent() {
 
           {status === 'error' && (
             <>
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <XCircle className="h-7 w-7 text-red-600" aria-hidden="true" />
+              <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <XCircle className="h-7 w-7 text-error-600" aria-hidden="true" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Errore</h2>
               <p className="text-gray-600 mb-6">{message}</p>
@@ -145,8 +145,8 @@ function ConfirmNoticeContent() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="h-7 w-7 text-green-600" aria-hidden="true" />
+          <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Mail className="h-7 w-7 text-success-600" aria-hidden="true" />
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Controlla la tua email</h2>
@@ -156,11 +156,11 @@ function ConfirmNoticeContent() {
             </p>
           )}
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-            <p className="text-sm text-blue-800">
+          <div className="bg-info-50 border border-info-200 rounded-lg p-4 mb-6 text-left">
+            <p className="text-sm text-info-800">
               <strong>Cosa fare:</strong>
             </p>
-            <ol className="text-sm text-blue-700 mt-2 space-y-1 list-decimal list-inside">
+            <ol className="text-sm text-info-700 mt-2 space-y-1 list-decimal list-inside">
               <li>Clicca sul link che hai ricevuto via email</li>
               <li>Conferma il tuo indirizzo email</li>
               <li>Accedi al tuo account KYKOS</li>

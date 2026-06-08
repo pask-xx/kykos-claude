@@ -71,7 +71,7 @@ export default function MultiAvailPickupPage({ params }: { params: Promise<{ req
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Dati non trovati'}</p>
+          <p className="text-error-600 mb-4">{error || 'Dati non trovati'}</p>
           <Link href="/recipient/to-deliver-and-pickup" className="text-primary-600 hover:underline">
             ← Torna alla lista
           </Link>

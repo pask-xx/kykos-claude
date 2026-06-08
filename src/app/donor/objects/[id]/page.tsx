@@ -97,15 +97,15 @@ export default function DonorObjectDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AVAILABLE':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
+        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Disponibile</span>;
       case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
+        return <span className="px-2 py-1 bg-warning-100 text-warning-700 text-xs rounded">Riservata</span>;
       case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Ritirato</span>;
+        return <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded">Ritirato</span>;
       case 'DEPOSITED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
       case 'CANCELLED':
-        return <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Cancellato</span>;
+        return <span className="px-2 py-1 bg-error-100 text-error-700 text-xs rounded">Cancellato</span>;
       default:
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
     }
@@ -144,7 +144,7 @@ export default function DonorObjectDetailPage() {
       </button>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
           {error}
         </div>
       )}
@@ -229,9 +229,9 @@ export default function DonorObjectDetailPage() {
                   <div key={req.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-700">Richiedente</span>
                     <span className={`px-2 py-1 text-xs rounded ${
-                      req.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                      req.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                      req.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                      req.status === 'PENDING' ? 'bg-warning-100 text-warning-700' :
+                      req.status === 'APPROVED' ? 'bg-success-100 text-success-700' :
+                      req.status === 'REJECTED' ? 'bg-error-100 text-error-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {REQUEST_STATUS_LABELS[req.status as keyof typeof REQUEST_STATUS_LABELS] ?? req.status}
@@ -273,7 +273,7 @@ export default function DonorObjectDetailPage() {
               >
                 <button
                   disabled={cancelling}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {cancelling ? 'Cancellazione...' : 'Cancella disponibilità'}
                 </button>

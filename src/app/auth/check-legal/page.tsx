@@ -122,7 +122,7 @@ function CheckLegalContent() {
     return (
       <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-error-600 mb-4">{error}</p>
           <Link href="/auth/login" className="text-secondary-600 underline">
             Torna al login
           </Link>
@@ -148,18 +148,18 @@ function CheckLegalContent() {
 
         <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           {/* Terms of use */}
           {status.documents.TERMS.outdated && (
-            <div className="p-4 border border-amber-200 bg-amber-50 rounded-lg">
-              <p className="text-sm text-amber-800 mb-3">
+            <div className="p-4 border border-warning-200 bg-warning-50 rounded-lg">
+              <p className="text-sm text-warning-800 mb-3">
                 <strong>Condizioni d&apos;uso</strong> — versione corrente: v{status.documents.TERMS.current}
                 {status.documents.TERMS.accepted && (
-                  <span className="block mt-1 text-xs text-amber-700">
+                  <span className="block mt-1 text-xs text-warning-700">
                     Avevi accettato la v{status.documents.TERMS.accepted}.
                   </span>
                 )}
@@ -191,11 +191,11 @@ function CheckLegalContent() {
 
           {/* Privacy */}
           {status.documents.PRIVACY.outdated && (
-            <div className="p-4 border border-amber-200 bg-amber-50 rounded-lg">
-              <p className="text-sm text-amber-800 mb-3">
+            <div className="p-4 border border-warning-200 bg-warning-50 rounded-lg">
+              <p className="text-sm text-warning-800 mb-3">
                 <strong>Informativa Privacy</strong> — versione corrente: v{status.documents.PRIVACY.current}
                 {status.documents.PRIVACY.accepted && (
-                  <span className="block mt-1 text-xs text-amber-700">
+                  <span className="block mt-1 text-xs text-warning-700">
                     Avevi accettato la v{status.documents.PRIVACY.accepted}.
                   </span>
                 )}

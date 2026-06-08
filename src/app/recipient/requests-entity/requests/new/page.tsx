@@ -76,7 +76,7 @@ export default function NewEntityRequestPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="p-4 bg-error-50 border border-error-200 rounded-lg text-error-700">
           {error}
         </div>
       )}
@@ -193,8 +193,8 @@ export default function NewEntityRequestPage() {
         </div>
       </form>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p className="text-sm text-amber-800">
+      <div className="bg-warning-50 border border-warning-200 rounded-lg p-4">
+        <p className="text-sm text-warning-800">
           <strong>Nota:</strong> La tua richiesta sarà inviata all&apos;ente di riferimento per l&apos;approvazione. Una volta approvata, sarà visibile a chi può soddisfarla.
         </p>
       </div>

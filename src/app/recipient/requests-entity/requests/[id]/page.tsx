@@ -99,13 +99,13 @@ export default function GoodsRequestDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
+        return <span className="px-2 py-1 bg-warning-100 text-warning-700 text-xs rounded">In attesa</span>;
       case 'APPROVED':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Approvata</span>;
+        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Approvata</span>;
       case 'FULFILLED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Depositata</span>;
+        return <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded">Depositata</span>;
       case 'DELIVERED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Depositata</span>;
+        return <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded">Depositata</span>;
       case 'CANCELLED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Cancellata</span>;
       default:
@@ -125,9 +125,9 @@ export default function GoodsRequestDetailPage() {
   const getOfferStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded">In attesa</span>;
+        return <span className="px-2 py-0.5 bg-warning-100 text-warning-700 text-xs rounded">In attesa</span>;
       case 'ACCEPTED':
-        return <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Accettata</span>;
+        return <span className="px-2 py-0.5 bg-success-100 text-success-700 text-xs rounded">Accettata</span>;
       case 'REJECTED':
         return <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">Rifiutata</span>;
       default:
@@ -201,21 +201,21 @@ export default function GoodsRequestDetailPage() {
 
               {/* Fulfiller Info */}
               {request.fulfilledBy && (
-                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                  <h3 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-600" aria-hidden="true" /> Soddisfatta
+                <div className="bg-success-50 p-4 rounded-xl border border-success-200">
+                  <h3 className="font-semibold text-success-900 mb-2 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-success-600" aria-hidden="true" /> Soddisfatta
                   </h3>
                   {request.status === 'DELIVERED' && (
                     <Link
                       href={`/recipient/qr-goods/${request.id}`}
-                      className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                      className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 text-sm font-medium"
                     >
                       <QrCode className="w-4 h-4" aria-hidden="true" />
                       Visualizza QR per ritiro
                     </Link>
                   )}
                   {request.status === 'FULFILLED' && (
-                    <p className="text-sm text-green-700 mt-2">In attesa che il donatore consegni il bene presso l&apos;ente...</p>
+                    <p className="text-sm text-success-700 mt-2">In attesa che il donatore consegni il bene presso l&apos;ente...</p>
                   )}
                 </div>
               )}
@@ -265,7 +265,7 @@ export default function GoodsRequestDetailPage() {
                               >
                                 <button
                                   disabled={submitting}
-                                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                                  className="px-3 py-1 bg-success-600 text-white rounded text-sm hover:bg-success-700 disabled:opacity-50"
                                 >
                                   Accetta
                                 </button>

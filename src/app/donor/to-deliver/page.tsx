@@ -95,7 +95,7 @@ export default async function DonorToDeliverPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">{donation.object.title}</p>
-                    <p className="text-xs text-blue-600">QR Code pronto</p>
+                    <p className="text-xs text-info-600">QR Code pronto</p>
                   </div>
                   <Link href={`/donor/qr/${donation.request.id}`}>
                     <Button variant="primary" size="sm">

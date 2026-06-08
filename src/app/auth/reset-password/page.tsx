@@ -74,8 +74,8 @@ function ResetPasswordForm() {
   if (invalidToken) {
     return (
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Lock className="h-7 w-7 text-red-600" aria-hidden="true" />
+        <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Lock className="h-7 w-7 text-error-600" aria-hidden="true" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Link non valido</h1>
         <p className="text-gray-600 mb-6">
@@ -94,8 +94,8 @@ function ResetPasswordForm() {
   if (success) {
     return (
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="h-7 w-7 text-green-600" aria-hidden="true" />
+        <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 className="h-7 w-7 text-success-600" aria-hidden="true" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Password reimpostata!</h1>
         <p className="text-gray-600 mb-6">
@@ -117,7 +117,7 @@ function ResetPasswordForm() {
       <p className="text-gray-600 mb-6">Inserisci la tua nuova password</p>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="mb-4 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
           {error}
         </div>
       )}

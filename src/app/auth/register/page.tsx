@@ -452,7 +452,7 @@ function RegisterForm() {
         <p className="text-gray-600 mb-6">Scegli come vuoi partecipare</p>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          <div className="mb-4 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
             {error}
           </div>
         )}
@@ -659,7 +659,7 @@ function RegisterForm() {
               <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 Geolocalizzazione
-                {(isRecipient || role === 'INTERMEDIARY') && <span className="text-red-500">*</span>}
+                {(isRecipient || role === 'INTERMEDIARY') && <span className="text-error-500">*</span>}
                 {isDonor && <span className="text-gray-400 text-xs">(facoltativa)</span>}
               </h3>
               <p className="text-xs text-gray-500 mb-3">
@@ -703,7 +703,7 @@ function RegisterForm() {
               </div>
 
               {locationError && (
-                <p className="text-xs text-red-600 mt-2">{locationError}</p>
+                <p className="text-xs text-error-600 mt-2">{locationError}</p>
               )}
               {isRecipient && !latitude && (
                 <p className="text-xs text-secondary-600 mt-2">
@@ -715,7 +715,7 @@ function RegisterForm() {
             {/* Diocese Selection - Mandatory for all roles */}
             <div className="mt-4">
               <label htmlFor="diocese" className="block text-sm font-medium text-gray-700 mb-2">
-                Diocesi di appartenenza <span className="text-red-500">*</span>
+                Diocesi di appartenenza <span className="text-error-500">*</span>
               </label>
               {!latitude || !longitude ? (
                 <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
@@ -878,7 +878,7 @@ function RegisterForm() {
           )}
 
           {isOAuth && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+            <div className="p-3 bg-success-50 border border-success-200 rounded-lg text-sm text-success-700">
               Account Google - password non richiesta
             </div>
           )}
@@ -911,7 +911,7 @@ function RegisterForm() {
             </p>
 
             {legalDocsError && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <div className="p-3 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
                 {legalDocsError}
               </div>
             )}
