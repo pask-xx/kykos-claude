@@ -130,7 +130,13 @@ export default function OperatorRecipientsPage() {
                 pendingRecipients.map((recipient) => (
                   <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-amber-200">
                     <div className="flex gap-3">
-                      <Avatar src={recipient.profileImageUrl} alt={recipient.name} name={recipient.name} size="md" />
+                      <Avatar
+                        src={recipient.profileImageUrl}
+                        alt={recipient.name}
+                        name={recipient.name}
+                        fallbackName={recipient.nickname?.charAt(0)}
+                        size="md"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
@@ -180,7 +186,13 @@ export default function OperatorRecipientsPage() {
                   return (
                     <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border">
                       <div className="flex gap-3">
-                        <Avatar src={recipient.profileImageUrl} alt={recipient.name} name={recipient.name} size="md" />
+                        <Avatar
+                          src={recipient.profileImageUrl}
+                          alt={recipient.name}
+                          name={recipient.name}
+                          fallbackName={recipient.nickname?.charAt(0)}
+                          size="md"
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div>

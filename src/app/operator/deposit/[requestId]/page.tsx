@@ -8,6 +8,7 @@ import QrScanner from 'qr-scanner';
 interface LabelData {
   requestId: string;
   recipientName: string;
+  recipientNickname: string | null;
   itemDescription: string;
   depositDate: string;
   qrData: string;
@@ -217,8 +218,8 @@ export default function DepositLocationPage() {
                   <img src="${alberoUrl}" alt="logo" />
                   <img src="${logoTextUrl}" alt="Kykos" />
                 </div>
-                <div class="info-text">
-                  <div class="info-name">${labelData.recipientName}</div>
+                <div className="info-text">
+                  <div class="info-name">${(labelData.recipientNickname?.charAt(0) || '?').toUpperCase()}</div>
                   <div class="info-date">Ritiro: ${labelData.depositDate}</div>
                 </div>
               </div>
@@ -255,14 +256,14 @@ export default function DepositLocationPage() {
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
           {/* Success Message */}
           <div className="text-center">
-            <Check className="w-12 h-12 mx-auto mb-4 text-green-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-green-700">Consegna Registrata</h1>
+            <Check className="w-12 h-12 mx-auto mb-4 text-success-600" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-success-700">Consegna Registrata</h1>
             <p className="text-gray-500 mt-2">Ora registrazione la posizione di deposito</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
               {error}
             </div>
           )}
@@ -325,7 +326,7 @@ export default function DepositLocationPage() {
                   />
                 </div>
                 {depositLocation && (
-                  <p className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                  <p className="mt-2 text-sm text-success-600 flex items-center gap-1">
                     <Check className="w-4 h-4 inline-block" aria-hidden="true" />
                     Rilevato: <strong>{depositLocation}</strong>
                   </p>
@@ -404,15 +405,21 @@ export default function DepositLocationPage() {
                         style={{ width: '87px', height: '87px' }}
                       />
                     </div>
-                    {/* Info box: logos + name + date */}
+                    {/* Info box: logos + nickname avatar + date */}
                     <div className="flex-1 flex flex-col justify-between min-w-0">
                       <div className="flex items-center gap-1">
                         <img src="/albero.svg" alt="logo" className="w-7 h-7" />
                         <img src="/LogoKykosTesto.svg" alt="Kykos" className="h-5 w-auto" />
                       </div>
-                      <div className="text-xs">
-                        <div className="font-medium text-gray-800 truncate">{labelData.recipientName}</div>
-                        <div className="text-gray-400 text-[10px]">Ritiro: {labelData.depositDate}</div>
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-[10px] font-semibold flex items-center justify-center"
+                          aria-label={labelData.recipientName}
+                          role="img"
+                        >
+                          {(labelData.recipientNickname?.charAt(0) || '?').toUpperCase()}
+                        </div>
+                        <div className="text-[10px] text-gray-400">Ritiro: {labelData.depositDate}</div>
                       </div>
                     </div>
                   </div>

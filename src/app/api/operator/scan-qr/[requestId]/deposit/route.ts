@@ -192,6 +192,7 @@ export const POST = withErrorHandler(async (
     labelData: req.object.intermediary.printLabel ? {
       requestId: req.id,
       recipientName: req.recipient.name,
+      recipientNickname: req.recipient.nickname,
       itemDescription: req.object.title,
       depositDate: new Date().toISOString().split('T')[0],
       qrData: deliverQrData,
