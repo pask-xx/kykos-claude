@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
+import { Switch } from '@/components/ui';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
@@ -383,53 +384,23 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Permessi richieste</h2>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">🪑 Richiesta beni</p>
-              <p className="text-sm text-gray-500">Può richiedere beni</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={recipient.canRequestGoods}
-              aria-label="Può richiedere beni"
-              onClick={() => toggleRequestPermission('canRequestGoods')}
-              disabled={updating}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                recipient.canRequestGoods ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                aria-hidden="true"
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  recipient.canRequestGoods ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <Switch
+              checked={recipient.canRequestGoods}
+              onChange={() => toggleRequestPermission('canRequestGoods')}
+              label="🪑 Richiesta beni"
+              description="Può richiedere beni"
+              loading={updating}
+            />
           </div>
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">🔧 Richiesta servizi</p>
-              <p className="text-sm text-gray-500">Può richiedere servizi</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={recipient.canRequestServices}
-              aria-label="Può richiedere servizi"
-              onClick={() => toggleRequestPermission('canRequestServices')}
-              disabled={updating}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                recipient.canRequestServices ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                aria-hidden="true"
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  recipient.canRequestServices ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <Switch
+              checked={recipient.canRequestServices}
+              onChange={() => toggleRequestPermission('canRequestServices')}
+              label="🔧 Richiesta servizi"
+              description="Può richiedere servizi"
+              loading={updating}
+            />
           </div>
         </div>
       </div>

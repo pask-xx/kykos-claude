@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import { Switch } from '@/components/ui';
 import SendMessageDialog from '@/components/SendMessageDialog';
 
 interface DonorStats {
@@ -157,29 +158,14 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
       {/* Service Provider Permission */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Permessi servizi</h2>
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <div>
-            <p className="font-medium text-gray-900">🔧 Fornitore di servizi</p>
-            <p className="text-sm text-gray-500">Può soddisfare richieste di servizi</p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={donor.canProvideServices}
-            aria-label="Può offrire servizi"
-            onClick={toggleCanProvideServices}
-            disabled={updating}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              donor.canProvideServices ? 'bg-green-500' : 'bg-gray-300'
-            } disabled:opacity-50`}
-          >
-            <span
-              aria-hidden="true"
-              className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                donor.canProvideServices ? 'translate-x-7' : 'translate-x-1'
-              }`}
-            />
-          </button>
+        <div className="p-3 bg-gray-50 rounded-lg">
+          <Switch
+            checked={donor.canProvideServices}
+            onChange={toggleCanProvideServices}
+            label="🔧 Fornitore di servizi"
+            description="Può soddisfare richieste di servizi"
+            loading={updating}
+          />
         </div>
         {donor.canProvideServicesAt && (
           <p className="text-xs text-gray-500 mt-2">

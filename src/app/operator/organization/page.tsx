@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/RichTextEditor';
-import { toast } from '@/components/ui/Toast';
+import { Switch, toast } from '@/components/ui';
 
 interface OrganizationData {
   id: string;
@@ -258,79 +258,34 @@ export default function OrganizationSettingsPage() {
         </p>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">📦 Disponibilità</p>
-              <p className="text-sm text-gray-500">Richieste di disponibilità pubblicati da donatori</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={autoApproveRequests}
-              aria-label="Approvazione automatica richieste di disponibilità"
-              onClick={() => handleAutoApproveToggle('autoApproveRequests', !autoApproveRequests)}
-              disabled={saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                autoApproveRequests ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                aria-hidden="true"
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  autoApproveRequests ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <Switch
+              checked={autoApproveRequests}
+              onChange={(v) => handleAutoApproveToggle('autoApproveRequests', v)}
+              label="📦 Disponibilità"
+              description="Richieste di disponibilità pubblicati da donatori"
+              loading={saving}
+            />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">🪑 Richieste di beni</p>
-              <p className="text-sm text-gray-500">Richieste di beni da parte dei beneficiari</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={autoApproveGoodsRequests}
-              aria-label="Approvazione automatica richieste di beni"
-              onClick={() => handleAutoApproveToggle('autoApproveGoodsRequests', !autoApproveGoodsRequests)}
-              disabled={saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                autoApproveGoodsRequests ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                aria-hidden="true"
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  autoApproveGoodsRequests ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <Switch
+              checked={autoApproveGoodsRequests}
+              onChange={(v) => handleAutoApproveToggle('autoApproveGoodsRequests', v)}
+              label="🪑 Richieste di beni"
+              description="Richieste di beni da parte dei beneficiari"
+              loading={saving}
+            />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">🔧 Richieste di servizi</p>
-              <p className="text-sm text-gray-500">Richieste di servizi da parte dei beneficiari</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={autoApproveServicesRequests}
-              aria-label="Approvazione automatica richieste di servizi"
-              onClick={() => handleAutoApproveToggle('autoApproveServicesRequests', !autoApproveServicesRequests)}
-              disabled={saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                autoApproveServicesRequests ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                aria-hidden="true"
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  autoApproveServicesRequests ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <Switch
+              checked={autoApproveServicesRequests}
+              onChange={(v) => handleAutoApproveToggle('autoApproveServicesRequests', v)}
+              label="🔧 Richieste di servizi"
+              description="Richieste di servizi da parte dei beneficiari"
+              loading={saving}
+            />
           </div>
         </div>
       </div>
@@ -344,29 +299,14 @@ export default function OrganizationSettingsPage() {
         </p>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">Stampa etichetta</p>
-              <p className="text-sm text-gray-500">Proponi la stampa durante le operazioni di consegna e ritiro</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={printLabel}
-              aria-label="Abilita stampa etichetta"
-              onClick={() => handlePrintLabelToggle(!printLabel)}
-              disabled={saving}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                printLabel ? 'bg-green-500' : 'bg-gray-300'
-              } disabled:opacity-50`}
-            >
-              <span
-                aria-hidden="true"
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  printLabel ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <Switch
+              checked={printLabel}
+              onChange={handlePrintLabelToggle}
+              label="Stampa etichetta"
+              description="Proponi la stampa durante le operazioni di consegna e ritiro"
+              loading={saving}
+            />
           </div>
 
           {printLabel && (
