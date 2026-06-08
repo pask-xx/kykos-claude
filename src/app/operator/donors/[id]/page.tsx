@@ -163,6 +163,10 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
             <p className="text-sm text-gray-500">Può soddisfare richieste di servizi</p>
           </div>
           <button
+            type="button"
+            role="switch"
+            aria-checked={donor.canProvideServices}
+            aria-label="Può offrire servizi"
             onClick={toggleCanProvideServices}
             disabled={updating}
             className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -170,6 +174,7 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
             } disabled:opacity-50`}
           >
             <span
+              aria-hidden="true"
               className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                 donor.canProvideServices ? 'translate-x-7' : 'translate-x-1'
               }`}

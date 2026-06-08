@@ -389,6 +389,10 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               <p className="text-sm text-gray-500">Può richiedere beni</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={recipient.canRequestGoods}
+              aria-label="Può richiedere beni"
               onClick={() => toggleRequestPermission('canRequestGoods')}
               disabled={updating}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -396,6 +400,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               } disabled:opacity-50`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   recipient.canRequestGoods ? 'translate-x-7' : 'translate-x-1'
                 }`}
@@ -408,6 +413,10 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               <p className="text-sm text-gray-500">Può richiedere servizi</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={recipient.canRequestServices}
+              aria-label="Può richiedere servizi"
               onClick={() => toggleRequestPermission('canRequestServices')}
               disabled={updating}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -415,6 +424,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               } disabled:opacity-50`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   recipient.canRequestServices ? 'translate-x-7' : 'translate-x-1'
                 }`}

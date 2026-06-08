@@ -264,6 +264,10 @@ export default function OrganizationSettingsPage() {
               <p className="text-sm text-gray-500">Richieste di disponibilità pubblicati da donatori</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={autoApproveRequests}
+              aria-label="Approvazione automatica richieste di disponibilità"
               onClick={() => handleAutoApproveToggle('autoApproveRequests', !autoApproveRequests)}
               disabled={saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -271,6 +275,7 @@ export default function OrganizationSettingsPage() {
               } disabled:opacity-50`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   autoApproveRequests ? 'translate-x-7' : 'translate-x-1'
                 }`}
@@ -284,6 +289,10 @@ export default function OrganizationSettingsPage() {
               <p className="text-sm text-gray-500">Richieste di beni da parte dei beneficiari</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={autoApproveGoodsRequests}
+              aria-label="Approvazione automatica richieste di beni"
               onClick={() => handleAutoApproveToggle('autoApproveGoodsRequests', !autoApproveGoodsRequests)}
               disabled={saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -291,6 +300,7 @@ export default function OrganizationSettingsPage() {
               } disabled:opacity-50`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   autoApproveGoodsRequests ? 'translate-x-7' : 'translate-x-1'
                 }`}
@@ -304,6 +314,10 @@ export default function OrganizationSettingsPage() {
               <p className="text-sm text-gray-500">Richieste di servizi da parte dei beneficiari</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={autoApproveServicesRequests}
+              aria-label="Approvazione automatica richieste di servizi"
               onClick={() => handleAutoApproveToggle('autoApproveServicesRequests', !autoApproveServicesRequests)}
               disabled={saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -311,6 +325,7 @@ export default function OrganizationSettingsPage() {
               } disabled:opacity-50`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   autoApproveServicesRequests ? 'translate-x-7' : 'translate-x-1'
                 }`}
@@ -335,6 +350,10 @@ export default function OrganizationSettingsPage() {
               <p className="text-sm text-gray-500">Proponi la stampa durante le operazioni di consegna e ritiro</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={printLabel}
+              aria-label="Abilita stampa etichetta"
               onClick={() => handlePrintLabelToggle(!printLabel)}
               disabled={saving}
               className={`relative w-12 h-6 rounded-full transition-colors ${
@@ -342,6 +361,7 @@ export default function OrganizationSettingsPage() {
               } disabled:opacity-50`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                   printLabel ? 'translate-x-7' : 'translate-x-1'
                 }`}
