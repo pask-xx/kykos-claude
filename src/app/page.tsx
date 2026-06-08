@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { ArrowRight, Building2, Gift, Heart, Lock, Sparkles, Trophy, TriangleAlert } from "lucide-react";
+import { Button } from "@/components/ui";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
 
 const STAGING_DOMAINS = ['staging.kykos.it'];
@@ -65,8 +67,9 @@ export default function Home() {
     <>
       {/* Staging Banner */}
       {isStaging && (
-        <div className="bg-amber-400 text-amber-900 py-2 px-4 text-center text-sm font-medium">
-          ⚠️ AMBIENTE DI STAGING - Le modifiche sono in fase di test
+        <div className="bg-amber-400 text-amber-900 py-2 px-4 text-center text-sm font-medium flex items-center justify-center gap-2">
+          <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+          AMBIENTE DI STAGING - Le modifiche sono in fase di test
         </div>
       )}
 
@@ -131,14 +134,14 @@ export default function Home() {
             className="group px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-semibold text-lg shadow-lg shadow-primary-600/30 transition flex items-center gap-2"
           >
             <span>Voglio donare</span>
-            <span className="text-xl">🎁</span>
+            <Gift className="h-5 w-5" aria-hidden="true" />
           </Link>
           <Link
             href="/auth/register?role=recipient"
             className="group px-8 py-4 border-2 border-secondary-600 text-secondary-600 rounded-xl hover:bg-secondary-50 font-semibold text-lg transition flex items-center gap-2"
           >
             <span>Ho bisogno di aiuto</span>
-            <span className="text-xl">🙏</span>
+            <Heart className="h-5 w-5" aria-hidden="true" />
           </Link>
         </div>
       </section>
@@ -148,7 +151,7 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="group p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-primary-200 transition-all">
             <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-200 transition">
-              <span className="text-3xl">🔒</span>
+              <Lock className="h-7 w-7 text-primary-600" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">Anonimato totale</h3>
             <p className="text-gray-600 leading-relaxed">
@@ -158,7 +161,7 @@ export default function Home() {
           </div>
           <div className="group p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-secondary-200 transition-all">
             <div className="w-16 h-16 bg-secondary-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-secondary-200 transition">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="h-7 w-7 text-secondary-600" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">Intermediari fidati</h3>
             <p className="text-gray-600 leading-relaxed">
@@ -168,7 +171,7 @@ export default function Home() {
           </div>
           <div className="group p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-amber-200 transition-all">
             <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-amber-200 transition">
-              <span className="text-3xl">🏆</span>
+              <Trophy className="h-7 w-7 text-amber-600" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">Incentivi morali</h3>
             <p className="text-gray-600 leading-relaxed">
@@ -225,7 +228,7 @@ export default function Home() {
         <div className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-8 md:p-12 border border-amber-200">
           <div className="max-w-3xl mx-auto text-center">
             <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="h-7 w-7 text-amber-600" aria-hidden="true" />
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
               Sei un ente del territorio?
@@ -238,7 +241,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-8 py-4 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 shadow-md transition"
             >
               <span>Richiedi adesione</span>
-              <span className="text-xl">→</span>
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </Link>
           </div>
         </div>
