@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ClipboardList, AlertTriangle } from 'lucide-react';
 import ProfileForm from '@/components/profile/ProfileForm';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
@@ -85,7 +86,7 @@ export default function RecipientProfilePage() {
         {/* Read-only fields */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>📋</span> Dati non modificabili
+            <ClipboardList className="w-5 h-5 text-gray-500" aria-hidden="true" /> Dati non modificabili
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
@@ -128,7 +129,7 @@ export default function RecipientProfilePage() {
         {/* Danger Zone */}
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <h2 className="text-xl font-semibold text-red-900 mb-2 flex items-center gap-2">
-            <span>⚠️</span> Zona pericolosa
+            <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" /> Zona pericolosa
           </h2>
           <p className="text-red-700 text-sm mb-4">
             Una volta disattivato, l&apos;account non potrà essere ripristinato.

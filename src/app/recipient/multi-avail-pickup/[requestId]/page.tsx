@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Clock, X } from 'lucide-react';
 import QRCodeCard from '@/components/qr/QRCodeCard';
 
 interface QRData {
@@ -106,7 +107,7 @@ export default function MultiAvailPickupPage({ params }: { params: Promise<{ req
                 onClick={() => setShowHoursModal(true)}
                 className="px-6 py-2.5 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 font-medium text-sm flex items-center gap-2"
               >
-                <span>🕐</span> Orari Ente
+                <Clock className="w-4 h-4" aria-hidden="true" /> Orari Ente
               </button>
             </div>
           )}
@@ -120,7 +121,7 @@ export default function MultiAvailPickupPage({ params }: { params: Promise<{ req
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <span>🕐</span> Orari {data.entityName}
+                  <Clock className="w-5 h-5 text-gray-600" aria-hidden="true" /> Orari {data.entityName}
                 </h3>
                 <button
                   type="button"
@@ -128,7 +129,7 @@ export default function MultiAvailPickupPage({ params }: { params: Promise<{ req
                   onClick={() => setShowHoursModal(false)}
                   className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
                 >
-                  <span aria-hidden="true">✕</span>
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
               <div

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { Search, Package, Check, X, AlertTriangle, MessageCircle } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, DonorLevel, RequestStatus, Category, Condition } from '@/types';
 
@@ -173,7 +174,7 @@ export default function ObjectDetailPage() {
   if (!object) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <span className="text-5xl mb-4">🔍</span>
+        <Search className="w-12 h-12 mb-4 text-gray-400" aria-hidden="true" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Oggetto non trovato</h2>
         <Link href="/recipient/objects" className="text-primary-600 hover:text-primary-700 font-medium">
           ← Torna agli oggetti
@@ -227,7 +228,7 @@ export default function ObjectDetailPage() {
               </>
             ) : (
               <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                <span className="text-6xl">📦</span>
+                <Package className="w-16 h-16 text-gray-400" aria-hidden="true" />
               </div>
             )}
           </div>
@@ -295,10 +296,24 @@ export default function ObjectDetailPage() {
                     userRequest.status === 'REJECTED' ? 'bg-red-50 text-red-700 border border-red-200' :
                     'bg-gray-50 text-gray-700 border border-gray-200'
                   }`}>
-                    {userRequest.status === 'APPROVED' && object.status === 'DEPOSITED' ? '✓ L\'oggetto è pronto per il ritiro!' :
-                     userRequest.status === 'APPROVED' ? '✓ Richiesta approvata! L\'ente ti contatterà per il ritiro.' :
-                     userRequest.status === 'REJECTED' ? '✗ Richiesta rifiutata' :
-                     'Richiesta non più attiva'}
+                    {userRequest.status === 'APPROVED' && object.status === 'DEPOSITED' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Check className="w-4 h-4" aria-hidden="true" />
+                        L&apos;oggetto è pronto per il ritiro!
+                      </span>
+                    ) : userRequest.status === 'APPROVED' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Check className="w-4 h-4" aria-hidden="true" />
+                        Richiesta approvata! L&apos;ente ti contatterà per il ritiro.
+                      </span>
+                    ) : userRequest.status === 'REJECTED' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <X className="w-4 h-4" aria-hidden="true" />
+                        Richiesta rifiutata
+                      </span>
+                    ) : (
+                      'Richiesta non più attiva'
+                    )}
                   </div>
                 )
               ) : (
@@ -337,16 +352,18 @@ export default function ObjectDetailPage() {
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={() => setShowReportModal(true)}
-                  className="flex-1 py-2 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-700 transition"
+                  className="flex-1 py-2 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-700 transition inline-flex items-center justify-center gap-2"
                 >
-                  ⚠️ Segnala
+                  <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                  Segnala
                 </button>
                 <button
                   disabled
-                  className="flex-1 py-2 border border-gray-300 text-gray-400 font-medium rounded-lg cursor-not-allowed"
+                  className="flex-1 py-2 border border-gray-300 text-gray-400 font-medium rounded-lg cursor-not-allowed inline-flex items-center justify-center gap-2"
                   title="Funzionalità in sviluppo"
                 >
-                  💬 Richiedi informazioni
+                  <MessageCircle className="w-4 h-4" aria-hidden="true" />
+                  Richiedi informazioni
                 </button>
               </div>
             </div>
@@ -364,9 +381,9 @@ export default function ObjectDetailPage() {
                 type="button"
                 aria-label="Chiudi modale segnalazione"
                 onClick={() => setShowReportModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
+                className="text-gray-400 hover:text-gray-600"
               >
-                <span aria-hidden="true">✕</span>
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-4">
