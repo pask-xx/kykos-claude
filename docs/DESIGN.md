@@ -782,9 +782,17 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.5 P4 — Modulo operator/street (modello)
 
-- [ ] Migrare le 5 pagine `operator/street-beneficiaries/**` (già
+- [x] Migrare le 5 pagine `operator/street-beneficiaries/**` (già
       parzialmente allineate) a `<Form>` + zod.
-- [ ] Validare come "modello di riferimento" per gli altri moduli.
+      ✅ **P4 completato in Fase 19** (2026-06-08): audit rivela che
+      `BeneficiaryForm.tsx` (Fase 7) è già il pattern canonico Form+zod
+      riusato da `street-beneficiaries/page.tsx` + `[id]/edit/page.tsx`,
+      e `requests/new/page.tsx` ha il suo form Form+zod dedicato.
+      Sub-residuo chiuso: token semantici `bg-green-100`/`bg-purple-100` →
+      `bg-success-100`/`bg-secondary-100` in `[id]/page.tsx` +
+      `street-to-deliver/page.tsx` (4 occorrenze totali).
+- [x] Validare come "modello di riferimento" per gli altri moduli.
+      Vedi [[refactor-state]] § Fase 19.
 
 ### 12.6 P5 — Modulo operator/* (3-5 commit)
 
