@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { AlertOctagon, AlertTriangle, Info, Check, BarChart3, Package, Send, X } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
 import { Switch } from '@/components/ui';
@@ -273,7 +274,8 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-2 border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <span className="text-xl">📊</span> Score di Bisogno
+            <BarChart3 className="w-5 h-5" aria-hidden="true" />
+            Score di Bisogno
           </h2>
           {!editingScore && (
             <button
@@ -362,13 +364,25 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               <div>
                 <p className="text-gray-600 mb-2">
                   {recipient.needScore >= 80 ? (
-                    <span className="text-red-600 font-medium">🚨 Alta priorità</span>
+                    <span className="text-red-600 font-medium inline-flex items-center gap-1">
+                      <AlertOctagon className="w-4 h-4 inline-block" aria-hidden="true" />
+                      Alta priorità
+                    </span>
                   ) : recipient.needScore >= 50 ? (
-                    <span className="text-amber-600 font-medium">⚠️ Media priorità</span>
+                    <span className="text-amber-600 font-medium inline-flex items-center gap-1">
+                      <AlertTriangle className="w-4 h-4 inline-block" aria-hidden="true" />
+                      Media priorità
+                    </span>
                   ) : recipient.needScore >= 20 ? (
-                    <span className="text-blue-600 font-medium">ℹ️ Bassa priorità</span>
+                    <span className="text-blue-600 font-medium inline-flex items-center gap-1">
+                      <Info className="w-4 h-4 inline-block" aria-hidden="true" />
+                      Bassa priorità
+                    </span>
                   ) : (
-                    <span className="text-gray-500 font-medium">✓ Priorità minima</span>
+                    <span className="text-gray-500 font-medium inline-flex items-center gap-1">
+                      <Check className="w-4 h-4 inline-block" aria-hidden="true" />
+                      Priorità minima
+                    </span>
                   )}
                 </p>
                 <p className="text-sm text-gray-400">
@@ -388,7 +402,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
             <Switch
               checked={recipient.canRequestGoods}
               onChange={() => toggleRequestPermission('canRequestGoods')}
-              label="🪑 Richiesta beni"
+              label="Richiesta beni"
               description="Può richiedere beni"
               loading={updating}
             />
@@ -397,7 +411,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
             <Switch
               checked={recipient.canRequestServices}
               onChange={() => toggleRequestPermission('canRequestServices')}
-              label="🔧 Richiesta servizi"
+              label="Richiesta servizi"
               description="Può richiedere servizi"
               loading={updating}
             />
@@ -575,7 +589,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
                   {donation.imageUrl ? (
                     <img src={donation.imageUrl} alt={donation.objectTitle} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl">📦</span>
+                    <Package className="w-8 h-8 text-gray-400" aria-hidden="true" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -604,7 +618,8 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <h2 className="text-lg font-semibold text-gray-900">Notifiche inviate</h2>
           <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName} onSent={fetchNotifications}>
             <button className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg font-medium text-sm flex items-center gap-1.5">
-              📩 Nuovo messaggio
+              <Send className="w-4 h-4" aria-hidden="true" />
+              Nuovo messaggio
             </button>
           </SendMessageDialog>
         </div>
@@ -668,7 +683,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               onClick={() => setSelectedNotification(null)}
               className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-amber-700 hover:bg-amber-100 rounded-full"
             >
-              <span aria-hidden="true">✕</span>
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
             <h3 className="text-lg font-bold text-amber-900 mb-2 pr-8">{selectedNotification.title}</h3>
             <p className="text-amber-800 text-sm mb-4 whitespace-pre-wrap">{selectedNotification.message}</p>
