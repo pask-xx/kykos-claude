@@ -34,6 +34,8 @@ export { Avatar, AvatarGroup } from './Avatar';
 export type { AvatarProps, AvatarSize } from './Avatar';
 export { Skeleton, SkeletonText, SkeletonCard, SkeletonAvatar } from './Skeleton';
 export { ToastProvider, toast } from './Toast';
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
 export {
   Form,
   Field,
