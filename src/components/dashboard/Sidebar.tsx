@@ -3,50 +3,54 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  Home, Package, Gift, ClipboardList, ScrollText, User, Users,
+  Handshake, FileText, BarChart3, Building2, Plus, type LucideIcon,
+} from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import ManifestoModal from '@/components/ManifestoModal';
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   isManifesto?: boolean;
   badge?: number;
 }
 
 const recipientNavBase: NavItem[] = [
-  { href: '/recipient/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/recipient/objects', label: 'Cerca disponibilità', icon: '📦' },
-  { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: '🎁' },
-  { href: '/recipient/requests-entity/requests', label: 'Richieste', icon: '📝' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
-  { href: '/recipient/profile', label: 'Il mio profilo', icon: '👤' },
+  { href: '/recipient/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/recipient/objects', label: 'Cerca disponibilità', icon: Package },
+  { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: Gift },
+  { href: '/recipient/requests-entity/requests', label: 'Richieste', icon: ClipboardList },
+  { href: '/manifesto', label: 'Manifesto', icon: ScrollText, isManifesto: true },
+  { href: '/recipient/profile', label: 'Il mio profilo', icon: User },
 ];
 
 const donorNavBase: NavItem[] = [
-  { href: '/donor/dashboard', label: 'Richieste', icon: '📋' },
-  { href: '/donor/objects', label: 'Le mie disponibilità', icon: '📦' },
-  { href: '/donor/requests', label: 'Le mie donazioni', icon: '🎁' },
-  { href: '/donor/statistics', label: 'Statistiche', icon: '📊' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
-  { href: '/donor/profile', label: 'Il mio profilo', icon: '👤' },
+  { href: '/donor/dashboard', label: 'Richieste', icon: ClipboardList },
+  { href: '/donor/objects', label: 'Le mie disponibilità', icon: Package },
+  { href: '/donor/requests', label: 'Le mie donazioni', icon: Gift },
+  { href: '/donor/statistics', label: 'Statistiche', icon: BarChart3 },
+  { href: '/manifesto', label: 'Manifesto', icon: ScrollText, isManifesto: true },
+  { href: '/donor/profile', label: 'Il mio profilo', icon: User },
 ];
 
 const intermediaryNav: NavItem[] = [
-  { href: '/intermediary/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/intermediary/requests', label: 'Richieste', icon: '📝' },
-  { href: '/intermediary/objects', label: 'Disponibilità', icon: '📦' },
-  { href: '/intermediary/recipients', label: 'Beneficiari', icon: '👥' },
-  { href: '/intermediary/operators', label: 'Operatori', icon: '👤' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
-  { href: '/intermediary/profile', label: 'Il mio profilo', icon: '👤' },
+  { href: '/intermediary/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/intermediary/requests', label: 'Richieste', icon: ClipboardList },
+  { href: '/intermediary/objects', label: 'Disponibilità', icon: Package },
+  { href: '/intermediary/recipients', label: 'Beneficiari', icon: Users },
+  { href: '/intermediary/operators', label: 'Operatori', icon: User },
+  { href: '/manifesto', label: 'Manifesto', icon: ScrollText, isManifesto: true },
+  { href: '/intermediary/profile', label: 'Il mio profilo', icon: User },
 ];
 
 const adminNav: NavItem[] = [
-  { href: '/admin/dashboard', label: 'Enti', icon: '🏢' },
-  { href: '/admin/intermediaries/new', label: 'Nuovo Ente', icon: '➕' },
-  { href: '/admin/legal', label: 'Documenti legali', icon: '📄' },
-  { href: '/manifesto', label: 'Manifesto', icon: '📜', isManifesto: true },
+  { href: '/admin/dashboard', label: 'Enti', icon: Building2 },
+  { href: '/admin/intermediaries/new', label: 'Nuovo Ente', icon: Plus },
+  { href: '/admin/legal', label: 'Documenti legali', icon: FileText },
+  { href: '/manifesto', label: 'Manifesto', icon: ScrollText, isManifesto: true },
 ];
 
 interface SidebarProps {
@@ -71,14 +75,14 @@ function getDashboardHref(role: string): string {
 
 function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', hasApprovedVolunteer: boolean, pendingDeliveryCount: number = 0): NavItem[] {
   const volunteerItem: NavItem = hasApprovedVolunteer
-    ? { href: '/volunteer', label: 'Volontariato', icon: '🤝' }
-    : { href: '/volunteer/apply', label: 'Diventa Volontario', icon: '🤝' };
+    ? { href: '/volunteer', label: 'Volontariato', icon: Handshake }
+    : { href: '/volunteer/apply', label: 'Diventa Volontario', icon: Handshake };
 
   if (role === 'RECIPIENT') {
     const toDeliverItem: NavItem = {
       href: '/recipient/to-deliver-and-pickup',
       label: 'Consegne e Ritiri',
-      icon: '📦',
+      icon: Package,
       badge: pendingDeliveryCount,
     };
     return [...recipientNavBase, toDeliverItem, volunteerItem];
@@ -87,7 +91,7 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
     const toDeliverItem: NavItem = {
       href: '/donor/to-deliver',
       label: 'Da consegnare',
-      icon: '📦',
+      icon: Package,
       badge: pendingDeliveryCount,
     };
     return [...donorNavBase, toDeliverItem, volunteerItem];
@@ -173,7 +177,10 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
                 >
-                  <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  {(() => {
+                    const Icon = item.icon;
+                    return <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />;
+                  })()}
                   {item.badge && item.badge > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                       {item.badge > 9 ? '9+' : item.badge}
@@ -195,7 +202,10 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                {(() => {
+                  const Icon = item.icon;
+                  return <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />;
+                })()}
                 {item.badge && item.badge > 0 && (
                   <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     {item.badge > 9 ? '9+' : item.badge}
@@ -214,7 +224,7 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
               {userProfileImageUrl ? (
                 <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-lg">👤</span>
+                <User className="w-6 h-6 text-primary-700" aria-hidden="true" />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -264,7 +274,10 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
-                  <span className="text-xl flex-shrink-0" aria-hidden="true">{item.icon}</span>
+                  {(() => {
+                    const Icon = item.icon;
+                    return <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />;
+                  })()}
                   {expanded && (
                     <span className="font-medium truncate">{item.label}</span>
                   )}
@@ -284,7 +297,10 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                 title={!expanded ? item.label : undefined}
                 aria-label={item.label}
               >
-                <span className="text-xl flex-shrink-0" aria-hidden="true">{item.icon}</span>
+                {(() => {
+                  const Icon = item.icon;
+                  return <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />;
+                })()}
                 {expanded && (
                   <span className="font-medium truncate">{item.label}</span>
                 )}
