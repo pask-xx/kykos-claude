@@ -358,11 +358,12 @@ export default function DepositPage() {
                             {formatDate(item.createdAt)}
                           </span>
                           <button
-                            onClick={(e) => handlePrintLabel(item, e)}
-                            className="px-2 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 flex items-center gap-1"
+                            type="button"
+                            aria-label="Stampa etichetta"
                             title="Stampa etichetta"
+                            className="px-2 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 flex items-center gap-1"
                           >
-                            🖨️
+                            <span aria-hidden="true">🖨️</span>
                           </button>
                         </div>
                       </div>

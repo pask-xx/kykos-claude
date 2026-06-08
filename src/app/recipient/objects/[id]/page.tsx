@@ -361,10 +361,12 @@ export default function ObjectDetailPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">Segnala problema</h2>
               <button
+                type="button"
+                aria-label="Chiudi modale segnalazione"
                 onClick={() => setShowReportModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
-                ✕
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-4">

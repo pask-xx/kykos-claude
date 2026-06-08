@@ -692,10 +692,12 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedNotification(null)} />
           <div className="relative bg-amber-50 rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border-2 border-amber-300">
             <button
+              type="button"
+              aria-label="Chiudi notifica"
               onClick={() => setSelectedNotification(null)}
               className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-amber-700 hover:bg-amber-100 rounded-full"
             >
-              ✕
+              <span aria-hidden="true">✕</span>
             </button>
             <h3 className="text-lg font-bold text-amber-900 mb-2 pr-8">{selectedNotification.title}</h3>
             <p className="text-amber-800 text-sm mb-4 whitespace-pre-wrap">{selectedNotification.message}</p>
