@@ -5,8 +5,9 @@
 > saranno migrate progressivamente, modulo per modulo, seguendo la roadmap
 > in fondo al documento.
 
-**Versione**: 1.1 · **Data**: 2026-06-08 · **Owner**: progetto KYKOS
-(v1.1 — chiusura P9 sweep globale emoji → lucide in tutta l'app, Fasi 24-28)
+**Versione**: 1.2 · **Data**: 2026-06-08 · **Owner**: progetto KYKOS
+(v1.2 — chiusura P12 colori raw → token semantici, Fase 31. v1.1 —
+chiusura P9 sweep globale emoji → lucide in tutta l'app, Fasi 24-28)
 
 ---
 
@@ -76,6 +77,12 @@ nuovo DEVE usare i token semantici:
 | `bg-blue-100 text-blue-700` | `bg-info-100 text-info-700` |
 | `bg-primary-100` (invariato) | `bg-primary-100` |
 | `bg-secondary-100` (invariato) | `bg-secondary-100` |
+| `bg-purple-100` / `text-purple-700` | `bg-secondary-100` / `text-secondary-700` |
+
+> **Fase 31 (2026-06-08)**: estensione scala 50-900 completa per
+> `success`/`warning`/`error`/`info` in `tailwind.config.ts` + sweep
+> globale `src/app/**` per migrazione colori raw → token semantici.
+> Vedi §12.13 + [[refactor-state]] § Fase 31.
 
 ### 2.3 Mappa status → colore
 
@@ -1126,6 +1133,99 @@ dove appropriato.
   § "Anti-pattern eliminati in Fase 18" (lista esaustiva).
 - Vedi [[refactor-state]] § Fasi 24-28 per le migration tables complete
   e le lezioni architetturali apprese.
+
+### 12.13 P12 — Colori raw → token semantici (2026-06-08) ✅
+
+**Audit iniziale** (Fase 31.1): 526 occorrenze di colori Tailwind raw
+(`bg|text|border|ring|from|to|via|placeholder|...|divide-(red|green|amber|blue|purple|yellow|teal|indigo|emerald|sky|lime|rose|orange|fuchsia|pink|cyan|violet)-\d+`)
+in 73 file `.tsx` dell'app. Scope completo per la chiusura di P12.
+
+**Mappatura canonica** (estesa da §2.2, ora con scala 50-900 completa):
+
+| Raw | Token semantico | Note |
+|-----|-----------------|------|
+| `bg-red-` / `text-red-` / `border-red-` | `bg-error-` / `text-error-` / `border-error-` | errore, danger, rosso |
+| `bg-green-` / `text-green-` / `border-green-` | `bg-success-` / `text-success-` / `border-success-` | successo, conferma, verde |
+| `bg-amber-` / `text-amber-` / `border-amber-` | `bg-warning-` / `text-warning-` / `border-warning-` | warning, attesa, giallo |
+| `bg-blue-` / `text-blue-` / `border-blue-` | `bg-info-` / `text-info-` / `border-info-` | info, link, blu |
+| `bg-purple-` / `text-purple-` / `border-purple-` | `bg-secondary-` / `text-secondary-` / `border-secondary-` | secondario, viola |
+| `gray-`, `primary-`, `secondary-` | invariati | gray=neutro, primary/secondary=già token |
+
+**Estensione `tailwind.config.ts`** (Fase 31.1): aggiunte scale 300, 400, 800
+a tutti i token semantici (`success`, `warning`, `error`, `info`) per
+supportare TUTTE le occorrenze esistenti (es. `text-red-500`, `border-amber-300`,
+`bg-green-800`). Valori hex allineati 1:1 con le palette Tailwind default,
+quindi la migrazione NON altera la resa visiva.
+
+**Pattern tipici migrati** (dalla pilot migration `intermediary/recipients/[id]`):
+
+```tsx
+// ❌ PRIMA (raw)
+<div className="bg-green-50 text-green-700">  // messaggio successo
+  <CheckCircle2 className="text-green-600" aria-hidden="true" />
+</div>
+<div className="w-12 h-12 bg-green-100 rounded-lg">  // sfondo status
+  <Hourglass className="text-amber-600" aria-hidden="true" />
+</div>
+<button className="bg-red-600 hover:bg-red-700 text-white">  // bottone danger
+  Revoca
+</button>
+<button className="bg-green-600 hover:bg-green-700 text-white">  // bottone success
+  Autorizza
+</button>
+
+// ✅ DOPO (token semantici)
+<div className="bg-success-50 text-success-700">
+  <CheckCircle2 className="text-success-600" aria-hidden="true" />
+</div>
+<div className="w-12 h-12 bg-success-100 rounded-lg">
+  <Hourglass className="text-warning-600" aria-hidden="true" />
+</div>
+<button className="bg-error-600 hover:bg-error-700 text-white">
+  Revoca
+</button>
+<button className="bg-success-600 hover:bg-success-700 text-white">
+  Autorizza
+</button>
+```
+
+**Fase 31.1 pilot** (commit `db8ed51`): `tailwind.config.ts` esteso +
+1 file pilot (`intermediary/recipients/[id]`, 6 occorrenze) per validare
+l'approccio. Test verdi.
+
+**Fase 31.2-31.4** (in corso): migrazione massiva in 3 batch paralleli
+(operator/* + resto), ~520 occorrenze restanti. Stima: 3-5 commit atomici.
+
+**Audit finale post-Fase 31**: grep `bg|text|border|ring|...-(red|green|amber|blue|purple|yellow|teal|indigo|emerald|sky|lime|rose|orange|fuchsia|pink|cyan|violet)-\d+` in `src/app/**` → 0 risultati.
+
+**Regola operativa consolidata** (per refactor futuri):
+- MAI scrivere colori Tailwind raw in nuovi componenti KYKOS. SEMPRE
+  usare `success` / `warning` / `error` / `info` / `secondary`.
+- Eccezione legittima: `gray-{N}` per testi/neutri, `primary-{N}` per
+  brand/CTA (già token semantici).
+- Per `border-red-200`, `text-red-600`, `bg-error-50`, ecc.: usare SEMPRE
+  i token semantici corrispondenti.
+- Le occorrenze in URL/stringhe/commenti NON vanno toccate (sono dati,
+  non styling).
+- Vedi [[05-known-issues]] § "Anti-pattern eliminati in Fase 31" e
+  [[refactor-state]] § Fase 31 per le migration tables complete.
+
+**Why**: il design system KYKOS ha 6 token semantici (`primary`,
+`secondary`, `success`, `warning`, `error`, `info`) + `gray` per neutri.
+L'uso di colori Tailwind raw (`red`, `green`, `amber`, `blue`, `purple`)
+rende impossibile evolvere la palette senza un search-and-replace globale.
+Migrare ai token semantici sblocca: (1) cambio palette centralizzato in
+`tailwind.config.ts`, (2) lettura semantica immediata del codice
+(`bg-error-50` è autoesplicativo vs `bg-red-50`), (3) conformità alla
+regola del design system "codice nuovo usa SOLO token semantici".
+La scala 50-900 completa è necessaria per supportare tutte le occorrenze
+esistenti senza impatto visivo (i valori hex sono identici).
+
+**How to apply**:
+- Per refactor di pagine esistenti: usare la mappa canonica sopra.
+- Per codice nuovo: usare SOLO `bg-{success|warning|error|info|secondary|primary|gray}-{50..900}`.
+- Se serve un nuovo tono: aggiungerlo in `tailwind.config.ts` prima di usarlo.
+- Vedi [[refactor-state]] § Fase 31 per dettagli implementativi.
 
 ---
 
