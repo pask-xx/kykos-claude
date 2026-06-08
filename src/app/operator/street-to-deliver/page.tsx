@@ -44,8 +44,8 @@ const TYPE_STYLES: Record<
   string,
   { border: string; badge: string; Icon: typeof Package }
 > = {
-  OBJECT: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', Icon: Package },
-  GOODS: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', Icon: Gift },
+  OBJECT: { border: 'border-l-success-500', badge: 'bg-success-100 text-success-700', Icon: Package },
+  GOODS: { border: 'border-l-secondary-500', badge: 'bg-secondary-100 text-secondary-700', Icon: Gift },
 };
 
 export default function StreetToDeliverPage() {
@@ -115,11 +115,11 @@ export default function StreetToDeliverPage() {
         {/* Legend */}
         <div className="flex gap-4 text-sm mb-6 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+            <span className="w-3 h-3 rounded-full bg-success-500"></span>
             <span className="text-gray-600">Ritiro Disponibilità</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+            <span className="w-3 h-3 rounded-full bg-secondary-500"></span>
             <span className="text-gray-600">Ritiro Richiesta</span>
           </div>
         </div>

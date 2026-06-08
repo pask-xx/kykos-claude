@@ -325,7 +325,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
                 <span
                   className={`inline-flex items-center font-medium rounded px-2 py-0.5 text-xs ${
                     beneficiary.isStreetManaged
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-success-100 text-success-700'
                       : 'bg-gray-100 text-gray-700'
                   }`}
                 >
