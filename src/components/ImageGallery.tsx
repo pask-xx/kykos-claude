@@ -43,8 +43,9 @@ export default function ImageGallery({
           <button
             onClick={() => setLightboxIndex(null)}
             className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-2xl font-bold"
+            aria-label="Chiudi galleria"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
 
           {/* Prev */}
@@ -55,8 +56,9 @@ export default function ImageGallery({
                 setLightboxIndex(lightboxIndex - 1);
               }}
               className="absolute left-4 w-12 h-12 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-2xl font-bold"
+              aria-label="Immagine precedente"
             >
-              ←
+              <span aria-hidden="true">←</span>
             </button>
           )}
 
@@ -81,8 +83,9 @@ export default function ImageGallery({
                 setLightboxIndex(lightboxIndex + 1);
               }}
               className="absolute right-4 w-12 h-12 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-2xl font-bold"
+              aria-label="Immagine successiva"
             >
-              →
+              <span aria-hidden="true">→</span>
             </button>
           )}
         </div>

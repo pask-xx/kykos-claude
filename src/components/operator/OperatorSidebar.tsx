@@ -96,8 +96,9 @@ export default function OperatorSidebar({
           <button
             onClick={() => setMobileOpen(false)}
             className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
+            aria-label="Chiudi menu"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -190,8 +191,9 @@ export default function OperatorSidebar({
         <button
           onClick={() => setMobileOpen(true)}
           className="w-10 h-10 flex items-center justify-center"
+          aria-label="Apri menu"
         >
-          <span className="text-xl">☰</span>
+          <span className="text-xl" aria-hidden="true">☰</span>
         </button>
         <Link href="/operator/dashboard" className="flex items-center gap-3">
           <img src="/albero.svg" alt="KYKOS" className="h-14" />

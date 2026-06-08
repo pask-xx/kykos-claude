@@ -942,6 +942,23 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
       DEVONO avere `aria-hidden="true"` se affiancate a testo leggibile.
       Le primitive `<EmptyState icon={X}>` e `<Alert>` con icone di
       default wrappano automaticamente.
+- [x] Aggiungere `aria-label` a icon-button funzionali.
+      Analisi 2026-06-08 → **completata in Fase 22** (3 commit atomici):
+      - 22.1: 5 file, 11 aria-label (ImageGallery prev/next/close,
+        ImageUploader remove, InstallAppBanner close, dashboard
+        Sidebar apri/chiudi + 4 link, OperatorSidebar apri/chiudi)
+      - 22.2: 3 file, 7 toggle con `role="switch"` + `aria-checked` +
+        `aria-label` (operator/organization × 4, operator/donors/[id]
+        × 1, operator/recipients/[id] × 2)
+      - 22.3: 10 file, 12 fix (modali one-off ✕ con span aria-hidden,
+        image picker remove, button icona isolati in cause/deposit/
+        availability)
+      Pattern canonico: ogni `<button>` con solo contenuto visivo
+      (icona, ✕, emoji) DEVE avere `aria-label` descrittivo
+      dell'azione. Per i toggle, aggiungere `role="switch"` +
+      `aria-checked={state}`. Il contenuto visivo interno
+      (`<span aria-hidden="true">✕</span>`, `<svg aria-hidden="true">`)
+      evita doppia lettura screen reader.
 - [x] Sostituire tutti i `<div onClick>` rimasti.
       Analisi 2026-06-06: 15 occorrenze totali, 14 sono backdrop modal
       (`<div className="absolute inset-0 bg-black/50" onClick={...} />`,
@@ -955,12 +972,14 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
         reset + Link home
       - `not-found.tsx` (server component): `<EmptyState>` + CTA home
 
-> ✅ **P10 completata in Fasi 12 + 20 + 21 (2026-06-06 → 2026-06-08)**.
+> ✅ **P10 completata in Fasi 12 + 20 + 21 + 22 (2026-06-06 → 2026-06-08)**.
 > Sotto-attività `htmlFor` chiusa in Fase 20 (4 commit), `<div onClick>`
 > fixato in Fase 12.4, `app/loading|error|not-found` creati in Fase 12.
 > Sotto-attività `aria-hidden` chiusa in Fasi 15-18 (prevalentemente) +
-> Fase 21 (residui). Vedi [[refactor-state]] § Fasi 12, 20, 21 e
-> [[05-known-issues]] § "Anti-pattern eliminati in Fase 20/21".
+> Fase 21 (residui). Sotto-attività `aria-label` su icon-button
+> funzionali + `role="switch"` su toggle chiusa in Fase 22 (3 commit).
+> Vedi [[refactor-state]] § Fasi 12, 20, 21, 22 e [[05-known-issues]]
+> § "Anti-pattern eliminati in Fase 20/21/22".
 
 ---
 

@@ -680,10 +680,12 @@ export default function RecipientFeedClient() {
           onClick={() => setSelectedImage(null)}
         >
           <button
+            type="button"
+            aria-label="Chiudi galleria"
             onClick={() => setSelectedImage(null)}
             className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm">
             {selectedImage.index + 1}
@@ -704,10 +706,12 @@ export default function RecipientFeedClient() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">Segnala problema</h2>
               <button
+                type="button"
+                aria-label="Chiudi modale segnalazione"
                 onClick={() => setShowReportModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
-                ✕
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-4">

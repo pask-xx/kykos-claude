@@ -91,8 +91,9 @@ export default function InstallAppBanner() {
           <button
             onClick={handleDismiss}
             className="text-primary-400 hover:text-primary-600 text-xs"
+            aria-label="Chiudi banner installazione"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
       </div>
