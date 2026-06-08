@@ -2,7 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Users } from 'lucide-react';
 import { OPERATOR_ROLE_LABELS, OperatorRole } from '@/types';
+import { toast } from '@/components/ui/Toast';
+import {
+  Alert,
+  Badge,
+  Button,
+  EmptyState,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableEmpty,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui';
 
 interface Operator {
   id: string;
@@ -16,6 +32,26 @@ interface Operator {
   isOfficeOperator: boolean;
   isStreetOperator: boolean;
   createdAt: string;
+}
+
+/**
+ * Mappa Operator.active → Badge variant KYKOS.
+ */
+function activeBadge(active: boolean) {
+  return active
+    ? { variant: 'success' as const, label: 'Attivo' }
+    : { variant: 'default' as const, label: 'Disattivato' };
+}
+
+/**
+ * Mappa tipo operatore (office/street) → Badge variant KYKOS.
+ * OFFICE = ufficio (info), STREET = strada (warning, ricorda danger).
+ */
+function operatorTypeBadge(isOffice: boolean, isStreet: boolean) {
+  if (isOffice && isStreet) return { variant: 'primary' as const, label: 'Ufficio + Strada' };
+  if (isOffice) return { variant: 'info' as const, label: 'Ufficio' };
+  if (isStreet) return { variant: 'warning' as const, label: 'Strada' };
+  return { variant: 'default' as const, label: '—' };
 }
 
 export default function OperatorsPage() {
@@ -34,11 +70,12 @@ export default function OperatorsPage() {
         const data = await res.json();
         setOperators(data.operators || []);
       } else {
-        const err = await res.json();
-        setError(err.error || 'Errore');
+        const err = await res.json().catch(() => ({}));
+        setError(err?.error || 'Errore');
       }
-    } catch (err) {
+    } catch {
       setError('Errore di rete');
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
@@ -47,7 +84,7 @@ export default function OperatorsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Caricamento...</p>
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -62,80 +99,70 @@ export default function OperatorsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
+        <Alert type="error">{error}</Alert>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operatore</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contatti</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruolo</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stato</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Azioni</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {operators.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                  Nessun operatore presente
-                </td>
-              </tr>
-            ) : (
-              operators.map((op) => (
-                <tr key={op.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+      {operators.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="Nessun operatore presente"
+          description="Non ci sono operatori registrati per il tuo ente."
+        />
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Operatore</TableHead>
+              <TableHead>Contatti</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Ruolo</TableHead>
+              <TableHead>Stato</TableHead>
+              <TableHead className="text-right">Azioni</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {operators.map((op) => {
+              const statusBadge = activeBadge(op.active);
+              const typeBadge = operatorTypeBadge(op.isOfficeOperator, op.isStreetOperator);
+              return (
+                <TableRow key={op.id}>
+                  <TableCell>
                     <div className="font-medium text-gray-900">{op.firstName} {op.lastName}</div>
                     <div className="text-sm text-gray-500">@{op.username}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
+                  </TableCell>
+                  <TableCell>
                     {op.email && <div className="text-gray-700">{op.email}</div>}
                     {op.phone && <div className="text-gray-500">{op.phone}</div>}
                     {!op.email && !op.phone && <span className="text-gray-400">—</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {op.isOfficeOperator && (
-                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Ufficio</span>
-                      )}
-                      {op.isStreetOperator && (
-                        <span className="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded">Strada</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={typeBadge.variant} size="sm">
+                      {typeBadge.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="primary" size="sm">
                       {OPERATOR_ROLE_LABELS[op.role]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      op.active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {op.active ? 'Attivo' : 'Disattivato'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/operator/operators/${op.id}`}
-                      className="px-3 py-1.5 text-sm bg-primary-100 text-primary-700 rounded hover:bg-primary-200"
-                    >
-                      Gestisci
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusBadge.variant} size="sm">
+                      {statusBadge.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/operator/operators/${op.id}`}>
+                      <Button variant="primary" size="sm">
+                        Gestisci
+                      </Button>
                     </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }
