@@ -112,7 +112,7 @@ export function NeedScoreGauge({ score, editable, onSave, className }: NeedScore
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-gray-600" />
+          <BarChart3 className="h-5 w-5 text-gray-600" aria-hidden="true" />
           Score di Bisogno
         </h2>
         {editable && !isEditing && (
@@ -198,7 +198,7 @@ export function NeedScoreGauge({ score, editable, onSave, className }: NeedScore
 
           <div className="flex-1">
             <p className="text-gray-600 mb-2 flex items-center gap-1.5">
-              <level.Icon className={`h-4 w-4 ${level.text}`} />
+              <level.Icon className={`h-4 w-4 ${level.text}`} aria-hidden="true" />
               <span className={`${level.text} font-medium`}>{level.label}</span>
             </p>
             <p className="text-sm text-gray-400">

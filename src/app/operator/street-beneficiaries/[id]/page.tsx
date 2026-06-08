@@ -382,7 +382,7 @@ export default function StreetBeneficiaryDetailPage({ params }: { params: Promis
                         {item.imageUrls && item.imageUrls.length > 0 ? (
                           <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
                         ) : (
-                          <Package className="h-5 w-5 text-gray-400" />
+                          <Package className="h-5 w-5 text-gray-400" aria-hidden="true" />
                         )}
                       </div>
                       <div>

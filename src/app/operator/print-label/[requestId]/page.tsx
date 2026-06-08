@@ -123,7 +123,7 @@ export default function PrintLabelPage() {
       <Card>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <Printer className="h-12 w-12 mx-auto text-primary-600 mb-4" />
+            <Printer className="h-12 w-12 mx-auto text-primary-600 mb-4" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-gray-900">Stampa Etichetta</h1>
             <p className="text-gray-500 mt-2">Applicare l&apos;etichetta sull&apos;oggetto</p>
           </div>
@@ -135,7 +135,7 @@ export default function PrintLabelPage() {
           >
             <div className="flex gap-2 h-full">
               <div className="flex-shrink-0 bg-gray-100 rounded flex items-center justify-center" style={{ width: '90px', height: '90px' }}>
-                <Tag className="h-8 w-8 text-gray-400" />
+                <Tag className="h-8 w-8 text-gray-400" aria-hidden="true" />
               </div>
               <div className="flex-1 flex flex-col justify-start gap-1 min-w-0">
                 <div className="flex items-center gap-1">

@@ -52,7 +52,7 @@ export function BeneficiaryCard({ beneficiary }: BeneficiaryCardProps) {
               <h3 className="font-semibold text-gray-900 truncate">{fullName}</h3>
               {addressLine && (
                 <p className="text-sm text-gray-500 truncate flex items-center gap-1">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                  <MapPin className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
                   <span className="truncate">{addressLine}</span>
                 </p>
               )}
@@ -62,7 +62,7 @@ export function BeneficiaryCard({ beneficiary }: BeneficiaryCardProps) {
                 </Badge>
               )}
             </div>
-            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
+            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" aria-hidden="true" />
           </div>
         </div>
       </Card>

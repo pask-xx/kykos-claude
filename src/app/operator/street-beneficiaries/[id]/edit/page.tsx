@@ -106,7 +106,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
         <Card>
           <CardContent className="py-4">
             <Badge variant="success">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
+              <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
               Account attivo
             </Badge>
           </CardContent>
@@ -115,7 +115,7 @@ export default function EditStreetBeneficiaryPage({ params }: { params: Promise<
         <Alert
           type="warning"
           title="Senza account"
-          icon={<AlertCircle />}
+          icon={<AlertCircle aria-hidden="true" />}
         >
           {!beneficiary.email && "Per creare un account, inserisci l'email della persona qui sotto"}
         </Alert>

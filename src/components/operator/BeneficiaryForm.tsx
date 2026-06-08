@@ -352,7 +352,7 @@ export function BeneficiaryForm({
               onClick={handleGenerateNickname}
               disabled={generatingNickname}
             >
-              {generatingNickname ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Genera'}
+              {generatingNickname ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : 'Genera'}
             </Button>
           </div>
           <p className="text-xs text-gray-400">
@@ -430,7 +430,7 @@ export function BeneficiaryForm({
       {/* Geolocation */}
       <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 mt-4">
         <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
-          <MapPin className="h-4 w-4" /> Geolocalizzazione
+          <MapPin className="h-4 w-4" aria-hidden="true" /> Geolocalizzazione
         </h3>
         <p className="text-xs text-gray-500 mb-3">
           {latitude && longitude
@@ -446,11 +446,11 @@ export function BeneficiaryForm({
         >
           {geocoding ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Calcolo...
+              <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> Calcolo...
             </>
           ) : (
             <>
-              <Home className="h-4 w-4 mr-2" /> Calcola da indirizzo
+              <Home className="h-4 w-4 mr-2" aria-hidden="true" /> Calcola da indirizzo
             </>
           )}
         </Button>
