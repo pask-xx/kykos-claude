@@ -134,8 +134,8 @@ export default function AdesionePage() {
 
         <main className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Mail className="w-10 h-10 text-green-700" aria-hidden="true" />
+            <div className="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Mail className="w-10 h-10 text-success-700" aria-hidden="true" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Controlla la tua email!</h1>
             <p className="text-xl text-gray-600 mb-4">
@@ -145,12 +145,12 @@ export default function AdesionePage() {
               Clicca sul link nella email per confermare la richiesta di adesione.
               La tua richiesta sarà poi esaminata dal nostro team.
             </p>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8 text-left">
-              <p className="text-amber-800 font-medium mb-2 flex items-center gap-1.5">
+            <div className="bg-warning-50 border border-warning-200 rounded-xl p-6 mb-8 text-left">
+              <p className="text-warning-800 font-medium mb-2 flex items-center gap-1.5">
                 <Pin className="w-4 h-4 inline-block" aria-hidden="true" />
                 Non hai ricevuto l'email?
               </p>
-              <ul className="text-sm text-amber-700 space-y-1">
+              <ul className="text-sm text-warning-700 space-y-1">
                 <li>• Controlla la cartella spam o promozioni</li>
                 <li>• Verifica di aver scritto correttamente l'indirizzo email</li>
                 <li>• Il link di conferma è valido per 24 ore</li>
@@ -204,7 +204,7 @@ export default function AdesionePage() {
           {/* Form */}
           <div className="bg-white rounded-2xl shadow-sm border p-8">
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-lg text-error-700">
                 {error}
               </div>
             )}
@@ -213,7 +213,7 @@ export default function AdesionePage() {
               {/* Denominazione */}
               <div>
                 <label htmlFor="denominazione" className="block text-sm font-medium text-gray-700 mb-1">
-                  Denominazione ente <span className="text-red-500">*</span>
+                  Denominazione ente <span className="text-error-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -231,7 +231,7 @@ export default function AdesionePage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="nomeReferente" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome referente <span className="text-red-500">*</span>
+                    Nome referente <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -246,7 +246,7 @@ export default function AdesionePage() {
                 </div>
                 <div>
                   <label htmlFor="cognomeReferente" className="block text-sm font-medium text-gray-700 mb-1">
-                    Cognome referente <span className="text-red-500">*</span>
+                    Cognome referente <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -265,7 +265,7 @@ export default function AdesionePage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefono <span className="text-red-500">*</span>
+                    Telefono <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -280,7 +280,7 @@ export default function AdesionePage() {
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email <span className="text-red-500">*</span>
+                    Email <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -314,7 +314,7 @@ export default function AdesionePage() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <label htmlFor="indirizzo" className="block text-sm font-medium text-gray-700 mb-1">
-                    Indirizzo <span className="text-red-500">*</span>
+                    Indirizzo <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -329,7 +329,7 @@ export default function AdesionePage() {
                 </div>
                 <div>
                   <label htmlFor="civico" className="block text-sm font-medium text-gray-700 mb-1">
-                    Civico <span className="text-red-500">*</span>
+                    Civico <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -347,7 +347,7 @@ export default function AdesionePage() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="cap" className="block text-sm font-medium text-gray-700 mb-1">
-                    CAP <span className="text-red-500">*</span>
+                    CAP <span className="text-error-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -363,7 +363,7 @@ export default function AdesionePage() {
                 </div>
                 <div>
                   <label htmlFor="provincia" className="block text-sm font-medium text-gray-700 mb-1">
-                    Provincia <span className="text-red-500">*</span>
+                    Provincia <span className="text-error-500">*</span>
                   </label>
                   <select
                     id="provincia"
@@ -386,7 +386,7 @@ export default function AdesionePage() {
                 </div>
                 <div>
                   <label htmlFor="citta" className="block text-sm font-medium text-gray-700 mb-1">
-                    Comune <span className="text-red-500">*</span>
+                    Comune <span className="text-error-500">*</span>
                   </label>
                   <select
                     id="citta"
@@ -416,7 +416,7 @@ export default function AdesionePage() {
               {/* Nota */}
               <div>
                 <label htmlFor="nota" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nota di presentazione <span className="text-red-500">*</span>
+                  Nota di presentazione <span className="text-error-500">*</span>
                 </label>
                 <textarea
                   id="nota"

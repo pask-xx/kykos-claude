@@ -51,8 +51,8 @@ function AdesioneConfirmContent() {
         </header>
         <main className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <XCircle className="w-10 h-10 text-red-600" aria-hidden="true" />
+            <div className="w-20 h-20 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="w-10 h-10 text-error-600" aria-hidden="true" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Link non valido</h1>
             <p className="text-xl text-gray-600 mb-8">
@@ -116,8 +116,8 @@ function AdesioneConfirmContent() {
 
           {status === 'success' && (
             <>
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-10 h-10 text-green-600" aria-hidden="true" />
+              <div className="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-success-600" aria-hidden="true" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Email confermata!</h1>
               <p className="text-xl text-gray-600 mb-8">
@@ -137,7 +137,7 @@ function AdesioneConfirmContent() {
 
           {status === 'already_confirmed' && (
             <>
-              <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">ℹ️</span>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Email già confermata</h1>
@@ -155,8 +155,8 @@ function AdesioneConfirmContent() {
 
           {status === 'error' && (
             <>
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <XCircle className="w-10 h-10 text-red-600" aria-hidden="true" />
+              <div className="w-20 h-20 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <XCircle className="w-10 h-10 text-error-600" aria-hidden="true" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Conferma fallita</h1>
               <p className="text-xl text-gray-600 mb-8">

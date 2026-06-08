@@ -66,7 +66,7 @@ export default function Home() {
     <>
       {/* Staging Banner */}
       {isStaging && (
-        <div className="bg-amber-400 text-amber-900 py-2 px-4 text-center text-sm font-medium flex items-center justify-center gap-2">
+        <div className="bg-warning-400 text-warning-900 py-2 px-4 text-center text-sm font-medium flex items-center justify-center gap-2">
           <TriangleAlert className="h-4 w-4" aria-hidden="true" />
           AMBIENTE DI STAGING - Le modifiche sono in fase di test
         </div>
@@ -168,9 +168,9 @@ export default function Home() {
               e gestiscono lo scambio in sicurezza.
             </p>
           </div>
-          <div className="group p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-amber-200 transition-all">
-            <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-amber-200 transition">
-              <Trophy className="h-7 w-7 text-amber-600" aria-hidden="true" />
+          <div className="group p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-warning-200 transition-all">
+            <div className="w-16 h-16 bg-warning-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-warning-200 transition">
+              <Trophy className="h-7 w-7 text-warning-600" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">Incentivi morali</h3>
             <p className="text-gray-600 leading-relaxed">
@@ -206,7 +206,7 @@ export default function Home() {
               </div>
             </div>
             <div className="relative text-center">
-              <div className="w-14 h-14 bg-amber-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 font-bold text-xl shadow-lg shadow-amber-500/30">3</div>
+              <div className="w-14 h-14 bg-warning-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 font-bold text-xl shadow-lg shadow-warning-500/30">3</div>
               <h4 className="font-bold text-lg text-gray-900 mb-2">L&apos;ente gestisce</h4>
               <p className="text-gray-600">Verifica e coordina</p>
               <div className="hidden md:block absolute top-7 -right-4 transform translate-x-1/2">
@@ -214,7 +214,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-center">
-              <div className="w-14 h-14 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 font-bold text-xl shadow-lg shadow-green-600/30">4</div>
+              <div className="w-14 h-14 bg-success-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 font-bold text-xl shadow-lg shadow-success-600/30">4</div>
               <h4 className="font-bold text-lg text-gray-900 mb-2">Scambio anonimo</h4>
               <p className="text-gray-600">Un gesto di generosità</p>
             </div>
@@ -224,10 +224,10 @@ export default function Home() {
 
       {/* CTA Enti */}
       <section className="container mx-auto px-4 py-16">
-        <div className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-8 md:p-12 border border-amber-200">
+        <div className="bg-gradient-to-br from-warning-50 to-white rounded-3xl p-8 md:p-12 border border-warning-200">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Building2 className="h-7 w-7 text-amber-600" aria-hidden="true" />
+            <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Building2 className="h-7 w-7 text-warning-600" aria-hidden="true" />
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
               Sei un ente del territorio?
@@ -237,7 +237,7 @@ export default function Home() {
             </p>
             <Link
               href="/adesione"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 shadow-md transition"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-warning-500 text-white font-semibold rounded-xl hover:bg-warning-600 shadow-md transition"
             >
               <span>Richiedi adesione</span>
               <ArrowRight className="h-5 w-5" aria-hidden="true" />

@@ -111,12 +111,12 @@ export default function ManifestoPage() {
                 Più gioia nel donare che nel ricevere. Senza aspettative.
               </p>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-8 rounded-2xl shadow-lg">
+            <div className="bg-gradient-to-br from-success-500 to-success-600 text-white p-8 rounded-2xl shadow-lg">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
                 <Sprout className="w-7 h-7" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-bold mb-2">Sostenibilità</h3>
-              <p className="text-green-100 text-sm leading-relaxed">
+              <p className="text-success-100 text-sm leading-relaxed">
                 Le cose trovano nuova vita. Riduciamo sprechi e impatto.
               </p>
             </div>
@@ -170,8 +170,8 @@ export default function ManifestoPage() {
 
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-start gap-6">
-              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Globe className="w-8 h-8 text-green-700" aria-hidden="true" />
+              <div className="w-16 h-16 bg-success-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Globe className="w-8 h-8 text-success-700" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
@@ -230,9 +230,9 @@ export default function ManifestoPage() {
               </div>
             </div>
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center h-full">
-              <span className="inline-block bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full mb-4">Passo 3</span>
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Building2 className="w-8 h-8 text-amber-700" aria-hidden="true" />
+              <span className="inline-block bg-warning-500 text-white text-sm font-bold px-3 py-1 rounded-full mb-4">Passo 3</span>
+              <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Building2 className="w-8 h-8 text-warning-700" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">L&apos;Ente Gestisce</h3>
               <p className="text-gray-600">
@@ -252,8 +252,8 @@ export default function ManifestoPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Accessibilità</h3>
@@ -263,8 +263,8 @@ export default function ManifestoPage() {
               </div>
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Territorio</h3>
@@ -274,8 +274,8 @@ export default function ManifestoPage() {
               </div>
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Autorizzazione</h3>
@@ -285,8 +285,8 @@ export default function ManifestoPage() {
               </div>
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Contributo Simbolico</h3>
@@ -296,8 +296,8 @@ export default function ManifestoPage() {
               </div>
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Volontariato</h3>
@@ -307,8 +307,8 @@ export default function ManifestoPage() {
               </div>
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Trasparenza</h3>
@@ -327,11 +327,11 @@ export default function ManifestoPage() {
           </h2>
           <div className="flex flex-wrap justify-center gap-4">
             {[
-              { icon: Building2, label: 'Enti Abilitati', color: 'bg-amber-100 text-amber-700' },
+              { icon: Building2, label: 'Enti Abilitati', color: 'bg-warning-100 text-warning-700' },
               { icon: Package, label: 'Centri di Scambio', color: 'bg-primary-100 text-primary-700' },
-              { icon: Gift, label: 'Donatori', color: 'bg-green-100 text-green-700' },
+              { icon: Gift, label: 'Donatori', color: 'bg-success-100 text-success-700' },
               { icon: HandHeart, label: 'Riceventi', color: 'bg-secondary-100 text-secondary-700' },
-              { icon: Handshake, label: 'Volontari', color: 'bg-blue-100 text-blue-700' },
+              { icon: Handshake, label: 'Volontari', color: 'bg-info-100 text-info-700' },
               { icon: Settings, label: 'Amministratori', color: 'bg-gray-100 text-gray-700' },
             ].map((actor) => {
               const ActorIcon = actor.icon;

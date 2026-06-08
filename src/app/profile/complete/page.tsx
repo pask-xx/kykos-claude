@@ -143,7 +143,7 @@ export default function ProfileCompletePage() {
           </p>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="mb-6 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
               {error}
             </div>
           )}

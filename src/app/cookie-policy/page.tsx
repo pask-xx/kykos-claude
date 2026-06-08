@@ -137,14 +137,14 @@ export default function CookiePolicyPage() {
           </p>
           <ul className="space-y-2 text-gray-700 mb-4">
             <li className="flex items-start gap-2">
-              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <Check className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <span>
                 <strong>Cookie tecnici di sessione</strong>: necessari per
                 autenticare l&apos;utente e mantenere attiva la sessione.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <Check className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <span>
                 <strong>Cookie tecnici di sicurezza</strong>: necessari per
                 proteggere la sessione da attacchi CSRF.

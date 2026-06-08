@@ -179,15 +179,15 @@ export default function BrowsePage() {
               <div className="flex items-center gap-2">
                 {userLocation ? (
                   <>
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="w-2 h-2 bg-success-500 rounded-full"></span>
                     <span className="text-sm text-gray-600 inline-flex items-center gap-1">
                       Posizione:
-                      <Check className="w-3 h-3 text-green-600" aria-hidden="true" />
+                      <Check className="w-3 h-3 text-success-600" aria-hidden="true" />
                     </span>
                   </>
                 ) : locationRequested ? (
                   <>
-                    <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                    <span className="w-2 h-2 bg-warning-500 rounded-full"></span>
                     <span className="text-sm text-gray-600">{locationError || 'Localizzazione...'}</span>
                   </>
                 ) : (
@@ -274,7 +274,7 @@ export default function BrowsePage() {
                       {obj.condition.replace('_', ' ')}
                     </span>
                     {obj.distance !== null && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded inline-flex items-center gap-1">
+                      <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded inline-flex items-center gap-1">
                         <MapPin className="w-3 h-3" aria-hidden="true" />
                         {formatDistance(obj.distance)}
                       </span>

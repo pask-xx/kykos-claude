@@ -50,8 +50,8 @@ export default function RegistrationsClosedPage() {
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto">
           {/* Icon */}
-          <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Construction className="w-10 h-10 text-amber-700" aria-hidden="true" />
+          <div className="w-20 h-20 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Construction className="w-10 h-10 text-warning-700" aria-hidden="true" />
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 text-center mb-4">
@@ -87,16 +87,16 @@ export default function RegistrationsClosedPage() {
             </div>
           </div>
 
-          <div className="bg-amber-50 rounded-2xl border border-amber-200 p-8 mb-8">
-            <h2 className="text-xl font-semibold text-amber-900 mb-4">
+          <div className="bg-warning-50 rounded-2xl border border-warning-200 p-8 mb-8">
+            <h2 className="text-xl font-semibold text-warning-900 mb-4">
               Conosci un ente che potrebbe essere interessato?
             </h2>
-            <p className="text-amber-800 mb-4">
+            <p className="text-warning-800 mb-4">
               Se conosci <strong>parrocchie, centri Caritas, associazioni</strong> o
               altri enti del territorio, parlane loro di KYKOS! Più enti conosceranno
               il progetto, prima potremo attivare le registrazioni.
             </p>
-            <p className="text-amber-700 text-sm">
+            <p className="text-warning-700 text-sm">
               Condividi il sito <strong>kykos.it</strong> con chi potrebbe essere
               interessato a entrare nella rete KYKOS.
             </p>
@@ -112,16 +112,16 @@ export default function RegistrationsClosedPage() {
             </p>
 
             {submitted ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-600" aria-hidden="true" />
-                <p className="text-green-700 font-medium">
+              <div className="bg-success-50 border border-success-200 rounded-lg p-6 text-center">
+                <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-success-600" aria-hidden="true" />
+                <p className="text-success-700 font-medium">
                   Email registrata! Ti avviseremo appena le registrazioni aprono.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleNotifySubmit} className="space-y-4">
                 {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  <div className="p-4 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
                     {error}
                   </div>
                 )}

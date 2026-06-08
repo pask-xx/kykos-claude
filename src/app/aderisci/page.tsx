@@ -60,8 +60,8 @@ export default function AderisciPage() {
           </h2>
           <div className="space-y-6">
             <div className="flex gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Gift className="w-6 h-6 text-amber-700" aria-hidden="true" />
+              <div className="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Gift className="w-6 h-6 text-warning-700" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Se vuoi donare</h3>
@@ -71,8 +71,8 @@ export default function AderisciPage() {
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <HandHeart className="w-6 h-6 text-blue-700" aria-hidden="true" />
+              <div className="w-12 h-12 bg-info-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <HandHeart className="w-6 h-6 text-info-700" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Se hai bisogno di aiuto</h3>
