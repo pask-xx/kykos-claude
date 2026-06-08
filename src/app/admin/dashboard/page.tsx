@@ -4,7 +4,26 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import useSWR from 'swr';
+import {
+  AlertTriangle,
+  Building2,
+  CheckCheck,
+  Clock,
+  ClipboardList,
+  Inbox,
+  Package,
+} from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
+import {
+  Alert,
+  Badge,
+  Button,
+  EmptyState,
+  Modal,
+  ModalFooter,
+  Spinner,
+  Tabs,
+} from '@/components/ui';
 
 interface Organization {
   id: string;
@@ -46,11 +65,37 @@ const ORG_TYPE_LABELS: Record<string, string> = {
   ASSOCIATION: 'Associazione',
 };
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+type TabKey = 'enti' | 'adesioni';
+
+/**
+ * Mappa Organization.verified → Badge variant KYKOS.
+ */
+function verifiedBadge(verified: boolean) {
+  return verified
+    ? { variant: 'success' as const, label: 'Verificato' }
+    : { variant: 'warning' as const, label: 'In attesa' };
+}
+
+/**
+ * Mappa AdesioneEnte.status (+ emailConfirmed) → Badge variant KYKOS.
+ */
+function adesioneStatusBadge(status: string, emailConfirmed: boolean) {
+  if (status === 'PENDING' && !emailConfirmed) {
+    return { variant: 'default' as const, label: 'In attesa conferma' };
+  }
+  switch (status) {
+    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
+    case 'REJECTED': return { variant: 'danger' as const, label: 'Rifiutata' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
 
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'enti' | 'adesioni'>('enti');
+  const [activeTab, setActiveTab] = useState<TabKey>('enti');
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: 'approve' | 'reject' } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -79,9 +124,9 @@ function AdminDashboardContent() {
     }
   }, [searchParams]);
 
-  const verifiedCount = intermediaries.filter(i => i.verified).length;
-  const pendingCount = intermediaries.filter(i => !i.verified).length;
-  const pendingAdesioni = adesioni.filter(a => a.status === 'PENDING').length;
+  const verifiedCount = intermediaries.filter((i) => i.verified).length;
+  const pendingCount = intermediaries.filter((i) => !i.verified).length;
+  const pendingAdesioni = adesioni.filter((a) => a.status === 'PENDING').length;
 
   const handleAdesioneAction = async () => {
     if (!confirmAction) return;
@@ -89,7 +134,6 @@ function AdminDashboardContent() {
     setActionError(null);
     try {
       const res = await fetch(`/api/adesione/${confirmAction.id}?action=${confirmAction.action}`, { method: 'PATCH' });
-      const data = await res.json();
       if (res.ok) {
         // Revalidate both data sources
         mutateAdesioni();
@@ -103,7 +147,8 @@ function AdminDashboardContent() {
           toast.success('Operazione completata con successo');
         }
       } else {
-        setActionError(data.error || 'Errore durante l\'operazione');
+        const data = await res.json().catch(() => ({}));
+        setActionError(data?.error || 'Errore durante l\'operazione');
       }
     } catch (err) {
       console.error('Error:', err);
@@ -115,11 +160,12 @@ function AdminDashboardContent() {
 
   return (
     <>
+      {/* Stat Cards */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">✅</span>
+            <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+              <CheckCheck className="h-6 w-6 text-success-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Enti verificati</p>
@@ -129,8 +175,8 @@ function AdminDashboardContent() {
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">⏳</span>
+            <div className="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+              <Clock className="h-6 w-6 text-warning-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Enti da verificare</p>
@@ -145,8 +191,8 @@ function AdminDashboardContent() {
           aria-label="Vai al tab Richieste adesione"
         >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📋</span>
+            <div className="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center">
+              <ClipboardList className="h-6 w-6 text-info-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Richieste adesione</p>
@@ -157,7 +203,7 @@ function AdminDashboardContent() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🏢</span>
+              <Building2 className="h-6 w-6 text-primary-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Totale enti</p>
@@ -167,220 +213,204 @@ function AdminDashboardContent() {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6 border-b">
-        <button
-          onClick={() => setActiveTab('enti')}
-          className={`pb-3 px-2 font-medium transition flex items-center gap-2 ${
-            activeTab === 'enti'
-              ? 'border-b-2 border-primary-600 text-primary-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Gestione Enti
-          <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-            {intermediaries.length}
-          </span>
-          {pendingCount > 0 && (
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-              {pendingCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('adesioni')}
-          className={`pb-3 px-2 font-medium transition flex items-center gap-2 ${
-            activeTab === 'adesioni'
-              ? 'border-b-2 border-primary-600 text-primary-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Richieste Adesione
-          {pendingAdesioni > 0 && (
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-              {pendingAdesioni}
-            </span>
-          )}
-        </button>
-      </div>
+      <Tabs<TabKey>
+        value={activeTab}
+        onChange={setActiveTab}
+        items={[
+          { value: 'enti', label: 'Gestione Enti', count: intermediaries.length },
+          { value: 'adesioni', label: 'Richieste Adesione', count: pendingAdesioni },
+        ]}
+        variant="default"
+        ariaLabel="Tab amministrazione"
+      />
 
       {activeTab === 'enti' ? (
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Gestione Enti</h2>
+        <div className="bg-white p-6 rounded-xl shadow-sm border mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Gestione Enti</h2>
 
           {intermediariesLoading ? (
-            <p className="text-gray-500 text-center py-8">Caricamento...</p>
+            <div className="flex items-center justify-center py-12">
+              <Spinner size="lg" />
+            </div>
           ) : intermediaries.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Nessun ente registrato</p>
+            <EmptyState
+              icon={Inbox}
+              title="Nessun ente registrato"
+              description="Non ci sono enti che hanno completato la registrazione."
+            />
           ) : (
             <div className="space-y-4">
-              {intermediaries.map((org) => (
-                <Link
-                  key={org.id}
-                  href={`/admin/intermediaries/${org.id}`}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-semibold text-gray-900">{org.name}</h3>
-                      <span className={`px-2 py-1 text-xs rounded ${
-                        org.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {org.verified ? 'Verificato' : 'In attesa'}
-                      </span>
+              {intermediaries.map((org) => {
+                const statusBadge = verifiedBadge(org.verified);
+                return (
+                  <Link
+                    key={org.id}
+                    href={`/admin/intermediaries/${org.id}`}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-semibold text-gray-900">{org.name}</h3>
+                        <Badge variant={statusBadge.variant} size="sm">
+                          {statusBadge.label}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {ORG_TYPE_LABELS[org.type] || org.type} • {org.user.email}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Registrato il {new Date(org.user.createdAt).toLocaleDateString('it-IT')}
+                      </p>
+                      <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1">
+                          <Package className="h-3.5 w-3.5" aria-hidden="true" />
+                          {org._count.objects} oggetti
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
+                          {org._count.requests} richieste
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      {ORG_TYPE_LABELS[org.type] || org.type} • {org.user.email}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Registrato il {new Date(org.user.createdAt).toLocaleDateString('it-IT')}
-                    </p>
-                    <div className="flex gap-4 mt-2 text-xs text-gray-500">
-                      <span>📦 {org._count.objects} oggetti</span>
-                      <span>📋 {org._count.requests} richieste</span>
-                    </div>
-                  </div>
-                  {!org.verified && (
-                    <form
-                      action={`/api/admin/intermediaries/${org.id}/verify`}
-                      method="POST"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+                    {!org.verified && (
+                      <form
+                        action={`/api/admin/intermediaries/${org.id}/verify`}
+                        method="POST"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        Approva
-                      </button>
-                    </form>
-                  )}
-                </Link>
-              ))}
+                        <Button
+                          type="submit"
+                          variant="success"
+                          size="sm"
+                        >
+                          Approva
+                        </Button>
+                      </form>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
       ) : (
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Richieste di Adesione</h2>
+        <div className="bg-white p-6 rounded-xl shadow-sm border mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Richieste di Adesione</h2>
 
           {adesioniLoading ? (
-            <p className="text-gray-500 text-center py-8">Caricamento...</p>
+            <div className="flex items-center justify-center py-12">
+              <Spinner size="lg" />
+            </div>
           ) : adesioni.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Nessuna richiesta di adesione</p>
+            <EmptyState
+              icon={Inbox}
+              title="Nessuna richiesta di adesione"
+              description="Non ci sono richieste di adesione da gestire al momento."
+            />
           ) : (
             <div className="space-y-4">
-              {adesioni.map((adesione) => (
-                <div
-                  key={adesione.id}
-                  className={`p-4 rounded-lg border ${
-                    adesione.status === 'PENDING'
-                      ? !adesione.emailConfirmed
+              {adesioni.map((adesione) => {
+                const statusBadge = adesioneStatusBadge(adesione.status, adesione.emailConfirmed);
+                const isPendingNotConfirmed = adesione.status === 'PENDING' && !adesione.emailConfirmed;
+                return (
+                  <div
+                    key={adesione.id}
+                    className={`p-4 rounded-lg border ${
+                      isPendingNotConfirmed
                         ? 'bg-gray-50 border-gray-200'
-                        : 'bg-amber-50 border-amber-200'
-                      : adesione.status === 'APPROVED'
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{adesione.denominazione}</h3>
-                        <span className={`px-2 py-1 text-xs rounded ${
-                          adesione.status === 'PENDING'
-                            ? !adesione.emailConfirmed
-                              ? 'bg-gray-200 text-gray-600'
-                              : 'bg-amber-100 text-amber-700'
-                            : adesione.status === 'APPROVED'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-200 text-gray-600'
-                        }`}>
-                          {adesione.status === 'PENDING' && !adesione.emailConfirmed
-                            ? 'In attesa conferma'
-                            : adesione.status === 'PENDING'
-                            ? 'In attesa'
-                            : adesione.status === 'APPROVED'
-                            ? 'Approvata'
-                            : 'Rifiutata'}
-                        </span>
+                        : adesione.status === 'PENDING'
+                          ? 'bg-warning-50 border-warning-200'
+                          : adesione.status === 'APPROVED'
+                            ? 'bg-success-50 border-success-200'
+                            : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">{adesione.denominazione}</h3>
+                          <Badge variant={statusBadge.variant} size="sm">
+                            {statusBadge.label}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p><strong>Referente:</strong> {adesione.nomeReferente} {adesione.cognomeReferente}</p>
+                          <p><strong>Email:</strong> {adesione.email}</p>
+                          <p><strong>Telefono:</strong> {adesione.telefono}</p>
+                          <p><strong>Indirizzo:</strong> {adesione.indirizzo}, {adesione.civico} - {adesione.cap} {adesione.citta}</p>
+                          {adesione.website && <p><strong>Sito web:</strong> {adesione.website}</p>}
+                          {adesione.nota && <p><strong>Nota:</strong> {adesione.nota}</p>}
+                          {isPendingNotConfirmed && (
+                            <Alert type="warning" className="mt-2">
+                              <AlertTriangle className="h-4 w-4 inline mr-1" aria-hidden="true" />
+                              <strong>Email non confermata</strong> - L&apos;ente deve cliccare il link nella email ricevuta
+                            </Alert>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">
+                          Richiesta del {new Date(adesione.createdAt).toLocaleDateString('it-IT')}
+                        </p>
                       </div>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p><strong>Referente:</strong> {adesione.nomeReferente} {adesione.cognomeReferente}</p>
-                        <p><strong>Email:</strong> {adesione.email}</p>
-                        <p><strong>Telefono:</strong> {adesione.telefono}</p>
-                        <p><strong>Indirizzo:</strong> {adesione.indirizzo}, {adesione.civico} - {adesione.cap} {adesione.citta}</p>
-                        {adesione.website && <p><strong>Sito web:</strong> {adesione.website}</p>}
-                        {adesione.nota && <p><strong>Nota:</strong> {adesione.nota}</p>}
-                        {adesione.status === 'PENDING' && !adesione.emailConfirmed && (
-                          <p className="text-amber-600"><strong>⚠️ Email non confermata</strong> - L&apos;ente deve cliccare il link nella email ricevuta</p>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-400 mt-2">
-                        Richiesta del {new Date(adesione.createdAt).toLocaleDateString('it-IT')}
-                      </p>
+                      {adesione.status === 'PENDING' && adesione.emailConfirmed && (
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={() => { setConfirmAction({ id: adesione.id, action: 'approve' }); setActionError(null); }}
+                          >
+                            Approva
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => { setConfirmAction({ id: adesione.id, action: 'reject' }); setActionError(null); }}
+                          >
+                            Rifiuta
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    {adesione.status === 'PENDING' && adesione.emailConfirmed && (
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => { setConfirmAction({ id: adesione.id, action: 'approve' }); setActionError(null); }}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
-                        >
-                          Approva
-                        </button>
-                        <button
-                          onClick={() => { setConfirmAction({ id: adesione.id, action: 'reject' }); setActionError(null); }}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm"
-                        >
-                          Rifiuta
-                        </button>
-                      </div>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
       {/* Confirmation Modal */}
-      {confirmAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmAction(null)} />
-          <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Conferma {confirmAction.action === 'approve' ? 'approvazione' : 'rifiuto'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Sei sicuro di voler {confirmAction.action === 'approve' ? 'approvare' : 'rifiutare'} questa richiesta di adesione?
-            </p>
-            {actionError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-                {actionError}
-              </div>
-            )}
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => { setConfirmAction(null); setActionError(null); }}
-                disabled={actionLoading}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-              >
-                Annulla
-              </button>
-              <button
-                onClick={handleAdesioneAction}
-                disabled={actionLoading}
-                className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
-                  confirmAction.action === 'approve'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                {actionLoading ? 'Operazione in corso...' : 'Conferma'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={!!confirmAction}
+        onClose={() => { setConfirmAction(null); setActionError(null); }}
+        title={`Conferma ${confirmAction?.action === 'approve' ? 'approvazione' : 'rifiuto'}`}
+        closeOnEsc
+      >
+        <p className="text-gray-600 mb-4">
+          Sei sicuro di voler {confirmAction?.action === 'approve' ? 'approvare' : 'rifiutare'} questa richiesta di adesione?
+        </p>
+        {actionError && (
+          <Alert type="error" className="mb-4">
+            {actionError}
+          </Alert>
+        )}
+        <ModalFooter>
+          <Button
+            variant="secondary"
+            onClick={() => { setConfirmAction(null); setActionError(null); }}
+            disabled={actionLoading}
+          >
+            Annulla
+          </Button>
+          <Button
+            variant={confirmAction?.action === 'approve' ? 'success' : 'danger'}
+            onClick={handleAdesioneAction}
+            disabled={actionLoading}
+            loading={actionLoading}
+          >
+            Conferma
+          </Button>
+        </ModalFooter>
+      </Modal>
     </>
   );
 }
@@ -388,7 +418,7 @@ function AdminDashboardContent() {
 function LoadingFallback() {
   return (
     <div className="flex items-center justify-center py-12">
-      <p className="text-gray-500">Caricamento...</p>
+      <Spinner size="lg" />
     </div>
   );
 }
