@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ArrowRight, Building2, Gift, Heart, Lock, Sparkles, Trophy, TriangleAlert } from "lucide-react";
-import { Button } from "@/components/ui";
+import { ArrowRight, Building2, Gift, Heart, Lock, Trophy, TriangleAlert } from "lucide-react";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
 
 const STAGING_DOMAINS = ['staging.kykos.it'];
