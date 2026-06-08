@@ -185,7 +185,7 @@ export default function OperatorRequestsPage() {
               <div
                 key={req.id}
                 className={`bg-white p-4 rounded-xl shadow-sm border-2 flex flex-col gap-3 ${
-                  req.status === 'PENDING' ? 'border-amber-200' : 'border-gray-200'
+                  req.status === 'PENDING' ? 'border-warning-200' : 'border-gray-200'
                 }`}
               >
                 {/* Row 1: Image + Title + Date */}

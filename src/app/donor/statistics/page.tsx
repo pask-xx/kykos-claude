@@ -169,8 +169,8 @@ export default async function DonorStatistics() {
           </Card>
           <Card className="p-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                <Trophy className="h-5 w-5 text-amber-600" aria-hidden="true" />
+              <div className="w-10 h-10 bg-warning-100 rounded-lg flex items-center justify-center">
+                <Trophy className="h-5 w-5 text-warning-600" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Livello</p>

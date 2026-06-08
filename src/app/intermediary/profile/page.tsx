@@ -447,7 +447,7 @@ export default function IntermediaryProfilePage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-medium text-gray-900">Profilo Ente</h1>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-          org.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+          org.verified ? 'bg-success-100 text-success-700' : 'bg-warning-100 text-warning-700'
         }`}>
           {org.verified ? 'Verificato' : 'In verifica'}
         </span>
@@ -461,7 +461,7 @@ export default function IntermediaryProfilePage() {
           </h2>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="mb-4 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -690,7 +690,7 @@ export default function IntermediaryProfilePage() {
         </div>
 
         {locationError && (
-          <p className="text-sm text-red-600 mb-4">{locationError}</p>
+          <p className="text-sm text-error-600 mb-4">{locationError}</p>
         )}
 
         {hasLocation && (

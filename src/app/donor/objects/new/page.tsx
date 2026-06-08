@@ -208,7 +208,7 @@ export default function NewObjectPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className="mb-6 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
             {error}
           </div>
         )}
@@ -235,7 +235,7 @@ export default function NewObjectPage() {
                         type="button"
                         aria-label="Rimuovi immagine"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                        className="absolute top-1 right-1 bg-error-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-error-600"
                       >
                         <X className="w-3 h-3" aria-hidden="true" />
                       </button>

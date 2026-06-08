@@ -153,7 +153,7 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Causa non trovata</p>
+          <p className="text-error-600 mb-4">Causa non trovata</p>
           <Link href="/operator/cause" className="text-primary-600 hover:underline">
             ← Torna alla lista
           </Link>
@@ -196,7 +196,7 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
             {canDelete && (
               <button
                 onClick={() => setShowDeleteModal(true)}
-                className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+                className="px-3 py-1.5 text-sm bg-error-100 text-error-700 rounded-lg hover:bg-error-200 font-medium"
               >
                 Elimina
               </button>
@@ -434,7 +434,7 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium disabled:opacity-50"
               >
                 {deleting ? 'Eliminazione...' : 'Elimina'}
               </button>

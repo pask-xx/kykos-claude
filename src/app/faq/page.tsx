@@ -370,7 +370,7 @@ export default function FaqPage() {
             href="/cookie-policy"
             className="block bg-white rounded-xl shadow-sm border p-5 hover:border-primary-300 hover:shadow-md transition"
           >
-            <Cookie className="w-7 h-7 mb-2 text-amber-600" aria-hidden="true" />
+            <Cookie className="w-7 h-7 mb-2 text-warning-600" aria-hidden="true" />
             <h3 className="font-semibold text-gray-900 mb-1">Cookie Policy</h3>
             <p className="text-sm text-gray-600">Come gestiamo i cookie tecnici.</p>
           </Link>

@@ -103,7 +103,7 @@ export default function IntermediaryRequestsPage() {
             {pendingRequests.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
-                  <ClipboardList className="h-5 w-5 text-amber-600" aria-hidden="true" />
+                  <ClipboardList className="h-5 w-5 text-warning-600" aria-hidden="true" />
                   <h2 className="text-lg font-semibold text-gray-900">
                     Richieste in attesa ({pendingRequests.length})
                   </h2>
@@ -112,7 +112,7 @@ export default function IntermediaryRequestsPage() {
                   {pendingRequests.map((req) => {
                     const statusBadge = requestStatusBadge(req.status);
                     return (
-                      <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border-2 border-amber-200">
+                      <div key={req.id} className="bg-white p-3 rounded-xl shadow-sm border-2 border-warning-200">
                         <div className="grid grid-cols-8 gap-2 items-center">
                           {/* 1: foto + nome oggetto + status */}
                           <div className="flex items-center gap-2 col-span-2">

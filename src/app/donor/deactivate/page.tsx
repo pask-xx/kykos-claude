@@ -100,12 +100,12 @@ export default function DonorDeactivatePage() {
 
   const getStatusBadge = (status: ObjectStatus) => {
     const styles: Record<ObjectStatus, string> = {
-      AVAILABLE: 'bg-green-100 text-green-700',
-      RESERVED: 'bg-amber-100 text-amber-700',
-      DEPOSITED: 'bg-blue-100 text-blue-700',
+      AVAILABLE: 'bg-success-100 text-success-700',
+      RESERVED: 'bg-warning-100 text-warning-700',
+      DEPOSITED: 'bg-info-100 text-info-700',
       DONATED: 'bg-gray-100 text-gray-700',
       CANCELLED: 'bg-gray-100 text-gray-500',
-      BLOCKED: 'bg-red-100 text-red-700',
+      BLOCKED: 'bg-error-100 text-error-700',
     };
     return (
       <span className={`px-2 py-0.5 text-xs rounded ${styles[status]}`}>
@@ -116,8 +116,8 @@ export default function DonorDeactivatePage() {
 
   const getOfferStatusBadge = (status: GoodsOfferStatus) => {
     const styles: Record<GoodsOfferStatus, string> = {
-      PENDING: 'bg-amber-100 text-amber-700',
-      ACCEPTED: 'bg-blue-100 text-blue-700',
+      PENDING: 'bg-warning-100 text-warning-700',
+      ACCEPTED: 'bg-info-100 text-info-700',
       REJECTED: 'bg-gray-100 text-gray-700',
       CANCELLED: 'bg-gray-100 text-gray-500',
     };
@@ -148,7 +148,7 @@ export default function DonorDeactivatePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-error-600 mb-4">{error}</p>
           <Link href="/donor/profile" className="text-primary-600 hover:underline">
             ← Torna al profilo
           </Link>
@@ -174,12 +174,12 @@ export default function DonorDeactivatePage() {
         </div>
 
         {/* Warning Banner */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+        <div className="bg-warning-50 border border-warning-200 rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" aria-hidden="true" />
+            <AlertTriangle className="w-6 h-6 text-warning-600 flex-shrink-0" aria-hidden="true" />
             <div>
-              <h3 className="font-semibold text-amber-900">Azione irreversibile</h3>
-              <p className="text-amber-700 text-sm mt-1">
+              <h3 className="font-semibold text-warning-900">Azione irreversibile</h3>
+              <p className="text-warning-700 text-sm mt-1">
                 Una volta disattivato, l&apos;account non potrà essere ripristinato. Tutti i tuoi dati
                 verranno eliminati in modo permanente.
               </p>
@@ -247,8 +247,8 @@ export default function DonorDeactivatePage() {
 
         {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-            <p className="text-red-700">{error}</p>
+          <div className="bg-error-50 border border-error-200 rounded-xl p-4 mb-6">
+            <p className="text-error-700">{error}</p>
           </div>
         )}
 
@@ -270,7 +270,7 @@ export default function DonorDeactivatePage() {
           >
             <button
               disabled={submitting}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+              className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium disabled:opacity-50"
             >
               {submitting ? 'Elaborazione...' : 'Disattiva account'}
             </button>

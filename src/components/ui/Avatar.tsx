@@ -2,15 +2,26 @@ import { ImgHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Avatar primitive — immagine profilo, con fallback a iniziali del nome.
+ * Avatar primitive — immagine profilo, con fallback a iniziali.
  * Stile coerente con Sidebar/OperatorSidebar (`w-10 h-10 rounded-full bg-primary-100`).
  *
  * Esempio:
  *   <Avatar src={user.photoUrl} name="Mario Rossi" size="md" />
+ *   <Avatar
+ *     src={user.photoUrl}
+ *     name="Mario Rossi"           // aria-label (nome completo, per screen reader)
+ *     fallbackName="M"            // lettera mostrata nell'avatar
+ *     size="md"
+ *   />
  *   <AvatarGroup>
  *     <Avatar src={u1.photoUrl} name="Mario" />
  *     <Avatar src={u2.photoUrl} name="Luigi" />
  *   </AvatarGroup>
+ *
+ * Caso d'uso: per i beneficiari street, vogliamo mostrare la lettera del
+ * NICKNAME (identificativo pubblico) ma rendere disponibile il nome
+ * completo agli screen reader. `name` è l'etichetta semantica, `fallbackName`
+ * è il testo visibile.
  */
 
 const sizeMap = {
@@ -32,14 +43,19 @@ function getInitials(name: string): string {
 export interface AvatarProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   src?: string | null;
   name: string;
+  /** Testo mostrato nell'avatar quando manca src. Default: iniziali di `name`. */
+  fallbackName?: string;
   size?: AvatarSize;
 }
 
 export const Avatar = forwardRef<HTMLImageElement, AvatarProps>(
-  ({ src, name, size = 'md', alt, className, ...props }, ref) => {
+  ({ src, name, fallbackName, size = 'md', alt, className, ...props }, ref) => {
     const sizeClass = sizeMap[size];
 
     if (!src) {
+      const display = fallbackName
+        ? fallbackName.trim().slice(0, 2).toUpperCase()
+        : getInitials(name);
       return (
         <div
           className={cn(
@@ -50,7 +66,7 @@ export const Avatar = forwardRef<HTMLImageElement, AvatarProps>(
           aria-label={name}
           role="img"
         >
-          {getInitials(name)}
+          {display}
         </div>
       );
     }

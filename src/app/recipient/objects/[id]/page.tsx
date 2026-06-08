@@ -193,7 +193,7 @@ export default function ObjectDetailPage() {
         </button>
 
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.includes('annullata') ? 'bg-amber-50 text-amber-700' : message.includes('successo') || message.includes('inviata') ? 'bg-green-50 text-green-700' : message.includes('Segnalazione') ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
+          <div className={`mb-6 p-4 rounded-lg ${message.includes('annullata') ? 'bg-warning-50 text-warning-700' : message.includes('successo') || message.includes('inviata') ? 'bg-success-50 text-success-700' : message.includes('Segnalazione') ? 'bg-info-50 text-info-700' : 'bg-error-50 text-error-700'}`}>
             {message}
           </div>
         )}
@@ -244,11 +244,11 @@ export default function ObjectDetailPage() {
               </span>
               {userRequest && (
                 <span className={`px-3 py-1 text-sm rounded-lg font-medium ${
-                  object.status === 'DEPOSITED' ? 'bg-blue-100 text-blue-700' :
-                  object.status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
-                  userRequest.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                  object.status === 'DEPOSITED' ? 'bg-info-100 text-info-700' :
+                  object.status === 'RESERVED' ? 'bg-warning-100 text-warning-700' :
+                  userRequest.status === 'APPROVED' ? 'bg-success-100 text-success-700' :
                   userRequest.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                  userRequest.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                  userRequest.status === 'REJECTED' ? 'bg-error-100 text-error-700' :
                   'bg-gray-100 text-gray-600'
                 }`}>
                   {object.status === 'DEPOSITED' ? 'Depositata' :
@@ -285,15 +285,15 @@ export default function ObjectDetailPage() {
                     </div>
                     <button
                       onClick={handleCancelRequest}
-                      className="w-full py-3 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition"
+                      className="w-full py-3 bg-warning-500 text-white font-semibold rounded-lg hover:bg-warning-600 transition"
                     >
                       Annulla richiesta
                     </button>
                   </div>
                 ) : (
                   <div className={`p-4 rounded-lg font-medium text-center ${
-                    userRequest.status === 'APPROVED' ? 'bg-green-50 text-green-700 border border-green-200' :
-                    userRequest.status === 'REJECTED' ? 'bg-red-50 text-red-700 border border-red-200' :
+                    userRequest.status === 'APPROVED' ? 'bg-success-50 text-success-700 border border-success-200' :
+                    userRequest.status === 'REJECTED' ? 'bg-error-50 text-error-700 border border-error-200' :
                     'bg-gray-50 text-gray-700 border border-gray-200'
                   }`}>
                     {userRequest.status === 'APPROVED' && object.status === 'DEPOSITED' ? (
@@ -399,7 +399,7 @@ export default function ObjectDetailPage() {
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-error-500 focus:border-error-500 outline-none resize-none"
                 placeholder="Descrivi il problema (es: oggetto non disponibile, descrizione errata, comportamento inappropriato...)"
               />
             </div>
@@ -413,7 +413,7 @@ export default function ObjectDetailPage() {
               <button
                 onClick={handleReport}
                 disabled={reporting}
-                className="flex-1 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2 bg-error-600 text-white font-medium rounded-lg hover:bg-error-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {reporting ? 'Invio...' : 'Invia segnalazione'}
               </button>

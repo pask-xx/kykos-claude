@@ -220,7 +220,7 @@ export default function DonorRequestsPage() {
             {goodsOffers.map((offer) => {
               const statusBadge = requestStatusBadge(offer.status);
               return (
-                <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-green-200 overflow-hidden">
+                <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-success-200 overflow-hidden">
                   <div className="p-4">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -253,7 +253,7 @@ export default function DonorRequestsPage() {
                     )}
                   </div>
                   {offer.status === 'ACCEPTED' && (
-                    <div className="bg-green-50 px-4 py-3 border-t border-green-100">
+                    <div className="bg-success-50 px-4 py-3 border-t border-success-100">
                       <Link href={`/donor/qr-goods/${offer.requestId}`}>
                         <Button variant="success" className="w-full">
                           <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />

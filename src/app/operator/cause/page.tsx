@@ -156,7 +156,7 @@ export default function CausesPage() {
                   <button
                     type="button"
                     aria-label="Elimina causa"
-                    className="p-2 text-gray-400 hover:text-red-600"
+                    className="p-2 text-gray-400 hover:text-error-600"
                     title="Elimina"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

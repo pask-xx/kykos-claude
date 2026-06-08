@@ -305,8 +305,8 @@ export default function VolunteerPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-700 text-sm">{error}</p>
+        <div className="bg-error-50 border border-error-200 rounded-lg p-4 mb-6">
+          <p className="text-error-700 text-sm">{error}</p>
         </div>
       )}
 
@@ -317,7 +317,7 @@ export default function VolunteerPage() {
             <Building2 className="h-4 w-4 text-gray-600" aria-hidden="true" />
             Enti dove presto servizio
             {approvedAssociations.length > 0 && (
-              <span className="ml-2 bg-green-100 text-green-700 text-sm px-2 py-0.5 rounded-full">
+              <span className="ml-2 bg-success-100 text-success-700 text-sm px-2 py-0.5 rounded-full">
                 {approvedAssociations.length}
               </span>
             )}
@@ -390,7 +390,7 @@ export default function VolunteerPage() {
                     <td className="py-4 px-4 text-right">
                       <button
                         onClick={() => setConfirmWithdraw(assoc)}
-                        className="px-3 py-1.5 bg-red-50 text-red-600 text-sm rounded-lg hover:bg-red-100 font-medium"
+                        className="px-3 py-1.5 bg-error-50 text-error-600 text-sm rounded-lg hover:bg-error-100 font-medium"
                       >
                         Ritira disponibilità
                       </button>
@@ -408,7 +408,7 @@ export default function VolunteerPage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
             <span>⏳</span> Candidature in corso
-            <span className="ml-2 bg-amber-100 text-amber-700 text-sm px-2 py-0.5 rounded-full">
+            <span className="ml-2 bg-warning-100 text-warning-700 text-sm px-2 py-0.5 rounded-full">
               {pendingAssociations.length}
             </span>
           </h2>
@@ -421,7 +421,7 @@ export default function VolunteerPage() {
                     Candidatura del {formatDate(assoc.createdAt)}
                   </p>
                 </div>
-                <span className="text-sm text-amber-600 font-medium">In revisione</span>
+                <span className="text-sm text-warning-600 font-medium">In revisione</span>
               </div>
             ))}
           </div>
@@ -449,7 +449,7 @@ export default function VolunteerPage() {
               <button
                 onClick={() => handleWithdraw(confirmWithdraw.id)}
                 disabled={withdrawLoading === confirmWithdraw.id}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 disabled:opacity-50"
               >
                 {withdrawLoading === confirmWithdraw.id ? 'Ritiro in corso...' : 'Conferma ritiro'}
               </button>
@@ -580,15 +580,15 @@ export default function VolunteerPage() {
                     Carica il tuo CV (opzionale)
                   </span>
                   {cvUrl ? (
-                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <span className="text-green-600 inline-flex items-center gap-1">
+                    <div className="flex items-center gap-2 p-3 bg-success-50 border border-success-200 rounded-lg">
+                      <span className="text-success-600 inline-flex items-center gap-1">
                         <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
                         CV caricato
                       </span>
                       <button
                         type="button"
                         onClick={() => { setCvFile(null); setCvUrl(''); }}
-                        className="ml-auto text-sm text-red-600 hover:underline"
+                        className="ml-auto text-sm text-error-600 hover:underline"
                       >
                         Rimuovi
                       </button>

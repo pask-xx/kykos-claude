@@ -55,18 +55,18 @@ interface GoodsRequest {
 }
 
 const STATUS_LABELS: Record<string, { label: string; bgColor: string; textColor: string }> = {
-  PENDING: { label: 'In attesa', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
-  APPROVED: { label: 'Approvata', bgColor: 'bg-green-100', textColor: 'text-green-700' },
-  FULFILLED: { label: 'Soddisfatta', bgColor: 'bg-blue-100', textColor: 'text-blue-700' },
-  DELIVERED: { label: 'Consegnata', bgColor: 'bg-purple-100', textColor: 'text-purple-700' },
-  COMPLETED: { label: 'Completata', bgColor: 'bg-green-100', textColor: 'text-green-700' },
+  PENDING: { label: 'In attesa', bgColor: 'bg-warning-100', textColor: 'text-warning-700' },
+  APPROVED: { label: 'Approvata', bgColor: 'bg-success-100', textColor: 'text-success-700' },
+  FULFILLED: { label: 'Soddisfatta', bgColor: 'bg-info-100', textColor: 'text-info-700' },
+  DELIVERED: { label: 'Consegnata', bgColor: 'bg-secondary-100', textColor: 'text-secondary-700' },
+  COMPLETED: { label: 'Completata', bgColor: 'bg-success-100', textColor: 'text-success-700' },
   CANCELLED: { label: 'Cancellata', bgColor: 'bg-gray-100', textColor: 'text-gray-700' },
 };
 
 const OFFER_STATUS_LABELS: Record<string, { label: string; bgColor: string; textColor: string }> = {
-  PENDING: { label: 'In attesa', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
-  ACCEPTED: { label: 'Accettata', bgColor: 'bg-green-100', textColor: 'text-green-700' },
-  REJECTED: { label: 'Rifiutata', bgColor: 'bg-red-100', textColor: 'text-red-700' },
+  PENDING: { label: 'In attesa', bgColor: 'bg-warning-100', textColor: 'text-warning-700' },
+  ACCEPTED: { label: 'Accettata', bgColor: 'bg-success-100', textColor: 'text-success-700' },
+  REJECTED: { label: 'Rifiutata', bgColor: 'bg-error-100', textColor: 'text-error-700' },
   CANCELLED: { label: 'Cancellata', bgColor: 'bg-gray-100', textColor: 'text-gray-700' },
 };
 
@@ -160,7 +160,7 @@ export default function GoodsRequestDetailPage() {
           <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg">
             {CATEGORY_LABELS[request.category as keyof typeof CATEGORY_LABELS] || request.category}
           </span>
-          <span className={`px-3 py-1 ${request.type === 'GOODS' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'} rounded-lg`}>
+          <span className={`px-3 py-1 ${request.type === 'GOODS' ? 'bg-info-100 text-info-700' : 'bg-secondary-100 text-secondary-700'} rounded-lg`}>
             {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
           </span>
         </div>

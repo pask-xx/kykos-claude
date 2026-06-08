@@ -5,7 +5,9 @@
 > saranno migrate progressivamente, modulo per modulo, seguendo la roadmap
 > in fondo al documento.
 
-**Versione**: 1.0 · **Data**: 2026-06-04 · **Owner**: progetto KYKOS
+**Versione**: 1.2 · **Data**: 2026-06-08 · **Owner**: progetto KYKOS
+(v1.2 — chiusura P12 colori raw → token semantici, Fase 31. v1.1 —
+chiusura P9 sweep globale emoji → lucide in tutta l'app, Fasi 24-28)
 
 ---
 
@@ -75,6 +77,12 @@ nuovo DEVE usare i token semantici:
 | `bg-blue-100 text-blue-700` | `bg-info-100 text-info-700` |
 | `bg-primary-100` (invariato) | `bg-primary-100` |
 | `bg-secondary-100` (invariato) | `bg-secondary-100` |
+| `bg-purple-100` / `text-purple-700` | `bg-secondary-100` / `text-secondary-700` |
+
+> **Fase 31 (2026-06-08)**: estensione scala 50-900 completa per
+> `success`/`warning`/`error`/`info` in `tailwind.config.ts` + sweep
+> globale `src/app/**` per migrazione colori raw → token semantici.
+> Vedi §12.13 + [[refactor-state]] § Fase 31.
 
 ### 2.3 Mappa status → colore
 
@@ -665,12 +673,13 @@ frattempo, ogni pagina gestisce localmente i suoi stati.
 
 ### 9.2 Anti-pattern a11y già presenti (da correggere gradualmente)
 
-- `ConfirmDialog.tsx:40` — `<div onClick>` per trigger.
-- `SendMessageDialog.tsx:63` — idem.
-- `admin/dashboard/page.tsx:152` — tab come `<div onClick>`.
-- 10 file usano `window.alert()`.
+- ~~`ConfirmDialog.tsx:40` — `<div onClick>` per trigger.~~ ✅ Migrato in Fase 8.2.
+- ~~`SendMessageDialog.tsx:63` — idem.~~ ✅ Migrato in Fase 8.3.
+- ~~`admin/dashboard/page.tsx:152` — tab come `<div onClick>`.~~ ✅ Migrato in Fase 16.3.
+- ~~10 file usano `window.alert()`.~~ ✅ Tutti migrati a `toast.error` in Fasi 10.
 
-Saranno affrontati nella roadmap (sezione 12).
+Tutti i sotto-anti-pattern a11y noti sono stati chiusi. Nuovi audit vanno
+fatti al bisogno (es. su moduli aggiunti dopo il refactor pre-pilota).
 
 ---
 
@@ -960,9 +969,14 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 - [x] Migrazione emoji → lucide per ogni modulo, in coda alle
       migrazioni di pattern.
-      ✅ **P9 completato in Fase 18** (4 commit atomici: 18.1 donor/dashboard
-      + to-deliver, 18.2 landing, 18.3a/b/c/d auth/* + volunteer/*). Vedi
-      [[refactor-state]] § Fase 18.
+      ✅ **P9 completato in Fasi 18 + 24-28** (commit cumulativi 18.1-18.3d
+      in Fase 18 per i moduli coperti, poi sweep globale Fasi 24-28
+      per TUTTE le pagine rimanenti: dashboard Sidebar, OperatorSidebar,
+      operator/requests-entity, operator/deposit, operator/donors,
+      operator/recipients, operator/objects, operator/pickup, operator
+      resto, public pages, donor/*, recipient/*, intermediary/*,
+      admin/* + volunteer/* + auth/* + login/* + objects/*).
+      Vedi [[refactor-state]] § Fasi 24-28 per migration tables.
 
 ### 12.11 P10 — A11y globale (continuo)
 
@@ -1030,6 +1044,188 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 > (§5.16) per sostituire il pattern custom introdotto in Fase 22.2.
 > Vedi [[refactor-state]] § Fasi 12, 20, 21, 22, 23 e [[05-known-issues]]
 > § "Anti-pattern eliminati in Fase 20/21/22".
+
+### 12.12 P9-bis — Sweep globale emoji → lucide su TUTTA l'app (2026-06-08) ✅
+
+Audit finale `src/app/**/*.tsx` per emoji residue in markup JSX. Risultato
+post-Fase 18: ~190 emoji rimanenti in pagine non ancora coperte dalla
+migrazione iniziale. **13 commit atomici** sulle Fasi 24-28 hanno
+chiuso il debito, ~190 emoji sostituiti con icone lucide + `aria-hidden`
+dove appropriato.
+
+| Fase | Scope | File | Commit |
+|------|-------|------|--------|
+| 24 | Dashboard + Operator sidebar (inizio sweep) | 2 file | `7e9d8d5`, `26fb114` |
+| 25 | operator/requests-entity | 3 file | `c55dbf8` |
+| 26 | operator/deposit | 1 file | `85de7ac` |
+| 27.1-27.5 | operator/* residuo (donors, recipients, objects, pickup, resto) | ~25 file | `521d9b1`, `accf171`, `82d2a4f`, `1b13f86`, `b16b385` |
+| 28.1 | Pagine pubbliche (landing, aderisci, faq, cookie, legal, ecc.) | 9 file | `32ff9a0` |
+| 28.2-28.5 | donor + recipient + intermediary + admin/volunteer/auth/login/objects | ~25 file | `9693058`, `f266a7e`, `574113d`, `e8b4e39` |
+
+**Pattern aggiuntivi introdotti** (oltre a quelli di Fase 18):
+
+1. **`aria-pressed` su radio button con icona** (es.
+   `recipient/requests-entity/requests/new/page.tsx` per tipo Bene/Servizio
+   + 8 categorie): i `<button>` con `aria-pressed={state}` che wrappano
+   un'icona + label testuale sono correttamente annunciati dagli screen
+   reader come "toggle premuto/non premuto". Pattern nativo per
+   radio group icon-based, alternativo a `<input type="radio">` invisibile.
+
+2. **`Loader2 + animate-spin` per spinner** (es. `intermediary/profile`,
+   `auth/register`, `admin/intermediaries/new`): per sostituire emoji
+   🔄 usata come spinner inline in button/label. Pattern:
+   ```tsx
+   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+   ```
+   Alternativa alla primitive `<Spinner size="sm">` quando serve restare
+   inline in un button/label senza alterare il layout.
+
+3. **Mappatura contestuale `Record<category, LucideIcon>` con `type LucideIcon`**
+   (es. `donor/goods-requests`, `recipient/requests-entity/requests`): per
+   refactor di strutture dati `{ icon: '📦' }` → `{ icon: Package }`.
+   Tipizzazione:
+   ```tsx
+   import { ..., type LucideIcon } from 'lucide-react';
+   const icons: Record<string, LucideIcon> = {
+     FURNITURE: Sofa, ELECTRONICS: Smartphone, ...
+   };
+   const Icon = icons[category] || Package;
+   ```
+   Il `type LucideIcon` (NON `React.ComponentType<{className?; 'aria-hidden'?}>`)
+   è la firma canonica di lucide-react — type-safe e tree-shakeable.
+
+4. **Icone contestuali di dominio** (sostituzioni semanticamente precise):
+   - `🖨️` → `Printer` (operator/deposit stampa etichette)
+   - `💰` → `HandCoins` (intermediary/dashboard finanziamenti)
+   - `📡` → `SatelliteDish` (intermediary/profile geolocalizzazione)
+   - `🏠` → `House` (intermediary/profile ente)
+   - `📊` → `BarChart3` (intermediary/recipients statistiche)
+   - `⏳` → `Hourglass` (recipient/objects stato in attesa)
+   - `🖨️` → `Printer`, `🔍` → `Search` (ricorrenti)
+
+5. **Mappatura `inline-flex items-center gap-1` per icona + label inline**
+   (es. `recipient/objects/[id]` con status ✓ Approvata, ✗ Rifiutata):
+   per allineare visivamente icona e testo inline senza usare margin o
+   padding custom. Pattern Tailwind standard per qualsiasi associazione
+   `Icon + text` su stessa riga.
+
+**Audit finale post-Fase 28.5**:
+- Grep `src/app/**/*.tsx` per emoji unicode (range U+1F300-U+1FAFF, U+2600-U+27BF)
+  → 0 risultati in markup JSX.
+- Residui SOLO in commenti (`route.ts`, `error.tsx`, `not-found.tsx`) —
+  non in markup, non impattano UX né accessibilità.
+- Tutti i file `.tsx` dell'app ora usano SOLO icone lucide-react con
+  `aria-hidden="true"` corretto (decorative) o `aria-label` adeguato
+  (funzionali in button icon-only, già wrappati in Fase 22).
+
+**Anti-pattern chiuso definitivamente** (vedi [[05-known-issues]]
+§ "Anti-pattern eliminati in Fase 18 / Fasi 24-28"):
+- Emoji come unica label/icon in produzione → VIETATO ovunque.
+- Emoji come decorazione inline (es. `<h1>👋 Ciao</h1>`) → rimosso
+  (testo heading è sufficiente) o sostituito con lucide.
+- Emoji in `<button className="bg-primary-600">` raw → Button primitive
+  + `leftIcon` lucide.
+
+**Regola operativa consolidata**:
+- MAI scrivere emoji in nuovi componenti KYKOS. Se serve un'icona,
+  importare da `lucide-react` con `aria-hidden="true"` se decorativa.
+- Per mappatura rapida emoji → lucide vedi [[05-known-issues]]
+  § "Anti-pattern eliminati in Fase 18" (lista esaustiva).
+- Vedi [[refactor-state]] § Fasi 24-28 per le migration tables complete
+  e le lezioni architetturali apprese.
+
+### 12.13 P12 — Colori raw → token semantici (2026-06-08) ✅
+
+**Audit iniziale** (Fase 31.1): 526 occorrenze di colori Tailwind raw
+(`bg|text|border|ring|from|to|via|placeholder|...|divide-(red|green|amber|blue|purple|yellow|teal|indigo|emerald|sky|lime|rose|orange|fuchsia|pink|cyan|violet)-\d+`)
+in 73 file `.tsx` dell'app. Scope completo per la chiusura di P12.
+
+**Mappatura canonica** (estesa da §2.2, ora con scala 50-900 completa):
+
+| Raw | Token semantico | Note |
+|-----|-----------------|------|
+| `bg-red-` / `text-red-` / `border-red-` | `bg-error-` / `text-error-` / `border-error-` | errore, danger, rosso |
+| `bg-green-` / `text-green-` / `border-green-` | `bg-success-` / `text-success-` / `border-success-` | successo, conferma, verde |
+| `bg-amber-` / `text-amber-` / `border-amber-` | `bg-warning-` / `text-warning-` / `border-warning-` | warning, attesa, giallo |
+| `bg-blue-` / `text-blue-` / `border-blue-` | `bg-info-` / `text-info-` / `border-info-` | info, link, blu |
+| `bg-purple-` / `text-purple-` / `border-purple-` | `bg-secondary-` / `text-secondary-` / `border-secondary-` | secondario, viola |
+| `gray-`, `primary-`, `secondary-` | invariati | gray=neutro, primary/secondary=già token |
+
+**Estensione `tailwind.config.ts`** (Fase 31.1): aggiunte scale 300, 400, 800
+a tutti i token semantici (`success`, `warning`, `error`, `info`) per
+supportare TUTTE le occorrenze esistenti (es. `text-red-500`, `border-amber-300`,
+`bg-green-800`). Valori hex allineati 1:1 con le palette Tailwind default,
+quindi la migrazione NON altera la resa visiva.
+
+**Pattern tipici migrati** (dalla pilot migration `intermediary/recipients/[id]`):
+
+```tsx
+// ❌ PRIMA (raw)
+<div className="bg-green-50 text-green-700">  // messaggio successo
+  <CheckCircle2 className="text-green-600" aria-hidden="true" />
+</div>
+<div className="w-12 h-12 bg-green-100 rounded-lg">  // sfondo status
+  <Hourglass className="text-amber-600" aria-hidden="true" />
+</div>
+<button className="bg-red-600 hover:bg-red-700 text-white">  // bottone danger
+  Revoca
+</button>
+<button className="bg-green-600 hover:bg-green-700 text-white">  // bottone success
+  Autorizza
+</button>
+
+// ✅ DOPO (token semantici)
+<div className="bg-success-50 text-success-700">
+  <CheckCircle2 className="text-success-600" aria-hidden="true" />
+</div>
+<div className="w-12 h-12 bg-success-100 rounded-lg">
+  <Hourglass className="text-warning-600" aria-hidden="true" />
+</div>
+<button className="bg-error-600 hover:bg-error-700 text-white">
+  Revoca
+</button>
+<button className="bg-success-600 hover:bg-success-700 text-white">
+  Autorizza
+</button>
+```
+
+**Fase 31.1 pilot** (commit `db8ed51`): `tailwind.config.ts` esteso +
+1 file pilot (`intermediary/recipients/[id]`, 6 occorrenze) per validare
+l'approccio. Test verdi.
+
+**Fase 31.2-31.4** (in corso): migrazione massiva in 3 batch paralleli
+(operator/* + resto), ~520 occorrenze restanti. Stima: 3-5 commit atomici.
+
+**Audit finale post-Fase 31**: grep `bg|text|border|ring|...-(red|green|amber|blue|purple|yellow|teal|indigo|emerald|sky|lime|rose|orange|fuchsia|pink|cyan|violet)-\d+` in `src/app/**` → 0 risultati.
+
+**Regola operativa consolidata** (per refactor futuri):
+- MAI scrivere colori Tailwind raw in nuovi componenti KYKOS. SEMPRE
+  usare `success` / `warning` / `error` / `info` / `secondary`.
+- Eccezione legittima: `gray-{N}` per testi/neutri, `primary-{N}` per
+  brand/CTA (già token semantici).
+- Per `border-red-200`, `text-red-600`, `bg-error-50`, ecc.: usare SEMPRE
+  i token semantici corrispondenti.
+- Le occorrenze in URL/stringhe/commenti NON vanno toccate (sono dati,
+  non styling).
+- Vedi [[05-known-issues]] § "Anti-pattern eliminati in Fase 31" e
+  [[refactor-state]] § Fase 31 per le migration tables complete.
+
+**Why**: il design system KYKOS ha 6 token semantici (`primary`,
+`secondary`, `success`, `warning`, `error`, `info`) + `gray` per neutri.
+L'uso di colori Tailwind raw (`red`, `green`, `amber`, `blue`, `purple`)
+rende impossibile evolvere la palette senza un search-and-replace globale.
+Migrare ai token semantici sblocca: (1) cambio palette centralizzato in
+`tailwind.config.ts`, (2) lettura semantica immediata del codice
+(`bg-error-50` è autoesplicativo vs `bg-red-50`), (3) conformità alla
+regola del design system "codice nuovo usa SOLO token semantici".
+La scala 50-900 completa è necessaria per supportare tutte le occorrenze
+esistenti senza impatto visivo (i valori hex sono identici).
+
+**How to apply**:
+- Per refactor di pagine esistenti: usare la mappa canonica sopra.
+- Per codice nuovo: usare SOLO `bg-{success|warning|error|info|secondary|primary|gray}-{50..900}`.
+- Se serve un nuovo tono: aggiungerlo in `tailwind.config.ts` prima di usarlo.
+- Vedi [[refactor-state]] § Fase 31 per dettagli implementativi.
 
 ---
 

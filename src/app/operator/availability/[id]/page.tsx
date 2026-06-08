@@ -43,10 +43,10 @@ interface MultiAvailability {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'PENDING': return 'bg-amber-100 text-amber-700';
-    case 'ASSIGNED': return 'bg-green-100 text-green-700';
-    case 'REJECTED': return 'bg-red-100 text-red-700';
-    case 'FULFILLED': return 'bg-blue-100 text-blue-700';
+    case 'PENDING': return 'bg-warning-100 text-warning-700';
+    case 'ASSIGNED': return 'bg-success-100 text-success-700';
+    case 'REJECTED': return 'bg-error-100 text-error-700';
+    case 'FULFILLED': return 'bg-info-100 text-info-700';
     case 'CANCELLED': return 'bg-gray-100 text-gray-700';
     default: return 'bg-gray-100 text-gray-700';
   }
@@ -255,7 +255,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Disponibilità non trovata</p>
+          <p className="text-error-600 mb-4">Disponibilità non trovata</p>
           <Link href="/operator/availability" className="text-primary-600 hover:underline">
             ← Torna alla lista
           </Link>
@@ -329,7 +329,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               {availability.status === 'OPEN' && (
                 <button
                   onClick={() => setShowCloseModal(true)}
-                  className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+                  className="px-3 py-1.5 text-sm bg-error-100 text-error-700 rounded-lg hover:bg-error-200 font-medium"
                 >
                   Chiudi
                 </button>
@@ -347,11 +347,11 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
         </div>
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <p className="text-xs sm:text-sm text-gray-500 truncate">In attesa</p>
-          <p className="text-xl sm:text-2xl font-bold text-amber-600">{pendingRequests.length}</p>
+          <p className="text-xl sm:text-2xl font-bold text-warning-600">{pendingRequests.length}</p>
         </div>
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <p className="text-xs sm:text-sm text-gray-500 truncate">Assegnati</p>
-          <p className="text-xl sm:text-2xl font-bold text-green-600">{assignedRequests.length}</p>
+          <p className="text-xl sm:text-2xl font-bold text-success-600">{assignedRequests.length}</p>
         </div>
         <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
           <p className="text-xs sm:text-sm text-gray-500 truncate">Disponibili</p>
@@ -418,7 +418,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
             <button
               onClick={() => setShowAssignModal(true)}
               disabled={selectedIds.size === 0 || saving}
-              className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
+              className="px-4 py-1.5 bg-success-600 text-white rounded-lg text-sm hover:bg-success-700 disabled:opacity-50"
             >
               {saving ? 'Assegnazione...' : `Assegna (${selectedIds.size})`}
             </button>
@@ -453,7 +453,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-gray-900">{displayName}</p>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${request.beneficiary.needScore >= 80 ? 'bg-red-100 text-red-700' : request.beneficiary.needScore >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${request.beneficiary.needScore >= 80 ? 'bg-error-100 text-error-700' : request.beneficiary.needScore >= 50 ? 'bg-warning-100 text-warning-700' : 'bg-info-100 text-info-700'}`}>
                         Score: {request.beneficiary.needScore}
                       </span>
                     </div>
@@ -482,8 +482,8 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               const displayName = request.beneficiary.nickname || request.beneficiary.name || fullName;
 
               return (
-                <div key={request.id} className="p-4 flex items-center gap-4 bg-green-50">
-                  <Check className="w-5 h-5 text-green-600 flex-shrink-0" aria-hidden="true" />
+                <div key={request.id} className="p-4 flex items-center gap-4 bg-success-50">
+                  <Check className="w-5 h-5 text-success-600 flex-shrink-0" aria-hidden="true" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900">{displayName}</p>
                     <p className="text-sm text-gray-500">{request.beneficiary.email}</p>
@@ -509,7 +509,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
         >
           <button
             disabled={pendingRequests.length === 0}
-            className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+            className="px-4 py-2 border border-error-200 text-error-600 rounded-lg hover:bg-error-50 disabled:opacity-50"
           >
             Notifica scorte esaurite ai non assegnati
           </button>
@@ -538,7 +538,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 type="checkbox"
                 checked={notifyAndClose}
                 onChange={(e) => setNotifyAndClose(e.target.checked)}
-                className="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
+                className="w-4 h-4 text-error-600 rounded border-gray-300 focus:ring-error-500"
               />
               <span>Chiudi anche la distribuzione corrente</span>
             </label>
@@ -552,7 +552,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               <button
                 onClick={handleSendNotifications}
                 disabled={sendingNotifications}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 disabled:opacity-50"
               >
                 {sendingNotifications ? 'Invio...' : notifyAndClose ? 'Procedi e chiudi' : 'Procedi'}
               </button>
@@ -571,8 +571,8 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               Stai per assegnare <strong>{selectedIds.size}</strong> beneficiari. Questa azione assegnerà i QR code di ritiro e non potrà essere annullata.
             </p>
             {remainingQty < selectedIds.size && (
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-800">
+              <div className="mb-4 p-3 bg-warning-50 border border-warning-200 rounded-lg">
+                <p className="text-sm text-warning-800">
                   Attenzione: stai assegnando più beneficiari dei posti disponibili ({remainingQty}).
                 </p>
               </div>
@@ -590,7 +590,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                   await handleAssign();
                 }}
                 disabled={saving}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 disabled:opacity-50"
               >
                 {saving ? 'Assegnazione...' : `Assegna ${selectedIds.size}`}
               </button>
@@ -696,7 +696,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               <button
                 onClick={handleClose}
                 disabled={closing}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium disabled:opacity-50"
               >
                 {closing ? 'Chiusura...' : 'Conferma'}
               </button>

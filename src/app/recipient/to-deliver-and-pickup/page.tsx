@@ -16,10 +16,10 @@ interface UnifiedItem {
 }
 
 const TYPE_COLORS: Record<string, { border: string; badge: string }> = {
-  DONATION: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700' },
-  OBJECT: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700' },
-  GOODS: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700' },
-  MULTI_AVAIL: { border: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-700' },
+  DONATION: { border: 'border-l-info-500', badge: 'bg-info-100 text-info-700' },
+  OBJECT: { border: 'border-l-success-500', badge: 'bg-success-100 text-success-700' },
+  GOODS: { border: 'border-l-secondary-500', badge: 'bg-secondary-100 text-secondary-700' },
+  MULTI_AVAIL: { border: 'border-l-warning-500', badge: 'bg-warning-100 text-warning-700' },
 };
 
 export default async function RecipientToDeliverAndPickupPage() {
@@ -150,19 +150,19 @@ export default async function RecipientToDeliverAndPickupPage() {
         {/* Legend */}
         <div className="flex gap-4 text-sm mb-6 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+            <span className="w-3 h-3 rounded-full bg-info-500"></span>
             <span className="text-gray-600">Consegne</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+            <span className="w-3 h-3 rounded-full bg-success-500"></span>
             <span className="text-gray-600">Ritiri Disponibilità</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+            <span className="w-3 h-3 rounded-full bg-secondary-500"></span>
             <span className="text-gray-600">Ritiri Richieste</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+            <span className="w-3 h-3 rounded-full bg-warning-500"></span>
             <span className="text-gray-600">Ritiri Distribuzioni</span>
           </div>
         </div>

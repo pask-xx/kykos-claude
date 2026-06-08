@@ -205,8 +205,8 @@ function NewIntermediaryContent() {
     return (
       <div className="max-w-2xl">
         <div className="bg-white p-8 rounded-xl shadow-sm border text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-9 h-9 text-green-600" aria-hidden="true" />
+          <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-9 h-9 text-success-600" aria-hidden="true" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Ente creato!</h2>
           <p className="text-gray-600 mb-6">
@@ -214,12 +214,12 @@ function NewIntermediaryContent() {
           </p>
 
           {!success.emailSent && success.tempPassword && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-left">
-              <p className="font-medium text-amber-800 mb-2 inline-flex items-center gap-2">
+            <div className="bg-warning-50 border border-warning-200 rounded-xl p-6 mb-6 text-left">
+              <p className="font-medium text-warning-800 mb-2 inline-flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                 L&apos;email non è stata inviata
               </p>
-              <p className="text-sm text-amber-700 mb-4">
+              <p className="text-sm text-warning-700 mb-4">
                 Comunica manualmente queste credenziali all&apos;amministratore dell&apos;ente:
               </p>
               <div className="bg-white rounded-lg p-4 space-y-2">
@@ -262,7 +262,7 @@ function NewIntermediaryContent() {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Crea nuovo Ente</h1>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg">
           {error}
         </div>
       )}
@@ -434,7 +434,7 @@ function NewIntermediaryContent() {
                 ? `Coordinate: ${cityCoords.lat.toFixed(6)}, ${cityCoords.lng.toFixed(6)}`
                 : 'Non ancora calcolate'}
               {cityCoords.lat && cityCoords.lng && city && (
-                <span className="text-green-600 ml-2 inline-flex items-center gap-0.5">
+                <span className="text-success-600 ml-2 inline-flex items-center gap-0.5">
                   <Check className="w-3 h-3" aria-hidden="true" /> dal comune
                 </span>
               )}
@@ -462,7 +462,7 @@ function NewIntermediaryContent() {
             </div>
 
             {geocodingError && (
-              <p className="text-xs text-red-600 mt-2">{geocodingError}</p>
+              <p className="text-xs text-error-600 mt-2">{geocodingError}</p>
             )}
           </div>
         </div>

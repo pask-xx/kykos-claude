@@ -88,19 +88,19 @@ export default function ForgotPasswordPage() {
             </p>
 
             {success && (
-              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-start gap-2">
+              <div className="mb-4 p-4 bg-success-50 border border-success-200 text-success-700 rounded-lg text-sm flex items-start gap-2">
                 <Check className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span>Ti abbiamo inviato le istruzioni per reimpostare la password. Controlla la tua email (anche la cartella spam).</span>
               </div>
             )}
 
             {devToken && (
-              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-                <p className="font-medium text-amber-800 mb-2 flex items-center gap-2">
+              <div className="mb-4 p-4 bg-warning-50 border border-warning-200 rounded-lg text-sm">
+                <p className="font-medium text-warning-800 mb-2 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                   DEV MODE - Token di reset:
                 </p>
-                <code className="text-xs break-all text-amber-900">{devToken}</code>
+                <code className="text-xs break-all text-warning-900">{devToken}</code>
                 <p className="mt-2">
                   <a
                     href={`/auth/reset-password?token=${devToken}`}
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage() {
             )}
 
             {error && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
                 {error}
               </div>
             )}

@@ -105,7 +105,7 @@ export default function RecipientProfilePage() {
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Stato autorizzazione</p>
-              <p className={`font-medium ${user.authorized ? 'text-green-600' : 'text-yellow-600'}`}>
+              <p className={`font-medium ${user.authorized ? 'text-success-600' : 'text-yellow-600'}`}>
                 {user.authorized ? 'Autorizzato' : 'In attesa di autorizzazione'}
               </p>
             </div>
@@ -127,16 +127,16 @@ export default function RecipientProfilePage() {
         <PasswordChangeForm role="user" />
 
         {/* Danger Zone */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-red-900 mb-2 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" /> Zona pericolosa
+        <div className="bg-error-50 border border-error-200 rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-error-900 mb-2 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-error-600" aria-hidden="true" /> Zona pericolosa
           </h2>
-          <p className="text-red-700 text-sm mb-4">
+          <p className="text-error-700 text-sm mb-4">
             Una volta disattivato, l&apos;account non potrà essere ripristinato.
           </p>
           <Link
             href="/recipient/deactivate"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium text-sm"
           >
             Disattiva account
           </Link>

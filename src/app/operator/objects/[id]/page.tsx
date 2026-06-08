@@ -90,12 +90,12 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
 
   const getStatusBadge = (status: string) => {
     const colorClass =
-      status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-      status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
+      status === 'AVAILABLE' ? 'bg-success-100 text-success-700' :
+      status === 'RESERVED' ? 'bg-warning-100 text-warning-700' :
       status === 'DEPOSITED' ? 'bg-gray-100 text-gray-700' :
-      status === 'DONATED' ? 'bg-blue-100 text-blue-700' :
-      status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-      status === 'BLOCKED' ? 'bg-purple-100 text-purple-700' :
+      status === 'DONATED' ? 'bg-info-100 text-info-700' :
+      status === 'CANCELLED' ? 'bg-error-100 text-error-700' :
+      status === 'BLOCKED' ? 'bg-secondary-100 text-secondary-700' :
       'bg-gray-100 text-gray-700';
     const label = OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status;
     return <span className={`px-3 py-1 text-sm rounded-full ${colorClass}`}>{label}</span>;
@@ -234,7 +234,7 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
         {operatorType?.isStreetOperator && object.status === 'AVAILABLE' && (
           <Link
             href={`/operator/objects/${id}/request`}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
+            className="px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 flex items-center gap-2 text-sm font-medium"
           >
             <Inbox className="w-4 h-4" aria-hidden="true" />
             Richiedi

@@ -156,7 +156,7 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
   if (success) {
     return (
       <div className="text-center py-12">
-        <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-600" aria-hidden="true" />
+        <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-success-600" aria-hidden="true" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Richiesta effettuata!</h2>
         <p className="text-gray-500 mb-4">La richiesta è stata creata e approvata automaticamente.</p>
         <p className="text-sm text-gray-400">Reindirizzamento...</p>
@@ -240,7 +240,7 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
                     <p className="text-xs text-gray-400 mt-1">
                       {recipient.city && `${recipient.city}`}
                       {recipient.referenceEntity && ` • ${recipient.referenceEntity.name}`}
-                      {recipient.isStreetManaged && <span className="ml-2 text-amber-600">Street</span>}
+                      {recipient.isStreetManaged && <span className="ml-2 text-warning-600">Street</span>}
                     </p>
                   </div>
                   {selectedRecipient?.id === recipient.id && (
@@ -261,16 +261,16 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
       {selectedRecipient && (
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <h3 className="font-semibold text-gray-900 mb-4">Beneficiario selezionato</h3>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-            <p className="font-medium text-green-800">
+          <div className="bg-success-50 border border-success-200 rounded-lg p-4 mb-4">
+            <p className="font-medium text-success-800">
               {selectedRecipient.nickname || `${selectedRecipient.firstName} ${selectedRecipient.lastName}`}
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-success-600">
               {selectedRecipient.firstName} {selectedRecipient.lastName}
               {selectedRecipient.city && ` • ${selectedRecipient.city}`}
             </p>
             {selectedRecipient.referenceEntity && (
-              <p className="text-xs text-green-500 mt-1">Ente: {selectedRecipient.referenceEntity.name}</p>
+              <p className="text-xs text-success-500 mt-1">Ente: {selectedRecipient.referenceEntity.name}</p>
             )}
           </div>
 
@@ -289,7 +289,7 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+            <div className="bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg mb-4">
               {error}
             </div>
           )}

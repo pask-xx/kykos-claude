@@ -226,11 +226,11 @@ export default function VolunteerApplyPage() {
         </div>
 
         {noLocation && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-            <p className="text-amber-800 text-sm">
+          <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
+            <p className="text-warning-800 text-sm">
               <strong>Coordinate non disponibili:</strong> {error}
             </p>
-            <p className="text-amber-700 text-sm mt-2">
+            <p className="text-warning-700 text-sm mt-2">
               Completa il tuo profilo con un indirizzo valido per vedere gli enti disponibili nel raggio di 30km.
             </p>
             <Link
@@ -243,8 +243,8 @@ export default function VolunteerApplyPage() {
         )}
 
         {error && !noLocation && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="bg-error-50 border border-error-200 rounded-lg p-4 mb-6">
+            <p className="text-error-700 text-sm">{error}</p>
           </div>
         )}
 
@@ -353,15 +353,15 @@ export default function VolunteerApplyPage() {
                 Carica il tuo CV (opzionale)
               </span>
               {cvUrl ? (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <span className="text-green-600 inline-flex items-center gap-1">
+                <div className="flex items-center gap-2 p-3 bg-success-50 border border-success-200 rounded-lg">
+                  <span className="text-success-600 inline-flex items-center gap-1">
                     <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
                     CV caricato
                   </span>
                   <button
                     type="button"
                     onClick={() => { setCvFile(null); setCvUrl(''); }}
-                    className="ml-auto text-sm text-red-600 hover:underline"
+                    className="ml-auto text-sm text-error-600 hover:underline"
                   >
                     Rimuovi
                   </button>

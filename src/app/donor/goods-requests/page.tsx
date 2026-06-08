@@ -78,7 +78,7 @@ export default function DonorGoodsRequestsPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {acceptedOffers.map((offer) => (
-            <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-green-200 overflow-hidden">
+            <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-success-200 overflow-hidden">
               <div className="p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -107,10 +107,10 @@ export default function DonorGoodsRequestsPage() {
                   </div>
                 )}
               </div>
-              <div className="bg-green-50 px-4 py-3 border-t border-green-100">
+              <div className="bg-success-50 px-4 py-3 border-t border-success-100">
                 <Link
                   href={`/donor/qr-goods/${offer.requestId}`}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 font-medium text-sm"
                 >
                   <QrCode className="w-4 h-4" aria-hidden="true" />
                   Vedi QR Code per consegna

@@ -44,11 +44,11 @@ export default function IntermediaryObjectsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AVAILABLE':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
+        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Disponibile</span>;
       case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservata</span>;
+        return <span className="px-2 py-1 bg-warning-100 text-warning-700 text-xs rounded">Riservata</span>;
       case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Ritirato</span>;
+        return <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded">Ritirato</span>;
       case 'DEPOSITED':
         return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
       default:

@@ -74,7 +74,7 @@ export default function DioceseObjectsPage() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error}</p>
+        <p className="text-error-600 mb-4">{error}</p>
         <button onClick={() => { setError(null); setLoading(true); fetchObjects(); }} className="text-sm text-primary-600 hover:underline">
           Riprova
         </button>

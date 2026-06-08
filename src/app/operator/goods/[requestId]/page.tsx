@@ -64,12 +64,12 @@ const GOODS_STATUS_LABELS: Record<string, string> = {
 };
 
 const GOODS_STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
-  PENDING: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'In attesa' },
-  APPROVED: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Approvata' },
-  FULFILLED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Soddisfatta' },
+  PENDING: { bg: 'bg-warning-100', text: 'text-warning-700', label: 'In attesa' },
+  APPROVED: { bg: 'bg-info-100', text: 'text-info-700', label: 'Approvata' },
+  FULFILLED: { bg: 'bg-success-100', text: 'text-success-700', label: 'Soddisfatta' },
   DELIVERED: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Depositata' },
   COMPLETED: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Completata' },
-  CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Cancellata' },
+  CANCELLED: { bg: 'bg-error-100', text: 'text-error-700', label: 'Cancellata' },
 };
 
 export default function GoodsDetailPage({ params }: { params: Promise<{ requestId: string }> }) {
