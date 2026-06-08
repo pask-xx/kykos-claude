@@ -90,10 +90,11 @@ export default function CitySelector({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="city-selector-province" className="block text-sm font-medium text-gray-700 mb-1">
           Provincia {required && <span className="text-red-500">*</span>}
         </label>
         <select
+          id="city-selector-province"
           value={selectedProvince}
           onChange={handleProvinceChange}
           required={required}
@@ -112,10 +113,11 @@ export default function CitySelector({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="city-selector-comune" className="block text-sm font-medium text-gray-700 mb-1">
           Comune {required && <span className="text-red-500">*</span>}
         </label>
         <select
+          id="city-selector-comune"
           value={selectedCity}
           onChange={handleCityChange}
           required={required}

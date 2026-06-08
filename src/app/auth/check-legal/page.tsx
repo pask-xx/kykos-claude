@@ -173,8 +173,9 @@ function CheckLegalContent() {
               >
                 Apri il PDF (v{status.documents.TERMS.current}) ↗
               </button>
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label htmlFor="accept-terms" className="flex items-start gap-3 cursor-pointer">
                 <input
+                  id="accept-terms"
                   type="checkbox"
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
@@ -208,8 +209,9 @@ function CheckLegalContent() {
               >
                 Apri il PDF (v{status.documents.PRIVACY.current}) ↗
               </button>
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label htmlFor="accept-privacy" className="flex items-start gap-3 cursor-pointer">
                 <input
+                  id="accept-privacy"
                   type="checkbox"
                   checked={acceptPrivacy}
                   onChange={(e) => setAcceptPrivacy(e.target.checked)}
