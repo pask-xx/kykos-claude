@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CATEGORY_LABELS } from '@/types';
+import { Package, Plus, Inbox } from 'lucide-react';
+import { CATEGORY_LABELS, OBJECT_STATUS_LABELS } from '@/types';
+import { toast } from '@/components/ui/Toast';
+import { Badge, Button, EmptyState, Spinner } from '@/components/ui';
 
 interface Object {
   id: string;
@@ -13,6 +16,22 @@ interface Object {
   status: string;
   imageUrls: string[] | null;
   createdAt: string;
+}
+
+/**
+ * Mappa Object.status → Badge variant KYKOS.
+ * vedi: src/types/ObjectStatus.
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'AVAILABLE': return { variant: 'success' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? 'Disponibile' };
+    case 'RESERVED': return { variant: 'warning' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? 'Riservato' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? 'Depositato' };
+    case 'DONATED': return { variant: 'default' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? 'Donato' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? 'Cancellato' };
+    case 'BLOCKED': return { variant: 'warning' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? 'Bloccato' };
+    default: return { variant: 'default' as const, label: status };
+  }
 }
 
 export default function RecipientMyObjectsPage() {
@@ -30,23 +49,9 @@ export default function RecipientMyObjectsPage() {
       setObjects(data.objects || []);
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Disponibile</span>;
-      case 'RESERVED':
-        return <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Riservato</span>;
-      case 'DONATED':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Donato</span>;
-      case 'DEPOSITED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Depositato</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
     }
   };
 
@@ -54,53 +59,63 @@ export default function RecipientMyObjectsPage() {
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le mie disponibilità</h1>
-          <Link
-            href="/recipient/my-objects/new"
-            className="shrink-0 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm text-center"
-          >
-            + Aggiungi disponibilità
+          <h1 className="text-2xl font-bold text-gray-900">Le mie disponibilità</h1>
+          <Link href="/recipient/my-objects/new">
+            <Button variant="primary">
+              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+              Aggiungi disponibilità
+            </Button>
           </Link>
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Caricamento...</p>
+          <div className="flex items-center justify-center py-12">
+            <Spinner size="lg" />
           </div>
         ) : objects.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-            <span className="text-5xl mb-4 block">📦</span>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna disponibilità</h2>
-            <p className="text-gray-500 mb-6">Non hai ancora pubblicato disponibilità da donare.</p>
-            <Link href="/recipient/my-objects/new" className="text-primary-600 hover:text-primary-700 font-medium">
-              Pubblica il tuo primo oggetto →
-            </Link>
-          </div>
+          <EmptyState
+            icon={Inbox}
+            title="Nessuna disponibilità"
+            description="Non hai ancora pubblicato disponibilità da donare."
+            action={
+              <Link href="/recipient/my-objects/new">
+                <Button variant="primary">
+                  <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                  Pubblica il tuo primo oggetto
+                </Button>
+              </Link>
+            }
+          />
         ) : (
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {objects.map((obj) => (
-              <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                  {obj.imageUrls && obj.imageUrls[0] ? (
-                    <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                  ) : (
-                    <span className="text-5xl">📦</span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                      {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category.replace('_', ' ')}
-                    </span>
-                    {getStatusBadge(obj.status)}
+            {objects.map((obj) => {
+              const statusBadge = objectStatusBadge(obj.status);
+              return (
+                <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                  <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                    {obj.imageUrls && obj.imageUrls[0] ? (
+                      <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
+                    )}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {obj.description || 'Nessuna descrizione'}
-                  </p>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                      <Badge variant="default" size="sm">
+                        {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category.replace('_', ' ')}
+                      </Badge>
+                      <Badge variant={statusBadge.variant} size="sm">
+                        {statusBadge.label}
+                      </Badge>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
+                    <p className="text-sm text-gray-500 line-clamp-2">
+                      {obj.description || 'Nessuna descrizione'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
