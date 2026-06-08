@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Package, Plus, ClipboardList, Mail } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { toast } from '@/components/ui/Toast';
+import { Badge, Button, EmptyState, Spinner } from '@/components/ui';
 
 interface EntityRequest {
   id: string;
@@ -58,11 +61,48 @@ const STATUS_PRIORITY: Record<string, number> = {
   COMPLETED: 20,
 };
 
-const TYPE_COLORS: Record<string, { border: string; badge: string; label: string }> = {
-  GOODS: { border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-700', label: 'Bene' },
-  SERVICES: { border: 'border-l-purple-500', badge: 'bg-purple-100 text-purple-700', label: 'Servizio' },
-  AVAILABLE: { border: 'border-l-green-500', badge: 'bg-green-100 text-green-700', label: 'Disponibilita' },
-};
+/**
+ * Mappa Object.status → Badge variant KYKOS.
+ * vedi: src/types/ObjectStatus.
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
+    case 'RESERVED': return { variant: 'warning' as const, label: 'Riservata' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Cancellato' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
+
+/**
+ * Mappa EntityRequest.status → Badge variant KYKOS.
+ * vedi: src/types/EntityRequestStatus.
+ */
+function entityRequestStatusBadge(status: string) {
+  switch (status) {
+    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
+    case 'FULFILLED': return { variant: 'info' as const, label: 'Soddisfatta' };
+    case 'DELIVERED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'COMPLETED': return { variant: 'default' as const, label: 'Completata' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Cancellata' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
+
+/**
+ * Mappa itemType → Badge variant + colore bordo card.
+ * vedi: docs/DESIGN.md §2.3 mappa status.
+ */
+function itemTypeBadge(itemType: UnifiedItem['itemType']) {
+  switch (itemType) {
+    case 'GOODS': return { variant: 'info' as const, label: 'Bene', borderClass: 'border-l-info-500' };
+    case 'SERVICES': return { variant: 'primary' as const, label: 'Servizio', borderClass: 'border-l-primary-500' };
+    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibilità', borderClass: 'border-l-success-500' };
+  }
+}
 
 export default function RecipientEntityRequestsPage() {
   const [items, setItems] = useState<UnifiedItem[]>([]);
@@ -105,8 +145,8 @@ export default function RecipientEntityRequestsPage() {
       unified.sort((a, b) => {
         const aOffers = (a as EntityRequest).offers || [];
         const bOffers = (b as EntityRequest).offers || [];
-        const aPendingOffers = aOffers.filter((o: any) => o.status === 'PENDING').length;
-        const bPendingOffers = bOffers.filter((o: any) => o.status === 'PENDING').length;
+        const aPendingOffers = aOffers.filter((o) => o.status === 'PENDING').length;
+        const bPendingOffers = bOffers.filter((o) => o.status === 'PENDING').length;
 
         const aStatus = a.itemType === 'AVAILABLE' ? a.object.status : a.status;
         const bStatus = b.itemType === 'AVAILABLE' ? b.object.status : b.status;
@@ -123,48 +163,16 @@ export default function RecipientEntityRequestsPage() {
       setItems(unified);
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusBadge = (item: UnifiedItem) => {
-    if (item.itemType === 'AVAILABLE') {
-      const labels: Record<string, { label: string; color: string }> = {
-        AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700' },
-        RESERVED: { label: 'Riservata', color: 'bg-amber-100 text-amber-700' },
-        DEPOSITED: { label: 'Depositata', color: 'bg-blue-100 text-blue-700' },
-        DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700' },
-        CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700' },
-      };
-      const s = labels[item.object.status] || { label: item.object.status, color: 'bg-gray-100 text-gray-700' };
-      return <span className={`px-2 py-1 text-xs rounded whitespace-nowrap ${s.color}`}>{s.label}</span>;
-    }
-
-    const labels: Record<string, { label: string; color: string }> = {
-      PENDING: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
-      APPROVED: { label: 'Approvata', color: 'bg-green-100 text-green-700' },
-      FULFILLED: { label: 'Soddisfatta', color: 'bg-blue-100 text-blue-700' },
-      DELIVERED: { label: 'Depositata', color: 'bg-blue-100 text-blue-700' },
-      COMPLETED: { label: 'Completata', color: 'bg-gray-100 text-gray-700' },
-      CANCELLED: { label: 'Cancellata', color: 'bg-red-100 text-red-700' },
-    };
-    const s = labels[item.status] || { label: item.status, color: 'bg-gray-100 text-gray-700' };
-    return <span className={`px-2 py-1 text-xs rounded whitespace-nowrap ${s.color}`}>{s.label}</span>;
-  };
-
   const getPendingOffersCount = (item: UnifiedItem): number => {
     if (item.itemType === 'AVAILABLE') return 0;
     const offers = (item as EntityRequest).offers || [];
-    return offers.filter((o: any) => o.status === 'PENDING').length;
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      FURNITURE: '🪑', ELECTRONICS: '📱', CLOTHING: '👕', BOOKS: '📚',
-      KITCHEN: '🍳', SPORTS: '⚽', TOYS: '🧸', OTHER: '📦',
-    };
-    return icons[category] || '📦';
+    return offers.filter((o) => o.status === 'PENDING').length;
   };
 
   const getTitle = (item: UnifiedItem) => {
@@ -183,63 +191,55 @@ export default function RecipientEntityRequestsPage() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">Le tue richieste</h1>
-              <p className="text-sm sm:text-base text-gray-500">Beni, servizi e oggetti richiesti</p>
+              <h1 className="text-2xl font-bold text-gray-900">Le tue richieste</h1>
+              <p className="text-gray-500">Beni, servizi e oggetti richiesti</p>
             </div>
-            <Link
-              href="/recipient/requests-entity/requests/new"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-center"
-            >
-              + Nuova richiesta
+            <Link href="/recipient/requests-entity/requests/new">
+              <Button variant="primary">
+                <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                Nuova richiesta
+              </Button>
             </Link>
           </div>
 
           <div className="flex gap-3 sm:gap-4 text-sm flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-              <span className="text-gray-600">Beni</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-              <span className="text-gray-600">Servizi</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-green-500"></span>
-              <span className="text-gray-600">Disponibilita</span>
-            </div>
+            <Badge variant="info">Beni</Badge>
+            <Badge variant="primary">Servizi</Badge>
+            <Badge variant="success">Disponibilità</Badge>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-gray-500">Caricamento...</p>
+              <Spinner size="lg" />
             </div>
           ) : items.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
-              <span className="text-4xl sm:text-5xl mb-4 block">📋</span>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
-              <p className="text-gray-500">Non hai ancora richiesto beni, servizi o oggetti.</p>
-            </div>
+            <EmptyState
+              icon={ClipboardList}
+              title="Nessuna richiesta"
+              description="Non hai ancora richiesto beni, servizi o oggetti."
+            />
           ) : (
             <div className="grid gap-3 sm:gap-4">
               {items.map((item) => {
-                const colors = TYPE_COLORS[item.itemType];
+                const typeStyle = itemTypeBadge(item.itemType);
                 const image = getImage(item);
                 const pendingOffers = getPendingOffersCount(item);
+                const statusBadge = item.itemType === 'AVAILABLE'
+                  ? objectStatusBadge(item.object.status)
+                  : entityRequestStatusBadge(item.status);
 
                 return (
                   <Link
                     key={`${item.itemType}-${item.id}`}
                     href={item.link}
-                    className={`block bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${colors.border} overflow-hidden`}
+                    className={`block bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-gray-100 hover:border-primary-300 transition border-l-4 ${typeStyle.borderClass} overflow-hidden`}
                   >
                     <div className="flex gap-2 sm:gap-4">
                       <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                         {image ? (
                           <img src={image} alt={getTitle(item)} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-base sm:text-xl">
-                            {item.itemType === 'AVAILABLE' ? '📦' : getCategoryIcon((item as EntityRequest).category)}
-                          </span>
+                          <Package className="h-5 w-5 sm:h-7 sm:w-7 text-gray-400" aria-hidden="true" />
                         )}
                       </div>
 
@@ -248,11 +248,14 @@ export default function RecipientEntityRequestsPage() {
 
                         <div className="flex flex-wrap items-center gap-1 mt-0.5">
                           {pendingOffers > 0 && (
-                            <span className="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
-                              {pendingOffers} 📬
-                            </span>
+                            <Badge variant="warning" size="sm">
+                              <Mail className="h-3 w-3 mr-0.5 inline" aria-hidden="true" />
+                              {pendingOffers}
+                            </Badge>
                           )}
-                          {getStatusBadge(item)}
+                          <Badge variant={statusBadge.variant} size="sm">
+                            {statusBadge.label}
+                          </Badge>
                         </div>
 
                         <p className="text-xs text-gray-400 mt-0.5">
