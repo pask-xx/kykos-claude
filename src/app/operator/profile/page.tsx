@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { User } from 'lucide-react';
 import { OPERATOR_ROLE_LABELS } from '@/types';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
@@ -415,7 +416,7 @@ export default function OperatorProfilePage() {
             {profileImageUrl ? (
               <img src={profileImageUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-3xl">👤</span>
+              <User className="w-9 h-9 text-primary-700" aria-hidden="true" />
             )}
           </div>
           <div className="flex-1">

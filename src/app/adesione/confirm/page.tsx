@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Mail, CheckCircle2, XCircle } from 'lucide-react';
 
 function AdesioneConfirmContent() {
   const searchParams = useSearchParams();
@@ -51,7 +52,7 @@ function AdesioneConfirmContent() {
         <main className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">❌</span>
+              <XCircle className="w-10 h-10 text-red-600" aria-hidden="true" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Link non valido</h1>
             <p className="text-xl text-gray-600 mb-8">
@@ -84,7 +85,7 @@ function AdesioneConfirmContent() {
           {status === 'idle' && (
             <>
               <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">📧</span>
+                <Mail className="w-10 h-10 text-primary-700" aria-hidden="true" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Conferma la tua email</h1>
               <p className="text-xl text-gray-600 mb-4">
@@ -116,7 +117,7 @@ function AdesioneConfirmContent() {
           {status === 'success' && (
             <>
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">✅</span>
+                <CheckCircle2 className="w-10 h-10 text-green-600" aria-hidden="true" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Email confermata!</h1>
               <p className="text-xl text-gray-600 mb-8">
@@ -155,7 +156,7 @@ function AdesioneConfirmContent() {
           {status === 'error' && (
             <>
               <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">❌</span>
+                <XCircle className="w-10 h-10 text-red-600" aria-hidden="true" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Conferma fallita</h1>
               <p className="text-xl text-gray-600 mb-8">

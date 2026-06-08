@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { PenLine, Gift, HandHeart } from 'lucide-react';
 import QRCode from 'qrcode';
 import InstallAppBanner from '@/components/InstallAppBanner';
 
@@ -53,13 +54,14 @@ export default function AderisciPage() {
 
         {/* How to Register */}
         <div className="bg-white rounded-2xl shadow-sm border p-8 mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
-            📝 Come registrarti
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <PenLine className="w-5 h-5" aria-hidden="true" />
+            Come registrarti
           </h2>
           <div className="space-y-6">
             <div className="flex gap-4">
               <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl">🎁</span>
+                <Gift className="w-6 h-6 text-amber-700" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Se vuoi donare</h3>
@@ -70,7 +72,7 @@ export default function AderisciPage() {
             </div>
             <div className="flex gap-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl">🤲</span>
+                <HandHeart className="w-6 h-6 text-blue-700" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Se hai bisogno di aiuto</h3>

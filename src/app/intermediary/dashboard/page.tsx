@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { coordsMatchCity } from '@/lib/geo';
+import { Building2, AlertTriangle, Package, Users, HandCoins, Printer } from 'lucide-react';
 
 export default async function IntermediaryDashboard() {
   const session = await getSession();
@@ -85,7 +86,7 @@ export default async function IntermediaryDashboard() {
         {/* Organization Data Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>🏢</span> Dati organizzazione
+            <Building2 className="w-5 h-5 text-gray-500" aria-hidden="true" /> Dati organizzazione
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
@@ -114,7 +115,7 @@ export default async function IntermediaryDashboard() {
         {/* Coordinate Alert */}
         {(!org?.latitude || !org?.longitude) && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" aria-hidden="true" />
             <div>
               <p className="font-medium text-amber-800">Coordinate mancanti</p>
               <p className="text-sm text-amber-700 mt-1">
@@ -131,7 +132,7 @@ export default async function IntermediaryDashboard() {
         )}
         {org?.latitude && org?.longitude && !coordCheck.matches && cityCoords.lat && cityCoords.lng && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" aria-hidden="true" />
             <div>
               <p className="font-medium text-amber-800">Coordinate non congruenti</p>
               <p className="text-sm text-amber-700 mt-1">
@@ -152,7 +153,7 @@ export default async function IntermediaryDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📦</span>
+                <Package className="w-6 h-6 text-primary-600" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Disponibilità</p>
@@ -163,7 +164,7 @@ export default async function IntermediaryDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">👥</span>
+                <Users className="w-6 h-6 text-secondary-600" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Beneficiari</p>
@@ -185,7 +186,7 @@ export default async function IntermediaryDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">💰</span>
+                <HandCoins className="w-6 h-6 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Fondi raccolti</p>
@@ -220,9 +221,10 @@ export default async function IntermediaryDashboard() {
             <Link
               href="/aderisci/print"
               target="_blank"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
             >
-              🖨️ Stampa locandina
+              <Printer className="w-4 h-4" aria-hidden="true" />
+              Stampa locandina
             </Link>
           </div>
         </div>

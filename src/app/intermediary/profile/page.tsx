@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
+import { Building2, Clock, MapPin, Loader2, SatelliteDish, House } from 'lucide-react';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import dynamic from 'next/dynamic';
 import { toast } from '@/components/ui/Toast';
@@ -456,7 +457,7 @@ export default function IntermediaryProfilePage() {
       <form onSubmit={handleSubmit}>
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <span>🏢</span> Dati organizzazione
+            <Building2 className="w-5 h-5 text-gray-500" aria-hidden="true" /> Dati organizzazione
           </h2>
 
           {error && (
@@ -630,7 +631,7 @@ export default function IntermediaryProfilePage() {
       {/* Hours Info */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>🕐</span> Orari e informazioni
+          <Clock className="w-5 h-5 text-gray-500" aria-hidden="true" /> Orari e informazioni
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
@@ -653,7 +654,7 @@ export default function IntermediaryProfilePage() {
       {/* Geolocation */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span>📍</span> Posizione geografica
+          <MapPin className="w-5 h-5 text-gray-500" aria-hidden="true" /> Posizione geografica
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           {hasLocation
@@ -669,9 +670,9 @@ export default function IntermediaryProfilePage() {
             className="flex-1 px-4 py-2.5 bg-secondary-600 text-white text-sm font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
           >
             {locating ? (
-              <><span className="animate-spin">🔄</span> Rilevamento...</>
+              <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> Rilevamento...</>
             ) : (
-              <><span>📡</span> {hasLocation ? 'Aggiorna con GPS' : 'Rileva con GPS'}</>
+              <><SatelliteDish className="w-4 h-4" aria-hidden="true" /> {hasLocation ? 'Aggiorna con GPS' : 'Rileva con GPS'}</>
             )}
           </button>
           <button
@@ -681,9 +682,9 @@ export default function IntermediaryProfilePage() {
             className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
           >
             {geocoding ? (
-              <><span className="animate-spin">🔄</span> Calcolo...</>
+              <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> Calcolo...</>
             ) : (
-              <><span>🏠</span> Calcola da indirizzo</>
+              <><House className="w-4 h-4" aria-hidden="true" /> Calcola da indirizzo</>
             )}
           </button>
         </div>

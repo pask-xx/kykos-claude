@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Lock, Building2, Sprout } from 'lucide-react';
 import QRCode from 'qrcode';
 
 export default function AderisciPrintPage() {
@@ -40,21 +41,21 @@ export default function AderisciPrintPage() {
         <div className="flex justify-center gap-10 mb-8 print-cards">
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-2">
-              <span className="text-3xl">🔒</span>
+              <Lock className="w-8 h-8 text-primary-700" aria-hidden="true" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Anonimato Totale</h3>
             <p className="text-xs text-gray-500">Nessuno sa chi è l&apos;altro</p>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-2">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="w-8 h-8 text-primary-700" aria-hidden="true" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Enti Fidati</h3>
             <p className="text-xs text-gray-500">Caritas, parrocchie, associazioni</p>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-2">
-              <span className="text-3xl">🌱</span>
+              <Sprout className="w-8 h-8 text-primary-700" aria-hidden="true" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Sostenibilità</h3>
             <p className="text-xs text-gray-500">Dai nuova vita alle cose</p>

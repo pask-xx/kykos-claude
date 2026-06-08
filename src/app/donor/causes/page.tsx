@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Check } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { toast } from '@/components/ui/Toast';
 
@@ -101,8 +102,9 @@ export default function DonorCausesPage() {
                 </div>
                 <div className="flex items-center">
                   {cause.hasJoined ? (
-                    <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-medium">
-                      ✓ Iscritto
+                    <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-medium inline-flex items-center gap-1">
+                      <Check className="w-4 h-4" aria-hidden="true" />
+                      Iscritto
                     </span>
                   ) : (
                     <button

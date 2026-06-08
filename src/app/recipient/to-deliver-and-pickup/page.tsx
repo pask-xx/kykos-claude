@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { PartyPopper, Gift, Package } from 'lucide-react';
 import { CATEGORY_LABELS } from '@/types';
 
 interface UnifiedItem {
@@ -169,7 +170,7 @@ export default async function RecipientToDeliverAndPickupPage() {
         {/* Empty state */}
         {totalItems === 0 && (
           <div className="bg-white rounded-xl shadow-sm border p-8 sm:p-12 text-center">
-            <span className="text-4xl sm:text-5xl mb-4 block">🎉</span>
+            <PartyPopper className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 text-gray-400" aria-hidden="true" />
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Niente da gestire</h2>
             <p className="text-gray-500">Tutti i tuoi impegni sono stati evasi!</p>
           </div>
@@ -190,10 +191,10 @@ export default async function RecipientToDeliverAndPickupPage() {
                     <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                       {item.imageUrls && item.imageUrls.length > 0 ? (
                         <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" />
+                      ) : item.itemType === 'GOODS' ? (
+                        <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" aria-hidden="true" />
                       ) : (
-                        <span className="text-base sm:text-xl">
-                          {item.itemType === 'GOODS' ? '🎁' : item.itemType === 'MULTI_AVAIL' ? '📦' : '📦'}
-                        </span>
+                        <Package className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" aria-hidden="true" />
                       )}
                     </div>
 

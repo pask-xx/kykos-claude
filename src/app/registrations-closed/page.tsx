@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Construction, Gift, Building2, HandHeart, CheckCircle2 } from 'lucide-react';
 
 export default function RegistrationsClosedPage() {
   const [email, setEmail] = useState('');
@@ -50,7 +51,7 @@ export default function RegistrationsClosedPage() {
         <div className="max-w-2xl mx-auto">
           {/* Icon */}
           <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">🚧</span>
+            <Construction className="w-10 h-10 text-amber-700" aria-hidden="true" />
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 text-center mb-4">
@@ -73,15 +74,15 @@ export default function RegistrationsClosedPage() {
               i beneficiari e gestiscono lo scambio in sicurezza e anonimato.
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>🎁</span>
+              <Gift className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
               <span>Donatore pubblica oggetti</span>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
-              <span>🏢</span>
+              <Building2 className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
               <span>Ente verifica e coordina</span>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
-              <span>🙏</span>
+              <HandHeart className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
               <span>Beneficiario richiede</span>
             </div>
           </div>
@@ -112,7 +113,7 @@ export default function RegistrationsClosedPage() {
 
             {submitted ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                <span className="text-3xl mb-2 block">✅</span>
+                <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-600" aria-hidden="true" />
                 <p className="text-green-700 font-medium">
                   Email registrata! Ti avviseremo appena le registrazioni aprono.
                 </p>

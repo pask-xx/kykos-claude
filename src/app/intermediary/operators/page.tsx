@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
+import { X, Check, AlertTriangle } from 'lucide-react';
 import { OPERATOR_ROLE_LABELS, OPERATOR_PERMISSION_LABELS, OperatorRole, OperatorPermission } from '@/types';
 
 interface Operator {
@@ -261,13 +262,16 @@ export default function IntermediaryOperatorsPage() {
                   onClick={() => { setShowCreateModal(false); setCreatedOp(null); setError(null); }}
                   className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
                 >
-                  <span aria-hidden="true">✕</span>
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
               {createdOp ? (
                 <div>
-                  <p className="text-green-700 font-medium mb-2">✓ Operatore creato con successo!</p>
+                  <p className="text-green-700 font-medium mb-2 inline-flex items-center gap-1">
+                    <Check className="w-4 h-4" aria-hidden="true" />
+                    Operatore creato con successo!
+                  </p>
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                     <p className="font-medium text-amber-800 mb-1">Username:</p>
                     <p className="text-2xl font-mono text-amber-900">{createdOp.operator.username}</p>
@@ -275,12 +279,14 @@ export default function IntermediaryOperatorsPage() {
                     <p className="text-2xl font-mono text-amber-900">{createdOp.tempPassword}</p>
                   </div>
                   {createdOp.emailSent ? (
-                    <p className="text-sm text-green-600 mb-4">
-                      ✓ Credenziali inviate per email a {createdOp.notifyEmail}
+                    <p className="text-sm text-green-600 mb-4 inline-flex items-center gap-1">
+                      <Check className="w-4 h-4" aria-hidden="true" />
+                      Credenziali inviate per email a {createdOp.notifyEmail}
                     </p>
                   ) : (
-                    <p className="text-sm text-amber-600 mb-4">
-                      ⚠ Email non inviata. Comunica le credenziali manualmente all'operatore.
+                    <p className="text-sm text-amber-600 mb-4 inline-flex items-center gap-1">
+                      <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                      Email non inviata. Comunica le credenziali manualmente all'operatore.
                     </p>
                   )}
                   <p className="text-sm text-gray-600 mb-4">

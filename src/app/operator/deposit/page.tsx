@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Package, Gift, Printer } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
 import QRCode from 'qrcode';
@@ -315,7 +316,7 @@ export default function DepositPage() {
       {/* Items List */}
       {filteredItems.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📦</span>
+          <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun elemento</h2>
           <p className="text-gray-500">
             {search || filterCategory
@@ -339,8 +340,10 @@ export default function DepositPage() {
                     <div className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                       {image ? (
                         <img src={image} alt={item.title} className="w-full h-full object-cover" />
+                      ) : item.type === 'object' ? (
+                        <Package className="w-8 h-8 text-gray-400" aria-hidden="true" />
                       ) : (
-                        <span className="text-2xl">{item.type === 'object' ? '📦' : '🎁'}</span>
+                        <Gift className="w-8 h-8 text-gray-400" aria-hidden="true" />
                       )}
                     </div>
 
@@ -363,7 +366,7 @@ export default function DepositPage() {
                             title="Stampa etichetta"
                             className="px-2 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 flex items-center gap-1"
                           >
-                            <span aria-hidden="true">🖨️</span>
+                            <Printer className="w-3 h-3" aria-hidden="true" />
                           </button>
                         </div>
                       </div>

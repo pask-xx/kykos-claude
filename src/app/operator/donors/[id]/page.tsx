@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { Send } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { Switch } from '@/components/ui';
 import SendMessageDialog from '@/components/SendMessageDialog';
@@ -143,8 +144,9 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
           {donor.donorProfile?.level || 'BRONZE'}
         </span>
         <SendMessageDialog userId={donor.id} userType="USER" userName={displayName}>
-          <button className="px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-medium text-sm">
-            📩 Messaggio
+          <button className="px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-medium text-sm inline-flex items-center gap-1.5">
+            <Send className="w-4 h-4" aria-hidden="true" />
+            Messaggio
           </button>
         </SendMessageDialog>
       </div>
@@ -162,7 +164,7 @@ export default function DonorDetailPage({ params }: { params: Promise<{ id: stri
           <Switch
             checked={donor.canProvideServices}
             onChange={toggleCanProvideServices}
-            label="🔧 Fornitore di servizi"
+            label="Fornitore di servizi"
             description="Può soddisfare richieste di servizi"
             loading={updating}
           />

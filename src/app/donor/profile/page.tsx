@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Trophy, AlertTriangle } from 'lucide-react';
 import ProfileForm from '@/components/profile/ProfileForm';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
@@ -87,7 +88,7 @@ export default function DonorProfilePage() {
         {/* Donor Stats (read-only) */}
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>🏆</span> Statistiche donatore
+            <Trophy className="w-5 h-5 text-amber-500" aria-hidden="true" /> Statistiche donatore
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div>
@@ -124,7 +125,7 @@ export default function DonorProfilePage() {
         {/* Danger Zone */}
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <h2 className="text-xl font-semibold text-red-900 mb-2 flex items-center gap-2">
-            <span>⚠️</span> Zona pericolosa
+            <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" /> Zona pericolosa
           </h2>
           <p className="text-red-700 text-sm mb-4">
             Una volta disattivato, l&apos;account non potrà essere ripristinato.

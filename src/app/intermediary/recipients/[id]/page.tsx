@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { CheckCircle2, Hourglass, User, BarChart3, MapPin } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
@@ -126,7 +127,11 @@ export default function BeneficiaryDetailPage() {
             <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
               beneficiary.authorized ? 'bg-green-100' : 'bg-amber-100'
             }`}>
-              <span className="text-2xl">{beneficiary.authorized ? '✅' : '⏳'}</span>
+              {beneficiary.authorized ? (
+                <CheckCircle2 className="w-7 h-7 text-green-600" aria-hidden="true" />
+              ) : (
+                <Hourglass className="w-7 h-7 text-amber-600" aria-hidden="true" />
+              )}
             </div>
             <div>
               <p className="font-semibold text-gray-900">
@@ -160,7 +165,7 @@ export default function BeneficiaryDetailPage() {
       {/* Personal Data */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span>👤</span> Dati anagrafici
+          <User className="w-5 h-5 text-gray-500" aria-hidden="true" /> Dati anagrafici
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
@@ -205,7 +210,7 @@ export default function BeneficiaryDetailPage() {
       {/* Stats */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span>📊</span>Statistiche
+          <BarChart3 className="w-5 h-5 text-gray-500" aria-hidden="true" /> Statistiche
         </h2>
         <div className="grid md:grid-cols-3 gap-6">
           <div>
@@ -223,7 +228,7 @@ export default function BeneficiaryDetailPage() {
       {beneficiary.latitude && beneficiary.longitude && (
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>📍</span> Posizione geografica
+            <MapPin className="w-5 h-5 text-gray-500" aria-hidden="true" /> Posizione geografica
           </h2>
           <p className="text-sm text-gray-500 mb-4">
             {beneficiary.latitude.toFixed(5)}, {beneficiary.longitude.toFixed(5)}

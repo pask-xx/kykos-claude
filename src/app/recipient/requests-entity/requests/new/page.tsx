@@ -3,16 +3,20 @@
 import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {
+  Sofa, Smartphone, Shirt, BookOpen, ChefHat, Trophy, Puzzle, Package, Wrench,
+  type LucideIcon,
+} from 'lucide-react';
 
-const categories = [
-  { value: 'FURNITURE', label: 'Arredamento', icon: '🪑' },
-  { value: 'ELECTRONICS', label: 'Elettronica', icon: '📱' },
-  { value: 'CLOTHING', label: 'Abbigliamento', icon: '👕' },
-  { value: 'BOOKS', label: 'Libri', icon: '📚' },
-  { value: 'KITCHEN', label: 'Cucina', icon: '🍳' },
-  { value: 'SPORTS', label: 'Sport', icon: '⚽' },
-  { value: 'TOYS', label: 'Giocattoli', icon: '🧸' },
-  { value: 'OTHER', label: 'Altro', icon: '📦' },
+const categories: { value: string; label: string; icon: LucideIcon }[] = [
+  { value: 'FURNITURE', label: 'Arredamento', icon: Sofa },
+  { value: 'ELECTRONICS', label: 'Elettronica', icon: Smartphone },
+  { value: 'CLOTHING', label: 'Abbigliamento', icon: Shirt },
+  { value: 'BOOKS', label: 'Libri', icon: BookOpen },
+  { value: 'KITCHEN', label: 'Cucina', icon: ChefHat },
+  { value: 'SPORTS', label: 'Sport', icon: Trophy },
+  { value: 'TOYS', label: 'Giocattoli', icon: Puzzle },
+  { value: 'OTHER', label: 'Altro', icon: Package },
 ];
 
 export default function NewEntityRequestPage() {
@@ -86,26 +90,28 @@ export default function NewEntityRequestPage() {
             <button
               type="button"
               onClick={() => setType('GOODS')}
+              aria-pressed={type === 'GOODS'}
               className={`flex-1 p-4 rounded-lg border-2 transition flex flex-col items-center gap-2 ${
                 type === 'GOODS'
                   ? 'border-primary-500 bg-primary-50'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <span className="text-3xl">🪑</span>
+              <Package className="w-8 h-8 text-primary-600" aria-hidden="true" />
               <span className="font-medium">Bene</span>
               <span className="text-xs text-gray-500">Oggetto materiale</span>
             </button>
             <button
               type="button"
               onClick={() => setType('SERVICES')}
+              aria-pressed={type === 'SERVICES'}
               className={`flex-1 p-4 rounded-lg border-2 transition flex flex-col items-center gap-2 ${
                 type === 'SERVICES'
                   ? 'border-primary-500 bg-primary-50'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <span className="text-3xl">🔧</span>
+              <Wrench className="w-8 h-8 text-primary-600" aria-hidden="true" />
               <span className="font-medium">Servizio</span>
               <span className="text-xs text-gray-500">Lavoro o attività</span>
             </button>
@@ -117,21 +123,25 @@ export default function NewEntityRequestPage() {
             Categoria *
           </span>
           <div role="radiogroup" aria-labelledby={categoryGroupId} className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.value}
-                type="button"
-                onClick={() => setCategory(cat.value)}
-                className={`p-3 rounded-lg border-2 transition flex flex-col items-center gap-1.5 ${
-                  category === cat.value
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <span className="text-2xl">{cat.icon}</span>
-                <span className="text-xs font-medium text-center leading-tight">{cat.label}</span>
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => setCategory(cat.value)}
+                  aria-pressed={category === cat.value}
+                  className={`p-3 rounded-lg border-2 transition flex flex-col items-center gap-1.5 ${
+                    category === cat.value
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-6 h-6 text-primary-600" aria-hidden="true" />
+                  <span className="text-xs font-medium text-center leading-tight">{cat.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

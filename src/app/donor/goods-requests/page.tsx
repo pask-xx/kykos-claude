@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import {
+  Sofa, Smartphone, Shirt, BookOpen, ChefHat, Trophy, Puzzle, Package,
+  ClipboardList, QrCode,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface GoodsOffer {
   id: string;
@@ -41,11 +46,12 @@ export default function DonorGoodsRequestsPage() {
   };
 
   const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      FURNITURE: '🪑', ELECTRONICS: '📱', CLOTHING: '👕', BOOKS: '📚',
-      KITCHEN: '🍳', SPORTS: '⚽', TOYS: '🧸', OTHER: '📦',
+    const icons: Record<string, LucideIcon> = {
+      FURNITURE: Sofa, ELECTRONICS: Smartphone, CLOTHING: Shirt, BOOKS: BookOpen,
+      KITCHEN: ChefHat, SPORTS: Trophy, TOYS: Puzzle, OTHER: Package,
     };
-    return icons[category] || '📦';
+    const Icon = icons[category] || Package;
+    return <Icon className="w-6 h-6 text-gray-600" aria-hidden="true" />;
   };
 
   const acceptedOffers = offers.filter(o => o.status === 'ACCEPTED');
@@ -62,7 +68,7 @@ export default function DonorGoodsRequestsPage() {
         </div>
       ) : acceptedOffers.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📋</span>
+          <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta accettata</h2>
           <p className="text-gray-500 mb-6">Non hai ancora accettato richieste di beni da donare.</p>
           <Link href="/donor/dashboard" className="text-primary-600 hover:text-primary-700 font-medium">
@@ -75,7 +81,7 @@ export default function DonorGoodsRequestsPage() {
             <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-green-200 overflow-hidden">
               <div className="p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
                     {getCategoryIcon(offer.request.category)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -104,9 +110,10 @@ export default function DonorGoodsRequestsPage() {
               <div className="bg-green-50 px-4 py-3 border-t border-green-100">
                 <Link
                   href={`/donor/qr-goods/${offer.requestId}`}
-                  className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
                 >
-                  📱 Vedi QR Code per consegna
+                  <QrCode className="w-4 h-4" aria-hidden="true" />
+                  Vedi QR Code per consegna
                 </Link>
               </div>
             </div>

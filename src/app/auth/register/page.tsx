@@ -3,7 +3,7 @@
 import { useState, Suspense, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Building2, Gift, Heart, Home, MapPin, Satellite } from 'lucide-react';
+import { Building2, Gift, Heart, Home, MapPin, Satellite, Sparkles, Loader2 } from 'lucide-react';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
 import PdfViewerModal from '@/components/PdfViewerModal';
@@ -1005,12 +1005,12 @@ function RegisterForm() {
           >
             {loading ? (
               <>
-                <span className="animate-spin">⏳</span>
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 <span>Registrazione...</span>
               </>
             ) : (
               <>
-                <span>✨</span>
+                <Sparkles className="w-4 h-4" aria-hidden="true" />
                 <span>Registrati</span>
               </>
             )}

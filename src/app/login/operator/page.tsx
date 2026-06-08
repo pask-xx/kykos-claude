@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Building2, Lock, KeyRound, Loader2 } from 'lucide-react';
 
 export default function OperatorLoginPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function OperatorLoginPage() {
         <div className="relative z-10 space-y-8">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="w-8 h-8 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Accesso riservato</h3>
@@ -65,7 +66,7 @@ export default function OperatorLoginPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🔒</span>
+              <Lock className="w-8 h-8 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Dati protetti</h3>
@@ -152,12 +153,12 @@ export default function OperatorLoginPage() {
               >
                 {loading ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                     <span>Accesso in corso...</span>
                   </>
                 ) : (
                   <>
-                    <span>🔑</span>
+                    <KeyRound className="w-4 h-4" aria-hidden="true" />
                     <span>Accedi</span>
                   </>
                 )}

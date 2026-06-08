@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { XCircle, CheckCircle2, Package, MapPin } from 'lucide-react';
 
 interface GoodsPickupData {
   title: string;
@@ -99,7 +100,7 @@ export default function GoodsPickupPage() {
         </header>
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-            <div className="text-5xl mb-4">❌</div>
+            <XCircle className="w-12 h-12 mx-auto mb-4 text-red-600" aria-hidden="true" />
             <h1 className="text-xl font-bold text-red-700 mb-2">Errore</h1>
             <p className="text-gray-600">{error}</p>
           </div>
@@ -113,7 +114,7 @@ export default function GoodsPickupPage() {
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center space-y-6">
-            <div className="text-5xl mb-4">✓</div>
+            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-green-700">Ritiro Completato!</h1>
             <p className="text-gray-600">
               Il beneficiario ha ritirato il bene con successo.
@@ -147,7 +148,7 @@ export default function GoodsPickupPage() {
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
           {/* Pickup Info */}
           <div className="text-center">
-            <div className="text-5xl mb-4">📦</div>
+            <Package className="w-12 h-12 mx-auto mb-4 text-primary-600" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-gray-900">Ritiro Bene</h1>
           </div>
 
@@ -169,8 +170,9 @@ export default function GoodsPickupPage() {
                   Donato da: {goodsData.fulfilledByName}
                 </p>
                 {goodsData.depositLocation && (
-                  <p className="text-sm text-green-600 font-medium mt-2">
-                    📍 Posizione: <strong>{goodsData.depositLocation}</strong>
+                  <p className="text-sm text-green-600 font-medium mt-2 inline-flex items-center gap-1">
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
+                    Posizione: <strong>{goodsData.depositLocation}</strong>
                   </p>
                 )}
                 {goodsData.depositNotes && (

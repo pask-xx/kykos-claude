@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
+import { Gift, Medal, Trophy, Gem } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface Donor {
@@ -76,12 +78,12 @@ export default function DonorsListPage() {
     DIAMOND: 'bg-blue-400',
   };
 
-  const LEVEL_EMOJI: Record<string, string> = {
-    BRONZE: '🥉',
-    SILVER: '🥈',
-    GOLD: '🥇',
-    PLATINUM: '🏆',
-    DIAMOND: '💎',
+  const LEVEL_ICON: Record<string, LucideIcon> = {
+    BRONZE: Medal,
+    SILVER: Medal,
+    GOLD: Medal,
+    PLATINUM: Trophy,
+    DIAMOND: Gem,
   };
 
   return (
@@ -93,7 +95,7 @@ export default function DonorsListPage() {
 
       {donors.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
-          <span className="text-5xl mb-4 block">🎁</span>
+          <Gift className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <p className="text-gray-500">Nessun donatore presente</p>
         </div>
       ) : (
@@ -112,7 +114,7 @@ export default function DonorsListPage() {
                     {donor.profileImageUrl ? (
                       <img src={donor.profileImageUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl">🎁</span>
+                      <Gift className="w-6 h-6 text-primary-700" aria-hidden="true" />
                     )}
                   </div>
 
@@ -133,14 +135,20 @@ export default function DonorsListPage() {
 
                     {/* Stats row */}
                     <div className="flex flex-wrap items-center gap-3 mt-3">
-                      <span className={`px-2 py-0.5 text-xs font-medium text-white rounded ${LEVEL_COLORS[donor.donorProfile?.level || 'BRONZE']}`}>
-                        {LEVEL_EMOJI[donor.donorProfile?.level || 'BRONZE']} {donor.donorProfile?.level || 'BRONZE'}
-                      </span>
+                      {(() => {
+                        const LevelIcon = LEVEL_ICON[donor.donorProfile?.level || 'BRONZE'] || Medal;
+                        return (
+                          <span className={`px-2 py-0.5 text-xs font-medium text-white rounded inline-flex items-center gap-1 ${LEVEL_COLORS[donor.donorProfile?.level || 'BRONZE']}`}>
+                            <LevelIcon className="w-3 h-3" aria-hidden="true" />
+                            {donor.donorProfile?.level || 'BRONZE'}
+                          </span>
+                        );
+                      })()}
                       <span className="text-sm text-gray-500">
                         {donor.donorProfile?.totalDonations || 0} donazioni
                       </span>
                       <span className={`px-2 py-0.5 text-xs rounded ${donor.canProvideServices ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {donor.canProvideServices ? '✓ Servizi' : 'Solo beni'}
+                        {donor.canProvideServices ? 'Servizi' : 'Solo beni'}
                       </span>
                     </div>
 

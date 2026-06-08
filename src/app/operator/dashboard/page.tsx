@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { Clock, CheckCircle2, Package, Users } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getJwtSecret } from '@/lib/auth';
 import { redirect } from 'next/navigation';
@@ -84,7 +85,7 @@ export default async function OperatorDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">⏳</span>
+              <Clock className="w-6 h-6 text-amber-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Richieste in attesa</p>
@@ -95,7 +96,7 @@ export default async function OperatorDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">✅</span>
+              <CheckCircle2 className="w-6 h-6 text-green-600" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Beneficiari autorizzati</p>
@@ -106,7 +107,7 @@ export default async function OperatorDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📦</span>
+              <Package className="w-6 h-6 text-primary-700" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Disponibilità</p>
@@ -117,7 +118,7 @@ export default async function OperatorDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">👥</span>
+              <Users className="w-6 h-6 text-secondary-700" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Operatori ente</p>

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense, useId } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { CheckCircle2, AlertTriangle, MapPin, Check, Loader2 } from 'lucide-react';
 import CitySelector from '@/components/geo/CitySelector';
 
 interface Diocese {
@@ -205,7 +206,7 @@ function NewIntermediaryContent() {
       <div className="max-w-2xl">
         <div className="bg-white p-8 rounded-xl shadow-sm border text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">✅</span>
+            <CheckCircle2 className="w-9 h-9 text-green-600" aria-hidden="true" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Ente creato!</h2>
           <p className="text-gray-600 mb-6">
@@ -214,7 +215,10 @@ function NewIntermediaryContent() {
 
           {!success.emailSent && success.tempPassword && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-left">
-              <p className="font-medium text-amber-800 mb-2">⚠️ L&apos;email non è stata inviata</p>
+              <p className="font-medium text-amber-800 mb-2 inline-flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                L&apos;email non è stata inviata
+              </p>
               <p className="text-sm text-amber-700 mb-4">
                 Comunica manualmente queste credenziali all&apos;amministratore dell&apos;ente:
               </p>
@@ -423,14 +427,16 @@ function NewIntermediaryContent() {
           {/* Geocoding Section */}
           <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
             <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
-              <span>📍</span> Coordinate geografiche
+              <MapPin className="w-4 h-4 text-gray-500" aria-hidden="true" /> Coordinate geografiche
             </h3>
             <p className="text-xs text-gray-500 mb-3">
               {cityCoords.lat && cityCoords.lng
                 ? `Coordinate: ${cityCoords.lat.toFixed(6)}, ${cityCoords.lng.toFixed(6)}`
                 : 'Non ancora calcolate'}
               {cityCoords.lat && cityCoords.lng && city && (
-                <span className="text-green-600 ml-2">✓ dal comune</span>
+                <span className="text-green-600 ml-2 inline-flex items-center gap-0.5">
+                  <Check className="w-3 h-3" aria-hidden="true" /> dal comune
+                </span>
               )}
             </p>
 
@@ -441,7 +447,17 @@ function NewIntermediaryContent() {
                 disabled={geocoding || !address || !city}
                 className="flex-1 px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
               >
-                {geocoding ? '⏳ Calcolo...' : '📍 Calcola da indirizzo'}
+                {geocoding ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
+                    Calcolo...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-3 h-3" aria-hidden="true" />
+                    Calcola da indirizzo
+                  </>
+                )}
               </button>
             </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
 import Link from 'next/link';
+import { Package, Search } from 'lucide-react';
 
 interface Object {
   id: string;
@@ -102,13 +103,13 @@ export default function IntermediaryObjectsPage() {
 
       {objects.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">📦</span>
+          <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna disponibilità</h2>
           <p className="text-gray-500">Non ci sono disponibilità nel tuo ente.</p>
         </div>
       ) : filteredObjects.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">🔍</span>
+          <Search className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun risultato</h2>
           <p className="text-gray-500">Nessuna disponibilità trovata per "{search}"</p>
         </div>
@@ -120,7 +121,7 @@ export default function IntermediaryObjectsPage() {
                 {obj.imageUrls && obj.imageUrls[0] ? (
                   <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
                 ) : (
-                  <span className="text-5xl">📦</span>
+                  <Package className="w-12 h-12 text-gray-400" aria-hidden="true" />
                 )}
               </div>
               <div className="p-4">

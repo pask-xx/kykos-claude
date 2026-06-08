@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Package } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 
@@ -117,7 +118,7 @@ export default function DioceseObjectsPage() {
 
       {filteredObjects.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📦</span>
+          <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun oggetto</h2>
           <p className="text-gray-500">Non ci sono oggetti che corrispondono ai filtri.</p>
         </div>
@@ -135,7 +136,7 @@ export default function DioceseObjectsPage() {
                   {obj.imageUrls && obj.imageUrls.length > 0 ? (
                     <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl">📦</span>
+                    <Package className="w-8 h-8 text-gray-400" aria-hidden="true" />
                   )}
                 </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { CheckCircle2, XCircle, Package, MapPin, AlertTriangle, Check, Camera } from 'lucide-react';
 import QrScanner from 'qr-scanner';
 
 interface PickupData {
@@ -230,7 +231,7 @@ export default function PickupLocationPage() {
         </header>
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-            <div className="text-5xl mb-4">❌</div>
+            <XCircle className="w-12 h-12 mx-auto mb-4 text-red-600" aria-hidden="true" />
             <h1 className="text-xl font-bold text-red-700 mb-2">Errore</h1>
             <p className="text-gray-600">{error}</p>
           </div>
@@ -244,7 +245,7 @@ export default function PickupLocationPage() {
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8 max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center space-y-6">
-            <div className="text-5xl mb-4">✓</div>
+            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-green-700">Ritiro Completato!</h1>
             <p className="text-gray-600">
               Il beneficiario ha ritirato l&apos;oggetto con successo.
@@ -278,7 +279,7 @@ export default function PickupLocationPage() {
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
           {/* Pickup Info */}
           <div className="text-center">
-            <div className="text-5xl mb-4">📦</div>
+            <Package className="w-12 h-12 mx-auto mb-4 text-primary-600" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-gray-900">Ritiro Oggetto</h1>
           </div>
 
@@ -302,7 +303,7 @@ export default function PickupLocationPage() {
               {pickupData.depositLocation ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                   <div className="flex items-center justify-center mb-4">
-                    <span className="text-4xl">📍</span>
+                    <MapPin className="w-10 h-10 text-green-700" aria-hidden="true" />
                   </div>
                   <h3 className="text-lg font-semibold text-center text-green-800 mb-2">
                     Posizione oggetto
@@ -318,7 +319,7 @@ export default function PickupLocationPage() {
                 </div>
               ) : (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-                  <div className="text-4xl mb-4">⚠️</div>
+                  <AlertTriangle className="w-10 h-10 mx-auto mb-4 text-amber-600" aria-hidden="true" />
                   <h3 className="font-semibold text-amber-800 mb-2">
                     Posizione non registrata
                   </h3>
@@ -337,7 +338,8 @@ export default function PickupLocationPage() {
                     <span className="font-medium text-gray-700">Verifica oggetto</span>
                     {verified ? (
                       <span className="text-green-600 font-semibold flex items-center gap-1">
-                        ✓ Verificato
+                        <Check className="w-4 h-4" aria-hidden="true" />
+                        Verificato
                       </span>
                     ) : null}
                   </div>
@@ -348,13 +350,15 @@ export default function PickupLocationPage() {
                   <button
                     type="button"
                     onClick={() => setShowVerifyScanner(!showVerifyScanner)}
-                    className={`w-full py-3 rounded-lg font-medium ${
+                    aria-label={showVerifyScanner ? 'Annulla scansione QR' : 'Scansiona QR oggetto'}
+                    className={`w-full py-3 rounded-lg font-medium inline-flex items-center justify-center gap-2 ${
                       showVerifyScanner
                         ? 'bg-gray-200 text-gray-700'
                         : 'bg-primary-600 text-white hover:bg-primary-700'
                     }`}
                   >
-                    📷 {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
+                    <Camera className="w-4 h-4" aria-hidden="true" />
+                    {showVerifyScanner ? 'Annulla scansione' : 'Scansiona QR oggetto'}
                   </button>
 
                   {showVerifyScanner && (

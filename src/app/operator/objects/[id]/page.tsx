@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { Package, Printer, Inbox } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, OBJECT_STATUS_LABELS } from '@/types';
 import QRCode from 'qrcode';
@@ -226,7 +227,8 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
             onClick={handlePrintLabel}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 text-sm font-medium"
           >
-            🖨️ Stampa etichetta
+            <Printer className="w-4 h-4" aria-hidden="true" />
+            Stampa etichetta
           </button>
         )}
         {operatorType?.isStreetOperator && object.status === 'AVAILABLE' && (
@@ -234,7 +236,8 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
             href={`/operator/objects/${id}/request`}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
           >
-            📩 Richiedi
+            <Inbox className="w-4 h-4" aria-hidden="true" />
+            Richiedi
           </Link>
         )}
       </div>
@@ -251,7 +254,7 @@ export default function ObjectDetailPage({ params }: { params: Promise<{ id: str
                 className="w-full h-full object-contain"
               />
             ) : (
-              <span className="text-8xl">📦</span>
+              <Package className="w-24 h-24 text-gray-300" aria-hidden="true" />
             )}
           </div>
 

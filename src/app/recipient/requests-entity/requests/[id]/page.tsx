@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {
+  Sofa, Smartphone, Shirt, BookOpen, ChefHat, Trophy, Puzzle, Package,
+  MapPin, Check, QrCode,
+  type LucideIcon,
+} from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -109,11 +114,12 @@ export default function GoodsRequestDetailPage() {
   };
 
   const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      FURNITURE: '🪑', ELECTRONICS: '📱', CLOTHING: '👕', BOOKS: '📚',
-      KITCHEN: '🍳', SPORTS: '⚽', TOYS: '🧸', OTHER: '📦',
+    const icons: Record<string, LucideIcon> = {
+      FURNITURE: Sofa, ELECTRONICS: Smartphone, CLOTHING: Shirt, BOOKS: BookOpen,
+      KITCHEN: ChefHat, SPORTS: Trophy, TOYS: Puzzle, OTHER: Package,
     };
-    return icons[category] || '📦';
+    const Icon = icons[category] || Package;
+    return <Icon className="w-8 h-8 text-gray-600" aria-hidden="true" />;
   };
 
   const getOfferStatusBadge = (status: string) => {
@@ -160,7 +166,7 @@ export default function GoodsRequestDetailPage() {
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
               <div className="p-6">
                 <div className="flex gap-4">
-                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
+                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     {getCategoryIcon(request.category)}
                   </div>
                   <div className="flex-1">
@@ -182,7 +188,9 @@ export default function GoodsRequestDetailPage() {
 
               {/* Entity Info */}
               <div className="bg-gray-50 p-4 rounded-xl">
-                <h3 className="font-semibold text-gray-900 mb-2">📍 Ente di riferimento</h3>
+                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-gray-500" aria-hidden="true" /> Ente di riferimento
+                </h3>
                 <p className="text-gray-700">{request.intermediary.name}</p>
                 {(request.intermediary.address || request.intermediary.city) && (
                   <p className="text-sm text-gray-500">
@@ -194,13 +202,16 @@ export default function GoodsRequestDetailPage() {
               {/* Fulfiller Info */}
               {request.fulfilledBy && (
                 <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                  <h3 className="font-semibold text-green-900 mb-2">✓ Soddisfatta</h3>
+                  <h3 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-green-600" aria-hidden="true" /> Soddisfatta
+                  </h3>
                   {request.status === 'DELIVERED' && (
                     <Link
                       href={`/recipient/qr-goods/${request.id}`}
                       className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
                     >
-                      📱 Visualizza QR per ritiro
+                      <QrCode className="w-4 h-4" aria-hidden="true" />
+                      Visualizza QR per ritiro
                     </Link>
                   )}
                   {request.status === 'FULFILLED' && (

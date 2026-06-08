@@ -4,6 +4,7 @@ import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { Check } from 'lucide-react';
 import { formatDate, formatDatetimeForInput } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
 import { toast } from '@/components/ui/Toast';
@@ -482,7 +483,7 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
 
               return (
                 <div key={request.id} className="p-4 flex items-center gap-4 bg-green-50">
-                  <span className="text-green-600">✓</span>
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0" aria-hidden="true" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900">{displayName}</p>
                     <p className="text-sm text-gray-500">{request.beneficiary.email}</p>

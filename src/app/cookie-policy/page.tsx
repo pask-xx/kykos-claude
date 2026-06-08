@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { Check } from 'lucide-react';
 import SessionDashboardLink from '@/components/SessionDashboardLink';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -135,13 +136,19 @@ export default function CookiePolicyPage() {
             necessari al funzionamento del servizio. In particolare:
           </p>
           <ul className="space-y-2 text-gray-700 mb-4">
-            <li>
-              ✅ <strong>Cookie tecnici di sessione</strong>: necessari per
-              autenticare l&apos;utente e mantenere attiva la sessione.
+            <li className="flex items-start gap-2">
+              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <span>
+                <strong>Cookie tecnici di sessione</strong>: necessari per
+                autenticare l&apos;utente e mantenere attiva la sessione.
+              </span>
             </li>
-            <li>
-              ✅ <strong>Cookie tecnici di sicurezza</strong>: necessari per
-              proteggere la sessione da attacchi CSRF.
+            <li className="flex items-start gap-2">
+              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <span>
+                <strong>Cookie tecnici di sicurezza</strong>: necessari per
+                proteggere la sessione da attacchi CSRF.
+              </span>
             </li>
           </ul>
           <p className="text-gray-700 leading-relaxed">

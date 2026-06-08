@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { Gift } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
 
@@ -169,7 +170,7 @@ export default function GoodsDetailPage({ params }: { params: Promise<{ requestI
                 className="w-full h-full object-contain"
               />
             ) : (
-              <span className="text-8xl">🎁</span>
+              <Gift className="w-24 h-24 text-gray-300" aria-hidden="true" />
             )}
           </div>
 

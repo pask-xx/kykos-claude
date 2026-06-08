@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AlertTriangle } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { ObjectStatus, GoodsOfferStatus, GoodsRequestStatus } from '@/types';
 
@@ -216,7 +217,7 @@ export default function RecipientDeactivatePage() {
         {/* Warning Banner */}
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" aria-hidden="true" />
             <div>
               <h3 className="font-semibold text-amber-900">Azione irreversibile</h3>
               <p className="text-amber-700 text-sm mt-1">

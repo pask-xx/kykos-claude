@@ -3,7 +3,7 @@
 import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, Handshake, MapPin, Upload } from 'lucide-react';
+import { Building2, Handshake, MapPin, Upload, X, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 interface Organization {
@@ -471,7 +471,7 @@ export default function VolunteerPage() {
                 onClick={() => setShowApplyModal(false)}
                 className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
               >
-                <span aria-hidden="true">✕</span>
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -581,7 +581,10 @@ export default function VolunteerPage() {
                   </span>
                   {cvUrl ? (
                     <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <span className="text-green-600">✅ CV caricato</span>
+                      <span className="text-green-600 inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+                        CV caricato
+                      </span>
                       <button
                         type="button"
                         onClick={() => { setCvFile(null); setCvUrl(''); }}

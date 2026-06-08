@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, Check, Package } from 'lucide-react';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 
 interface ObjectDetail {
@@ -155,7 +156,7 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
   if (success) {
     return (
       <div className="text-center py-12">
-        <div className="text-5xl mb-4">✅</div>
+        <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-600" aria-hidden="true" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Richiesta effettuata!</h2>
         <p className="text-gray-500 mb-4">La richiesta è stata creata e approvata automaticamente.</p>
         <p className="text-sm text-gray-400">Reindirizzamento...</p>
@@ -180,7 +181,7 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
             {object.imageUrls && object.imageUrls.length > 0 ? (
               <img src={object.imageUrls[0]} alt={object.title} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-3xl">📦</span>
+              <Package className="w-12 h-12 text-gray-400" aria-hidden="true" />
             )}
           </div>
           <div>
@@ -243,7 +244,7 @@ export default function RequestObjectPage({ params }: { params: Promise<{ id: st
                     </p>
                   </div>
                   {selectedRecipient?.id === recipient.id && (
-                    <span className="text-primary-600">✓</span>
+                    <Check className="w-5 h-5 text-primary-600" aria-hidden="true" />
                   )}
                 </div>
               </div>

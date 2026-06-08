@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Search, Package, QrCode } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { REQUEST_STATUS_LABELS } from '@/types';
 
@@ -124,7 +125,7 @@ export default function DonorObjectDetailPage() {
     return (
       <div className="p-6">
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">🔍</span>
+          <Search className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Oggetto non trovato</h2>
           <Link href="/donor/objects" className="text-primary-600 hover:text-primary-700 font-medium">
             ← Torna alle disponibilità
@@ -178,7 +179,7 @@ export default function DonorObjectDetailPage() {
             </>
           ) : (
             <div className="aspect-video bg-gray-100 flex items-center justify-center">
-              <span className="text-6xl">📦</span>
+              <Package className="w-16 h-16 text-gray-400" aria-hidden="true" />
             </div>
           )}
         </div>
@@ -251,9 +252,10 @@ export default function DonorObjectDetailPage() {
               <div className="flex gap-3">
                 <a
                   href={`/donor/delivery-qr/${object.requests[0].id}`}
-                  className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-center"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
                 >
-                  📱 Visualizza QR Code
+                  <QrCode className="w-4 h-4" aria-hidden="true" />
+                  Visualizza QR Code
                 </a>
               </div>
             </div>
