@@ -3,6 +3,22 @@
 import { useState, useEffect, useMemo } from 'react';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { SearchX, Users } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Input,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableEmpty,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui';
 
 interface Recipient {
   id: string;
@@ -28,11 +44,19 @@ function formatIsee(value: string | null): string {
   return `€${num.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+/**
+ * Mappa Recipient.authorized → Badge variant KYKOS.
+ */
+function authorizedBadge(authorized: boolean) {
+  return authorized
+    ? { variant: 'success' as const, label: 'Autorizzato' }
+    : { variant: 'warning' as const, label: 'In attesa' };
+}
+
 export default function IntermediaryRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [organizationName, setOrganizationName] = useState('');
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
   const router = useRouter();
 
@@ -48,13 +72,13 @@ export default function IntermediaryRecipientsPage() {
       setOrganizationName(data.organizationName || '');
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Errore di connessione');
     } finally {
       setLoading(false);
     }
   };
 
   const handleAuthorize = async (recipientId: string, authorize: boolean) => {
-    setMessage('');
     try {
       const res = await fetch('/api/intermediary/recipients', {
         method: 'PATCH',
@@ -62,17 +86,16 @@ export default function IntermediaryRecipientsPage() {
         body: JSON.stringify({ recipientId, authorize }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setMessage(data.error || 'Errore');
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore');
         return;
       }
 
-      setMessage(authorize ? 'Beneficiario autorizzato' : 'Autorizzazione revocata');
+      toast.success(authorize ? 'Beneficiario autorizzato' : 'Autorizzazione revocata');
       fetchRecipients();
     } catch {
-      setMessage('Errore di connessione');
+      toast.error('Errore di connessione');
     }
   };
 
@@ -93,63 +116,57 @@ export default function IntermediaryRecipientsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Caricamento...</p>
+        <Spinner size="lg" />
       </div>
     );
   }
 
   return (
     <div className="max-w-full">
-      <h1 className="text-3xl font-medium text-gray-900 mb-2">Gestione Beneficiari</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">Gestione Beneficiari</h1>
       <p className="text-gray-500 mb-8">{organizationName}</p>
-
-      {message && (
-        <div className={`mb-6 p-4 rounded-lg ${message.includes('autorizzato') || message.includes('revocata') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-          {message}
-        </div>
-      )}
 
       {/* Search */}
       <div className="mb-6">
-        <input
+        <Input
           type="text"
           placeholder="Cerca per nome, email, città o codice fiscale..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
         />
       </div>
 
       {recipients.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">👥</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun beneficiario</h2>
-          <p className="text-gray-500">Non ci sono beneficiari che fanno riferimento al tuo ente.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="Nessun beneficiario"
+          description="Non ci sono beneficiari che fanno riferimento al tuo ente."
+        />
       ) : filteredRecipients.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <span className="text-5xl mb-4 block">🔍</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun risultato</h2>
-          <p className="text-gray-500">Nessun beneficiario trovato per "{search}"</p>
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title="Nessun risultato"
+          description={`Nessun beneficiario trovato per "${search}"`}
+        />
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Nome</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Città</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Codice Fiscale</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">ISEE</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Stato</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Richieste</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Azioni</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredRecipients.map((recipient) => (
-                <tr key={recipient.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Città</TableHead>
+              <TableHead>Codice Fiscale</TableHead>
+              <TableHead>ISEE</TableHead>
+              <TableHead>Stato</TableHead>
+              <TableHead>Richieste</TableHead>
+              <TableHead>Azioni</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredRecipients.map((recipient) => {
+              const statusBadge = authorizedBadge(recipient.authorized);
+              return (
+                <TableRow key={recipient.id}>
+                  <TableCell>
                     <button
                       onClick={() => router.push(`/intermediary/recipients/${recipient.id}`)}
                       className="text-left hover:underline"
@@ -161,55 +178,49 @@ export default function IntermediaryRecipientsPage() {
                       </p>
                       <p className="text-sm text-gray-500">{recipient.email}</p>
                     </button>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {recipient.city || '—'}
-                  </td>
-                  <td className="px-6 py-4 font-mono text-sm text-gray-700 uppercase">
+                  </TableCell>
+                  <TableCell>{recipient.city || '—'}</TableCell>
+                  <TableCell className="font-mono uppercase">
                     {recipient.fiscalCode || '—'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {formatIsee(recipient.isee)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                      recipient.authorized
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {recipient.authorized ? 'Autorizzato' : 'In attesa'}
-                    </span>
-                    {recipient.authorized && recipient.authorizedAt && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        dal {formatDate(recipient.authorizedAt)}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {recipient._count.requests}
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>{formatIsee(recipient.isee)}</TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <Badge variant={statusBadge.variant} size="sm">
+                        {statusBadge.label}
+                      </Badge>
+                      {recipient.authorized && recipient.authorizedAt && (
+                        <p className="text-xs text-gray-400">
+                          dal {formatDate(recipient.authorizedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{recipient._count.requests}</TableCell>
+                  <TableCell>
                     {recipient.authorized ? (
-                      <button
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => handleAuthorize(recipient.id, false)}
-                        className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
                       >
                         Revoca
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
+                        variant="success"
+                        size="sm"
                         onClick={() => handleAuthorize(recipient.id, true)}
-                        className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
                       >
                         Autorizza
-                      </button>
+                      </Button>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
     </div>
   );
