@@ -3,7 +3,7 @@
 import { useState, useEffect, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Handshake, Upload } from 'lucide-react';
+import { Building2, Handshake, Upload, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 interface Organization {
@@ -354,7 +354,10 @@ export default function VolunteerApplyPage() {
               </span>
               {cvUrl ? (
                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <span className="text-green-600">✅ CV caricato</span>
+                  <span className="text-green-600 inline-flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+                    CV caricato
+                  </span>
                   <button
                     type="button"
                     onClick={() => { setCvFile(null); setCvUrl(''); }}

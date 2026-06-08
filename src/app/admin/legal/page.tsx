@@ -2,6 +2,7 @@
 
 import { useState, useId } from 'react';
 import useSWR from 'swr';
+import { AlertTriangle } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 type LegalDocumentType = 'TERMS' | 'PRIVACY';
@@ -150,8 +151,9 @@ export default function AdminLegalPage() {
                         · pubblicata il {formatDate(active.publishedAt)}
                       </p>
                     ) : (
-                      <p className="text-sm text-red-600 mt-1">
-                        ⚠️ Nessuna versione attiva: tutti gli utenti riceveranno il re-consenso.
+                      <p className="text-sm text-red-600 mt-1 inline-flex items-center gap-1">
+                        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                        Nessuna versione attiva: tutti gli utenti riceveranno il re-consenso.
                       </p>
                     )}
                   </div>
@@ -304,9 +306,10 @@ export default function AdminLegalPage() {
               </p>
             )}
             {confirmAction.kind === 'publish' && (
-              <div className="my-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+              <div className="my-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <p>
-                  <strong>⚠️ Attenzione:</strong> tutti gli utenti loggati riceveranno
+                  <strong>Attenzione:</strong> tutti gli utenti loggati riceveranno
                   la schermata di re-consenso al prossimo accesso. La versione
                   attualmente attiva (se presente) verrà archiviata.
                 </p>
@@ -322,9 +325,10 @@ export default function AdminLegalPage() {
               </div>
             )}
             {confirmAction.kind === 'delete' && (
-              <div className="my-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+              <div className="my-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <p>
-                  <strong>⚠️ Operazione irreversibile.</strong> Il record e il file
+                  <strong>Operazione irreversibile.</strong> Il record e il file
                   PDF verranno eliminati definitivamente dal database e da
                   Supabase Storage. La versione non è mai stata pubblicata, quindi
                   nessun utente l&apos;ha mai vista — è sicuro eliminarla.

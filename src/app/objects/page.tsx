@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CATEGORY_LABELS, DonorLevel, DONOR_LEVEL_LABELS, Category } from '@/types';
 import { formatDistance } from '@/lib/geo';
+import { Check, Lock, Package, MapPin } from 'lucide-react';
 
 interface Object {
   id: string;
@@ -179,7 +180,10 @@ export default function BrowsePage() {
                 {userLocation ? (
                   <>
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-sm text-gray-600">Posizione: ✓</span>
+                    <span className="text-sm text-gray-600 inline-flex items-center gap-1">
+                      Posizione:
+                      <Check className="w-3 h-3 text-green-600" aria-hidden="true" />
+                    </span>
                   </>
                 ) : locationRequested ? (
                   <>
@@ -217,7 +221,7 @@ export default function BrowsePage() {
         {/* Objects Grid */}
         {unauthorized ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-            <span className="text-5xl mb-4 block">🔐</span>
+            <Lock className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Accesso richiesto</h2>
             <p className="text-gray-500 mb-6">Devi effettuare l'accesso per visualizzare gli oggetti disponibili.</p>
             <Link
@@ -233,7 +237,7 @@ export default function BrowsePage() {
           </div>
         ) : objects.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-            <span className="text-5xl mb-4 block">📦</span>
+            <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessun oggetto disponibile</h2>
             <p className="text-gray-500 mb-6">Al momento non ci sono oggetti in questa categoria.</p>
             <Link
@@ -258,7 +262,7 @@ export default function BrowsePage() {
                       )}
                     </>
                   ) : (
-                    <span className="text-5xl">📦</span>
+                    <Package className="w-12 h-12 text-gray-400" aria-hidden="true" />
                   )}
                 </div>
                 <div className="p-4">
@@ -270,8 +274,9 @@ export default function BrowsePage() {
                       {obj.condition.replace('_', ' ')}
                     </span>
                     {obj.distance !== null && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
-                        📍 {formatDistance(obj.distance)}
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded inline-flex items-center gap-1">
+                        <MapPin className="w-3 h-3" aria-hidden="true" />
+                        {formatDistance(obj.distance)}
                       </span>
                     )}
                   </div>

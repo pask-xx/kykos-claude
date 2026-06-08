@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail } from 'lucide-react';
+import { Mail, Check, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 export default function ForgotPasswordPage() {
@@ -88,15 +88,18 @@ export default function ForgotPasswordPage() {
             </p>
 
             {success && (
-              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-                ✓ Ti abbiamo inviato le istruzioni per reimpostare la password.
-                Controlla la tua email (anche la cartella spam).
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-start gap-2">
+                <Check className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <span>Ti abbiamo inviato le istruzioni per reimpostare la password. Controlla la tua email (anche la cartella spam).</span>
               </div>
             )}
 
             {devToken && (
               <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-                <p className="font-medium text-amber-800 mb-2">⚠️ DEV MODE - Token di reset:</p>
+                <p className="font-medium text-amber-800 mb-2 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                  DEV MODE - Token di reset:
+                </p>
                 <code className="text-xs break-all text-amber-900">{devToken}</code>
                 <p className="mt-2">
                   <a

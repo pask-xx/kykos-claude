@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { Package } from 'lucide-react';
 import { CATEGORY_LABELS, CONDITION_LABELS, DonorLevel, DONOR_LEVEL_LABELS, Category, Condition } from '@/types';
 
 interface Object {
@@ -119,7 +120,7 @@ export default function ObjectDetailPage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-8xl">📦</span>
+                  <Package className="w-24 h-24 text-gray-400" aria-hidden="true" />
                 </div>
               )}
             </div>
