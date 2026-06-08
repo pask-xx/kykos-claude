@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { X, Camera } from 'lucide-react';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
 
 interface Intermediary {
@@ -234,9 +235,9 @@ export default function NewObjectPage() {
                         type="button"
                         aria-label="Rimuovi immagine"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-xs"
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
                       >
-                        ✕
+                        <X className="w-3 h-3" aria-hidden="true" />
                       </button>
                       {uploading && index >= imageUrls.length && (
                         <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
@@ -263,7 +264,7 @@ export default function NewObjectPage() {
                     className="hidden"
                   />
                   <div className="flex flex-col items-center gap-2">
-                    <span className="text-3xl">📷</span>
+                    <Camera className="w-8 h-8 text-gray-400" aria-hidden="true" />
                     <span className="text-gray-600">Aggiungi foto</span>
                     <span className="text-xs text-gray-400">
                       {MAX_IMAGES - previews.length} foto ancora disponibili
