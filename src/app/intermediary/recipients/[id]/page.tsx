@@ -115,7 +115,7 @@ export default function BeneficiaryDetailPage() {
       <p className="text-gray-500 mb-8">{beneficiary.email}</p>
 
       {message && (
-        <div className={`mb-6 p-4 rounded-lg ${message.includes('autorizzato') || message.includes('revocata') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`mb-6 p-4 rounded-lg ${message.includes('autorizzato') || message.includes('revocata') ? 'bg-success-50 text-success-700' : 'bg-error-50 text-error-700'}`}>
           {message}
         </div>
       )}
@@ -125,12 +125,12 @@ export default function BeneficiaryDetailPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-              beneficiary.authorized ? 'bg-green-100' : 'bg-amber-100'
+              beneficiary.authorized ? 'bg-success-100' : 'bg-warning-100'
             }`}>
               {beneficiary.authorized ? (
-                <CheckCircle2 className="w-7 h-7 text-green-600" aria-hidden="true" />
+                <CheckCircle2 className="w-7 h-7 text-success-600" aria-hidden="true" />
               ) : (
-                <Hourglass className="w-7 h-7 text-amber-600" aria-hidden="true" />
+                <Hourglass className="w-7 h-7 text-warning-600" aria-hidden="true" />
               )}
             </div>
             <div>
@@ -147,14 +147,14 @@ export default function BeneficiaryDetailPage() {
           {beneficiary.authorized ? (
             <button
               onClick={() => handleAuthorize(false)}
-              className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+              className="px-6 py-2.5 bg-error-600 text-white rounded-lg hover:bg-error-700 font-medium"
             >
               Revoca autorizzazione
             </button>
           ) : (
             <button
               onClick={() => handleAuthorize(true)}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+              className="px-6 py-2.5 bg-success-600 text-white rounded-lg hover:bg-success-700 font-medium"
             >
               Autorizza
             </button>
