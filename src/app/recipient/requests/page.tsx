@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Package, QrCode, ClipboardList } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
+import { Alert, Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
 
 interface RequestObject {
   id: string;
@@ -24,20 +27,36 @@ interface RequestObject {
   } | null;
 }
 
-const statusLabels: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'In attesa', color: 'bg-amber-100 text-amber-700' },
-  APPROVED: { label: 'Approvata', color: 'bg-green-100 text-green-700' },
-  REJECTED: { label: 'Rifiutata', color: 'bg-red-100 text-red-700' },
-  EXPIRED: { label: 'Scaduta', color: 'bg-gray-100 text-gray-700' },
-};
+type RequestFilter = 'all' | 'active' | 'completed';
 
-const objectStatusLabels: Record<string, { label: string; color: string; icon: string }> = {
-  AVAILABLE: { label: 'Disponibile', color: 'bg-green-100 text-green-700', icon: '📦' },
-  RESERVED: { label: 'In attesa consegna', color: 'bg-amber-100 text-amber-700', icon: '⏳' },
-  DEPOSITED: { label: 'Depositata', color: 'bg-blue-100 text-blue-700', icon: '📱' },
-  DONATED: { label: 'Ritirato', color: 'bg-gray-100 text-gray-700', icon: '✅' },
-  CANCELLED: { label: 'Cancellato', color: 'bg-red-100 text-red-700', icon: '🚫' },
-};
+/**
+ * Mappa Request.status → Badge variant KYKOS.
+ * vedi: src/types/RequestStatus.
+ */
+function requestStatusBadge(status: string) {
+  switch (status) {
+    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
+    case 'REJECTED': return { variant: 'danger' as const, label: 'Rifiutata' };
+    case 'EXPIRED': return { variant: 'default' as const, label: 'Scaduta' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
+
+/**
+ * Mappa Object.status → Badge variant KYKOS.
+ * vedi: src/types/ObjectStatus.
+ */
+function objectStatusBadge(status: string) {
+  switch (status) {
+    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
+    case 'RESERVED': return { variant: 'warning' as const, label: 'In attesa consegna' };
+    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
+    case 'CANCELLED': return { variant: 'danger' as const, label: 'Cancellato' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
 
 const categoryLabels: Record<string, string> = {
   FURNITURE: 'Arredamento',
@@ -62,20 +81,24 @@ export default function RecipientRequestsPage() {
   const [requests, setRequests] = useState<RequestObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<RequestFilter>('all');
 
   useEffect(() => {
     fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const fetchRequests = async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/recipient/requests');
       if (!res.ok) throw new Error('Errore nel caricamento');
       const data = await res.json();
       setRequests(data.requests || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore generico');
+      const msg = err instanceof Error ? err.message : 'Errore generico';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -88,21 +111,26 @@ export default function RecipientRequestsPage() {
     return true;
   });
 
+  const activeCount = requests.filter(r => r.object.status !== 'DONATED').length;
+  const completedCount = requests.filter(r => r.object.status === 'DONATED').length;
+
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
       </div>
     );
   }
 
-  if (error) {
+  if (error && requests.length === 0) {
     return (
-      <div className="text-center py-12 text-red-600">
-        <p>{error}</p>
-        <button onClick={fetchRequests} className="mt-2 text-sm text-primary-600 hover:underline">
-          Riprova
-        </button>
+      <div className="space-y-4 py-12">
+        <Alert type="error">{error}</Alert>
+        <div className="text-center">
+          <Button variant="primary" onClick={fetchRequests}>
+            Riprova
+          </Button>
+        </div>
       </div>
     );
   }
@@ -111,60 +139,51 @@ export default function RecipientRequestsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-medium text-gray-900">Le mie richieste</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Le mie richieste</h1>
           <p className="text-gray-500">Stato delle tue richieste di oggetti</p>
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-4">
-        {[
-          { key: 'all', label: 'Tutte' },
-          { key: 'active', label: 'Attive' },
-          { key: 'completed', label: 'Completate' },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-              filter === tab.key
-                ? 'bg-primary-100 text-primary-700 border border-primary-300'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <Tabs<RequestFilter>
+        value={filter}
+        onChange={setFilter}
+        items={[
+          { value: 'all', label: 'Tutte', count: requests.length },
+          { value: 'active', label: 'Attive', count: activeCount },
+          { value: 'completed', label: 'Completate', count: completedCount },
+        ]}
+        variant="default"
+        ariaLabel="Filtra richieste per stato"
+      />
 
       {filteredRequests.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <span className="text-5xl mb-4 block">📋</span>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
-          <p className="text-gray-500">
-            {filter === 'all'
+        <EmptyState
+          icon={ClipboardList}
+          title="Nessuna richiesta"
+          description={
+            filter === 'all'
               ? 'Non hai ancora richiesto nessun oggetto.'
-              : `Non ci sono richieste ${filter === 'active' ? 'attive' : 'completate'}.`}
-          </p>
-          <Link
-            href="/recipient/dashboard"
-            className="mt-4 inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Sfoglia gli oggetti disponibili
-          </Link>
-        </div>
+              : `Non ci sono richieste ${filter === 'active' ? 'attive' : 'completate'}.`
+          }
+          action={
+            filter === 'all' ? (
+              <Link href="/recipient/dashboard">
+                <Button variant="primary">Sfoglia gli oggetti disponibili</Button>
+              </Link>
+            ) : undefined
+          }
+        />
       ) : (
         <div className="space-y-4">
           {filteredRequests.map((request) => {
-            const requestStatus = statusLabels[request.status] || { label: request.status, color: 'bg-gray-100 text-gray-700' };
-            const objStatus = objectStatusLabels[request.object.status] || { label: request.object.status, color: 'bg-gray-100 text-gray-700', icon: '📦' };
+            const requestStatus = requestStatusBadge(request.status);
+            const objStatus = objectStatusBadge(request.object.status);
 
             return (
               <div
                 key={request.id}
                 className="bg-white rounded-xl shadow-sm border w-full p-4"
               >
-                {/* Mobile-first stacked layout */}
                 <div className="flex flex-col gap-3">
                   {/* Row 1: Image + Title */}
                   <div className="flex gap-3">
@@ -176,7 +195,9 @@ export default function RecipientRequestsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-8 w-8 text-gray-400" aria-hidden="true" />
+                        </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -189,32 +210,31 @@ export default function RecipientRequestsPage() {
 
                   {/* Row 2: Category + Condition */}
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                    <Badge variant="default" size="sm">
                       {categoryLabels[request.object.category] || request.object.category}
-                    </span>
+                    </Badge>
                     <span>•</span>
                     <span>{conditionLabels[request.object.condition]}</span>
                   </div>
 
                   {/* Row 3: Object Status + Action */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded font-medium ${objStatus.color}`}>
-                      <span>{objStatus.icon}</span>
+                    <Badge variant={objStatus.variant} size="sm">
                       {objStatus.label}
-                    </span>
+                    </Badge>
                     {request.object.status === 'DEPOSITED' && (
-                      <Link
-                        href={`/recipient/qr/${request.id}`}
-                        className="inline-block px-3 py-1.5 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 font-medium text-xs"
-                      >
-                        📱 Ritira
+                      <Link href={`/recipient/qr/${request.id}`}>
+                        <Button variant="success" size="sm">
+                          <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
+                          Ritira
+                        </Button>
                       </Link>
                     )}
                   </div>
 
                   {/* Row 4: Request message (if exists) */}
                   {request.message && (
-                    <p className="text-sm text-gray-600 italic">"{request.message}"</p>
+                    <p className="text-sm text-gray-600 italic">&ldquo;{request.message}&rdquo;</p>
                   )}
                 </div>
               </div>
