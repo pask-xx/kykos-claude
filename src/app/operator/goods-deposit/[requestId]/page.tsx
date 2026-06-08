@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { Check, Camera, Printer } from 'lucide-react';
 import QrScanner from 'qr-scanner';
 
 interface LabelData {
@@ -300,7 +301,7 @@ export default function GoodsDepositLocationPage() {
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
           {/* Success Message */}
           <div className="text-center">
-            <div className="text-5xl mb-4">✓</div>
+            <Check className="w-12 h-12 mx-auto mb-4 text-green-600" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-green-700">Consegna Ricevuta</h1>
             <p className="text-gray-500 mt-2">Registra la posizione di deposito</p>
           </div>
@@ -338,13 +339,15 @@ export default function GoodsDepositLocationPage() {
                 <button
                   type="button"
                   onClick={() => setShowScanner(!showScanner)}
+                  aria-label={showScanner ? 'Chiudi scanner QR' : 'Apri scanner QR'}
+                  title={showScanner ? 'Chiudi scanner QR' : 'Apri scanner QR'}
                   className={`px-4 py-3 rounded-lg font-medium ${
                     showScanner
                       ? 'bg-gray-200 text-gray-700'
                       : 'bg-primary-600 text-white hover:bg-primary-700'
                   }`}
                 >
-                  📷
+                  <Camera className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -376,8 +379,9 @@ export default function GoodsDepositLocationPage() {
                   />
                 </div>
                 {depositLocation && (
-                  <p className="mt-2 text-sm text-green-600">
-                    ✓ Rilevato: <strong>{depositLocation}</strong>
+                  <p className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                    <Check className="w-4 h-4 inline-block" aria-hidden="true" />
+                    Rilevato: <strong>{depositLocation}</strong>
                   </p>
                 )}
               </div>
@@ -423,7 +427,7 @@ export default function GoodsDepositLocationPage() {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
                 <div className="text-center">
-                  <div className="text-4xl mb-2">🖨️</div>
+                  <Printer className="w-10 h-10 mx-auto mb-2 text-gray-700" aria-hidden="true" />
                   <h2 className="text-xl font-bold text-gray-900">Stampa Etichetta</h2>
                   <p className="text-sm text-gray-500">Applicare l'etichetta sull'oggetto</p>
                 </div>

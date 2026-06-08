@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Settings, Printer, Clock, Tag, FileText, ClipboardList } from 'lucide-react';
 import RichTextEditor from '@/components/RichTextEditor';
 import { Switch, toast } from '@/components/ui';
 
@@ -251,7 +252,8 @@ export default function OrganizationSettingsPage() {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>⚙️</span> Approvazione automatica richieste
+          <Settings className="w-5 h-5" aria-hidden="true" />
+          Approvazione automatica richieste
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Configura se le richieste vengono approvate automaticamente senza intervento dell&apos;operatore.
@@ -262,7 +264,7 @@ export default function OrganizationSettingsPage() {
             <Switch
               checked={autoApproveRequests}
               onChange={(v) => handleAutoApproveToggle('autoApproveRequests', v)}
-              label="📦 Disponibilità"
+              label="Disponibilità"
               description="Richieste di disponibilità pubblicati da donatori"
               loading={saving}
             />
@@ -272,7 +274,7 @@ export default function OrganizationSettingsPage() {
             <Switch
               checked={autoApproveGoodsRequests}
               onChange={(v) => handleAutoApproveToggle('autoApproveGoodsRequests', v)}
-              label="🪑 Richieste di beni"
+              label="Richieste di beni"
               description="Richieste di beni da parte dei beneficiari"
               loading={saving}
             />
@@ -282,7 +284,7 @@ export default function OrganizationSettingsPage() {
             <Switch
               checked={autoApproveServicesRequests}
               onChange={(v) => handleAutoApproveToggle('autoApproveServicesRequests', v)}
-              label="🔧 Richieste di servizi"
+              label="Richieste di servizi"
               description="Richieste di servizi da parte dei beneficiari"
               loading={saving}
             />
@@ -292,7 +294,8 @@ export default function OrganizationSettingsPage() {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>🖨️</span> Stampa etichetta
+          <Printer className="w-5 h-5" aria-hidden="true" />
+          Stampa etichetta
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Abilita la stampa dell&apos;etichetta con QR code da applicare sugli oggetti consegnati al centro.
@@ -321,7 +324,7 @@ export default function OrganizationSettingsPage() {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="text-2xl mb-1">📄</div>
+                  <FileText className="w-6 h-6 mb-1 text-gray-700" aria-hidden="true" />
                   <div className="font-medium text-gray-900">50×30 mm</div>
                   <div className="text-xs text-gray-500">Formato standard</div>
                 </button>
@@ -333,7 +336,7 @@ export default function OrganizationSettingsPage() {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="text-2xl mb-1">📋</div>
+                  <ClipboardList className="w-6 h-6 mb-1 text-gray-700" aria-hidden="true" />
                   <div className="font-medium text-gray-900">50×40 mm</div>
                   <div className="text-xs text-gray-500">Formato grande</div>
                 </button>
@@ -345,7 +348,8 @@ export default function OrganizationSettingsPage() {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>🕐</span> Orari e informazioni
+          <Clock className="w-5 h-5" aria-hidden="true" />
+          Orari e informazioni
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
@@ -366,31 +370,35 @@ export default function OrganizationSettingsPage() {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>🏷️</span> Etichette scaffale
+          <Tag className="w-5 h-5" aria-hidden="true" />
+          Etichette scaffale
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Crea etichette per contrassegnare gli spazi di deposito nella tua struttura.
         </p>
         <button
           onClick={() => router.push('/operator/shelf-label')}
-          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium"
+          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium inline-flex items-center gap-2"
         >
-          🏷️ Crea etichetta scaffale
+          <Tag className="w-4 h-4" aria-hidden="true" />
+          Crea etichetta scaffale
         </button>
       </div>
 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <span>📄</span> Stampa locandina
+          <FileText className="w-5 h-5" aria-hidden="true" />
+          Stampa locandina
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Stampa una locandina con QR code da esporre per promuovere la donazione.
         </p>
         <button
           onClick={() => window.open('/aderisci/print', '_blank')}
-          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium"
+          className="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 font-medium inline-flex items-center gap-2"
         >
-          🖨️ Stampa locandina
+          <Printer className="w-4 h-4" aria-hidden="true" />
+          Stampa locandina
         </button>
       </div>
     </div>
