@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Heart, ChevronDown, Check } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { CATEGORY_LABELS, Category } from '@/types';
 import { toast } from '@/components/ui/Toast';
+import { Alert, Button } from '@/components/ui';
 
 interface MultiAvailability {
   id: string;
@@ -316,7 +318,7 @@ export default function RecipientFeedClient() {
       {causes.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">💝</span>
+            <Heart className="h-5 w-5 text-rose-500" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Cause</h2>
           </div>
           {availableCauses.map((cause) => (
@@ -324,16 +326,19 @@ export default function RecipientFeedClient() {
               key={cause.id}
               className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
             >
-              <div
-                className="cursor-pointer"
+              <button
+                type="button"
                 onClick={() => setExpandedCauseId(expandedCauseId === cause.id ? null : cause.id)}
+                className="w-full text-left cursor-pointer focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                aria-expanded={expandedCauseId === cause.id}
+                aria-label={`${expandedCauseId === cause.id ? 'Comprimi' : 'Espandi'} causa ${cause.title}`}
               >
                 <div className="flex gap-4 p-4">
                   <div className="w-24 h-24 flex-shrink-0 bg-rose-50 rounded-lg overflow-hidden flex items-center justify-center">
                     {cause.imageUrls && cause.imageUrls.length > 0 ? (
                       <img src={cause.imageUrls[0]} alt={cause.title} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-3xl">💝</span>
+                      <Heart className="h-10 w-10 text-rose-400" aria-hidden="true" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -347,18 +352,19 @@ export default function RecipientFeedClient() {
                     </div>
                   </div>
                   <div className="flex-shrink-0 flex items-center">
-                    <span className={`text-gray-400 transition-transform duration-200 ${expandedCauseId === cause.id ? 'rotate-180' : ''}`}>▼</span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${expandedCauseId === cause.id ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
-              </div>
+              </button>
 
               {expandedCauseId === cause.id && (
                 <div className="border-t border-gray-100 p-4 bg-gray-50">
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-amber-800">
-                      <span className="font-medium">Come aderire:</span> Segui le istruzioni nella descrizione per partecipare a questa causa.
-                    </p>
-                  </div>
+                  <Alert type="warning" className="mb-4">
+                    <span className="font-medium">Come aderire:</span> Segui le istruzioni nella descrizione per partecipare a questa causa.
+                  </Alert>
                   {cause.description && (
                     <p className="text-gray-600 mb-4 whitespace-pre-wrap">{cause.description}</p>
                   )}
@@ -369,12 +375,14 @@ export default function RecipientFeedClient() {
                     variant="warning"
                     onConfirm={() => handleJoinCause(cause.id)}
                   >
-                    <button
+                    <Button
+                      variant="danger"
                       disabled={joiningCauseId === cause.id}
-                      className="w-full py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors disabled:opacity-50"
+                      loading={joiningCauseId === cause.id}
+                      className="w-full"
                     >
-                      {joiningCauseId === cause.id ? 'Iscrizione...' : 'Aderisci alla causa'}
-                    </button>
+                      Aderisci alla causa
+                    </Button>
                   </ConfirmDialog>
                 </div>
               )}
@@ -383,12 +391,12 @@ export default function RecipientFeedClient() {
           {joinedCauses.length > 0 && joinedCauses.map((cause) => (
             <div
               key={cause.id}
-              className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-4 flex items-center gap-4"
+              className="bg-success-50 rounded-xl shadow-sm border border-success-200 p-4 flex items-center gap-4"
             >
-              <span className="text-2xl">✓</span>
+              <Check className="h-6 w-6 text-success-700 flex-shrink-0" aria-hidden="true" />
               <div className="flex-1">
-                <h3 className="font-medium text-green-800">{cause.title}</h3>
-                <p className="text-sm text-green-600">Iscritto il {new Date().toLocaleDateString('it-IT')}</p>
+                <h3 className="font-medium text-success-800">{cause.title}</h3>
+                <p className="text-sm text-success-600">Iscritto il {new Date().toLocaleDateString('it-IT')}</p>
               </div>
             </div>
           ))}
