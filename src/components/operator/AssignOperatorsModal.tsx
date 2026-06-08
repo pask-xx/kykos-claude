@@ -138,6 +138,7 @@ export function AssignOperatorsModal({
               return (
                 <label
                   key={op.id}
+                  htmlFor={`assign-op-${op.id}`}
                   className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
                     isSelected
                       ? 'border-primary-500 bg-primary-50'
@@ -145,6 +146,7 @@ export function AssignOperatorsModal({
                   }`}
                 >
                   <input
+                    id={`assign-op-${op.id}`}
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => handleToggle(op.id, e.target.checked)}

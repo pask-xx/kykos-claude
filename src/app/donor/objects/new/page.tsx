@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
@@ -26,6 +26,9 @@ export default function NewObjectPage() {
   const [intermediaries, setIntermediaries] = useState<Intermediary[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+
+  const photoGroupId = useId();
+  const fileInputId = useId();
   const [category, setCategory] = useState<Category>('OTHER');
   const [condition, setCondition] = useState<Condition>('GOOD');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -212,9 +215,9 @@ export default function NewObjectPage() {
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border space-y-6">
           {/* Photo Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <span id={photoGroupId} className="block text-sm font-medium text-gray-700 mb-2">
               Foto oggetto * ({imageUrls.length}/{MAX_IMAGES})
-            </label>
+            </span>
 
             <div className="space-y-3">
               {/* Image Previews Grid */}
@@ -246,12 +249,14 @@ export default function NewObjectPage() {
 
               {/* Add Photo Button */}
               {previews.length < MAX_IMAGES && (
-                <label className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary-400 hover:bg-gray-50 transition">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
+                <div aria-labelledby={photoGroupId}>
+                  <label htmlFor={fileInputId} className="block border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary-400 hover:bg-gray-50 transition">
+                    <input
+                      id={fileInputId}
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
                     onChange={handleFileChange}
                     multiple
                     className="hidden"
@@ -264,6 +269,7 @@ export default function NewObjectPage() {
                     </span>
                   </div>
                 </label>
+                </div>
               )}
             </div>
           </div>

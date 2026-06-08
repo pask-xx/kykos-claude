@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
@@ -46,6 +46,8 @@ export default function MultiAvailabilityPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const categoryId = useId();
+  const photoId = useId();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -234,8 +236,9 @@ export default function MultiAvailabilityPage() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+            <label htmlFor={categoryId} className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
             <select
+              id={categoryId}
               value={category}
               onChange={(e) => setCategory(e.target.value as Category)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
@@ -247,12 +250,14 @@ export default function MultiAvailabilityPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
-            <ImageUploader
-              onImagesChange={setImageUrls}
-              maxFiles={5}
-              currentImages={imageUrls}
-            />
+            <span id={photoId} className="block text-sm font-medium text-gray-700 mb-1">Foto</span>
+            <div aria-labelledby={photoId}>
+              <ImageUploader
+                onImagesChange={setImageUrls}
+                maxFiles={5}
+                currentImages={imageUrls}
+              />
+            </div>
           </div>
 
           <Input

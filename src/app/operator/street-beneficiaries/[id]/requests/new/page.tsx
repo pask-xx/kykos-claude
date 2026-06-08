@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { z } from 'zod';
@@ -67,6 +67,9 @@ export default function NewStreetBeneficiaryRequestPage({ params }: { params: Pr
   const type = watch('type');
   const category = watch('category');
   const description = watch('description') ?? '';
+
+  const typeGroupId = useId();
+  const categoryGroupId = useId();
 
   useEffect(() => {
     async function fetchBeneficiary() {
@@ -161,10 +164,10 @@ export default function NewStreetBeneficiaryRequestPage({ params }: { params: Pr
           <Form methods={methods} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Tipo di richiesta (GOODS / SERVICES) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <span id={typeGroupId} className="block text-sm font-medium text-gray-700 mb-2">
                 Tipo di richiesta *
-              </label>
-              <div className="grid grid-cols-2 gap-4">
+              </span>
+              <div role="radiogroup" aria-labelledby={typeGroupId} className="grid grid-cols-2 gap-4">
                 {(['GOODS', 'SERVICES'] as const).map((value) => {
                   const Icon = value === 'GOODS' ? Package : Wrench;
                   const title = value === 'GOODS' ? 'Bene' : 'Servizio';
@@ -191,10 +194,10 @@ export default function NewStreetBeneficiaryRequestPage({ params }: { params: Pr
 
             {/* Categoria (8 icone lucide, label da CATEGORY_LABELS) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <span id={categoryGroupId} className="block text-sm font-medium text-gray-700 mb-2">
                 Categoria *
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              </span>
+              <div role="radiogroup" aria-labelledby={categoryGroupId} className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {(Object.keys(CATEGORY_LABELS) as Category[]).map((value) => {
                   const Icon = CATEGORY_ICONS[value];
                   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -28,6 +28,12 @@ export default function CausesPage() {
   const [editDeadline, setEditDeadline] = useState('');
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const titleId = useId();
+  const descriptionId = useId();
+  const targetId = useId();
+  const deadlineId = useId();
+  const photoId = useId();
 
   const fetchCauses = async () => {
     try {
@@ -170,8 +176,9 @@ export default function CausesPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Nuova causa</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titolo *</label>
+                <label htmlFor={titleId} className="block text-sm font-medium text-gray-700 mb-1">Titolo *</label>
                 <input
+                  id={titleId}
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
@@ -180,8 +187,9 @@ export default function CausesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                <label htmlFor={descriptionId} className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
                 <textarea
+                  id={descriptionId}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={4}
@@ -190,8 +198,9 @@ export default function CausesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Target (opzionale)</label>
+                <label htmlFor={targetId} className="block text-sm font-medium text-gray-700 mb-1">Target (opzionale)</label>
                 <input
+                  id={targetId}
                   type="number"
                   min="1"
                   value={editTargetQty}
@@ -201,8 +210,9 @@ export default function CausesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Scadenza (opzionale)</label>
+                <label htmlFor={deadlineId} className="block text-sm font-medium text-gray-700 mb-1">Scadenza (opzionale)</label>
                 <input
+                  id={deadlineId}
                   type="datetime-local"
                   value={editDeadline}
                   onChange={(e) => setEditDeadline(e.target.value)}
@@ -210,12 +220,14 @@ export default function CausesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
-                <ImageUploader
-                  onImagesChange={setEditImageUrls}
-                  maxFiles={5}
-                  currentImages={editImageUrls}
-                />
+                <span id={photoId} className="block text-sm font-medium text-gray-700 mb-1">Foto</span>
+                <div aria-labelledby={photoId}>
+                  <ImageUploader
+                    onImagesChange={setEditImageUrls}
+                    maxFiles={5}
+                    currentImages={editImageUrls}
+                  />
+                </div>
               </div>
             </div>
             <div className="flex gap-3 mt-6 justify-end">

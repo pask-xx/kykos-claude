@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import QrScanner from 'qr-scanner';
 
@@ -37,6 +37,8 @@ export default function PickupLocationPage() {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [cameraId, setCameraId] = useState<string>('');
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
+
+  const cameraSelectId = useId();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
@@ -358,8 +360,9 @@ export default function PickupLocationPage() {
                   {showVerifyScanner && (
                     <div className="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
                       <div className="flex justify-between items-center mb-4">
-                        <label className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
+                        <label htmlFor={cameraSelectId} className="text-sm font-medium text-gray-700">Seleziona fotocamera</label>
                         <select
+                          id={cameraSelectId}
                           value={cameraId}
                           onChange={(e) => setCameraId(e.target.value)}
                           className="px-3 py-1 border border-gray-300 rounded-lg text-sm"

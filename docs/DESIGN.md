@@ -918,7 +918,17 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.11 P10 — A11y globale (continuo)
 
-- [ ] Aggiungere `htmlFor` ai label orfani in tutti i form esistenti.
+- [x] Aggiungere `htmlFor` ai label orfani in tutti i form esistenti.
+      Analisi 2026-06-06 → completata in **Fase 20** (5 commit atomici):
+      - 20.1: auth/* + shared components (5 file, 9 orfani)
+      - 20.2: operator/* (12 file, ~30 orfani)
+      - 20.3: admin + intermediary + donor + recipient + volunteer
+        (10 file, ~50 orfani)
+      Pattern canonico: `useId()` di React per id univoci + singolo input
+      con `<label htmlFor={id}>` + `id={id}`, gruppi (ImageUploader,
+      radiogroup, checkbox group, file picker custom) con
+      `<span id>` + `<div role="radiogroup"|aria-labelledby>`. Vedi
+      [[refactor-state]] § Fase 20.
 - [ ] Aggiungere `aria-hidden` alle icone decorative.
 - [x] Sostituire tutti i `<div onClick>` rimasti.
       Analisi 2026-06-06: 15 occorrenze totali, 14 sono backdrop modal

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useId } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CitySelector from '@/components/geo/CitySelector';
@@ -27,6 +27,16 @@ function NewIntermediaryContent() {
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+
+  const firstNameId = useId();
+  const lastNameId = useId();
+  const emailId = useId();
+  const orgNameId = useId();
+  const orgTypeId = useId();
+  const phoneId = useId();
+  const addressId = useId();
+  const capId = useId();
+  const dioceseSelectId = useId();
 
   // Organization fields
   const [orgName, setOrgName] = useState('');
@@ -263,8 +273,9 @@ function NewIntermediaryContent() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+              <label htmlFor={firstNameId} className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
               <input
+                id={firstNameId}
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -274,8 +285,9 @@ function NewIntermediaryContent() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
+              <label htmlFor={lastNameId} className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
               <input
+                id={lastNameId}
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -287,8 +299,9 @@ function NewIntermediaryContent() {
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <label htmlFor={emailId} className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
             <input
+              id={emailId}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -304,8 +317,9 @@ function NewIntermediaryContent() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Informazioni Ente</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome Ente *</label>
+            <label htmlFor={orgNameId} className="block text-sm font-medium text-gray-700 mb-1">Nome Ente *</label>
             <input
+              id={orgNameId}
               type="text"
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
@@ -316,8 +330,9 @@ function NewIntermediaryContent() {
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo Ente *</label>
+            <label htmlFor={orgTypeId} className="block text-sm font-medium text-gray-700 mb-1">Tipo Ente *</label>
             <select
+              id={orgTypeId}
               value={orgType}
               onChange={(e) => setOrgType(e.target.value)}
               required
@@ -330,8 +345,9 @@ function NewIntermediaryContent() {
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+            <label htmlFor={phoneId} className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
             <input
+              id={phoneId}
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -341,8 +357,9 @@ function NewIntermediaryContent() {
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
+            <label htmlFor={addressId} className="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
             <input
+              id={addressId}
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -352,8 +369,9 @@ function NewIntermediaryContent() {
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+            <label htmlFor={capId} className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
             <input
+              id={capId}
               type="text"
               value={cap}
               onChange={(e) => setCap(e.target.value)}
@@ -377,13 +395,14 @@ function NewIntermediaryContent() {
 
           {/* Diocese Selection */}
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Diocesi di appartenenza</label>
+            <label htmlFor={dioceseSelectId} className="block text-sm font-medium text-gray-700 mb-1">Diocesi di appartenenza</label>
             {!cityCoords.lat || !cityCoords.lng ? (
               <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
                 Calcola prima le coordinate per vedere le diocesi vicine
               </div>
             ) : (
               <select
+                id={dioceseSelectId}
                 value={dioceseId}
                 onChange={(e) => setDioceseId(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Building2, Handshake, Upload } from 'lucide-react';
@@ -40,6 +40,12 @@ export default function VolunteerApplyPage() {
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [noLocation, setNoLocation] = useState(false);
+
+  const orgSelectId = useId();
+  const skillsId = useId();
+  const noteId = useId();
+  const cvId = useId();
+  const privacyId = useId();
 
   useEffect(() => {
     checkAndFetch();
@@ -255,10 +261,10 @@ export default function VolunteerApplyPage() {
         {!noLocation && organizations.length > 0 && (
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <span id={orgSelectId} className="block text-sm font-medium text-gray-700 mb-2">
                 Seleziona l'ente per cui vuoi candidarti
-              </label>
-              <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+              </span>
+              <div role="radiogroup" aria-labelledby={orgSelectId} className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
                 {organizations.map(org => (
                   <label
                     key={org.id}
@@ -291,10 +297,10 @@ export default function VolunteerApplyPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <span id={skillsId} className="block text-sm font-medium text-gray-700 mb-3">
                 Disponibilità (opzionale)
-              </label>
-              <div className="grid grid-cols-2 gap-2">
+              </span>
+              <div aria-labelledby={skillsId} className="grid grid-cols-2 gap-2">
                 {SKILLS.map(skill => (
                   <label
                     key={skill.value}
@@ -326,10 +332,11 @@ export default function VolunteerApplyPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor={noteId} className="block text-sm font-medium text-gray-700 mb-2">
                 Note per l'ente (opzionale)
               </label>
               <textarea
+                id={noteId}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Racconta qualcosa su di te, le tue esperienze o motivazioni..."
@@ -342,9 +349,9 @@ export default function VolunteerApplyPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <span id={cvId} className="block text-sm font-medium text-gray-700 mb-2">
                 Carica il tuo CV (opzionale)
-              </label>
+              </span>
               {cvUrl ? (
                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <span className="text-green-600">✅ CV caricato</span>
@@ -382,8 +389,9 @@ export default function VolunteerApplyPage() {
             </div>
 
             <div className="mb-6">
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label htmlFor={privacyId} className="flex items-start gap-3 cursor-pointer">
                 <input
+                  id={privacyId}
                   type="checkbox"
                   checked={privacyConsent}
                   onChange={(e) => setPrivacyConsent(e.target.checked)}

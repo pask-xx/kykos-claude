@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import { OPERATOR_ROLE_LABELS, OPERATOR_PERMISSION_LABELS, OperatorRole, OperatorPermission } from '@/types';
 
@@ -35,6 +35,15 @@ export default function IntermediaryOperatorsPage() {
     isStreetOperator: false,
   });
   const [createdOp, setCreatedOp] = useState<{ operator: Operator; tempPassword: string; emailSent: boolean; notifyEmail: string } | null>(null);
+
+  const firstNameId = useId();
+  const lastNameId = useId();
+  const notifyEmailId = useId();
+  const tipoOpId = useId();
+  const isOfficeOperatorId = useId();
+  const isStreetOperatorId = useId();
+  const roleId = useId();
+  const permessiId = useId();
 
   useEffect(() => {
     fetchOperators();
@@ -287,8 +296,9 @@ export default function IntermediaryOperatorsPage() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                        <label htmlFor={firstNameId} className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
                         <input
+                          id={firstNameId}
                           type="text"
                           value={newOp.firstName}
                           onChange={(e) => setNewOp(prev => ({ ...prev, firstName: e.target.value }))}
@@ -297,8 +307,9 @@ export default function IntermediaryOperatorsPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
+                        <label htmlFor={lastNameId} className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
                         <input
+                          id={lastNameId}
                           type="text"
                           value={newOp.lastName}
                           onChange={(e) => setNewOp(prev => ({ ...prev, lastName: e.target.value }))}
@@ -308,8 +319,9 @@ export default function IntermediaryOperatorsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email per notifiche *</label>
+                      <label htmlFor={notifyEmailId} className="block text-sm font-medium text-gray-700 mb-1">Email per notifiche *</label>
                       <input
+                        id={notifyEmailId}
                         type="email"
                         value={newOp.notifyEmail}
                         onChange={(e) => setNewOp(prev => ({ ...prev, notifyEmail: e.target.value }))}
@@ -319,10 +331,11 @@ export default function IntermediaryOperatorsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Tipo operatore</label>
+                      <span id={tipoOpId} className="block text-sm font-medium text-gray-700 mb-2">Tipo operatore</span>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">
+                        <label htmlFor={isOfficeOperatorId} className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">
                           <input
+                            id={isOfficeOperatorId}
                             type="checkbox"
                             checked={newOp.isOfficeOperator}
                             onChange={(e) => setNewOp(prev => ({ ...prev, isOfficeOperator: e.target.checked }))}
@@ -330,8 +343,9 @@ export default function IntermediaryOperatorsPage() {
                           />
                           <span className="text-sm">Operatore d'ufficio</span>
                         </label>
-                        <label className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">
+                        <label htmlFor={isStreetOperatorId} className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">
                           <input
+                            id={isStreetOperatorId}
                             type="checkbox"
                             checked={newOp.isStreetOperator}
                             onChange={(e) => setNewOp(prev => ({ ...prev, isStreetOperator: e.target.checked }))}
@@ -345,8 +359,9 @@ export default function IntermediaryOperatorsPage() {
                     {newOp.isOfficeOperator && (
                       <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>
+                      <label htmlFor={roleId} className="block text-sm font-medium text-gray-700 mb-1">Ruolo *</label>
                       <select
+                        id={roleId}
                         value={newOp.role}
                         onChange={(e) => setNewOp(prev => ({ ...prev, role: e.target.value as OperatorRole }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -359,7 +374,7 @@ export default function IntermediaryOperatorsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Permessi aggiuntivi</label>
+                      <span id={permessiId} className="block text-sm font-medium text-gray-700 mb-2">Permessi aggiuntivi</span>
                       <div className="space-y-2 max-h-40 overflow-auto">
                         {Object.entries(OPERATOR_PERMISSION_LABELS).map(([key, label]) => (
                           <label key={key} className="flex items-center gap-2 p-2 border border-gray-200 rounded hover:bg-gray-50">

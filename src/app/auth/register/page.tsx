@@ -459,8 +459,8 @@ function RegisterForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Role Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Ruolo</label>
+          <div role="group" aria-labelledby="role-heading">
+            <span id="role-heading" className="block text-sm font-medium text-gray-700 mb-3">Ruolo</span>
             <div className="grid grid-cols-2 gap-3">
               {(['DONOR', 'RECIPIENT'] as Role[]).map((r) => (
                 <button
@@ -922,8 +922,9 @@ function RegisterForm() {
               </div>
             )}
 
-            <label className="flex items-start gap-3 cursor-pointer group">
+            <label htmlFor="accept-privacy" className="flex items-start gap-3 cursor-pointer group">
               <input
+                id="accept-privacy"
                 type="checkbox"
                 checked={acceptPrivacy}
                 onChange={(e) => setAcceptPrivacy(e.target.checked)}
@@ -955,8 +956,9 @@ function RegisterForm() {
               </span>
             </label>
 
-            <label className="flex items-start gap-3 cursor-pointer group">
+            <label htmlFor="accept-terms" className="flex items-start gap-3 cursor-pointer group">
               <input
+                id="accept-terms"
                 type="checkbox"
                 checked={acceptTerms}
                 onChange={(e) => setAcceptTerms(e.target.checked)}

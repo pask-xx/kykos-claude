@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import { formatDate, formatDatetimeForInput } from '@/lib/utils';
@@ -49,6 +49,14 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
   const [sendEmail, setSendEmail] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const editTitleId = useId();
+  const editDescriptionId = useId();
+  const editTargetId = useId();
+  const editDeadlineId = useId();
+  const editPhotoId = useId();
+  const notifyMessageId = useId();
+  const sendEmailId = useId();
 
   const fetchCause = async () => {
     try {
@@ -290,8 +298,9 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
             <h2 className="text-xl font-bold text-gray-900 mb-4">Modifica causa</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titolo *</label>
+                <label htmlFor={editTitleId} className="block text-sm font-medium text-gray-700 mb-1">Titolo *</label>
                 <input
+                  id={editTitleId}
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
@@ -299,8 +308,9 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                <label htmlFor={editDescriptionId} className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
                 <textarea
+                  id={editDescriptionId}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={4}
@@ -308,8 +318,9 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Target (opzionale)</label>
+                <label htmlFor={editTargetId} className="block text-sm font-medium text-gray-700 mb-1">Target (opzionale)</label>
                 <input
+                  id={editTargetId}
                   type="number"
                   min="1"
                   value={editTargetQty}
@@ -318,8 +329,9 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Scadenza (opzionale)</label>
+                <label htmlFor={editDeadlineId} className="block text-sm font-medium text-gray-700 mb-1">Scadenza (opzionale)</label>
                 <input
+                  id={editDeadlineId}
                   type="datetime-local"
                   value={editDeadline}
                   onChange={(e) => setEditDeadline(e.target.value)}
@@ -327,12 +339,14 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
-                <ImageUploader
-                  onImagesChange={setEditImageUrls}
-                  maxFiles={5}
-                  currentImages={editImageUrls}
-                />
+                <span id={editPhotoId} className="block text-sm font-medium text-gray-700 mb-1">Foto</span>
+                <div aria-labelledby={editPhotoId}>
+                  <ImageUploader
+                    onImagesChange={setEditImageUrls}
+                    maxFiles={5}
+                    currentImages={editImageUrls}
+                  />
+                </div>
               </div>
             </div>
             <div className="flex gap-3 mt-6 justify-end">
@@ -363,15 +377,18 @@ export default function CauseDetailPage({ params }: { params: Promise<{ id: stri
             <p className="text-sm text-gray-500 mb-4">
               Il messaggio sarà inviato a {cause.participants.length} partecipanti.
             </p>
+            <label htmlFor={notifyMessageId} className="sr-only">Messaggio comunicazione</label>
             <textarea
+              id={notifyMessageId}
               value={notifyMessage}
               onChange={(e) => setNotifyMessage(e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
               placeholder="Scrivi il tuo messaggio..."
             />
-            <label className="flex items-center gap-2 mt-4 text-sm text-gray-600 cursor-pointer">
+            <label htmlFor={sendEmailId} className="flex items-center gap-2 mt-4 text-sm text-gray-600 cursor-pointer">
               <input
+                id={sendEmailId}
                 type="checkbox"
                 checked={sendEmail}
                 onChange={(e) => setSendEmail(e.target.checked)}

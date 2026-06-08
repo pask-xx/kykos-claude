@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import QrScanner from 'qr-scanner';
 
@@ -30,6 +30,8 @@ export default function ScanQrPage() {
   const [cameraLoading, setCameraLoading] = useState(false);
   const scannerRef = useRef<QrScanner | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const cameraSelectId = useId();
 
   useEffect(() => {
     async function getCameras() {
@@ -229,10 +231,11 @@ export default function ScanQrPage() {
 
       {/* Camera Selection */}
       <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor={cameraSelectId} className="block text-sm font-medium text-gray-700 mb-2">
           Fotocamera ({cameras.length} trovate)
         </label>
         <select
+          id={cameraSelectId}
           value={selectedCameraId}
           onChange={(e) => setSelectedCameraId(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"

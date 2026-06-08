@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -85,6 +85,13 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const editTitleId = useId();
+  const editDescriptionId = useId();
+  const editQtyId = useId();
+  const editDeadlineId = useId();
+  const editPhotoId = useId();
+  const notifyAndCloseId = useId();
 
   const fetchAvailability = async () => {
     setRefreshing(true);
@@ -524,8 +531,9 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
               placeholder="Messaggio per chi non ha ricevuto l'assegnazione..."
             />
-            <label className="flex items-center gap-2 mt-4 text-sm text-gray-600 cursor-pointer">
+            <label htmlFor={notifyAndCloseId} className="flex items-center gap-2 mt-4 text-sm text-gray-600 cursor-pointer">
               <input
+                id={notifyAndCloseId}
                 type="checkbox"
                 checked={notifyAndClose}
                 onChange={(e) => setNotifyAndClose(e.target.checked)}
@@ -598,8 +606,9 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Modifica disponibilità</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titolo</label>
+                <label htmlFor={editTitleId} className="block text-sm font-medium text-gray-700 mb-1">Titolo</label>
                 <input
+                  id={editTitleId}
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
@@ -607,8 +616,9 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                <label htmlFor={editDescriptionId} className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
                 <textarea
+                  id={editDescriptionId}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={3}
@@ -616,8 +626,9 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Numero disponibilità</label>
+                <label htmlFor={editQtyId} className="block text-sm font-medium text-gray-700 mb-1">Numero disponibilità</label>
                 <input
+                  id={editQtyId}
                   type="number"
                   min="1"
                   value={editAvailableQty}
@@ -626,8 +637,9 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Scadenza</label>
+                <label htmlFor={editDeadlineId} className="block text-sm font-medium text-gray-700 mb-1">Scadenza</label>
                 <input
+                  id={editDeadlineId}
                   type="datetime-local"
                   value={editDeadline}
                   onChange={(e) => setEditDeadline(e.target.value)}
@@ -635,12 +647,14 @@ export default function AvailabilityDetailPage({ params }: { params: Promise<{ i
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
-                <ImageUploader
-                  onImagesChange={setEditImageUrls}
-                  maxFiles={5}
-                  currentImages={editImageUrls}
-                />
+                <span id={editPhotoId} className="block text-sm font-medium text-gray-700 mb-1">Foto</span>
+                <div aria-labelledby={editPhotoId}>
+                  <ImageUploader
+                    onImagesChange={setEditImageUrls}
+                    maxFiles={5}
+                    currentImages={editImageUrls}
+                  />
+                </div>
               </div>
             </div>
             <div className="flex gap-3 mt-6 justify-end">

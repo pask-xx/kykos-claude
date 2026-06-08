@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -22,6 +22,11 @@ export default function NewEntityRequestPage() {
   const [category, setCategory] = useState('');
   const [type, setType] = useState<'GOODS' | 'SERVICES'>('GOODS');
   const [description, setDescription] = useState('');
+
+  const typeGroupId = useId();
+  const categoryGroupId = useId();
+  const titleId = useId();
+  const descriptionId = useId();
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,10 +79,10 @@ export default function NewEntityRequestPage() {
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <span id={typeGroupId} className="block text-sm font-medium text-gray-700 mb-2">
             Tipo di richiesta *
-          </label>
-          <div className="flex gap-4">
+          </span>
+          <div role="radiogroup" aria-labelledby={typeGroupId} className="flex gap-4">
             <button
               type="button"
               onClick={() => setType('GOODS')}
@@ -108,10 +113,10 @@ export default function NewEntityRequestPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <span id={categoryGroupId} className="block text-sm font-medium text-gray-700 mb-2">
             Categoria *
-          </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          </span>
+          <div role="radiogroup" aria-labelledby={categoryGroupId} className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {categories.map((cat) => (
               <button
                 key={cat.value}
@@ -131,10 +136,11 @@ export default function NewEntityRequestPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor={titleId} className="block text-sm font-medium text-gray-700 mb-2">
             Titolo *
           </label>
           <input
+            id={titleId}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -145,10 +151,11 @@ export default function NewEntityRequestPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor={descriptionId} className="block text-sm font-medium text-gray-700 mb-2">
             Descrizione (opzionale)
           </label>
           <textarea
+            id={descriptionId}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={type === 'GOODS' ? 'Aggiungi dettagli sul bene: dimensioni, condizione, colore, ecc.' : 'Descrivi il servizio di cui hai bisogno: quando, dove, durata stimata, ecc.'}

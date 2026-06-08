@@ -331,11 +331,12 @@ export function BeneficiaryForm({
 
         {/* Nickname con bottone "Genera" */}
         <div className="md:col-span-2 space-y-1">
-          <label className="block text-sm font-medium text-gray-700">
+          <label htmlFor="nickname-input" className="block text-sm font-medium text-gray-700">
             Nickname
           </label>
           <div className="flex gap-2">
             <input
+              id="nickname-input"
               {...methods.register('nickname')}
               placeholder="segreto.vento.42"
               maxLength={30}
@@ -395,15 +396,17 @@ export function BeneficiaryForm({
           maxLength={5}
         />
         <div className="md:col-span-2 space-y-1">
-          <label className="block text-sm font-medium text-gray-700">
+          <span id="city-section-label" className="block text-sm font-medium text-gray-700">
             Città e Provincia
-          </label>
+          </span>
+          <div aria-labelledby="city-section-label">
           <CitySelector
             selectedProvince={watch('province') || ''}
             selectedCity={watch('city') || ''}
             onProvinceChange={(sigla) => setValue('province', sigla, { shouldValidate: false })}
             onCityChange={(name) => setValue('city', name, { shouldValidate: false })}
           />
+          </div>
         </div>
         <Field
           name="isee"

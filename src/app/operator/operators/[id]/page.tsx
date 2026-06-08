@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
@@ -59,6 +59,15 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
     isOfficeOperator: true,
     isStreetOperator: false,
   });
+
+  const firstNameId = useId();
+  const lastNameId = useId();
+  const emailId = useId();
+  const phoneId = useId();
+  const isOfficeOperatorId = useId();
+  const isStreetOperatorId = useId();
+  const roleId = useId();
+  const permissionsId = useId();
 
   useEffect(() => {
     fetchOperator();
@@ -256,8 +265,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+              <label htmlFor={firstNameId} className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
               <input
+                id={firstNameId}
                 type="text"
                 value={form.firstName}
                 onChange={(e) => setForm(prev => ({ ...prev, firstName: e.target.value }))}
@@ -266,8 +276,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
+              <label htmlFor={lastNameId} className="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
               <input
+                id={lastNameId}
                 type="text"
                 value={form.lastName}
                 onChange={(e) => setForm(prev => ({ ...prev, lastName: e.target.value }))}
@@ -276,8 +287,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label htmlFor={emailId} className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
+                id={emailId}
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
@@ -285,8 +297,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+              <label htmlFor={phoneId} className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
               <input
+                id={phoneId}
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
@@ -299,8 +312,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Tipo operatore</h2>
           <div className="space-y-2">
-            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+            <label htmlFor={isOfficeOperatorId} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
               <input
+                id={isOfficeOperatorId}
                 type="checkbox"
                 checked={form.isOfficeOperator}
                 onChange={(e) => setForm(prev => ({ ...prev, isOfficeOperator: e.target.checked }))}
@@ -311,8 +325,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
                 <p className="text-xs text-gray-500">Può accedere alla dashboard e gestire richieste/oggetti</p>
               </div>
             </label>
-            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+            <label htmlFor={isStreetOperatorId} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
               <input
+                id={isStreetOperatorId}
                 type="checkbox"
                 checked={form.isStreetOperator}
                 onChange={(e) => setForm(prev => ({ ...prev, isStreetOperator: e.target.checked }))}
@@ -332,8 +347,9 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Ruolo e Permessi</h2>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Ruolo</label>
+            <label htmlFor={roleId} className="block text-sm font-medium text-gray-700 mb-2">Ruolo</label>
             <select
+              id={roleId}
               value={form.role}
               onChange={(e) => setForm(prev => ({ ...prev, role: e.target.value as OperatorRole }))}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
@@ -345,11 +361,11 @@ export default function OperatorDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Permessi specifici</label>
+            <span id={permissionsId} className="block text-sm font-medium text-gray-700 mb-2">Permessi specifici</span>
             <p className="text-sm text-gray-500 mb-3">
               I permessi specifici si aggiungono a quelli già concessi dal ruolo.
             </p>
-            <div className="space-y-2">
+            <div aria-labelledby={permissionsId} className="space-y-2">
               {PERMISSION_OPTIONS.map(perm => (
                 <label key={perm.value} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
