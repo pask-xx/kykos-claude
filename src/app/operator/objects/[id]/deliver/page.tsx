@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Package } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 interface ObjectDetail {
@@ -105,7 +106,7 @@ export default function DeliverObjectPage({ params }: { params: Promise<{ id: st
             {images.length > 0 ? (
               <img src={images[0]} alt={object.title} className="w-full h-full object-contain" />
             ) : (
-              <span className="text-5xl">📦</span>
+              <Package className="w-16 h-16 text-gray-400" aria-hidden="true" />
             )}
           </div>
           <div>
