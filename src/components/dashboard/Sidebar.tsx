@@ -124,8 +124,9 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white border border-gray-200 rounded-lg shadow-md flex items-center justify-center"
+        aria-label="Apri menu"
       >
-        <span className="text-xl">☰</span>
+        <span className="text-xl" aria-hidden="true">☰</span>
       </button>
 
       {/* Mobile overlay */}
@@ -151,8 +152,9 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
           <button
             onClick={() => setMobileOpen(false)}
             className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
+            aria-label="Chiudi menu"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -255,13 +257,14 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                   onClick={() => setShowManifesto(true)}
                   className={`w-full flex items-center gap-3 px-2 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 ${expanded ? 'justify-start' : 'justify-center'}`}
                   title={!expanded ? item.label : undefined}
+                  aria-label={item.label}
                 >
                   {item.badge && item.badge > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
-                  <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  <span className="text-xl flex-shrink-0" aria-hidden="true">{item.icon}</span>
                   {expanded && (
                     <span className="font-medium truncate">{item.label}</span>
                   )}
@@ -279,8 +282,9 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                     : 'text-gray-600 hover:bg-gray-50'
                 } ${expanded ? 'justify-start' : 'justify-center'}`}
                 title={!expanded ? item.label : undefined}
+                aria-label={item.label}
               >
-                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                <span className="text-xl flex-shrink-0" aria-hidden="true">{item.icon}</span>
                 {expanded && (
                   <span className="font-medium truncate">{item.label}</span>
                 )}

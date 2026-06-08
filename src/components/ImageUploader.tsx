@@ -82,8 +82,9 @@ export default function ImageUploader({ onImagesChange, maxFiles = 5, currentIma
                 type="button"
                 onClick={() => removeImage(index)}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center hover:bg-red-600"
+                aria-label="Rimuovi immagine"
               >
-                ✕
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
           ))}
