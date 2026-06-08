@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import useSWR from 'swr';
 import { toast } from '@/components/ui/Toast';
 
@@ -394,6 +394,10 @@ function UploadModal({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fileId = useId();
+  const versionId = useId();
+  const notesId = useId();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !version) {
@@ -441,10 +445,11 @@ function UploadModal({
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={fileId} className="block text-sm font-medium text-gray-700 mb-1">
               File PDF <span className="text-red-500">*</span>
             </label>
             <input
+              id={fileId}
               type="file"
               accept="application/pdf"
               onChange={e => setFile(e.target.files?.[0] ?? null)}
@@ -455,10 +460,11 @@ function UploadModal({
             <p className="text-xs text-gray-500 mt-1">Max 10MB. Solo PDF.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={versionId} className="block text-sm font-medium text-gray-700 mb-1">
               Versione <span className="text-red-500">*</span>
             </label>
             <input
+              id={versionId}
               type="text"
               value={version}
               onChange={e => setVersion(e.target.value)}
@@ -471,10 +477,11 @@ function UploadModal({
             <p className="text-xs text-gray-500 mt-1">Formato semver: 1.0, 1.2.3</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={notesId} className="block text-sm font-medium text-gray-700 mb-1">
               Note (changelog)
             </label>
             <textarea
+              id={notesId}
               value={notes}
               onChange={e => setNotes(e.target.value)}
               rows={3}
