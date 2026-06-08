@@ -800,13 +800,26 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 - [x] Migrare `operator/availability` a `<Card>` + `<EmptyState>`
       (Fase 13.4, 2026-06-07). Modal custom sostituito da primitive
       `<Modal isOpen footer>`, form inputs migrati a `<Input>`/`<Textarea>`.
-- [ ] Migrare `operator/operators` a `<Table>`.
-- [ ] Migrare `operator/volunteers` a `<Table>` + `<Tabs>`.
+- [x] Migrare `operator/operators` a `<Table>`
+      (Fase 17.1, 2026-06-08). Table primitive 6-col, activeBadge +
+      operatorTypeBadge mappers, Badge variant="primary" con
+      OPERATOR_ROLE_LABELS, Button variant="primary" size="sm"
+      "Gestisci", EmptyState icon={Users}, Alert type="error" per
+      banner errore, Spinner size="lg", res.json().catch(()=>({})) + toast.error.
+- [x] Migrare `operator/volunteers` a `<Table>` + `<Tabs>`
+      (Fase 17.2, 2026-06-08). Layout a sezioni con card (azioni diverse
+      per pending/approved, Table inadatta), Modal primitive per
+      conferma (sostituisce <div onClick> backdrop), 2 EmptyState
+      icon={CheckCircle2/HandHeart}, 3 Button variant (success/danger/
+      secondary) con loading, CONFIG table ACTION_TITLE/ACTION_BUTTON_VARIANT/
+      ACTION_SUCCESS_MESSAGE per type safety, 2 Badge count
+      warning/success, 4 emoji 🤝💬📄 → lucide (Handshake/MessageSquare/
+      FileText), ArrowLeft per back, Alert type="error" banner, Spinner
+      size="lg", res.json().catch + toast.success/errore aggiunti.
 
-> ✅ **P5 parzialmente completato in Fase 13** (4/6 file, 2026-06-07), 4
-> commit atomici su staging. Vedi [[refactor-state]] § Fase 13.
-> Le 2 pagine restanti (operators, volunteers) sono routable ma
-> attualmente usate solo da admin ente → priorità P9 o successiva.
+> ✅ **P5 completato in Fase 13+17** (6/6 file, 2026-06-08), 6 commit
+> atomici su staging (4 in Fase 13 + 2 in Fase 17). Vedi
+> [[refactor-state]] § Fase 13 e § Fase 17.
 
 ### 12.7 P6 — Modulo donor/* (3-4 commit)
 
