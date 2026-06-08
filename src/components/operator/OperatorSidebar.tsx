@@ -3,6 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import {
+  Home, ClipboardList, Package, Heart, FileText, PackageOpen,
+  Users, Gift, Handshake, QrCode, AlertTriangle, User, Settings,
+  Map, type LucideIcon,
+} from 'lucide-react';
 import { OperatorPermission } from '@/types';
 import { hasPermission as checkPermission } from '@/lib/permissions';
 import NotificationBell from '@/components/NotificationBell';
@@ -11,31 +16,31 @@ import LogoutButton from '@/components/LogoutButton';
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   permission?: OperatorPermission;
   streetOnly?: boolean;
   officeOnly?: boolean;
 }
 
 const allNavItems: NavItem[] = [
-  { href: '/operator/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/operator/requests-entity', label: 'Richieste', icon: '📋', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/objects', label: 'Disponibilità', icon: '📦', permission: 'OBJECT_RECEIVE' },
-  { href: '/operator/availability', label: 'Distribuzione', icon: '📦', permission: 'ORGANIZATION_ADMIN' },
-  { href: '/operator/cause', label: 'Cause', icon: '💝', permission: 'ORGANIZATION_ADMIN' },
-  { href: '/operator/requests', label: 'Da approvare', icon: '📝', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/deposit', label: 'In deposito', icon: '📤', permission: 'OBJECT_RECEIVE' },
-  { href: '/operator/recipients', label: 'Beneficiari', icon: '👥', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/donors', label: 'Donatori', icon: '🎁', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/volunteers', label: 'Volontari', icon: '🤝', permission: 'VOLUNTEER_MANAGE' },
-  { href: '/operator/scan-qr', label: 'Scansione QR', icon: '📱', permission: 'OBJECT_DELIVER' },
-  { href: '/operator/reports', label: 'Segnalazioni', icon: '⚠️', permission: 'RECIPIENT_AUTHORIZE' },
-  { href: '/operator/operators', label: 'Operatori', icon: '👤', permission: 'ORGANIZATION_ADMIN' },
-  { href: '/operator/organization', label: 'Impostazioni ente', icon: '⚙️', permission: 'ORGANIZATION_ADMIN' },
-  { href: '/operator/profile', label: 'Il mio profilo', icon: '👤' },
-  { href: '/operator/street-beneficiaries', label: 'Beneficiari street', icon: '🧑‍🤝‍🧑', streetOnly: true },
-  { href: '/operator/street-to-deliver', label: 'Consegne e Ritiri', icon: '📦', streetOnly: true },
-  { href: '/operator/diocese-objects', label: 'Disponibilità diocesi', icon: '🗺️', streetOnly: true },
+  { href: '/operator/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/operator/requests-entity', label: 'Richieste', icon: ClipboardList, permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/objects', label: 'Disponibilità', icon: Package, permission: 'OBJECT_RECEIVE' },
+  { href: '/operator/availability', label: 'Distribuzione', icon: Package, permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/cause', label: 'Cause', icon: Heart, permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/requests', label: 'Da approvare', icon: FileText, permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/deposit', label: 'In deposito', icon: PackageOpen, permission: 'OBJECT_RECEIVE' },
+  { href: '/operator/recipients', label: 'Beneficiari', icon: Users, permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/donors', label: 'Donatori', icon: Gift, permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/volunteers', label: 'Volontari', icon: Handshake, permission: 'VOLUNTEER_MANAGE' },
+  { href: '/operator/scan-qr', label: 'Scansione QR', icon: QrCode, permission: 'OBJECT_DELIVER' },
+  { href: '/operator/reports', label: 'Segnalazioni', icon: AlertTriangle, permission: 'RECIPIENT_AUTHORIZE' },
+  { href: '/operator/operators', label: 'Operatori', icon: User, permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/organization', label: 'Impostazioni ente', icon: Settings, permission: 'ORGANIZATION_ADMIN' },
+  { href: '/operator/profile', label: 'Il mio profilo', icon: User },
+  { href: '/operator/street-beneficiaries', label: 'Beneficiari street', icon: Users, streetOnly: true },
+  { href: '/operator/street-to-deliver', label: 'Consegne e Ritiri', icon: Package, streetOnly: true },
+  { href: '/operator/diocese-objects', label: 'Disponibilità diocesi', icon: Map, streetOnly: true },
 ];
 
 interface OperatorSidebarProps {
@@ -104,6 +109,7 @@ export default function OperatorSidebar({
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
@@ -115,7 +121,7 @@ export default function OperatorSidebar({
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                 <span className="font-medium truncate">{item.label}</span>
               </Link>
             );
@@ -127,7 +133,7 @@ export default function OperatorSidebar({
               {operatorProfileImageUrl ? (
                 <img src={operatorProfileImageUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-lg">👤</span>
+                <User className="w-6 h-6 text-primary-700" aria-hidden="true" />
               )}
             </div>
             <div className="flex-1 min-w-0 truncate">
@@ -151,6 +157,7 @@ export default function OperatorSidebar({
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
@@ -161,7 +168,7 @@ export default function OperatorSidebar({
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-xl flex-shrink-0">{item.icon}</span>
+                <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                 <span className="font-medium truncate">{item.label}</span>
               </Link>
             );
@@ -173,7 +180,7 @@ export default function OperatorSidebar({
               {operatorProfileImageUrl ? (
                 <img src={operatorProfileImageUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-lg">👤</span>
+                <User className="w-6 h-6 text-primary-700" aria-hidden="true" />
               )}
             </div>
             <div className="flex-1 min-w-0 truncate">
