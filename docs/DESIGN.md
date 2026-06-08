@@ -857,9 +857,35 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.9 P8 — Modulo intermediary/* e admin/* (2-3 commit)
 
-- [ ] Migrare `intermediary/recipients` a `<Table>`.
-- [ ] Migrare `intermediary/requests` a `<Table>` + `<Tabs>`.
-- [ ] Migrare `admin/dashboard` a `<Tabs>` + `<Table>`.
+- [x] Migrare `intermediary/recipients` a `<Table>`
+      (Fase 16.1, 2026-06-08). Table/TableHeader/TableBody/TableRow/
+      TableHead/TableCell primitive, Badge mapper (2 stati authorized),
+      Button variant="success"/"danger" size="sm", Input per search,
+      2 EmptyState icon={Users}/{SearchX}, Spinner, banner
+      `setMessage` (success/error) → toast.*, h1 standard.
+- [x] Migrare `intermediary/requests` a `<Table>` + `<Tabs>`
+      (Fase 16.2, 2026-06-08). requestStatusBadge mapper (4 stati
+      PENDING/APPROVED/REJECTED/EXPIRED), Button variant
+      success/danger size="sm", EmptyState icon={Inbox}, Spinner,
+      console.error → toast.error, toast.success aggiunto su OK
+      (era mancante), 2 emoji 📦 → lucide Package, sezioni
+      "In attesa"/"Elaborate" con lucide ClipboardList, layout a card
+      8-col mantenuto (azioni inline per riga, Table inadatta).
+- [x] Migrare `admin/dashboard` a `<Tabs>` + `<Table>`
+      (Fase 16.3, 2026-06-08). Tabs<TabKey> con count, Modal primitive
+      per conferma adesione (sostituisce <div onClick> backdrop),
+      ModalFooter con Button loading, 2 EmptyState icon={Inbox},
+      verifiedBadge + adesioneStatusBadge mappers, Button variant
+      success/danger/secondary, 4 stat card emoji → lucide
+      (CheckCheck/Clock/ClipboardList/Building2), 3 emoji inline →
+      lucide (Package/ClipboardList/AlertTriangle), Spinner × 2,
+      banner actionError inline bg-red-50 → Alert type="error",
+      banner ⚠️ email non confermata → Alert type="warning" con
+      lucide AlertTriangle, token semantici bg-{success|warning|
+      info|primary}-100/text-{...}-600.
+
+> ✅ **P8 completato in Fase 16** (3/3 file, 2026-06-08), 3 commit atomici
+> su staging. Vedi [[refactor-state]] § Fase 16.
 
 ### 12.10 P9 — Icone (continuo)
 
