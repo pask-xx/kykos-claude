@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
+import { CircleHelp, Gift, HandHeart, Building2, Handshake, Lock, Cookie, ScrollText, Rocket, HelpCircle } from 'lucide-react';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -42,14 +44,14 @@ interface FaqItem {
 
 interface FaqCategory {
   title: string;
-  icon: string;
+  icon: LucideIcon;
   items: FaqItem[];
 }
 
 const FAQ_CATEGORIES: FaqCategory[] = [
   {
     title: 'Cos\'è KYKOS e come funziona',
-    icon: '🤔',
+    icon: CircleHelp,
     items: [
       {
         question: 'Cos\'è KYKOS?',
@@ -75,7 +77,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
   },
   {
     title: 'Per chi vuole donare',
-    icon: '🎁',
+    icon: Gift,
     items: [
       {
         question: 'Quali oggetti posso donare?',
@@ -111,7 +113,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
   },
   {
     title: 'Per chi ha bisogno di aiuto',
-    icon: '🙏',
+    icon: HandHeart,
     items: [
       {
         question: 'Chi può ricevere un oggetto tramite KYKOS?',
@@ -142,7 +144,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
   },
   {
     title: 'Per enti e associazioni',
-    icon: '🏢',
+    icon: Building2,
     items: [
       {
         question: 'Quali enti possono aderire a KYKOS?',
@@ -168,7 +170,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
   },
   {
     title: 'Volontariato',
-    icon: '🤝',
+    icon: Handshake,
     items: [
       {
         question: 'Posso fare volontariato con KYKOS?',
@@ -184,7 +186,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
   },
   {
     title: 'Privacy, sicurezza e anonimato',
-    icon: '🔒',
+    icon: Lock,
     items: [
       {
         question: 'Come viene garantito l\'anonimato?',
@@ -261,7 +263,7 @@ export default function FaqPage() {
         {/* Hero */}
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">❓</span>
+            <HelpCircle className="w-10 h-10 text-primary-700" aria-hidden="true" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Domande frequenti su KYKOS
@@ -278,17 +280,20 @@ export default function FaqPage() {
             Vai alla sezione
           </h2>
           <ul className="grid sm:grid-cols-2 gap-2">
-            {FAQ_CATEGORIES.map((category) => (
-              <li key={category.title}>
-                <a
-                  href={`#${category.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`}
-                  className="flex items-center gap-2 text-primary-600 hover:text-primary-700 hover:underline transition"
-                >
-                  <span aria-hidden="true">{category.icon}</span>
-                  <span>{category.title}</span>
-                </a>
-              </li>
-            ))}
+            {FAQ_CATEGORIES.map((category) => {
+              const CategoryIcon = category.icon;
+              return (
+                <li key={category.title}>
+                  <a
+                    href={`#${category.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`}
+                    className="flex items-center gap-2 text-primary-600 hover:text-primary-700 hover:underline transition"
+                  >
+                    <CategoryIcon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                    <span>{category.title}</span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
@@ -303,7 +308,10 @@ export default function FaqPage() {
                 className="bg-white rounded-2xl shadow-sm border p-6 md:p-8 scroll-mt-24"
               >
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                  <span className="text-3xl" aria-hidden="true">{category.icon}</span>
+                  {(() => {
+                    const CategoryIcon = category.icon;
+                    return <CategoryIcon className="w-7 h-7 text-primary-600 flex-shrink-0" aria-hidden="true" />;
+                  })()}
                   {category.title}
                 </h2>
                 <div className="space-y-4">
@@ -362,7 +370,7 @@ export default function FaqPage() {
             href="/cookie-policy"
             className="block bg-white rounded-xl shadow-sm border p-5 hover:border-primary-300 hover:shadow-md transition"
           >
-            <div className="text-2xl mb-2" aria-hidden="true">🍪</div>
+            <Cookie className="w-7 h-7 mb-2 text-amber-600" aria-hidden="true" />
             <h3 className="font-semibold text-gray-900 mb-1">Cookie Policy</h3>
             <p className="text-sm text-gray-600">Come gestiamo i cookie tecnici.</p>
           </Link>
@@ -370,7 +378,7 @@ export default function FaqPage() {
             href="/manifesto"
             className="block bg-white rounded-xl shadow-sm border p-5 hover:border-primary-300 hover:shadow-md transition"
           >
-            <div className="text-2xl mb-2" aria-hidden="true">📜</div>
+            <ScrollText className="w-7 h-7 mb-2 text-primary-600" aria-hidden="true" />
             <h3 className="font-semibold text-gray-900 mb-1">Il Manifesto</h3>
             <p className="text-sm text-gray-600">I principi fondanti di KYKOS.</p>
           </Link>
@@ -378,7 +386,7 @@ export default function FaqPage() {
             href="/aderisci"
             className="block bg-white rounded-xl shadow-sm border p-5 hover:border-primary-300 hover:shadow-md transition"
           >
-            <div className="text-2xl mb-2" aria-hidden="true">🚀</div>
+            <Rocket className="w-7 h-7 mb-2 text-primary-600" aria-hidden="true" />
             <h3 className="font-semibold text-gray-900 mb-1">Aderisci ora</h3>
             <p className="text-sm text-gray-600">Inizia a donare o richiedere oggetti.</p>
           </Link>

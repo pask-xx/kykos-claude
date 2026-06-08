@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { HandHeart, Heart, Globe, Sprout, Gift, Pencil, Building2, Check, Package, Handshake, Settings } from 'lucide-react';
 import SessionDashboardLink from '@/components/SessionDashboardLink';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -94,7 +95,7 @@ export default function ManifestoPage() {
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-gradient-to-br from-primary-500 to-primary-600 text-white p-8 rounded-2xl shadow-lg">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">🙏</span>
+                <HandHeart className="w-7 h-7" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-bold mb-2">Anonimato</h3>
               <p className="text-primary-100 text-sm leading-relaxed">
@@ -103,7 +104,7 @@ export default function ManifestoPage() {
             </div>
             <div className="bg-gradient-to-br from-secondary-500 to-secondary-600 text-white p-8 rounded-2xl shadow-lg">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">💝</span>
+                <Heart className="w-7 h-7" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-bold mb-2">Gioia</h3>
               <p className="text-secondary-100 text-sm leading-relaxed">
@@ -112,7 +113,7 @@ export default function ManifestoPage() {
             </div>
             <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-8 rounded-2xl shadow-lg">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">🌱</span>
+                <Sprout className="w-7 h-7" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-bold mb-2">Sostenibilità</h3>
               <p className="text-green-100 text-sm leading-relaxed">
@@ -127,7 +128,7 @@ export default function ManifestoPage() {
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-start gap-6">
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl">🙏</span>
+                <HandHeart className="w-8 h-8 text-primary-700" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
@@ -149,7 +150,7 @@ export default function ManifestoPage() {
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-start gap-6">
               <div className="w-16 h-16 bg-secondary-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl">💝</span>
+                <Heart className="w-8 h-8 text-secondary-700" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
@@ -170,7 +171,7 @@ export default function ManifestoPage() {
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-start gap-6">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl">🌍</span>
+                <Globe className="w-8 h-8 text-green-700" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
@@ -199,7 +200,7 @@ export default function ManifestoPage() {
             <div className="relative">
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center h-full">
                 <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">🎁</span>
+                  <Gift className="w-8 h-8 text-primary-700" aria-hidden="true" />
                 </div>
                 <span className="inline-block bg-primary-600 text-white text-sm font-bold px-3 py-1 rounded-full mb-4">Passo 1</span>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Offri</h3>
@@ -216,7 +217,7 @@ export default function ManifestoPage() {
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center h-full">
                 <span className="inline-block bg-secondary-600 text-white text-sm font-bold px-3 py-1 rounded-full mb-4">Passo 2</span>
                 <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">📝</span>
+                  <Pencil className="w-8 h-8 text-secondary-700" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Richiedi</h3>
                 <p className="text-gray-600">
@@ -231,7 +232,7 @@ export default function ManifestoPage() {
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center h-full">
               <span className="inline-block bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full mb-4">Passo 3</span>
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🏢</span>
+                <Building2 className="w-8 h-8 text-amber-700" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">L&apos;Ente Gestisce</h3>
               <p className="text-gray-600">
@@ -252,7 +253,7 @@ export default function ManifestoPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Accessibilità</h3>
@@ -263,7 +264,7 @@ export default function ManifestoPage() {
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Territorio</h3>
@@ -274,7 +275,7 @@ export default function ManifestoPage() {
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Autorizzazione</h3>
@@ -285,7 +286,7 @@ export default function ManifestoPage() {
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Contributo Simbolico</h3>
@@ -296,7 +297,7 @@ export default function ManifestoPage() {
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Volontariato</h3>
@@ -307,7 +308,7 @@ export default function ManifestoPage() {
             </div>
             <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+                <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Trasparenza</h3>
@@ -326,21 +327,24 @@ export default function ManifestoPage() {
           </h2>
           <div className="flex flex-wrap justify-center gap-4">
             {[
-              { icon: '🏢', label: 'Enti Abilitati', color: 'bg-amber-100 text-amber-700' },
-              { icon: '📦', label: 'Centri di Scambio', color: 'bg-primary-100 text-primary-700' },
-              { icon: '🎁', label: 'Donatori', color: 'bg-green-100 text-green-700' },
-              { icon: '🙏', label: 'Riceventi', color: 'bg-secondary-100 text-secondary-700' },
-              { icon: '🤝', label: 'Volontari', color: 'bg-blue-100 text-blue-700' },
-              { icon: '⚙️', label: 'Amministratori', color: 'bg-gray-100 text-gray-700' },
-            ].map((actor) => (
-              <div
-                key={actor.label}
-                className={`${actor.color} px-5 py-3 rounded-full shadow-sm flex items-center gap-2 font-medium`}
-              >
-                <span className="text-xl">{actor.icon}</span>
-                <span>{actor.label}</span>
-              </div>
-            ))}
+              { icon: Building2, label: 'Enti Abilitati', color: 'bg-amber-100 text-amber-700' },
+              { icon: Package, label: 'Centri di Scambio', color: 'bg-primary-100 text-primary-700' },
+              { icon: Gift, label: 'Donatori', color: 'bg-green-100 text-green-700' },
+              { icon: HandHeart, label: 'Riceventi', color: 'bg-secondary-100 text-secondary-700' },
+              { icon: Handshake, label: 'Volontari', color: 'bg-blue-100 text-blue-700' },
+              { icon: Settings, label: 'Amministratori', color: 'bg-gray-100 text-gray-700' },
+            ].map((actor) => {
+              const ActorIcon = actor.icon;
+              return (
+                <div
+                  key={actor.label}
+                  className={`${actor.color} px-5 py-3 rounded-full shadow-sm flex items-center gap-2 font-medium`}
+                >
+                  <ActorIcon className="w-5 h-5" aria-hidden="true" />
+                  <span>{actor.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

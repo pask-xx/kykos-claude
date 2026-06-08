@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Mail, Pin, Building2 } from 'lucide-react';
 
 interface Province {
   id: string;
@@ -134,7 +135,7 @@ export default function AdesionePage() {
         <main className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">📧</span>
+              <Mail className="w-10 h-10 text-green-700" aria-hidden="true" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Controlla la tua email!</h1>
             <p className="text-xl text-gray-600 mb-4">
@@ -145,7 +146,10 @@ export default function AdesionePage() {
               La tua richiesta sarà poi esaminata dal nostro team.
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8 text-left">
-              <p className="text-amber-800 font-medium mb-2">📌 Non hai ricevuto l'email?</p>
+              <p className="text-amber-800 font-medium mb-2 flex items-center gap-1.5">
+                <Pin className="w-4 h-4 inline-block" aria-hidden="true" />
+                Non hai ricevuto l'email?
+              </p>
               <ul className="text-sm text-amber-700 space-y-1">
                 <li>• Controlla la cartella spam o promozioni</li>
                 <li>• Verifica di aver scritto correttamente l'indirizzo email</li>
@@ -187,7 +191,7 @@ export default function AdesionePage() {
           {/* Hero section */}
           <div className="text-center mb-12">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="w-8 h-8 text-primary-700" aria-hidden="true" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Richiedi l'adesione al network KYKOS
