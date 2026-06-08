@@ -29,8 +29,8 @@ const TYPE_LABELS: Record<LegalDocumentType, string> = {
 
 const STATUS_LABELS: Record<LegalDocumentStatus, { label: string; classes: string }> = {
   scheduled: { label: 'Programmata', classes: 'bg-gray-100 text-gray-700' },
-  active: { label: 'Attiva', classes: 'bg-green-100 text-green-700' },
-  archived: { label: 'Archiviata', classes: 'bg-amber-100 text-amber-700' },
+  active: { label: 'Attiva', classes: 'bg-success-100 text-success-700' },
+  archived: { label: 'Archiviata', classes: 'bg-warning-100 text-warning-700' },
 };
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -133,7 +133,7 @@ export default function AdminLegalPage() {
       {isLoading ? (
         <p className="text-gray-500 text-center py-8">Caricamento…</p>
       ) : error ? (
-        <p className="text-red-600 text-center py-8">Errore nel caricamento delle versioni</p>
+        <p className="text-error-600 text-center py-8">Errore nel caricamento delle versioni</p>
       ) : (
         <div className="space-y-6">
           {(['TERMS', 'PRIVACY'] as LegalDocumentType[]).map(type => {
@@ -151,7 +151,7 @@ export default function AdminLegalPage() {
                         · pubblicata il {formatDate(active.publishedAt)}
                       </p>
                     ) : (
-                      <p className="text-sm text-red-600 mt-1 inline-flex items-center gap-1">
+                      <p className="text-sm text-error-600 mt-1 inline-flex items-center gap-1">
                         <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                         Nessuna versione attiva: tutti gli utenti riceveranno il re-consenso.
                       </p>
@@ -222,7 +222,7 @@ export default function AdminLegalPage() {
                                     setActionError(null);
                                     setConfirmAction({ kind: 'publish', version: v });
                                   }}
-                                  className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                                  className="px-3 py-1.5 bg-success-600 text-white rounded-lg hover:bg-success-700 text-sm font-medium"
                                 >
                                   Pubblica
                                 </button>
@@ -231,7 +231,7 @@ export default function AdminLegalPage() {
                                     setActionError(null);
                                     setConfirmAction({ kind: 'delete', version: v });
                                   }}
-                                  className="px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-medium"
+                                  className="px-3 py-1.5 bg-error-50 text-error-700 border border-error-200 rounded-lg hover:bg-error-100 text-sm font-medium"
                                 >
                                   Elimina
                                 </button>
@@ -243,7 +243,7 @@ export default function AdminLegalPage() {
                                   setActionError(null);
                                   setConfirmAction({ kind: 'archive', version: v });
                                 }}
-                                className="px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
+                                className="px-3 py-1.5 bg-warning-600 text-white rounded-lg hover:bg-warning-700 text-sm font-medium"
                               >
                                 Archivia
                               </button>
@@ -306,7 +306,7 @@ export default function AdminLegalPage() {
               </p>
             )}
             {confirmAction.kind === 'publish' && (
-              <div className="my-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm flex items-start gap-2">
+              <div className="my-4 p-3 bg-warning-50 border border-warning-200 text-warning-800 rounded-lg text-sm flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <p>
                   <strong>Attenzione:</strong> tutti gli utenti loggati riceveranno
@@ -316,7 +316,7 @@ export default function AdminLegalPage() {
               </div>
             )}
             {confirmAction.kind === 'archive' && (
-              <div className="my-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+              <div className="my-4 p-3 bg-warning-50 border border-warning-200 text-warning-800 rounded-lg text-sm">
                 <p>
                   Dopo l&apos;archiviazione, <strong>nessuna versione</strong> risulterà
                   attiva per questo documento e tutti gli utenti riceveranno il
@@ -325,7 +325,7 @@ export default function AdminLegalPage() {
               </div>
             )}
             {confirmAction.kind === 'delete' && (
-              <div className="my-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm flex items-start gap-2">
+              <div className="my-4 p-3 bg-error-50 border border-error-200 text-error-800 rounded-lg text-sm flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <p>
                   <strong>Operazione irreversibile.</strong> Il record e il file
@@ -341,7 +341,7 @@ export default function AdminLegalPage() {
               </div>
             )}
             {actionError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
                 {actionError}
               </div>
             )}
@@ -361,10 +361,10 @@ export default function AdminLegalPage() {
                 disabled={actionLoading}
                 className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
                   confirmAction.kind === 'publish'
-                    ? 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-success-600 hover:bg-success-700'
                     : confirmAction.kind === 'archive'
-                    ? 'bg-amber-600 hover:bg-amber-700'
-                    : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-warning-600 hover:bg-warning-700'
+                    : 'bg-error-600 hover:bg-error-700'
                 }`}
               >
                 {actionLoading
@@ -450,7 +450,7 @@ function UploadModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor={fileId} className="block text-sm font-medium text-gray-700 mb-1">
-              File PDF <span className="text-red-500">*</span>
+              File PDF <span className="text-error-500">*</span>
             </label>
             <input
               id={fileId}
@@ -465,7 +465,7 @@ function UploadModal({
           </div>
           <div>
             <label htmlFor={versionId} className="block text-sm font-medium text-gray-700 mb-1">
-              Versione <span className="text-red-500">*</span>
+              Versione <span className="text-error-500">*</span>
             </label>
             <input
               id={versionId}
@@ -496,7 +496,7 @@ function UploadModal({
             />
           </div>
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
               {error}
             </div>
           )}

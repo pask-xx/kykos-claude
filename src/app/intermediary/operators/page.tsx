@@ -162,7 +162,7 @@ export default function IntermediaryOperatorsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="p-4 bg-error-50 border border-error-200 rounded-lg text-error-700">
           {error}
         </div>
       )}
@@ -201,10 +201,10 @@ export default function IntermediaryOperatorsPage() {
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {op.isOfficeOperator && (
-                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Ufficio</span>
+                        <span className="px-1.5 py-0.5 bg-info-100 text-info-700 text-xs rounded">Ufficio</span>
                       )}
                       {op.isStreetOperator && (
-                        <span className="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded">Strada</span>
+                        <span className="px-1.5 py-0.5 bg-secondary-100 text-secondary-700 text-xs rounded">Strada</span>
                       )}
                     </div>
                   </td>
@@ -216,7 +216,7 @@ export default function IntermediaryOperatorsPage() {
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 text-xs rounded ${
                       op.active
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-success-100 text-success-700'
                         : 'bg-gray-100 text-gray-500'
                     }`}>
                       {op.active ? 'Attivo' : 'Disattivato'}
@@ -234,8 +234,8 @@ export default function IntermediaryOperatorsPage() {
                         onClick={() => toggleActive(op.id, op.active)}
                         className={`px-3 py-1.5 text-sm rounded ${
                           op.active
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            ? 'bg-error-100 text-error-700 hover:bg-error-200'
+                            : 'bg-success-100 text-success-700 hover:bg-success-200'
                         }`}
                       >
                         {op.active ? 'Disattiva' : 'Attiva'}
@@ -268,23 +268,23 @@ export default function IntermediaryOperatorsPage() {
 
               {createdOp ? (
                 <div>
-                  <p className="text-green-700 font-medium mb-2 inline-flex items-center gap-1">
+                  <p className="text-success-700 font-medium mb-2 inline-flex items-center gap-1">
                     <Check className="w-4 h-4" aria-hidden="true" />
                     Operatore creato con successo!
                   </p>
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                    <p className="font-medium text-amber-800 mb-1">Username:</p>
-                    <p className="text-2xl font-mono text-amber-900">{createdOp.operator.username}</p>
-                    <p className="font-medium text-amber-800 mt-3 mb-1">Password temporanea:</p>
-                    <p className="text-2xl font-mono text-amber-900">{createdOp.tempPassword}</p>
+                  <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg mb-4">
+                    <p className="font-medium text-warning-800 mb-1">Username:</p>
+                    <p className="text-2xl font-mono text-warning-900">{createdOp.operator.username}</p>
+                    <p className="font-medium text-warning-800 mt-3 mb-1">Password temporanea:</p>
+                    <p className="text-2xl font-mono text-warning-900">{createdOp.tempPassword}</p>
                   </div>
                   {createdOp.emailSent ? (
-                    <p className="text-sm text-green-600 mb-4 inline-flex items-center gap-1">
+                    <p className="text-sm text-success-600 mb-4 inline-flex items-center gap-1">
                       <Check className="w-4 h-4" aria-hidden="true" />
                       Credenziali inviate per email a {createdOp.notifyEmail}
                     </p>
                   ) : (
-                    <p className="text-sm text-amber-600 mb-4 inline-flex items-center gap-1">
+                    <p className="text-sm text-warning-600 mb-4 inline-flex items-center gap-1">
                       <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                       Email non inviata. Comunica le credenziali manualmente all'operatore.
                     </p>
@@ -402,7 +402,7 @@ export default function IntermediaryOperatorsPage() {
                     </div>
 
                   {error && (
-                    <p className="mt-3 text-sm text-red-600">{error}</p>
+                    <p className="mt-3 text-sm text-error-600">{error}</p>
                   )}
 
                   <div className="mt-6 flex gap-3">

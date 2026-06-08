@@ -170,7 +170,7 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Operatore non trovato'}</p>
+          <p className="text-error-600 mb-4">{error || 'Operatore non trovato'}</p>
           <Link href="/intermediary/operators" className="text-primary-600 hover:underline">
             ← Torna alla lista
           </Link>
@@ -190,23 +190,23 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
           <p className="text-gray-500">@{operator.username}</p>
         </div>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-          operator.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          operator.active ? 'bg-success-100 text-success-700' : 'bg-gray-100 text-gray-500'
         }`}>
           {operator.active ? 'Attivo' : 'Disattivato'}
         </span>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="p-4 bg-error-50 border border-error-200 text-error-700 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       {tempPassword && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-          <p className="font-medium text-amber-800 mb-2">Password temporanea generata:</p>
-          <p className="text-2xl font-mono text-amber-900">{tempPassword}</p>
-          <p className="text-amber-600 mt-2">Comunicala all'operatore e chiedigli di cambiarla al primo accesso.</p>
+        <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg text-sm">
+          <p className="font-medium text-warning-800 mb-2">Password temporanea generata:</p>
+          <p className="text-2xl font-mono text-warning-900">{tempPassword}</p>
+          <p className="text-warning-600 mt-2">Comunicala all'operatore e chiedigli di cambiarla al primo accesso.</p>
         </div>
       )}
 
@@ -357,7 +357,7 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
           type="button"
           onClick={handleResetPassword}
           disabled={resetting}
-          className="px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium disabled:opacity-50"
+          className="px-6 py-2.5 bg-warning-600 text-white rounded-lg hover:bg-warning-700 font-medium disabled:opacity-50"
         >
           {resetting ? 'Generazione...' : 'Genera password temporanea'}
         </button>

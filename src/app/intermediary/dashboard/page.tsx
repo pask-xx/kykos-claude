@@ -76,8 +76,8 @@ export default async function IntermediaryDashboard() {
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
             org?.verified
-              ? 'bg-green-100 text-green-700'
-              : 'bg-amber-100 text-amber-700'
+              ? 'bg-success-100 text-success-700'
+              : 'bg-warning-100 text-warning-700'
           }`}>
             {org?.verified ? 'Verificato' : 'In verifica'}
           </span>
@@ -114,16 +114,16 @@ export default async function IntermediaryDashboard() {
 
         {/* Coordinate Alert */}
         {(!org?.latitude || !org?.longitude) && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" aria-hidden="true" />
+          <div className="bg-warning-50 border border-warning-200 rounded-xl p-4 mb-8 flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-warning-600 flex-shrink-0" aria-hidden="true" />
             <div>
-              <p className="font-medium text-amber-800">Coordinate mancanti</p>
-              <p className="text-sm text-amber-700 mt-1">
+              <p className="font-medium text-warning-800">Coordinate mancanti</p>
+              <p className="text-sm text-warning-700 mt-1">
                 L&apos;ente non ha coordinate geografiche. Gli utenti non possono trovare questo ente nella ricerca per zona.
               </p>
               <Link
                 href="/intermediary/profile"
-                className="inline-block mt-2 text-sm font-medium text-amber-800 underline hover:text-amber-900"
+                className="inline-block mt-2 text-sm font-medium text-warning-800 underline hover:text-warning-900"
               >
                 Aggiungi coordinate →
               </Link>
@@ -131,16 +131,16 @@ export default async function IntermediaryDashboard() {
           </div>
         )}
         {org?.latitude && org?.longitude && !coordCheck.matches && cityCoords.lat && cityCoords.lng && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" aria-hidden="true" />
+          <div className="bg-warning-50 border border-warning-200 rounded-xl p-4 mb-8 flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-warning-600 flex-shrink-0" aria-hidden="true" />
             <div>
-              <p className="font-medium text-amber-800">Coordinate non congruenti</p>
-              <p className="text-sm text-amber-700 mt-1">
+              <p className="font-medium text-warning-800">Coordinate non congruenti</p>
+              <p className="text-sm text-warning-700 mt-1">
                 Le coordinate dell&apos;ente ({org.latitude.toFixed(4)}, {org.longitude.toFixed(4)}) sono distanti {coordCheck.distance?.toFixed(1)} km dal comune di {org.city} ({cityCoords.lat.toFixed(4)}, {cityCoords.lng.toFixed(4)}).
               </p>
               <Link
                 href="/intermediary/profile"
-                className="inline-block mt-2 text-sm font-medium text-amber-800 underline hover:text-amber-900"
+                className="inline-block mt-2 text-sm font-medium text-warning-800 underline hover:text-warning-900"
               >
                 Verifica coordinate →
               </Link>
@@ -174,7 +174,7 @@ export default async function IntermediaryDashboard() {
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">⏳</span>
               </div>
               <div>
@@ -185,8 +185,8 @@ export default async function IntermediaryDashboard() {
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <HandCoins className="w-6 h-6 text-green-600" aria-hidden="true" />
+              <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                <HandCoins className="w-6 h-6 text-success-600" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Fondi raccolti</p>

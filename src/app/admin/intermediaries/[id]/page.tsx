@@ -121,7 +121,7 @@ export default function IntermediaryDetailPage({ params }: { params: Promise<{ i
       <div className="flex items-center gap-4 mb-8">
         <h1 className="text-2xl font-bold text-gray-900">{intermediary.name}</h1>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-          intermediary.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+          intermediary.verified ? 'bg-success-100 text-success-700' : 'bg-warning-100 text-warning-700'
         }`}>
           {intermediary.verified ? 'Verificato' : 'In attesa'}
         </span>
