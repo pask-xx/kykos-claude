@@ -5,7 +5,8 @@
 > saranno migrate progressivamente, modulo per modulo, seguendo la roadmap
 > in fondo al documento.
 
-**Versione**: 1.0 · **Data**: 2026-06-04 · **Owner**: progetto KYKOS
+**Versione**: 1.1 · **Data**: 2026-06-08 · **Owner**: progetto KYKOS
+(v1.1 — chiusura P9 sweep globale emoji → lucide in tutta l'app, Fasi 24-28)
 
 ---
 
@@ -665,12 +666,13 @@ frattempo, ogni pagina gestisce localmente i suoi stati.
 
 ### 9.2 Anti-pattern a11y già presenti (da correggere gradualmente)
 
-- `ConfirmDialog.tsx:40` — `<div onClick>` per trigger.
-- `SendMessageDialog.tsx:63` — idem.
-- `admin/dashboard/page.tsx:152` — tab come `<div onClick>`.
-- 10 file usano `window.alert()`.
+- ~~`ConfirmDialog.tsx:40` — `<div onClick>` per trigger.~~ ✅ Migrato in Fase 8.2.
+- ~~`SendMessageDialog.tsx:63` — idem.~~ ✅ Migrato in Fase 8.3.
+- ~~`admin/dashboard/page.tsx:152` — tab come `<div onClick>`.~~ ✅ Migrato in Fase 16.3.
+- ~~10 file usano `window.alert()`.~~ ✅ Tutti migrati a `toast.error` in Fasi 10.
 
-Saranno affrontati nella roadmap (sezione 12).
+Tutti i sotto-anti-pattern a11y noti sono stati chiusi. Nuovi audit vanno
+fatti al bisogno (es. su moduli aggiunti dopo il refactor pre-pilota).
 
 ---
 
@@ -960,9 +962,14 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 - [x] Migrazione emoji → lucide per ogni modulo, in coda alle
       migrazioni di pattern.
-      ✅ **P9 completato in Fase 18** (4 commit atomici: 18.1 donor/dashboard
-      + to-deliver, 18.2 landing, 18.3a/b/c/d auth/* + volunteer/*). Vedi
-      [[refactor-state]] § Fase 18.
+      ✅ **P9 completato in Fasi 18 + 24-28** (commit cumulativi 18.1-18.3d
+      in Fase 18 per i moduli coperti, poi sweep globale Fasi 24-28
+      per TUTTE le pagine rimanenti: dashboard Sidebar, OperatorSidebar,
+      operator/requests-entity, operator/deposit, operator/donors,
+      operator/recipients, operator/objects, operator/pickup, operator
+      resto, public pages, donor/*, recipient/*, intermediary/*,
+      admin/* + volunteer/* + auth/* + login/* + objects/*).
+      Vedi [[refactor-state]] § Fasi 24-28 per migration tables.
 
 ### 12.11 P10 — A11y globale (continuo)
 
@@ -1030,6 +1037,95 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 > (§5.16) per sostituire il pattern custom introdotto in Fase 22.2.
 > Vedi [[refactor-state]] § Fasi 12, 20, 21, 22, 23 e [[05-known-issues]]
 > § "Anti-pattern eliminati in Fase 20/21/22".
+
+### 12.12 P9-bis — Sweep globale emoji → lucide su TUTTA l'app (2026-06-08) ✅
+
+Audit finale `src/app/**/*.tsx` per emoji residue in markup JSX. Risultato
+post-Fase 18: ~190 emoji rimanenti in pagine non ancora coperte dalla
+migrazione iniziale. **13 commit atomici** sulle Fasi 24-28 hanno
+chiuso il debito, ~190 emoji sostituiti con icone lucide + `aria-hidden`
+dove appropriato.
+
+| Fase | Scope | File | Commit |
+|------|-------|------|--------|
+| 24 | Dashboard + Operator sidebar (inizio sweep) | 2 file | `7e9d8d5`, `26fb114` |
+| 25 | operator/requests-entity | 3 file | `c55dbf8` |
+| 26 | operator/deposit | 1 file | `85de7ac` |
+| 27.1-27.5 | operator/* residuo (donors, recipients, objects, pickup, resto) | ~25 file | `521d9b1`, `accf171`, `82d2a4f`, `1b13f86`, `b16b385` |
+| 28.1 | Pagine pubbliche (landing, aderisci, faq, cookie, legal, ecc.) | 9 file | `32ff9a0` |
+| 28.2-28.5 | donor + recipient + intermediary + admin/volunteer/auth/login/objects | ~25 file | `9693058`, `f266a7e`, `574113d`, `e8b4e39` |
+
+**Pattern aggiuntivi introdotti** (oltre a quelli di Fase 18):
+
+1. **`aria-pressed` su radio button con icona** (es.
+   `recipient/requests-entity/requests/new/page.tsx` per tipo Bene/Servizio
+   + 8 categorie): i `<button>` con `aria-pressed={state}` che wrappano
+   un'icona + label testuale sono correttamente annunciati dagli screen
+   reader come "toggle premuto/non premuto". Pattern nativo per
+   radio group icon-based, alternativo a `<input type="radio">` invisibile.
+
+2. **`Loader2 + animate-spin` per spinner** (es. `intermediary/profile`,
+   `auth/register`, `admin/intermediaries/new`): per sostituire emoji
+   🔄 usata come spinner inline in button/label. Pattern:
+   ```tsx
+   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+   ```
+   Alternativa alla primitive `<Spinner size="sm">` quando serve restare
+   inline in un button/label senza alterare il layout.
+
+3. **Mappatura contestuale `Record<category, LucideIcon>` con `type LucideIcon`**
+   (es. `donor/goods-requests`, `recipient/requests-entity/requests`): per
+   refactor di strutture dati `{ icon: '📦' }` → `{ icon: Package }`.
+   Tipizzazione:
+   ```tsx
+   import { ..., type LucideIcon } from 'lucide-react';
+   const icons: Record<string, LucideIcon> = {
+     FURNITURE: Sofa, ELECTRONICS: Smartphone, ...
+   };
+   const Icon = icons[category] || Package;
+   ```
+   Il `type LucideIcon` (NON `React.ComponentType<{className?; 'aria-hidden'?}>`)
+   è la firma canonica di lucide-react — type-safe e tree-shakeable.
+
+4. **Icone contestuali di dominio** (sostituzioni semanticamente precise):
+   - `🖨️` → `Printer` (operator/deposit stampa etichette)
+   - `💰` → `HandCoins` (intermediary/dashboard finanziamenti)
+   - `📡` → `SatelliteDish` (intermediary/profile geolocalizzazione)
+   - `🏠` → `House` (intermediary/profile ente)
+   - `📊` → `BarChart3` (intermediary/recipients statistiche)
+   - `⏳` → `Hourglass` (recipient/objects stato in attesa)
+   - `🖨️` → `Printer`, `🔍` → `Search` (ricorrenti)
+
+5. **Mappatura `inline-flex items-center gap-1` per icona + label inline**
+   (es. `recipient/objects/[id]` con status ✓ Approvata, ✗ Rifiutata):
+   per allineare visivamente icona e testo inline senza usare margin o
+   padding custom. Pattern Tailwind standard per qualsiasi associazione
+   `Icon + text` su stessa riga.
+
+**Audit finale post-Fase 28.5**:
+- Grep `src/app/**/*.tsx` per emoji unicode (range U+1F300-U+1FAFF, U+2600-U+27BF)
+  → 0 risultati in markup JSX.
+- Residui SOLO in commenti (`route.ts`, `error.tsx`, `not-found.tsx`) —
+  non in markup, non impattano UX né accessibilità.
+- Tutti i file `.tsx` dell'app ora usano SOLO icone lucide-react con
+  `aria-hidden="true"` corretto (decorative) o `aria-label` adeguato
+  (funzionali in button icon-only, già wrappati in Fase 22).
+
+**Anti-pattern chiuso definitivamente** (vedi [[05-known-issues]]
+§ "Anti-pattern eliminati in Fase 18 / Fasi 24-28"):
+- Emoji come unica label/icon in produzione → VIETATO ovunque.
+- Emoji come decorazione inline (es. `<h1>👋 Ciao</h1>`) → rimosso
+  (testo heading è sufficiente) o sostituito con lucide.
+- Emoji in `<button className="bg-primary-600">` raw → Button primitive
+  + `leftIcon` lucide.
+
+**Regola operativa consolidata**:
+- MAI scrivere emoji in nuovi componenti KYKOS. Se serve un'icona,
+  importare da `lucide-react` con `aria-hidden="true"` se decorativa.
+- Per mappatura rapida emoji → lucide vedi [[05-known-issues]]
+  § "Anti-pattern eliminati in Fase 18" (lista esaustiva).
+- Vedi [[refactor-state]] § Fasi 24-28 per le migration tables complete
+  e le lezioni architetturali apprese.
 
 ---
 
