@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Heart, ChevronDown, Check } from 'lucide-react';
+import { Heart, ChevronDown, Check, Gift, Medal, Award, Trophy, Gem, Package, AlertTriangle, X } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { CATEGORY_LABELS, Category } from '@/types';
 import { toast } from '@/components/ui/Toast';
@@ -285,12 +285,12 @@ export default function RecipientFeedClient() {
     POOR: 'Usurato',
   };
 
-  const levelEmoji: Record<string, string> = {
-    BRONZE: '🥉',
-    SILVER: '🥈',
-    GOLD: '🥇',
-    PLATINUM: '🏆',
-    DIAMOND: '💎',
+  const levelIcon: Record<string, { Icon: typeof Medal; className: string }> = {
+    BRONZE: { Icon: Medal, className: 'w-4 h-4 text-warning-700' },
+    SILVER: { Icon: Medal, className: 'w-4 h-4 text-gray-500' },
+    GOLD: { Icon: Award, className: 'w-4 h-4 text-warning-600' },
+    PLATINUM: { Icon: Trophy, className: 'w-4 h-4 text-info-600' },
+    DIAMOND: { Icon: Gem, className: 'w-4 h-4 text-secondary-600' },
   };
 
   if (loading) {
@@ -407,7 +407,7 @@ export default function RecipientFeedClient() {
       {availableMultiAvailabilities.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">📦</span>
+            <Package className="w-6 h-6 text-gray-700" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Distribuzioni disponibili</h2>
           </div>
           {availableMultiAvailabilities.map((avail) => (
@@ -430,7 +430,9 @@ export default function RecipientFeedClient() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Package className="w-12 h-12" aria-hidden="true" />
+                      </div>
                     )}
                   </div>
 
@@ -502,7 +504,7 @@ export default function RecipientFeedClient() {
       {objects.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🎁</span>
+            <Gift className="w-6 h-6 text-gray-700" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Disponibilità</h2>
           </div>
           {objects.map((obj) => (
@@ -525,7 +527,9 @@ export default function RecipientFeedClient() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Package className="w-12 h-12" aria-hidden="true" />
+                      </div>
                     )}
                   </div>
 
@@ -536,8 +540,11 @@ export default function RecipientFeedClient() {
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
                         {CATEGORY_LABELS[obj.category as Category] || obj.category}
                       </span>
-                      {obj.donor.donorProfile?.level && (
-                        <span className="text-sm">{levelEmoji[obj.donor.donorProfile.level]}</span>
+                      {obj.donor.donorProfile?.level && levelIcon[obj.donor.donorProfile.level] && (
+                        (() => {
+                          const { Icon: LevelIcon, className } = levelIcon[obj.donor.donorProfile.level];
+                          return <LevelIcon className={className} aria-hidden="true" />;
+                        })()
                       )}
                     </div>
                     <p className="text-xs text-gray-400 mt-1">
@@ -641,7 +648,8 @@ export default function RecipientFeedClient() {
                       }}
                       className="px-4 py-3 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-700 transition"
                     >
-                      ⚠️ Segnala
+                      <AlertTriangle className="w-4 h-4 inline-block mr-1" aria-hidden="true" />
+                      Segnala
                     </button>
                   </div>
                 </div>
@@ -654,7 +662,7 @@ export default function RecipientFeedClient() {
       {/* Empty state */}
       {objects.length === 0 && availableMultiAvailabilities.length === 0 && causes.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-5xl mb-4">📦</div>
+          <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna disponibilità</h3>
           <p className="text-gray-500">Al momento non ci sono oggetti disponibili nel tuo ente.</p>
         </div>
@@ -685,7 +693,7 @@ export default function RecipientFeedClient() {
             onClick={() => setSelectedImage(null)}
             className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
           >
-            <span aria-hidden="true">✕</span>
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm">
             {selectedImage.index + 1}
@@ -711,7 +719,7 @@ export default function RecipientFeedClient() {
                 onClick={() => setShowReportModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
-                <span aria-hidden="true">✕</span>
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-4">
