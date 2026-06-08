@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Package, Send, Inbox } from 'lucide-react';
-import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, DonorLevel, RequestStatus, Condition } from '@/types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Package, Send, Inbox, X, AlertTriangle } from 'lucide-react';
+import { CATEGORY_LABELS, REQUEST_STATUS_LABELS, DonorLevel, RequestStatus, Condition, CONDITION_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
-import { Alert, Badge, Button, EmptyState, Input, Select, Spinner } from '@/components/ui';
+import { Alert, Card, EmptyState, Input, Select, Spinner, Badge } from '@/components/ui';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { ExpandableObjectCard, ExpandableObjectCardRequest } from '@/components/recipient/ExpandableObjectCard';
 
 interface Object {
   id: string;
@@ -20,6 +20,7 @@ interface Object {
   };
   intermediary: { id: string; name: string };
   status: string;
+  _count?: { requests: number };
 }
 
 interface UserRequest {
@@ -54,6 +55,14 @@ export default function RecipientBrowsePage() {
   const [category, setCategory] = useState('ALL');
   const [user, setUser] = useState<User | null>(null);
   const [search, setSearch] = useState('');
+  // Stato espansione + lightbox (analogo a RecipientFeedClient)
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string; index: number } | null>(null);
+  // Segnalazione
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportObjectId, setReportObjectId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     Promise.all([fetchUserRequests(), fetchObjects(), fetchUser()]);
@@ -99,14 +108,14 @@ export default function RecipientBrowsePage() {
     }
   };
 
-  const handleRequest = async (objectId: string) => {
+  const handleRequest = async (objectId: string, message: string) => {
     setRequesting(objectId);
 
     try {
       const res = await fetch('/api/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectId, message: '' }),
+        body: JSON.stringify({ objectId, message }),
       });
 
       const data = await res.json();
@@ -117,6 +126,7 @@ export default function RecipientBrowsePage() {
       }
 
       toast.success('Richiesta inviata con successo!');
+      setExpandedId(null);
       fetchObjects();
       fetchUserRequests();
     } catch {
@@ -126,12 +136,9 @@ export default function RecipientBrowsePage() {
     }
   };
 
-  const handleCancelRequest = async (objectId: string) => {
-    const request = userRequests.get(objectId);
-    if (!request) return;
-
+  const handleCancelRequest = async (requestId: string) => {
     try {
-      const res = await fetch(`/api/requests?id=${request.id}`, {
+      const res = await fetch(`/api/requests?id=${requestId}`, {
         method: 'DELETE',
       });
 
@@ -150,10 +157,50 @@ export default function RecipientBrowsePage() {
     }
   };
 
+  const handleReport = async () => {
+    if (!reportReason.trim() || !reportObjectId) {
+      toast.error('Inserisci il motivo della segnalazione');
+      return;
+    }
+
+    setReporting(true);
+    try {
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objectId: reportObjectId, reason: reportReason }),
+      });
+
+      if (res.ok) {
+        setShowReportModal(false);
+        setReportReason('');
+        setReportObjectId(null);
+        toast.success('Segnalazione inviata! Grazie per averci aiutato.');
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Errore nella segnalazione');
+      }
+    } catch {
+      toast.error('Errore di connessione');
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const handleImageClick = (objectId: string, index: number) => {
+    const obj = objects.find((o) => o.id === objectId);
+    if (!obj?.imageUrls) return;
+    setSelectedImage({ url: obj.imageUrls[index], title: obj.title, index });
+  };
+
   const categoryOptions = [
     { value: 'ALL', label: 'Tutte' },
     ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label })),
   ];
+
+  const filteredObjects = objects.filter(
+    (obj) => !search || obj.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -167,7 +214,7 @@ export default function RecipientBrowsePage() {
           </Alert>
         )}
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border mb-8">
+        <Card variant="bordered" padding="md" className="mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               type="text"
@@ -183,111 +230,160 @@ export default function RecipientBrowsePage() {
               className="sm:w-64"
             />
           </div>
-        </div>
+        </Card>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Spinner size="lg" />
           </div>
-        ) : objects.length === 0 ? (
+        ) : filteredObjects.length === 0 ? (
           <EmptyState
             icon={category === 'ALL' ? Inbox : Package}
             title="Nessun oggetto disponibile"
-            description="Al momento non ci sono oggetti in questa categoria."
+            description={
+              search
+                ? `Nessun risultato per "${search}".`
+                : 'Al momento non ci sono oggetti in questa categoria.'
+            }
           />
         ) : (
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {objects
-              .filter(obj => !search || obj.title.toLowerCase().includes(search.toLowerCase()))
-              .map((obj) => {
-                const userReq = userRequests.get(obj.id);
-                const statusBadge = userReq ? requestStatusBadge(userReq.status) : null;
-                return (
-                  <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition">
-                    <Link href={`/recipient/objects/${obj.id}`} className="block">
-                      <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                        {obj.imageUrls && obj.imageUrls[0] ? (
-                          <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                        ) : (
-                          <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <Badge variant="default" size="sm">
-                            {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
-                          </Badge>
-                          <Badge variant="default" size="sm">
-                            {CONDITION_LABELS[obj.condition as Condition] || obj.condition}
-                          </Badge>
-                          {statusBadge && (
-                            <Badge variant={statusBadge.variant} size="sm">
-                              {statusBadge.label}
-                            </Badge>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                          {obj.description || 'Nessuna descrizione'}
-                        </p>
-                        <p className="text-xs text-gray-400 mb-3">
-                          Ente: {obj.intermediary.name}
-                        </p>
-                      </div>
-                    </Link>
-                    <div className="px-4 pb-4">
-                      {userReq ? (
-                        userReq.status === 'PENDING' ? (
-                          <Button
-                            variant="warning"
-                            onClick={() => handleCancelRequest(obj.id)}
-                            className="w-full"
-                            size="sm"
-                          >
-                            Annulla richiesta
-                          </Button>
-                        ) : (
-                          <Button
-                            disabled
-                            variant={
-                              userReq.status === 'APPROVED' ? 'success' :
-                              userReq.status === 'REJECTED' ? 'danger' :
-                              'secondary'
-                            }
-                            className="w-full"
-                            size="sm"
-                          >
-                            {userReq.status === 'APPROVED' ? 'Approvata!' :
-                             userReq.status === 'REJECTED' ? 'Rifiutata' : 'Già richiesto'}
-                          </Button>
-                        )
-                      ) : (
-                        <ConfirmDialog
-                          title="Conferma richiesta"
-                          message="Sei sicuro di voler richiedere questo oggetto?"
-                          confirmLabel="Sì, richiedi"
-                          variant="warning"
-                          onConfirm={() => handleRequest(obj.id)}
-                        >
-                          <Button
-                            variant="primary"
-                            disabled={requesting === obj.id || !user?.authorized}
-                            className="w-full"
-                            size="sm"
-                            title={!user?.authorized ? 'Devi essere autorizzato per richiedere oggetti' : undefined}
-                          >
-                            <Send className="h-4 w-4 mr-1" aria-hidden="true" />
-                            {requesting === obj.id ? 'Invio...' : 'Richiedi'}
-                          </Button>
-                        </ConfirmDialog>
-                      )}
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500">
+              {filteredObjects.length} {filteredObjects.length === 1 ? 'oggetto' : 'oggetti'}
+            </p>
+            {filteredObjects.map((obj) => {
+              const userReq = userRequests.get(obj.id);
+              const statusBadge = userReq ? requestStatusBadge(userReq.status) : null;
+              return (
+                <div key={obj.id}>
+                  <ExpandableObjectCard
+                    object={{
+                      id: obj.id,
+                      title: obj.title,
+                      description: obj.description,
+                      category: obj.category,
+                      condition: obj.condition,
+                      imageUrls: obj.imageUrls,
+                      status: obj.status,
+                      createdAt: new Date().toISOString(),
+                      _count: obj._count,
+                    }}
+                    level={obj.donor.donorProfile.level}
+                    isExpanded={expandedId === obj.id}
+                    onToggle={() =>
+                      setExpandedId(expandedId === obj.id ? null : obj.id)
+                    }
+                    userRequest={userReq ?? null}
+                    showRequestButton={true}
+                    showReportButton={true}
+                    showRequestMessageInput={true}
+                    requesting={requesting === obj.id}
+                    onRequest={handleRequest}
+                    onCancelRequest={handleCancelRequest}
+                    onReport={(id) => {
+                      setReportObjectId(id);
+                      setShowReportModal(true);
+                    }}
+                    onImageClick={handleImageClick}
+                    extraInfo={
+                      <p className="text-xs text-gray-500">
+                        Ente: <span className="font-medium text-gray-700">{obj.intermediary.name}</span>
+                      </p>
+                    }
+                  />
+                  {/* Badge richiesta esistente in collapsed, sotto la card (opzionale) */}
+                  {userReq && statusBadge && (
+                    <div className="mt-2 px-1">
+                      <Badge variant={statusBadge.variant} size="sm">
+                        La tua richiesta: {statusBadge.label}
+                      </Badge>
                     </div>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
+
+      {/* Lightbox modal (unico a livello di pagina) */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            type="button"
+            aria-label="Chiudi galleria"
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
+          >
+            <X className="w-5 h-5" aria-hidden="true" />
+          </button>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm">
+            {selectedImage.index + 1}
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={selectedImage.url}
+            alt={selectedImage.title}
+            className="max-w-[90vw] max-h-[85vh] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Segnala problema</h2>
+              <button
+                type="button"
+                aria-label="Chiudi modale segnalazione"
+                onClick={() => setShowReportModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Segnala questo annuncio. Verrà esaminato e potrebbe essere rimosso se non rispetta le linee guida.
+            </p>
+            <div className="mb-4">
+              <label htmlFor="reportReason" className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo della segnalazione *
+              </label>
+              <textarea
+                id="reportReason"
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-error-500 focus:border-error-500 outline-none resize-none"
+                placeholder="Descrivi il problema..."
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                className="flex-1 py-2 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleReport}
+                disabled={reporting}
+                className="flex-1 py-2 bg-error-600 text-white font-medium rounded-lg hover:bg-error-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {reporting ? 'Invio...' : 'Invia segnalazione'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -32,6 +32,9 @@ export const GET = withErrorHandler(async (
           longitude: true,
         },
       },
+      _count: {
+        select: { requests: true },
+      },
     },
   });
 
@@ -39,5 +42,10 @@ export const GET = withErrorHandler(async (
     return NextResponse.json({ error: 'Oggetto non trovato' }, { status: 404 });
   }
 
-  return NextResponse.json({ object });
+  // Calcola isOwn server-side: NON esporre donorId al client.
+  // Serve a /recipient/objects/[id] per differenziare la UI (no Richiedi/Segnala
+  // per oggetti propri, vedi Fase 31.7 + anonymity).
+  const isOwn = object.donorId === session.id;
+
+  return NextResponse.json({ object: { ...object, isOwn } });
 }, 'GET /api/objects/[id]');

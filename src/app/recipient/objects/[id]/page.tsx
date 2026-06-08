@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Package, Check, X, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Search, Package, Check, X, AlertTriangle, MessageCircle, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, DonorLevel, RequestStatus, Category, Condition } from '@/types';
+import { CATEGORY_LABELS, CONDITION_LABELS, REQUEST_STATUS_LABELS, OBJECT_STATUS_LABELS, DonorLevel, RequestStatus, Category, Condition } from '@/types';
 
 interface ObjectDetails {
   id: string;
@@ -15,12 +15,16 @@ interface ObjectDetails {
   condition: string;
   imageUrls: string[] | null;
   status: string;
+  /** true se l'oggetto appartiene al current user (calcolato server-side, vedi /api/objects/[id]) */
+  isOwn: boolean;
+  depositLocation: string | null;
   donor: {
     latitude: number | null;
     longitude: number | null;
     donorProfile: { level: DonorLevel };
   };
   intermediary: { id: string; name: string; latitude: number | null; longitude: number | null };
+  _count?: { requests: number };
 }
 
 interface UserRequest {
@@ -44,6 +48,7 @@ export default function ObjectDetailPage() {
   const [message, setMessage] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     fetchObjectDetails();
@@ -163,6 +168,29 @@ export default function ObjectDetailPage() {
     }
   };
 
+  // Cancella una disponibilità propria (solo se isOwn === true e status === AVAILABLE)
+  const handleCancelOwn = async () => {
+    setCancelling(true);
+    setMessage('');
+    try {
+      const res = await fetch(`/api/donor/objects/${objectId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setMessage('Disponibilità cancellata.');
+        // Ricarica per aggiornare lo stato a CANCELLED
+        fetchObjectDetails();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setMessage(data.error || 'Errore nella cancellazione');
+      }
+    } catch {
+      setMessage('Errore di connessione');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -242,18 +270,26 @@ export default function ObjectDetailPage() {
               <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg font-medium">
                 {CONDITION_LABELS[object.condition as Condition] || object.condition}
               </span>
-              {userRequest && (
+              {/* Status oggetto (sempre visibile, soprattutto importante per oggetti propri) */}
+              <span className={`px-3 py-1 text-sm rounded-lg font-medium ${
+                object.status === 'AVAILABLE' ? 'bg-success-100 text-success-700' :
+                object.status === 'RESERVED' ? 'bg-warning-100 text-warning-700' :
+                object.status === 'DEPOSITED' ? 'bg-info-100 text-info-700' :
+                object.status === 'DONATED' ? 'bg-gray-100 text-gray-700' :
+                object.status === 'CANCELLED' ? 'bg-error-100 text-error-700' :
+                object.status === 'BLOCKED' ? 'bg-warning-100 text-warning-700' :
+                'bg-gray-100 text-gray-700'
+              }`}>
+                {OBJECT_STATUS_LABELS[object.status as keyof typeof OBJECT_STATUS_LABELS] || object.status}
+              </span>
+              {userRequest && !object.isOwn && (
                 <span className={`px-3 py-1 text-sm rounded-lg font-medium ${
-                  object.status === 'DEPOSITED' ? 'bg-info-100 text-info-700' :
-                  object.status === 'RESERVED' ? 'bg-warning-100 text-warning-700' :
                   userRequest.status === 'APPROVED' ? 'bg-success-100 text-success-700' :
-                  userRequest.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                  userRequest.status === 'PENDING' ? 'bg-warning-100 text-warning-700' :
                   userRequest.status === 'REJECTED' ? 'bg-error-100 text-error-700' :
                   'bg-gray-100 text-gray-600'
                 }`}>
-                  {object.status === 'DEPOSITED' ? 'Depositata' :
-                   object.status === 'RESERVED' ? 'Riservata' :
-                   REQUEST_STATUS_LABELS[userRequest.status]}
+                  {REQUEST_STATUS_LABELS[userRequest.status]}
                 </span>
               )}
             </div>
@@ -272,16 +308,69 @@ export default function ObjectDetailPage() {
                 <p className="text-sm text-gray-500 mb-1">Ente di riferimento</p>
                 <p className="font-medium text-gray-900">{object.intermediary.name}</p>
               </div>
+              {object.depositLocation && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Posizione deposito</p>
+                  <p className="font-medium text-gray-900">{object.depositLocation}</p>
+                </div>
+              )}
+              {object.isOwn && object._count && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Richieste ricevute</p>
+                  <p className="font-medium text-gray-900">
+                    {object._count.requests}{' '}
+                    {object._count.requests === 1 ? 'richiesta' : 'richieste'}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="border-t pt-6">
-              {userRequest ? (
+            {/* Action Buttons — split per isOwn (Fase 31.7) */}
+            {object.isOwn ? (
+              <div className="border-t pt-6 space-y-4">
+                {/* Info: sei il donatore di questa disponibilità */}
+                <div className="p-4 bg-info-50 border border-info-200 rounded-lg">
+                  <p className="text-info-800 font-medium">Questa è una tua disponibilità</p>
+                  <p className="text-sm text-info-600 mt-1">
+                    Gestisci la disponibilità dal tuo{' '}
+                    <Link
+                      href="/recipient/my-objects"
+                      className="font-medium underline hover:text-info-700"
+                    >
+                      pannello Le mie disponibilità
+                    </Link>
+                    .
+                  </p>
+                </div>
+
+                {/* Cancella disponibilità: solo se status AVAILABLE */}
+                {object.status === 'AVAILABLE' && (
+                  <ConfirmDialog
+                    title="Cancella disponibilità"
+                    message="Sei sicuro di voler cancellare questa disponibilità? L'operazione è irreversibile."
+                    confirmLabel="Sì, cancella"
+                    variant="danger"
+                    onConfirm={handleCancelOwn}
+                  >
+                    <button
+                      type="button"
+                      disabled={cancelling}
+                      className="w-full py-3 border border-error-300 text-error-700 font-semibold rounded-lg hover:bg-error-50 transition inline-flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
+                      {cancelling ? 'Cancellazione...' : 'Cancella disponibilità'}
+                    </button>
+                  </ConfirmDialog>
+                )}
+              </div>
+            ) : (
+              <div className="border-t pt-6">
+                {userRequest ? (
                 userRequest.status === 'PENDING' ? (
                   <div className="space-y-4">
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-yellow-800 font-medium">Richiesta in attesa di approvazione</p>
-                      <p className="text-sm text-yellow-600 mt-1">L'ente sta valutando la tua richiesta. Riceverai una notifica quando sarà processata.</p>
+                    <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                      <p className="text-warning-800 font-medium">Richiesta in attesa di approvazione</p>
+                      <p className="text-sm text-warning-600 mt-1">L'ente sta valutando la tua richiesta. Riceverai una notifica quando sarà processata.</p>
                     </div>
                     <button
                       onClick={handleCancelRequest}
@@ -366,7 +455,8 @@ export default function ObjectDetailPage() {
                   Richiedi informazioni
                 </button>
               </div>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

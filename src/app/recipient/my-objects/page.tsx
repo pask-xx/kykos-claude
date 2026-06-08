@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { Package, Plus, Inbox } from 'lucide-react';
 import { CATEGORY_LABELS, OBJECT_STATUS_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
-import { Badge, Button, EmptyState, Spinner } from '@/components/ui';
+import { Card, EmptyState, Spinner, Badge, Button } from '@/components/ui';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { ExpandableObjectCard } from '@/components/recipient/ExpandableObjectCard';
 
 interface Object {
   id: string;
@@ -16,6 +18,8 @@ interface Object {
   status: string;
   imageUrls: string[] | null;
   createdAt: string;
+  depositLocation?: string | null;
+  _count?: { requests: number };
 }
 
 /**
@@ -37,6 +41,8 @@ function objectStatusBadge(status: string) {
 export default function RecipientMyObjectsPage() {
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   useEffect(() => {
     fetchObjects();
@@ -55,18 +61,46 @@ export default function RecipientMyObjectsPage() {
     }
   };
 
+  const handleCancel = async (objectId: string) => {
+    setCancelling(objectId);
+    try {
+      const res = await fetch(`/api/donor/objects/${objectId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        toast.success('Disponibilità cancellata');
+        fetchObjects();
+        setExpandedId(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error || 'Errore nella cancellazione');
+      }
+    } catch {
+      toast.error('Errore di connessione');
+    } finally {
+      setCancelling(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Le mie disponibilità</h1>
-          <Link href="/recipient/my-objects/new">
-            <Button variant="primary">
-              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-              Aggiungi disponibilità
-            </Button>
-          </Link>
-        </div>
+        <Card variant="bordered" padding="md" className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Le mie disponibilità</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Gestisci gli oggetti che hai pubblicato per la donazione.
+              </p>
+            </div>
+            <Link href="/recipient/my-objects/new">
+              <Button variant="primary">
+                <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                Aggiungi disponibilità
+              </Button>
+            </Link>
+          </div>
+        </Card>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -87,32 +121,46 @@ export default function RecipientMyObjectsPage() {
             }
           />
         ) : (
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500">
+              {objects.length} {objects.length === 1 ? 'disponibilità' : 'disponibilità'}
+            </p>
             {objects.map((obj) => {
               const statusBadge = objectStatusBadge(obj.status);
               return (
-                <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                  <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                    {obj.imageUrls && obj.imageUrls[0] ? (
-                      <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                    ) : (
-                      <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                      <Badge variant="default" size="sm">
-                        {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category.replace('_', ' ')}
-                      </Badge>
-                      <Badge variant={statusBadge.variant} size="sm">
-                        {statusBadge.label}
-                      </Badge>
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                    <p className="text-sm text-gray-500 line-clamp-2">
-                      {obj.description || 'Nessuna descrizione'}
-                    </p>
-                  </div>
+                <div key={obj.id}>
+                  <ExpandableObjectCard
+                    object={{
+                      id: obj.id,
+                      title: obj.title,
+                      description: obj.description,
+                      category: obj.category,
+                      condition: obj.condition,
+                      imageUrls: obj.imageUrls,
+                      status: obj.status,
+                      createdAt: obj.createdAt,
+                      _count: obj._count,
+                    }}
+                    // NO `level`: my-objects non mostra livello donatore verso sé stesso
+                    isExpanded={expandedId === obj.id}
+                    onToggle={() => setExpandedId(expandedId === obj.id ? null : obj.id)}
+                    // NIENTE Richiedi, Segnala, Message input
+                    showRequestButton={false}
+                    showReportButton={false}
+                    showRequestMessageInput={false}
+                    showRequestCount={true}
+                    // Bottone Cancella solo se AVAILABLE
+                    onCancel={obj.status === 'AVAILABLE' ? handleCancel : undefined}
+                    // Link a /recipient/objects/[id] (MAI /donor/* per anonymity)
+                    showDetailLink={true}
+                    extraInfo={
+                      <div className="flex items-center gap-2">
+                        <Badge variant={statusBadge.variant} size="sm">
+                          {statusBadge.label}
+                        </Badge>
+                      </div>
+                    }
+                  />
                 </div>
               );
             })}
