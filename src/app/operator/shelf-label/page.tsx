@@ -132,7 +132,7 @@ export default function ShelfLabelPage() {
       <Card>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <Tag className="h-12 w-12 mx-auto text-primary-600 mb-4" />
+            <Tag className="h-12 w-12 mx-auto text-primary-600 mb-4" aria-hidden="true" />
             <h1 className="text-2xl font-bold text-gray-900">Etichetta Scaffale</h1>
             <p className="text-gray-500 mt-2">Crea un&apos;etichetta per contrassegnare uno spazio</p>
           </div>

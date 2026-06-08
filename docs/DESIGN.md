@@ -929,7 +929,19 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
       radiogroup, checkbox group, file picker custom) con
       `<span id>` + `<div role="radiogroup"|aria-labelledby>`. Vedi
       [[refactor-state]] § Fase 20.
-- [ ] Aggiungere `aria-hidden` alle icone decorative.
+- [x] Aggiungere `aria-hidden` alle icone decorative.
+      Analisi 2026-06-08 → **completata in Fasi 15-18 + Fase 21** (misto).
+      Le Fasi 15 (recipient), 16 (intermediary + admin), 18.3 (auth +
+      volunteer) hanno introdotto `aria-hidden="true"` contestualmente
+      alla sostituzione emoji → lucide. La Fase 21 ha chiuso i
+      sotto-residui: 21.2 (PasswordChangeForm + NotificationBell),
+      21.3 (operator/* + qr/*, 12 file), 21.4 era già completa.
+      Scope totale: ~80 icone decorative. Vedi [[refactor-state]]
+      § Fase 21 per la migration table completa.
+      Regola operativa: TUTTE le icone lucide introdotte da ora in poi
+      DEVONO avere `aria-hidden="true"` se affiancate a testo leggibile.
+      Le primitive `<EmptyState icon={X}>` e `<Alert>` con icone di
+      default wrappano automaticamente.
 - [x] Sostituire tutti i `<div onClick>` rimasti.
       Analisi 2026-06-06: 15 occorrenze totali, 14 sono backdrop modal
       (`<div className="absolute inset-0 bg-black/50" onClick={...} />`,
@@ -943,10 +955,12 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
         reset + Link home
       - `not-found.tsx` (server component): `<EmptyState>` + CTA home
 
-> ✅ **Completata Fase 12 (2026-06-06)**, 4 commit tecnici + 1 docs.
-> Vedi [[refactor-state]] § Fase 12 e [[05-known-issues]] § "Anti-pattern
-> eliminati in Fase 12". Le sotto-attività `htmlFor` + `aria-hidden`
-> restano aperte come Fase 12-bis (continuo, non bloccante per pilota).
+> ✅ **P10 completata in Fasi 12 + 20 + 21 (2026-06-06 → 2026-06-08)**.
+> Sotto-attività `htmlFor` chiusa in Fase 20 (4 commit), `<div onClick>`
+> fixato in Fase 12.4, `app/loading|error|not-found` creati in Fase 12.
+> Sotto-attività `aria-hidden` chiusa in Fasi 15-18 (prevalentemente) +
+> Fase 21 (residui). Vedi [[refactor-state]] § Fasi 12, 20, 21 e
+> [[05-known-issues]] § "Anti-pattern eliminati in Fase 20/21".
 
 ---
 

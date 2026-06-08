@@ -139,7 +139,7 @@ export default function NotificationBell({ apiPath, bellSize = 'md' }: { apiPath
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="p-6 text-center text-gray-500">
-                  <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" aria-hidden="true" />
                   <p>Nessuna notifica</p>
                 </div>
               ) : (

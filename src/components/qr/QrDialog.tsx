@@ -91,7 +91,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
           )}
           {hasEntityHours && (
             <div className="flex items-start gap-1 text-xs text-gray-500">
-              <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+              <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
               <div
                 className="prose prose-xs max-w-none"
                 dangerouslySetInnerHTML={{ __html: item.entity.hoursInfo ?? '' }}
@@ -117,7 +117,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
         ) : (
           <div className="flex justify-center">
             <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
-              <QrCode className="h-12 w-12 text-gray-400" />
+              <QrCode className="h-12 w-12 text-gray-400" aria-hidden="true" />
             </div>
           </div>
         )}
@@ -135,7 +135,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
             type="button"
             variant="primary"
             size="lg"
-            leftIcon={<Share2 className="h-4 w-4" />}
+            leftIcon={<Share2 className="h-4 w-4" aria-hidden="true" />}
             loading={actions.sharing}
             onClick={actions.handleWebShare}
             disabled={!item.qrImageUrl}
@@ -148,7 +148,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
             <Button
               type="button"
               variant="secondary"
-              leftIcon={<Mail className="h-4 w-4" />}
+              leftIcon={<Mail className="h-4 w-4" aria-hidden="true" />}
               onClick={actions.handleEmailShare}
               className="flex-1"
             >
@@ -157,7 +157,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
             <Button
               type="button"
               variant="success"
-              leftIcon={<MessageCircle className="h-4 w-4" />}
+              leftIcon={<MessageCircle className="h-4 w-4" aria-hidden="true" />}
               onClick={actions.handleWhatsAppShare}
               className="flex-1"
             >
@@ -166,7 +166,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
             <Button
               type="button"
               variant="secondary"
-              leftIcon={<Download className="h-4 w-4" />}
+              leftIcon={<Download className="h-4 w-4" aria-hidden="true" />}
               onClick={actions.handleDownload}
               disabled={!item.qrImageUrl}
               className="flex-1"
@@ -179,7 +179,7 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
             type="button"
             variant="primary"
             size="lg"
-            leftIcon={<Printer className="h-4 w-4" />}
+            leftIcon={<Printer className="h-4 w-4" aria-hidden="true" />}
             onClick={actions.handlePrint}
             disabled={!item.qrImageUrl}
             className="w-full"

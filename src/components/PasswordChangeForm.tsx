@@ -102,7 +102,7 @@ export default function PasswordChangeForm({ role, onSuccess }: PasswordChangeFo
     <Card>
       <CardContent className="p-6 space-y-4">
         <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Lock className="h-5 w-5 text-primary-600" /> Cambia password
+          <Lock className="h-5 w-5 text-primary-600" aria-hidden="true" /> Cambia password
         </h2>
 
         {success && <Alert type="success">Password modificata con successo!</Alert>}

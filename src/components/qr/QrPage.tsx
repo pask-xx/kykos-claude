@@ -169,7 +169,7 @@ export function QrPage({
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8 max-w-md">
           <BackButton backHref={backHref} backLabel={backLabel} onClick={() => router.back()} />
-          <Alert type="error" title="Errore" icon={<AlertCircle />}>
+          <Alert type="error" title="Errore" icon={<AlertCircle aria-hidden="true" />}>
             {error}
           </Alert>
         </main>
@@ -236,7 +236,7 @@ export function QrPage({
                 type="button"
                 variant="primary"
                 size="lg"
-                leftIcon={<Share2 className="h-4 w-4" />}
+                leftIcon={<Share2 className="h-4 w-4" aria-hidden="true" />}
                 loading={actions.sharing}
                 onClick={actions.handleWebShare}
                 className="w-full"
@@ -248,7 +248,7 @@ export function QrPage({
                 <Button
                   type="button"
                   variant="secondary"
-                  leftIcon={<Mail className="h-4 w-4" />}
+                  leftIcon={<Mail className="h-4 w-4" aria-hidden="true" />}
                   onClick={actions.handleEmailShare}
                   className="flex-1"
                 >
@@ -257,7 +257,7 @@ export function QrPage({
                 <Button
                   type="button"
                   variant="success"
-                  leftIcon={<MessageCircle className="h-4 w-4" />}
+                  leftIcon={<MessageCircle className="h-4 w-4" aria-hidden="true" />}
                   onClick={actions.handleWhatsAppShare}
                   className="flex-1"
                 >
@@ -266,7 +266,7 @@ export function QrPage({
                 <Button
                   type="button"
                   variant="secondary"
-                  leftIcon={<Download className="h-4 w-4" />}
+                  leftIcon={<Download className="h-4 w-4" aria-hidden="true" />}
                   onClick={actions.handleDownload}
                   className="flex-1"
                 >
@@ -278,7 +278,7 @@ export function QrPage({
                 type="button"
                 variant="primary"
                 size="lg"
-                leftIcon={<Printer className="h-4 w-4" />}
+                leftIcon={<Printer className="h-4 w-4" aria-hidden="true" />}
                 onClick={actions.handlePrint}
                 className="w-full"
               >
@@ -289,7 +289,7 @@ export function QrPage({
                 <Button
                   type="button"
                   variant="ghost"
-                  leftIcon={<Clock className="h-4 w-4" />}
+                  leftIcon={<Clock className="h-4 w-4" aria-hidden="true" />}
                   onClick={() => setShowHoursModal(true)}
                   className="w-full"
                 >
@@ -340,7 +340,7 @@ function BackButton({
 }) {
   const content = (
     <span className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
-      <ChevronLeft className="h-4 w-4" />
+      <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       {backLabel}
     </span>
   );

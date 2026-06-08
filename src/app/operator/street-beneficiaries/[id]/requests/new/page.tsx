@@ -183,7 +183,7 @@ export default function NewStreetBeneficiaryRequestPage({ params }: { params: Pr
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <Icon className="h-8 w-8 text-primary-600" />
+                      <Icon className="h-8 w-8 text-primary-600" aria-hidden="true" />
                       <span className="font-medium text-sm">{title}</span>
                       <span className="text-xs text-gray-500">{subtitle}</span>
                     </button>
@@ -211,7 +211,7 @@ export default function NewStreetBeneficiaryRequestPage({ params }: { params: Pr
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <Icon className="h-6 w-6 text-primary-600" />
+                      <Icon className="h-6 w-6 text-primary-600" aria-hidden="true" />
                       <span className="text-xs font-medium text-center leading-tight">
                         {CATEGORY_LABELS[value]}
                       </span>

@@ -157,7 +157,7 @@ export default function QRCodeCard({
             type="button"
             variant="primary"
             size="md"
-            leftIcon={<Share2 className="h-4 w-4" />}
+            leftIcon={<Share2 className="h-4 w-4" aria-hidden="true" />}
             loading={sharing}
             onClick={handleWebShare}
             className="w-full"
@@ -169,7 +169,7 @@ export default function QRCodeCard({
             <Button
               type="button"
               variant="secondary"
-              leftIcon={<Mail className="h-4 w-4" />}
+              leftIcon={<Mail className="h-4 w-4" aria-hidden="true" />}
               onClick={handleEmailShare}
               disabled={sharing}
               className="flex-1"
@@ -179,7 +179,7 @@ export default function QRCodeCard({
             <Button
               type="button"
               variant="success"
-              leftIcon={<MessageCircle className="h-4 w-4" />}
+              leftIcon={<MessageCircle className="h-4 w-4" aria-hidden="true" />}
               onClick={handleWhatsAppShare}
               disabled={sharing}
               className="flex-1"
@@ -189,7 +189,7 @@ export default function QRCodeCard({
             <Button
               type="button"
               variant="secondary"
-              leftIcon={<Download className="h-4 w-4" />}
+              leftIcon={<Download className="h-4 w-4" aria-hidden="true" />}
               onClick={handleDownload}
               className="flex-1"
             >
@@ -201,7 +201,7 @@ export default function QRCodeCard({
             <Button
               type="button"
               variant="primary"
-              leftIcon={<Printer className="h-4 w-4" />}
+              leftIcon={<Printer className="h-4 w-4" aria-hidden="true" />}
               onClick={onPrint}
               className="w-full"
             >
