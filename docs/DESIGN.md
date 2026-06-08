@@ -829,10 +829,31 @@ su 5 migrati al primitive `toast.*`. 1 è stato preservato (vedi nota).
 
 ### 12.8 P7 — Modulo recipient/* (3-4 commit)
 
-- [ ] Migrare `recipient/objects` a `<Card>` grid + `<EmptyState>`.
-- [ ] Migrare `recipient/requests` a `<Tabs>` + `<EmptyState>`.
-- [ ] Migrare `recipient/requests-entity/requests` a `<Table>`.
-- [ ] Migrare `recipient/my-objects` a `<Card>` grid.
+- [x] Migrare `recipient/objects` a `<Card>` grid + `<EmptyState>`
+      (Fase 15.1, 2026-06-08). Select filtro categoria da `<button>` × 8
+      a primitive `<Select options>`, `<Input>` search, 4 Badge status
+      request (PENDING/APPROVED/REJECTED/CANCELLED), EmptyState con action,
+      Spinner, Button variant (warning annulla, success/danger/secondary
+      disabled per stato), console.error → toast.error.
+- [x] Migrare `recipient/requests` a `<Tabs>` + `<EmptyState>`
+      (Fase 15.2, 2026-06-08). Tabs filtro (tutte/attive/completate) con
+      counts, 2 mapper Badge (4 request status + 5 object status),
+      Alert type="error" + Button Riprova, EmptyState con CTA, Spinner,
+      Button success con QrCode per ritiro.
+- [x] Migrare `recipient/requests-entity/requests` a `<Table>` (inteso
+      card unificata) (Fase 15.3, 2026-06-08). Vista unificata GOODS/
+      SERVICES/AVAILABLE: 3 mapper Badge (object 5 + entity request 6 +
+      itemType 3), border-l-4 colorato per tipo (preservato come
+      semantica), EmptyState icon={ClipboardList}, Spinner, Button
+      primary con lucide Plus, Badge con lucide Mail per pending offers.
+- [x] Migrare `recipient/my-objects` a `<Card>` grid
+      (Fase 15.4, 2026-06-08). objectStatusBadge mapper (6 status),
+      Badge variant="default" categoria, EmptyState con action Button
+      primary, Spinner, Button primary con lucide Plus, console.error
+      → toast.error.
+
+> ✅ **P7 completato in Fase 15** (4/4 file, 2026-06-08), 4 commit atomici
+> su staging. Vedi [[refactor-state]] § Fase 15.
 
 ### 12.9 P8 — Modulo intermediary/* e admin/* (2-3 commit)
 
