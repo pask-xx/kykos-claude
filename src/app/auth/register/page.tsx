@@ -3,10 +3,11 @@
 import { useState, Suspense, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Building2, Gift, Heart, Home, MapPin, Satellite } from 'lucide-react';
 import { Role } from '@/types';
 import CitySelector from '@/components/geo/CitySelector';
 import PdfViewerModal from '@/components/PdfViewerModal';
-import { Modal, ModalFooter } from '@/components/ui/Modal';
+import { Button, Modal, ModalFooter } from '@/components/ui';
 
 interface Diocese {
   id: string;
@@ -473,8 +474,8 @@ function RegisterForm() {
                   }`}
                 >
                   <span className="block text-2xl mb-1">
-                    {r === 'DONOR' && '🎁'}
-                    {r === 'RECIPIENT' && '🙏'}
+                    {r === 'DONOR' && <Gift className="h-6 w-6 mx-auto" aria-hidden="true" />}
+                    {r === 'RECIPIENT' && <Heart className="h-6 w-6 mx-auto" aria-hidden="true" />}
                   </span>
                   <span className="text-sm font-medium">
                     {r === 'DONOR' && 'Donatore'}
@@ -656,7 +657,8 @@ function RegisterForm() {
             {/* Geolocation Section - Required for RECIPIENT and INTERMEDIARY, Optional for DONOR */}
             <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
               <h3 className="font-medium text-gray-900 flex items-center gap-2 text-sm mb-2">
-                <span>📍</span> Geolocalizzazione
+                <MapPin className="h-4 w-4" aria-hidden="true" />
+                Geolocalizzazione
                 {(isRecipient || role === 'INTERMEDIARY') && <span className="text-red-500">*</span>}
                 {isDonor && <span className="text-gray-400 text-xs">(facoltativa)</span>}
               </h3>
@@ -667,22 +669,37 @@ function RegisterForm() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={detectLocation}
-                  disabled={locating}
-                  className="flex-1 px-3 py-2 bg-secondary-600 text-white text-xs font-medium rounded-lg hover:bg-secondary-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
+                  loading={locating}
+                  className="flex-1"
                 >
-                  {locating ? '⏳ Rilevamento...' : '📡 GPS'}
-                </button>
-                <button
+                  {locating ? 'Rilevamento...' : (
+                    <>
+                      <Satellite className="h-3.5 w-3.5" aria-hidden="true" />
+                      GPS
+                    </>
+                  )}
+                </Button>
+                <Button
                   type="button"
+                  variant="primary"
+                  size="sm"
                   onClick={geocodeFromAddress}
-                  disabled={geocoding || !address || !city}
-                  className="flex-1 px-3 py-2 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition flex items-center justify-center gap-1"
+                  loading={geocoding}
+                  disabled={!address || !city}
+                  className="flex-1"
                 >
-                  {geocoding ? '⏳ Calcolo...' : '🏠 Da indirizzo'}
-                </button>
+                  {geocoding ? 'Calcolo...' : (
+                    <>
+                      <Home className="h-3.5 w-3.5" aria-hidden="true" />
+                      Da indirizzo
+                    </>
+                  )}
+                </Button>
               </div>
 
               {locationError && (
@@ -1110,7 +1127,7 @@ export default function RegisterPage() {
         <div className="relative z-10 space-y-8 flex-1 flex flex-col justify-center">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🎁</span>
+              <Gift className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Dona i tuoi oggetti</h3>
@@ -1119,7 +1136,7 @@ export default function RegisterPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🙏</span>
+              <Heart className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Richiedi ciò di cui hai bisogno</h3>
@@ -1128,7 +1145,7 @@ export default function RegisterPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <span className="text-3xl">🏢</span>
+              <Building2 className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Enti verificati</h3>
