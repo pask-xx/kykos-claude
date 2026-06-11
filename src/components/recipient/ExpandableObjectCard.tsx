@@ -9,26 +9,49 @@ import { levelIconMap } from '@/lib/level-icons';
 import type { DonorLevel } from '@/types';
 
 /**
- * Card orizzontale espandibile per oggetti recipient.
+ * Card orizzontale espandibile riusabile per oggetti (recipient + donor).
  *
  * Estratta dal pattern di RecipientFeedClient (regola Fase 31.7) per allineare
  * /recipient/dashboard, /recipient/objects e /recipient/my-objects sullo stesso
  * pattern grafico. Stato di espansione controllato dal parent.
  *
+ * Da Fase 34.2 la card è usata anche dalle pagine `/donor/objects` e
+ * `/donor/requests` con piccole differenze di wiring (`detailHref` e
+ * `customActions`).
+ *
  * Pattern collapsed: image 96x96 a sx, info a dx, ChevronDown rotate on expand.
  * Pattern expanded: galleria orizzontale + descrizione + condizione + data +
- * (opzionale) input messaggio + bottoni Richiedi/Segnala/Annulla/Cancella.
+ * (opzionale) input messaggio + bottoni Richiedi/Segnala/Annulla/Cancella +
+ * (opzionale) `customActions` + (opzionale) link "Vedi dettaglio".
+ *
+ * **Cross-ruolo (Fase 34.2)** — esempi di props per ogni call site:
+ * - Recipient browsing altrui (`/recipient/objects`, `RecipientFeedClient`):
+ *   `showRequestButton={true}` + `showReportButton={true}` +
+ *   `showRequestMessageInput={true}` (default).
+ * - Recipient my-objects (`/recipient/my-objects`):
+ *   `showRequestButton={false}` + `showReportButton={false}` +
+ *   `showRequestMessageInput={false}` + `onCancel` (se AVAILABLE) +
+ *   `showDetailLink={true}` o `detailHref`.
+ * - Donor my-objects (`/donor/objects`, `/donor/requests`):
+ *   `showRequestButton={false}` + `showReportButton={false}` +
+ *   `showRequestMessageInput={false}` + `detailHref={(id) => '/donor/objects/'+id}` +
+ *   `onCancel` (se AVAILABLE) + opzionale `customActions` per bottone QR Code.
  *
  * **Accessibilità** (regola del 05-known-issues):
  * - Toggle usa `<button>` con `aria-expanded` e label sr-only (NO `<div onClick>`).
  * - Icone sono `aria-hidden="true"` (decorazioni, label nel testo adiacente).
  * - Livello donatore: `<span class="sr-only">` per screen reader.
+ * - `customActions` deve contenere SOLO primitive accessibili (Button, Link).
+ *   NON wrappare `<div onClick>` (vietato da 01-core-principles).
  *
  * **Anonymity** (regola 01-core-principles):
  * - `level` (badge donatore) è mostrato SOLO per oggetti altrui (passato dal parent).
  * - Su /recipient/my-objects NON passare `level`: l'utente non vede il proprio
  *   livello come badge di fiducia verso sé stesso.
- * - NON mostrare MAI link a /donor/* da qui: solo link a /recipient/objects/[id].
+ * - Da recipient i link vanno a `/recipient/objects/[id]` (mai `/donor/*`).
+ * - Da donor i link vanno a `/donor/objects/[id]` (mai `/recipient/*`).
+ *   Default di `detailHref` è `/recipient/objects/[id]`; le pagine donor
+ *   passano esplicitamente `detailHref={(id) => '/donor/objects/'+id}`.
  */
 export interface ExpandableObjectCardObject {
   id: string;
@@ -79,8 +102,27 @@ export interface ExpandableObjectCardProps {
   onImageClick?: (objectId: string, index: number) => void;
   /** Handler click "Cancella disponibilità" (solo per oggetti propri, AVAILABLE). */
   onCancel?: (objectId: string) => void;
-  /** Se true, mostra il link "Vedi dettaglio" → /recipient/objects/[id]. Default false. */
+  /**
+   * @deprecated Da Fase 34.2 usare `detailHref` (più flessibile). Mantenuto
+   * per retro-compatibilità: se `showDetailLink: true` E `detailHref` non
+   * passato, usa il default recipient `/recipient/objects/[id]`.
+   */
   showDetailLink?: boolean;
+  /**
+   * URL della pagina di dettaglio dell'oggetto. Default: `/recipient/objects/[id]`.
+   * Le pagine donor passano `detailHref={(id) => '/donor/objects/'+id}`.
+   * Se passato insieme a `showDetailLink={false}`, il link NON viene mostrato.
+   */
+  detailHref?: (objectId: string) => string;
+  /**
+   * Slot per bottoni extra SOPRA "Cancella disponibilità" (es. bottone
+   * "QR Code per consegna" su /donor/requests). Wrappato in
+   * `<div className="flex flex-wrap gap-3">` insieme agli altri bottoni.
+   *
+   * Vincolo a11y (regola 01-core-principles): wrappare SOLO primitive
+   * accessibili (`<Button>`, `<Link>`, `<button>`). MAI `<div onClick>`.
+   */
+  customActions?: React.ReactNode;
 }
 
 const conditionLabel = (cond: string) =>
@@ -104,9 +146,19 @@ export function ExpandableObjectCard({
   onImageClick,
   onCancel,
   showDetailLink = false,
+  detailHref,
+  customActions,
 }: ExpandableObjectCardProps) {
   const messageId = useId();
   const [message, setMessage] = useState('');
+
+  // detailHref resolution: se passato, usa quello. Altrimenti se
+  // showDetailLink=true (legacy), usa default recipient. Altrimenti null.
+  const resolvedDetailHref = (() => {
+    if (detailHref) return detailHref(object.id);
+    if (showDetailLink) return `/recipient/objects/${object.id}`;
+    return null;
+  })();
 
   const levelEntry = level ? levelIconMap[level] : null;
   const requestCount = object._count?.requests ?? 0;
@@ -340,14 +392,18 @@ export function ExpandableObjectCard({
                   </button>
                 </ConfirmDialog>
               )}
+
+              {/* Custom actions slot (es. QR Code per consegna su /donor/requests) */}
+              {/* Wrappato in un fragment perché il parent ha già `flex flex-wrap gap-3`. */}
+              {customActions}
             </div>
           )}
 
-          {/* Link a pagina di dettaglio (per my-objects) */}
-          {showDetailLink && (
+          {/* Link a pagina di dettaglio (per my-objects recipient + donor) */}
+          {resolvedDetailHref && (
             <div className="pt-2 border-t border-gray-200">
               <Link
-                href={`/recipient/objects/${object.id}`}
+                href={resolvedDetailHref}
                 className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
               >
                 Vedi dettaglio completo →

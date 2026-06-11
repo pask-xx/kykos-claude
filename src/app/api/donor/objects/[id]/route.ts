@@ -24,11 +24,16 @@ export const GET = withErrorHandler(async (
       donorId: session.id,
     },
     include: {
+      // Anonymity fix (Fase 34.1): rimuovere `recipient.name` incluso
+      // nelle requests. Regola #1 KYKOS — il DONOR non vede MAI
+      // l'identità del RICEVENTE. Vedi 01-core-principles.md
+      // tabella visibilità ("DONATORE | Mai | MAI") + 04-anonymity.md
+      // (regola A4). Manteniamo solo i campi minimi necessari alla UI.
       requests: {
-        include: {
-          recipient: {
-            select: { name: true },
-          },
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
         },
       },
     },

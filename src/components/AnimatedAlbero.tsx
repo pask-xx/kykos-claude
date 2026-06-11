@@ -43,14 +43,12 @@ export default function AnimatedAlbero({ className = '', size = 160 }: AnimatedA
         strokeWidth="1"
         strokeLinejoin="round"
         strokeLinecap="round"
-        style={{
-          // Disegna progressivamente il path, poi resta visibile.
-          // stroke-dasharray=1 (pathLength normalizzato) + dashoffset 1→0
-          // animation-fill-mode: forwards (resta disegnato)
-          strokeDasharray: 1,
-          strokeDashoffset: 1,
-          animation: 'kykos-draw-albero 2.2s ease-out 0.2s forwards',
-        }}
+        // Stato iniziale + animazione definiti in globals.css
+        // (.kykos-albero-path) per permettere alla media query
+        // prefers-reduced-motion di mostrare l'albero già completo
+        // (stroke-dashoffset: 0, fill-opacity: 1) invece dell'outline
+        // vuoto. Vedi Fase 33.5 in docs/05-known-issues.md.
+        className="kykos-albero-path"
       />
     </svg>
   );

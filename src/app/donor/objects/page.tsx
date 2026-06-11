@@ -6,40 +6,23 @@ import { Package, Plus } from 'lucide-react';
 import { OBJECT_STATUS_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
 import { Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
-
-interface Object {
-  id: string;
-  title: string;
-  description: string | null;
-  category: string;
-  condition: string;
-  status: string;
-  imageUrls: string[];
-  createdAt: string;
-}
+import {
+  ExpandableObjectCard,
+  type ExpandableObjectCardObject,
+} from '@/components/recipient/ExpandableObjectCard';
+import { DonorImageLightbox } from '@/components/donor/DonorImageLightbox';
 
 type ObjectFilter = 'available' | 'all';
 
-/**
- * Mappa Object.status → Badge variant KYKOS.
- * vedi: src/types/ObjectStatus per i 6 stati (AVAILABLE, RESERVED, DEPOSITED, DONATED, CANCELLED, BLOCKED).
- */
-function objectStatusBadge(status: string) {
-  switch (status) {
-    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
-    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
-    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
-    case 'DONATED': return { variant: 'default' as const, label: 'Donata' };
-    case 'CANCELLED': return { variant: 'danger' as const, label: 'Annullata' };
-    case 'BLOCKED': return { variant: 'warning' as const, label: 'Bloccata' };
-    default: return { variant: 'default' as const, label: OBJECT_STATUS_LABELS[status as keyof typeof OBJECT_STATUS_LABELS] ?? status };
-  }
-}
-
 export default function DonorObjectsPage() {
-  const [objects, setObjects] = useState<Object[]>([]);
+  const [objects, setObjects] = useState<ExpandableObjectCardObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ObjectFilter>('available');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Lightbox state (unico a livello pagina, pattern riusato da /recipient/objects)
+  const [lightboxImage, setLightboxImage] = useState<
+    { url: string; title: string; index: number } | null
+  >(null);
 
   useEffect(() => {
     fetchObjects();
@@ -58,9 +41,35 @@ export default function DonorObjectsPage() {
     }
   };
 
+  const handleCancel = async (objectId: string) => {
+    try {
+      const res = await fetch(`/api/donor/objects/${objectId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        // Rimuovi l'oggetto cancellato dalla lista (ottimistico)
+        setObjects((prev) => prev.filter((o) => o.id !== objectId));
+        setExpandedId((current) => (current === objectId ? null : current));
+        toast.success('Disponibilità cancellata');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore nella cancellazione');
+      }
+    } catch {
+      toast.error('Errore di connessione');
+    }
+  };
+
+  const handleImageClick = (objectId: string, index: number) => {
+    const obj = objects.find((o) => o.id === objectId);
+    if (obj?.imageUrls && obj.imageUrls[index]) {
+      setLightboxImage({ url: obj.imageUrls[index], title: obj.title, index });
+    }
+  };
+
   const availableCount = objects.filter((obj) => obj.status === 'AVAILABLE').length;
   const filteredObjects = filter === 'available'
-    ? objects.filter(obj => obj.status === 'AVAILABLE')
+    ? objects.filter((obj) => obj.status === 'AVAILABLE')
     : objects;
 
   return (
@@ -87,64 +96,67 @@ export default function DonorObjectsPage() {
           ariaLabel="Filtra oggetti per disponibilità"
         />
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner size="lg" />
-        </div>
-      ) : filteredObjects.length === 0 ? (
-        <EmptyState
-          icon={Package}
-          title="Nessuna disponibilità"
-          description={
-            filter === 'available'
-              ? 'Non hai oggetti disponibili al momento.'
-              : 'Non hai ancora pubblicato disponibilità.'
-          }
-          action={
-            filter === 'all' ? (
-              <Link href="/donor/objects/new">
-                <Button variant="primary">Pubblica il tuo primo oggetto</Button>
-              </Link>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredObjects.map((obj) => {
-            const statusBadge = objectStatusBadge(obj.status);
-            return (
-              <Link
-                key={obj.id}
-                href={`/donor/objects/${obj.id}`}
-                className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                  {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                    <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                  ) : (
-                    <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2 gap-2">
+        <div className="mt-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner size="lg" />
+            </div>
+          ) : filteredObjects.length === 0 ? (
+            <EmptyState
+              icon={Package}
+              title="Nessuna disponibilità"
+              description={
+                filter === 'available'
+                  ? 'Non hai oggetti disponibili al momento.'
+                  : 'Non hai ancora pubblicato disponibilità.'
+              }
+              action={
+                filter === 'all' ? (
+                  <Link href="/donor/objects/new">
+                    <Button variant="primary">Pubblica il tuo primo oggetto</Button>
+                  </Link>
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {filteredObjects.map((obj) => (
+                <ExpandableObjectCard
+                  key={obj.id}
+                  object={obj}
+                  isExpanded={expandedId === obj.id}
+                  onToggle={() =>
+                    setExpandedId(expandedId === obj.id ? null : obj.id)
+                  }
+                  // Donor browsing dei propri oggetti: niente Richiedi/Segnala/Messaggio.
+                  showRequestButton={false}
+                  showReportButton={false}
+                  showRequestMessageInput={false}
+                  // Conteggio richieste ricevute (es. "3 richieste" su card collassata).
+                  showRequestCount={true}
+                  // Link di dettaglio verso la pagina donor (NON recipient — anonymity).
+                  detailHref={(id) => `/donor/objects/${id}`}
+                  // Bottone "Cancella disponibilità" solo su oggetti AVAILABLE.
+                  onCancel={obj.status === 'AVAILABLE' ? handleCancel : undefined}
+                  // Apertura lightbox al click su immagine galleria.
+                  onImageClick={handleImageClick}
+                  // Badge status nel dettaglio espanso.
+                  extraInfo={
                     <Badge variant="default" size="sm">
-                      {obj.category.replace('_', ' ')}
+                      {OBJECT_STATUS_LABELS[obj.status as keyof typeof OBJECT_STATUS_LABELS] ?? obj.status}
                     </Badge>
-                    <Badge variant={statusBadge.variant} size="sm">
-                      {statusBadge.label}
-                    </Badge>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {obj.description || 'Nessuna descrizione'}
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
+                  }
+                />
+              ))}
+            </div>
+          )}
         </div>
-      )}
       </main>
+
+      <DonorImageLightbox
+        image={lightboxImage}
+        onClose={() => setLightboxImage(null)}
+      />
     </div>
   );
 }
