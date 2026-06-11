@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ArrowRight, Building2, Check, Gift, HandHeart, Heart, Lock, TriangleAlert, Users } from "lucide-react";
+import { ArrowRight, Building2, Check, Gift, Heart, Lock, TriangleAlert, Users } from "lucide-react";
+import AnimatedAlbero from "@/components/AnimatedAlbero";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
 
 const STAGING_DOMAINS = ['staging.kykos.it'];
@@ -114,13 +115,11 @@ export default function Home() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 md:py-28 text-center">
-        <div className="relative inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full mb-8 shadow-xl">
-          <HandHeart className="h-14 w-14 text-primary-600" aria-hidden="true" />
-          <Gift className="absolute -top-1 -right-1 h-7 w-7 text-secondary-600 bg-white rounded-full p-1 shadow-md" aria-hidden="true" />
-          <Users className="absolute -bottom-1 -left-1 h-7 w-7 text-primary-600 bg-white rounded-full p-1 shadow-md" aria-hidden="true" />
+        <div className="relative inline-flex items-center justify-center mb-8">
+          <AnimatedAlbero size={180} className="text-primary-600 motion-safe:animate-kykos-fade-in" />
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 leading-tight text-balance">
-          Dona e ricevi in modo anonimo
+          Dona con <span className="text-primary-600">amore</span>, ricevi con <span className="text-secondary-600">dignità</span>
         </h1>
         <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed text-balance">
           <span className="text-primary-600 font-semibold">Chi dona</span> non sa chi riceve.{' '}
