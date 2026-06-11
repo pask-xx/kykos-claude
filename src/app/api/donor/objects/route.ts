@@ -24,12 +24,20 @@ export const GET = withErrorHandler(async (request: Request) => {
         status: { in: ['RESERVED', 'DEPOSITED', 'DONATED'] },
       },
       include: {
+        // Anonymity: NIENTE `recipient: { select: { name: true } }` —
+        // Regola #1 KYKOS. Solo id/status/createdAt per le requests
+        // innestate. Vedi Fase 34.1.
         requests: {
           select: {
             id: true,
             status: true,
             createdAt: true,
           },
+        },
+        // Conteggio totale richieste (serve per showRequestCount
+        // sulla ExpandableObjectCard su /donor/objects e /donor/requests).
+        _count: {
+          select: { requests: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -39,6 +47,10 @@ export const GET = withErrorHandler(async (request: Request) => {
 
   const objects = await prisma.object.findMany({
     where: { donorId: session.id },
+    include: {
+      // Conteggio richieste anche qui (stessa ragione del filter=requests).
+      _count: { select: { requests: true } },
+    },
     orderBy: { createdAt: 'desc' },
   });
 
