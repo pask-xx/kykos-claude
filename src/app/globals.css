@@ -29,6 +29,12 @@ body {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* Stroke draw-on per l'albero KYKOS: parte "nascosto" e si disegna
+   progressivamente. Usa pathLength=1, quindi dasharray/offset 1. */
+@keyframes kykos-draw-albero {
+  from { stroke-dashoffset: 1; fill-opacity: 0; }
+  to   { stroke-dashoffset: 0; fill-opacity: 1; }
+}
 
 @layer utilities {
   .animate-kykos-fade-in {
@@ -39,7 +45,8 @@ body {
   }
   @media (prefers-reduced-motion: reduce) {
     .animate-kykos-fade-in,
-    .animate-kykos-fade-in-up {
+    .animate-kykos-fade-in-up,
+    .animate-kykos-draw-albero {
       animation: none;
     }
   }
