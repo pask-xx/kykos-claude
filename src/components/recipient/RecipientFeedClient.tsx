@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Heart, ChevronDown, Check } from 'lucide-react';
+import { Heart, ChevronDown, Check, Gift, Package, X } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { CATEGORY_LABELS, Category } from '@/types';
+import { CATEGORY_LABELS, Category, DonorLevel } from '@/types';
 import { toast } from '@/components/ui/Toast';
 import { Alert, Button } from '@/components/ui';
+import { ExpandableObjectCard } from '@/components/recipient/ExpandableObjectCard';
 
 interface MultiAvailability {
   id: string;
@@ -285,14 +286,6 @@ export default function RecipientFeedClient() {
     POOR: 'Usurato',
   };
 
-  const levelEmoji: Record<string, string> = {
-    BRONZE: '🥉',
-    SILVER: '🥈',
-    GOLD: '🥇',
-    PLATINUM: '🏆',
-    DIAMOND: '💎',
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -407,7 +400,7 @@ export default function RecipientFeedClient() {
       {availableMultiAvailabilities.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">📦</span>
+            <Package className="w-6 h-6 text-gray-700" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Distribuzioni disponibili</h2>
           </div>
           {availableMultiAvailabilities.map((avail) => (
@@ -430,7 +423,9 @@ export default function RecipientFeedClient() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Package className="w-12 h-12" aria-hidden="true" />
+                      </div>
                     )}
                   </div>
 
@@ -502,151 +497,47 @@ export default function RecipientFeedClient() {
       {objects.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🎁</span>
+            <Gift className="w-6 h-6 text-gray-700" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-gray-900">Disponibilità</h2>
           </div>
           {objects.map((obj) => (
-            <div
+            <ExpandableObjectCard
               key={obj.id}
-              className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200"
-            >
-              {/* Collapsed Card */}
-              <div
-                className="cursor-pointer"
-                onClick={() => setExpandedId(expandedId === obj.id ? null : obj.id)}
-              >
-                <div className="flex gap-4 p-4">
-                  {/* Image */}
-                  <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                    {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                      <img
-                        src={obj.imageUrls[0]}
-                        alt={obj.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
-                        {CATEGORY_LABELS[obj.category as Category] || obj.category}
-                      </span>
-                      {obj.donor.donorProfile?.level && (
-                        <span className="text-sm">{levelEmoji[obj.donor.donorProfile.level]}</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(obj.createdAt).toLocaleDateString('it-IT')}
-                      {obj._count.requests > 0 && (
-                        <span className="ml-2 text-amber-600">• {obj._count.requests} richiesta{obj._count.requests !== 1 ? 'e' : ''}</span>
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Expand icon */}
-                  <div className="flex-shrink-0 flex items-center">
-                    <span className={`text-gray-400 transition-transform duration-200 ${expandedId === obj.id ? 'rotate-180' : ''}`}>
-                      ▼
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Content */}
-              {expandedId === obj.id && (
-                <div className="border-t border-gray-100 p-4 bg-gray-50">
-                  {/* Gallery */}
-                  {obj.imageUrls && obj.imageUrls.length > 0 && (
-                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                      {obj.imageUrls.map((url, i) => (
-                        <button
-                          key={i}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedImage({ url, title: obj.title, index: i });
-                          }}
-                          className="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg overflow-hidden"
-                        >
-                          <img
-                            src={url}
-                            alt={`${obj.title} - ${i + 1}`}
-                            className="w-32 h-32 object-cover hover:opacity-90 transition-opacity"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  {obj.description && (
-                    <p className="text-gray-600 mb-4">{obj.description}</p>
-                  )}
-
-                  {/* Details */}
-                  <div className="flex flex-wrap gap-4 mb-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Condizione:</span>
-                      <span className="ml-1 font-medium text-gray-700">{conditionLabels[obj.condition]}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Pubblicato:</span>
-                      <span className="ml-1 font-medium text-gray-700">
-                        {new Date(obj.createdAt).toLocaleDateString('it-IT')}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Message Input */}
-                  <div className="mb-4">
-                    <label htmlFor={`message-${obj.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                      Messaggio opzionale (presentati brevemente)
-                    </label>
-                    <textarea
-                      id={`message-${obj.id}`}
-                      value={confirmRequestId === obj.id ? requestMessage : ''}
-                      onChange={(e) => setRequestMessage(e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-sm"
-                      placeholder="Scrivi un messaggio all'ente..."
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
-                    <ConfirmDialog
-                      title="Conferma richiesta"
-                      message="Sei sicuro di voler richiedere questo oggetto?"
-                      confirmLabel="Sì, richiedi"
-                      variant="warning"
-                      onConfirm={() => handleRequest(obj.id)}
-                    >
-                      <button
-                        disabled={requestingId === obj.id}
-                        className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {requestingId === obj.id ? 'Invio...' : 'Richiedi questo oggetto'}
-                      </button>
-                    </ConfirmDialog>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setReportObjectId(obj.id);
-                        setShowReportModal(true);
-                      }}
-                      className="px-4 py-3 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-700 transition"
-                    >
-                      ⚠️ Segnala
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+              object={{
+                id: obj.id,
+                title: obj.title,
+                description: obj.description,
+                category: obj.category,
+                condition: obj.condition,
+                imageUrls: obj.imageUrls,
+                status: 'AVAILABLE',
+                createdAt: obj.createdAt,
+                _count: obj._count,
+              }}
+              level={obj.donor.donorProfile?.level as DonorLevel | undefined}
+              isExpanded={expandedId === obj.id}
+              onToggle={() => setExpandedId(expandedId === obj.id ? null : obj.id)}
+              userRequest={null}
+              showRequestButton={true}
+              showReportButton={true}
+              showRequestMessageInput={true}
+              showRequestCount={true}
+              requesting={requestingId === obj.id}
+              onRequest={(message) => {
+                setRequestMessage(message);
+                handleRequest(obj.id);
+              }}
+              onReport={() => {
+                setReportObjectId(obj.id);
+                setShowReportModal(true);
+              }}
+              onImageClick={(_id, index) => {
+                if (!obj.imageUrls) return;
+                const url = obj.imageUrls[index];
+                if (!url) return;
+                setSelectedImage({ url, title: obj.title, index });
+              }}
+            />
           ))}
         </div>
       )}
@@ -654,7 +545,7 @@ export default function RecipientFeedClient() {
       {/* Empty state */}
       {objects.length === 0 && availableMultiAvailabilities.length === 0 && causes.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-5xl mb-4">📦</div>
+          <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna disponibilità</h3>
           <p className="text-gray-500">Al momento non ci sono oggetti disponibili nel tuo ente.</p>
         </div>
@@ -685,7 +576,7 @@ export default function RecipientFeedClient() {
             onClick={() => setSelectedImage(null)}
             className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition"
           >
-            <span aria-hidden="true">✕</span>
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm">
             {selectedImage.index + 1}
@@ -711,7 +602,7 @@ export default function RecipientFeedClient() {
                 onClick={() => setShowReportModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
-                <span aria-hidden="true">✕</span>
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-4">

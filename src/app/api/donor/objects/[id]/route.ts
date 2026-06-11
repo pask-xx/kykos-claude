@@ -50,8 +50,11 @@ export const DELETE = withErrorHandler(async (
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
 
-  if (session.role !== 'DONOR') {
-    return NextResponse.json({ error: 'Solo donatori' }, { status: 403 });
+  // Accettiamo DONOR (caso classico) e RECIPIENT (caso ibrido: un recipient
+  // può pubblicare proprie "disponibilità" — vedi /recipient/my-objects).
+  // La sicurezza è garantita dal filtro `donorId: session.id` qui sotto.
+  if (session.role !== 'DONOR' && session.role !== 'RECIPIENT') {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
   }
 
   const { id: objectId } = await params;

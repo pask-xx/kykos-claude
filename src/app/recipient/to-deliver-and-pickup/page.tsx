@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { PartyPopper, Gift, Package } from 'lucide-react';
 import { CATEGORY_LABELS } from '@/types';
+import { Badge } from '@/components/ui';
 
 interface UnifiedItem {
   id: string;
@@ -15,12 +16,22 @@ interface UnifiedItem {
   label: string;
 }
 
-const TYPE_COLORS: Record<string, { border: string; badge: string }> = {
-  DONATION: { border: 'border-l-info-500', badge: 'bg-info-100 text-info-700' },
-  OBJECT: { border: 'border-l-success-500', badge: 'bg-success-100 text-success-700' },
-  GOODS: { border: 'border-l-secondary-500', badge: 'bg-secondary-100 text-secondary-700' },
-  MULTI_AVAIL: { border: 'border-l-warning-500', badge: 'bg-warning-100 text-warning-700' },
+type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
+
+const TYPE_COLORS: Record<string, { border: string; badge: BadgeVariant }> = {
+  DONATION: { border: 'border-l-info-500', badge: 'info' },
+  OBJECT: { border: 'border-l-success-500', badge: 'success' },
+  GOODS: { border: 'border-l-secondary-500', badge: 'default' },
+  MULTI_AVAIL: { border: 'border-l-warning-500', badge: 'warning' },
 };
+
+/**
+ * Mappa itemType → Badge variant per label nelle card.
+ * Coerente con TYPE_COLORS.border e con la legenda in pagina.
+ */
+function badgeVariantForType(itemType: UnifiedItem['itemType']): BadgeVariant {
+  return TYPE_COLORS[itemType].badge;
+}
 
 export default async function RecipientToDeliverAndPickupPage() {
   const session = await getSession();
@@ -147,24 +158,12 @@ export default async function RecipientToDeliverAndPickupPage() {
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex gap-4 text-sm mb-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-info-500"></span>
-            <span className="text-gray-600">Consegne</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-success-500"></span>
-            <span className="text-gray-600">Ritiri Disponibilità</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-secondary-500"></span>
-            <span className="text-gray-600">Ritiri Richieste</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-warning-500"></span>
-            <span className="text-gray-600">Ritiri Distribuzioni</span>
-          </div>
+        {/* Legend — uniforme a /recipient/requests-entity/requests */}
+        <div className="flex gap-3 sm:gap-4 text-sm mb-6 flex-wrap">
+          <Badge variant="info">Consegne</Badge>
+          <Badge variant="primary">Ritiri Disponibilità</Badge>
+          <Badge variant="default">Ritiri Richieste</Badge>
+          <Badge variant="warning">Ritiri Distribuzioni</Badge>
         </div>
 
         {/* Empty state */}
@@ -202,9 +201,9 @@ export default async function RecipientToDeliverAndPickupPage() {
                       <h3 className="font-semibold text-gray-900 text-xs sm:text-sm truncate leading-tight">{item.title}</h3>
 
                       <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                        <span className={`text-xs px-1 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
+                        <Badge variant={badgeVariantForType(item.itemType)} size="sm">
                           {item.label}
-                        </span>
+                        </Badge>
                       </div>
 
                       <p className="text-xs text-gray-400 mt-0.5">
