@@ -5,24 +5,24 @@ import Link from 'next/link';
 import { Package, ClipboardList, QrCode } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 import { Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
+import {
+  ExpandableObjectCard,
+  type ExpandableObjectCardObject,
+} from '@/components/recipient/ExpandableObjectCard';
+import { REQUEST_STATUS_LABELS, OBJECT_STATUS_LABELS } from '@/types';
 
-interface ObjectWithRequests {
-  id: string;
-  title: string;
-  description: string | null;
-  category: string;
-  condition: string;
-  status: string;
-  imageUrls: string[];
-  createdAt: string;
-  // Anonymity fix (Fase 34.1): rimossa `recipient: { name: string }`
-  // perché /api/donor/objects?filter=requests non la restituisce
-  // (Regola #1 KYKOS). Vedi 04-anonymity.md regola A4.
-  requests: Array<{
-    id: string;
-    status: string;
-    createdAt: string;
-  }>;
+type DonorTab = 'objects' | 'goods';
+
+/**
+ * Estensione locale per /donor/requests: gli oggetti in questa pagina
+ * hanno un array `requests` innestato (oltre al `_count`) perche'
+ * /api/donor/objects?filter=requests ritorna i requests stessi (serve
+ * per mostrare il bottone QR Code con il primo requestId). NON
+ * aggiunto al type globale di ExpandableObjectCard perche' la
+ * maggior parte dei call site (recipient browsing) non ha requests.
+ */
+interface DonorObjectWithRequests extends ExpandableObjectCardObject {
+  requests?: Array<{ id: string; status: string; createdAt: string }>;
 }
 
 interface GoodsOffer {
@@ -43,54 +43,19 @@ interface GoodsOffer {
   };
 }
 
-type DonorTab = 'objects' | 'goods';
-
-/**
- * Mappa Request.status → Badge variant KYKOS.
- * vedi: src/types/RequestStatus per gli stati.
- */
-function requestStatusBadge(status: string) {
-  switch (status) {
-    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
-    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
-    case 'REJECTED': return { variant: 'danger' as const, label: 'Rifiutata' };
-    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
-    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
-    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
-    case 'FULFILLED': return { variant: 'success' as const, label: 'Soddisfatta' };
-    case 'DELIVERED': return { variant: 'success' as const, label: 'Depositata' };
-    default: return { variant: 'default' as const, label: status };
-  }
-}
-
-/**
- * Mappa Object.status → Badge variant (per lo stato dell'oggetto donato).
- * vedi: src/types/ObjectStatus.
- */
-function objectStatusBadge(status: string) {
-  switch (status) {
-    case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
-    case 'RESERVED': return { variant: 'info' as const, label: 'Riservata' };
-    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
-    case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
-    case 'CANCELLED': return { variant: 'danger' as const, label: 'Annullata' };
-    case 'BLOCKED': return { variant: 'warning' as const, label: 'Bloccata' };
-    default: return { variant: 'default' as const, label: status };
-  }
-}
-
 export default function DonorRequestsPage() {
-  const [objects, setObjects] = useState<ObjectWithRequests[]>([]);
+  const [objects, setObjects] = useState<DonorObjectWithRequests[]>([]);
   const [goodsOffers, setGoodsOffers] = useState<GoodsOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<DonorTab>('objects');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    let fetchedObjects: ObjectWithRequests[] = [];
+    let fetchedObjects: DonorObjectWithRequests[] = [];
     let fetchedOffers: GoodsOffer[] = [];
 
     try {
@@ -158,116 +123,149 @@ export default function DonorRequestsPage() {
           ariaLabel="Filtra donazioni per tipo"
         />
 
-      {tab === 'objects' && (
-        objects.length === 0 ? (
-          <EmptyState
-            icon={Package}
-            title="Nessuna donazione di oggetti"
-            description="Le tue donazioni di oggetti appariranno qui."
-          />
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {objects.map((obj) => {
-              const statusBadge = objectStatusBadge(obj.status);
-              return (
-                <div key={obj.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                  <Link href={`/donor/objects/${obj.id}`} className="block">
-                    <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                      {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                        <img src={obj.imageUrls[0]} alt={obj.title} className="object-cover w-full h-full" />
-                      ) : (
-                        <Package className="h-16 w-16 text-gray-400" aria-hidden="true" />
+        <div className="mt-4">
+          {tab === 'objects' && (
+            objects.length === 0 ? (
+              <EmptyState
+                icon={Package}
+                title="Nessuna donazione di oggetti"
+                description="Le tue donazioni di oggetti appariranno qui."
+              />
+            ) : (
+              <div className="space-y-3">
+                {objects.map((obj) => {
+                  // QR code action: bottone mostrato SOLO per oggetti
+                  // con almeno 1 request e status RESERVED/DEPOSITED.
+                  const firstRequestId = obj.requests?.[0]?.id;
+                  const showQrCode =
+                    firstRequestId &&
+                    (obj.status === 'RESERVED' || obj.status === 'DEPOSITED');
+                  return (
+                    <ExpandableObjectCard
+                      key={obj.id}
+                      object={obj}
+                      isExpanded={expandedId === obj.id}
+                      onToggle={() =>
+                        setExpandedId(expandedId === obj.id ? null : obj.id)
+                      }
+                      showRequestButton={false}
+                      showReportButton={false}
+                      showRequestMessageInput={false}
+                      showRequestCount={true}
+                      detailHref={(id) => `/donor/objects/${id}`}
+                      // Anonymity: extraInfo mostra SOLO status + numero
+                      // richieste. NIENTE nomi recipient (Regola #1 KYKOS).
+                      extraInfo={
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="default" size="sm">
+                            {OBJECT_STATUS_LABELS[obj.status as keyof typeof OBJECT_STATUS_LABELS] ?? obj.status}
+                          </Badge>
+                          {obj.requests && obj.requests.length > 0 && (
+                            <span className="text-xs text-gray-500">
+                              {obj.requests.length} richiesta{obj.requests.length !== 1 ? 'e' : ''} ricevuta
+                            </span>
+                          )}
+                        </div>
+                      }
+                      // customActions: bottone QR Code (Fase 34.2 prop).
+                      // Wrappato in <Link> per navigazione, NON in
+                      // <div onClick> (a11y vietato).
+                      customActions={
+                        showQrCode ? (
+                          <Link href={`/donor/delivery-qr/${firstRequestId}`}>
+                            <Button variant="primary" className="px-4 py-3 inline-flex items-center gap-2">
+                              <QrCode className="h-4 w-4" aria-hidden="true" />
+                              QR Code per consegna
+                            </Button>
+                          </Link>
+                        ) : null
+                      }
+                    />
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {tab === 'goods' && (
+            goodsOffers.length === 0 ? (
+              <EmptyState
+                icon={ClipboardList}
+                title="Nessuna donazione di beni"
+                description="Le tue donazioni di beni/servizi appariranno qui."
+              />
+            ) : (
+              <div className="space-y-3">
+                {goodsOffers.map((offer) => {
+                  // Mappa status offer → Badge variant.
+                  // vedi: src/types/RequestStatus per gli stati.
+                  const statusInfo = (() => {
+                    switch (offer.status) {
+                      case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+                      case 'ACCEPTED': return { variant: 'success' as const, label: 'Accettata' };
+                      case 'REJECTED': return { variant: 'danger' as const, label: 'Rifiutata' };
+                      default: return {
+                        variant: 'default' as const,
+                        label: REQUEST_STATUS_LABELS[offer.status as keyof typeof REQUEST_STATUS_LABELS] ?? offer.status,
+                      };
+                    }
+                  })();
+                  return (
+                    <div
+                      key={offer.id}
+                      className="bg-white rounded-xl shadow-sm border overflow-hidden"
+                    >
+                      <div className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-500" aria-hidden="true" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 truncate">
+                              {offer.request?.title}
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                              {new Date(offer.createdAt).toLocaleDateString('it-IT')}
+                            </p>
+                          </div>
+                          <Badge variant={statusInfo.variant} size="sm">
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                        {offer.message && (
+                          <p className="text-sm text-gray-600 mt-2 line-clamp-2">{offer.message}</p>
+                        )}
+                        {offer.imageUrls && offer.imageUrls.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {offer.imageUrls.map((url, i) => (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                key={i}
+                                src={url}
+                                alt={`Immagine ${i + 1}`}
+                                className="w-10 h-10 object-cover rounded border border-gray-200"
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {offer.status === 'ACCEPTED' && (
+                        <div className="bg-success-50 px-4 py-3 border-t border-success-100">
+                          <Link href={`/donor/qr-goods/${offer.requestId}`}>
+                            <Button variant="success" className="w-full">
+                              <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
+                              Vedi QR Code per consegna
+                            </Button>
+                          </Link>
+                        </div>
                       )}
                     </div>
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant={statusBadge.variant} size="sm">
-                          {statusBadge.label}
-                        </Badge>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-1">{obj.title}</h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(obj.createdAt).toLocaleDateString('it-IT')}
-                      </p>
-                    </div>
-                  </Link>
-                  {['RESERVED', 'DEPOSITED'].includes(obj.status) && obj.requests && obj.requests.length > 0 && (
-                    <div className="px-4 pb-4">
-                      <Link href={`/donor/delivery-qr/${obj.requests[0].id}`}>
-                        <Button variant="primary" className="w-full">
-                          <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
-                          QR Code per consegna
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )
-      )}
-
-      {tab === 'goods' && (
-        goodsOffers.length === 0 ? (
-          <EmptyState
-            icon={ClipboardList}
-            title="Nessuna donazione di beni"
-            description="Le tue donazioni di beni/servizi appariranno qui."
-          />
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {goodsOffers.map((offer) => {
-              const statusBadge = requestStatusBadge(offer.status);
-              return (
-                <div key={offer.id} className="bg-white rounded-xl shadow-sm border border-success-200 overflow-hidden">
-                  <div className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Package className="h-6 w-6 text-gray-500" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{offer.request?.title}</h3>
-                        <p className="text-xs text-gray-500">
-                          Accettata il {new Date(offer.createdAt).toLocaleDateString('it-IT')}
-                        </p>
-                      </div>
-                      <Badge variant={statusBadge.variant} size="sm">
-                        {statusBadge.label}
-                      </Badge>
-                    </div>
-                    {offer.message && (
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">{offer.message}</p>
-                    )}
-                    {offer.imageUrls && offer.imageUrls.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {offer.imageUrls.map((url, i) => (
-                          <img
-                            key={i}
-                            src={url}
-                            alt={`Immagine ${i + 1}`}
-                            className="w-10 h-10 object-cover rounded border border-gray-200"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {offer.status === 'ACCEPTED' && (
-                    <div className="bg-success-50 px-4 py-3 border-t border-success-100">
-                      <Link href={`/donor/qr-goods/${offer.requestId}`}>
-                        <Button variant="success" className="w-full">
-                          <QrCode className="h-4 w-4 mr-1" aria-hidden="true" />
-                          Vedi QR Code per consegna
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )
-      )}
+                  );
+                })}
+              </div>
+            )
+          )}
+        </div>
       </main>
     </div>
   );
