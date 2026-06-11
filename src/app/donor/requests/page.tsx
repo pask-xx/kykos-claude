@@ -15,13 +15,13 @@ interface ObjectWithRequests {
   status: string;
   imageUrls: string[];
   createdAt: string;
+  // Anonymity fix (Fase 34.1): rimossa `recipient: { name: string }`
+  // perché /api/donor/objects?filter=requests non la restituisce
+  // (Regola #1 KYKOS). Vedi 04-anonymity.md regola A4.
   requests: Array<{
     id: string;
     status: string;
     createdAt: string;
-    recipient: {
-      name: string;
-    };
   }>;
 }
 
@@ -32,14 +32,14 @@ interface GoodsOffer {
   status: string;
   createdAt: string;
   imageUrls: string[];
+  // Anonymity fix (Fase 34.1): rimossa `beneficiary: { name: string }`
+  // perché /api/donor/goods-offers non la restituisce più
+  // (Regola #1 KYKOS). Vedi 04-anonymity.md regola A4.
   request: {
     id: string;
     title: string;
     category: string;
     status: string;
-    beneficiary: {
-      name: string;
-    };
   };
 }
 

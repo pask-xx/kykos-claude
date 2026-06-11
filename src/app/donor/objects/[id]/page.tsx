@@ -17,12 +17,13 @@ interface ObjectDetails {
   imageUrls: string[];
   createdAt: string;
   depositLocation: string | null;
+  // Anonymity fix (Fase 34.1): rimossa `recipient: { name: string }`
+  // perché /api/donor/objects/[id] non la restituisce più (Regola #1
+  // KYKOS). Vedi 04-anonymity.md regola A4.
   requests: Array<{
     id: string;
     status: string;
-    recipient: {
-      name: string;
-    };
+    createdAt: string;
   }>;
 }
 
