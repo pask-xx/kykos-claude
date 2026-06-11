@@ -116,8 +116,8 @@ export default function DonorRequestsPage() {
           value={tab}
           onChange={setTab}
           items={[
-            { value: 'objects', label: 'Oggetti', count: objects.length },
-            { value: 'goods', label: 'Beni/Servizi', count: goodsOffers.length },
+            { value: 'objects', label: 'Disponibilità', count: objects.length },
+            { value: 'goods', label: 'Richieste', count: goodsOffers.length },
           ]}
           variant="default"
           ariaLabel="Filtra donazioni per tipo"
