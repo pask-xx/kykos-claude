@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ArrowRight, Building2, Gift, Heart, Lock, Trophy, TriangleAlert } from "lucide-react";
+import { ArrowRight, Building2, Gift, HandHeart, Heart, Lock, TriangleAlert, Trophy, Users } from "lucide-react";
 import SessionDashboardLink from "@/components/SessionDashboardLink";
 
 const STAGING_DOMAINS = ['staging.kykos.it'];
@@ -114,35 +114,37 @@ export default function Home() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 md:py-28 text-center">
-        <div className="inline-flex items-center justify-center w-32 h-32 bg-primary-100 rounded-full mb-8 shadow-xl">
-          <img src="/albero.svg" alt="KYKOS" className="w-24 h-24" />
+        <div className="relative inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full mb-8 shadow-xl">
+          <HandHeart className="h-14 w-14 text-primary-600" aria-hidden="true" />
+          <Gift className="absolute -top-1 -right-1 h-7 w-7 text-secondary-600 bg-white rounded-full p-1 shadow-md" aria-hidden="true" />
+          <Users className="absolute -bottom-1 -left-1 h-7 w-7 text-primary-600 bg-white rounded-full p-1 shadow-md" aria-hidden="true" />
         </div>
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-          Dona con <span className="text-primary-600">amore</span>,
-          <br />
-          ricevi con <span className="text-secondary-600">dignità</span>
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 leading-tight text-balance">
+          Dona e ricevi in modo anonimo
         </h1>
-        <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed">
-          Anonimato totale per donatori e beneficiari.
-          <br className="hidden md:block" />
-          Chi dona non sa chi riceve. Chi riceve non sa chi dona.
+        <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed text-balance">
+          <span className="text-primary-600 font-semibold">Chi dona</span> non sa chi riceve.{' '}
+          <span className="text-secondary-600 font-semibold">Chi riceve</span> non sa chi dona.
         </p>
-        <div className="flex gap-4 justify-center flex-wrap">
+        <div className="flex gap-4 justify-center flex-wrap mb-4">
           <Link
             href="/auth/register?role=donor"
-            className="group px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-semibold text-lg shadow-lg shadow-primary-600/30 transition flex items-center gap-2"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-semibold text-lg shadow-lg shadow-primary-600/30 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
-            <span>Voglio donare</span>
             <Gift className="h-5 w-5" aria-hidden="true" />
+            <span>Voglio donare</span>
           </Link>
           <Link
             href="/auth/register?role=recipient"
-            className="group px-8 py-4 border-2 border-secondary-600 text-secondary-600 rounded-xl hover:bg-secondary-50 font-semibold text-lg transition flex items-center gap-2"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold text-lg transition focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
           >
-            <span>Ho bisogno di aiuto</span>
             <Heart className="h-5 w-5" aria-hidden="true" />
+            <span>Ho bisogno di aiuto</span>
           </Link>
         </div>
+        <p className="text-sm text-gray-500">
+          Nessun costo. Anonimato garantito.
+        </p>
       </section>
 
       {/* Features */}
