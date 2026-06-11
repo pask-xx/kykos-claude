@@ -36,6 +36,19 @@ body {
   to   { stroke-dashoffset: 0; fill-opacity: 1; }
 }
 
+@layer components {
+  /* Stato base + animazione del path dell'albero KYKOS.
+     Wrappato in componente (non utility) per permettere alla media
+     query prefers-reduced-motion di sovrascrivere le proprietà di
+     stato iniziale, mostrando l'albero GIÀ disegnato e riempito. */
+  .kykos-albero-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+    animation: kykos-draw-albero 2.2s ease-out 0.2s forwards;
+  }
+}
+
 @layer utilities {
   .animate-kykos-fade-in {
     animation: kykos-fade-in 0.6s ease-out both;
@@ -43,10 +56,21 @@ body {
   .animate-kykos-fade-in-up {
     animation: kykos-fade-in-up 0.6s ease-out both;
   }
+  .animate-kykos-draw-albero {
+    animation: kykos-draw-albero 2.2s ease-out 0.2s forwards;
+  }
   @media (prefers-reduced-motion: reduce) {
     .animate-kykos-fade-in,
     .animate-kykos-fade-in-up,
     .animate-kykos-draw-albero {
+      animation: none;
+    }
+    /* Albero KYKOS: con prefers-reduced-motion mostra il path GIÀ
+       completamente disegnato e riempito, non l'outline vuoto
+       dello stato iniziale dell'animazione. */
+    .kykos-albero-path {
+      stroke-dashoffset: 0;
+      fill-opacity: 1;
       animation: none;
     }
   }
