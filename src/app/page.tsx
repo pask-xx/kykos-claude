@@ -243,31 +243,47 @@ export default function Home() {
 
       {/* CTA Enti */}
       <section className="container mx-auto px-4 py-16">
-        <div className="bg-gradient-to-br from-warning-50 to-white rounded-3xl p-8 md:p-12 border border-warning-200">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Building2 className="h-7 w-7 text-warning-600" aria-hidden="true" />
+        <div className="relative bg-gradient-to-br from-warning-50 to-white rounded-3xl p-8 md:p-12 border border-warning-200 overflow-hidden">
+          {/* Pattern decorativo di sfondo (cerchi concentrici) */}
+          <svg
+            className="absolute -right-12 -top-12 w-64 h-64 text-warning-100 opacity-60 pointer-events-none"
+            viewBox="0 0 200 200"
+            aria-hidden="true"
+          >
+            <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="2" />
+            <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" strokeWidth="2" />
+            <circle cx="100" cy="100" r="40" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          <div className="relative md:flex md:items-center md:gap-10">
+            <div className="flex-shrink-0 mb-6 md:mb-0">
+              <div className="w-20 h-20 bg-warning-100 rounded-2xl flex items-center justify-center">
+                <Building2 className="h-9 w-9 text-warning-600" aria-hidden="true" />
+              </div>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-              Sei un ente del territorio?
-            </h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Unisciti al network KYKOS per gestire donazioni e aiutare chi ne ha bisogno nel tuo territorio. La procedura è semplice e gratuita.
-            </p>
-            <Link
-              href="/adesione"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-warning-500 text-white font-semibold rounded-xl hover:bg-warning-600 shadow-md transition"
-            >
-              <span>Richiedi adesione</span>
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
-            </Link>
+            <div className="flex-1">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 text-balance">
+                Sei un ente del territorio?
+              </h2>
+              <p className="text-lg text-gray-600 mb-6 md:mb-0 md:mr-6">
+                Unisciti al network KYKOS per gestire donazioni e aiutare chi ne ha bisogno nel tuo territorio. La procedura è semplice e gratuita.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <Link
+                href="/adesione"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-warning-500 text-white font-semibold rounded-xl hover:bg-warning-600 shadow-md transition focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2"
+              >
+                <span>Richiedi adesione</span>
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="container mx-auto px-4 py-20">
-        <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-3xl p-12 md:p-16 text-center shadow-xl">
+        <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-3xl p-12 md:p-16 text-center shadow-xl motion-safe:animate-kykos-fade-in-up">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
             <img src="/albero.svg" alt="KYKOS" className="w-14 h-14" />
           </div>
@@ -295,19 +311,55 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" style={{filter: 'brightness(0) invert(1)'}} />
-            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" style={{filter: 'brightness(0) invert(1)'}} />
+      <footer className="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            {/* Colonna 1: brand */}
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <img src="/albero.svg" alt="KYKOS" className="w-10 h-10" style={{filter: 'brightness(0) invert(1)'}} />
+                <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" style={{filter: 'brightness(0) invert(1)'}} />
+              </div>
+              <p className="text-sm italic text-gray-400">
+                Dona con amore, ricevi con dignità
+              </p>
+            </div>
+            {/* Colonna 2: link utili */}
+            <div>
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                Link utili
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/manifesto" className="hover:text-white transition">Manifesto</Link></li>
+                <li><Link href="/faq" className="hover:text-white transition">Domande frequenti</Link></li>
+                <li><Link href="/cookie-policy" className="hover:text-white transition">Cookie Policy</Link></li>
+                <li><Link href="/adesione" className="hover:text-white transition">Diventa ente partner</Link></li>
+              </ul>
+            </div>
+            {/* Colonna 3: contatti */}
+            <div>
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                Contatti
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="mailto:info@kykos.it" className="hover:text-white transition inline-flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    info@kykos.it
+                  </a>
+                </li>
+                <li>
+                  <Link href="/auth/login" className="hover:text-white transition">Accedi al tuo account</Link>
+                </li>
+                <li>
+                  <Link href="/auth/register" className="hover:text-white transition">Registrati</Link>
+                </li>
+              </ul>
+            </div>
           </div>
-          <p className="text-sm italic mb-2">Dona con amore, ricevi con dignità</p>
-          <div className="flex justify-center gap-6 mt-6 text-sm">
-            <Link href="/manifesto" className="hover:text-white transition">Manifesto</Link>
-            <Link href="/auth/login" className="hover:text-white transition">Accedi</Link>
-            <Link href="/auth/register" className="hover:text-white transition">Registrati</Link>
+          <div className="pt-6 border-t border-gray-800 text-center">
+            <p className="text-xs text-gray-500">© 2024 KYKOS. Tutti i diritti riservati.</p>
           </div>
-          <p className="text-xs mt-8 text-gray-500">© 2024 KYKOS. Tutti i diritti riservati.</p>
         </div>
       </footer>
     </div>

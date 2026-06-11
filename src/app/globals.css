@@ -17,3 +17,30 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Animazioni di entrata: usate SOLO in motion-safe per rispettare
+   prefers-reduced-motion. Definite in utilities (vedi sopra) ma con
+   classi che Tailwind non ha built-in. */
+@keyframes kykos-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes kykos-fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@layer utilities {
+  .animate-kykos-fade-in {
+    animation: kykos-fade-in 0.6s ease-out both;
+  }
+  .animate-kykos-fade-in-up {
+    animation: kykos-fade-in-up 0.6s ease-out both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-kykos-fade-in,
+    .animate-kykos-fade-in-up {
+      animation: none;
+    }
+  }
+}
