@@ -221,8 +221,7 @@ export default function ManifestoPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Richiedi</h3>
                 <p className="text-gray-600">
-                  Se autorizzato da un ente, richiedi ciò di cui hai bisogno con un
-                  contributo simbolico di 1-2 euro.
+                  Se autorizzato da un ente, richiedi ciò di cui hai bisogno.
                 </p>
               </div>
               <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
@@ -281,17 +280,6 @@ export default function ManifestoPage() {
                 <h3 className="font-semibold text-gray-900 mb-1">Autorizzazione</h3>
                 <p className="text-sm text-gray-600">
                   Gli enti certificano lo stato di bisogno per tutelare chi ne ha diritto.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-50">
-              <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-5 h-5 text-success-600" aria-hidden="true" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Contributo Simbolico</h3>
-                <p className="text-sm text-gray-600">
-                  1-2€ per preservare la dignità del ricevente, senza barriere economiche.
                 </p>
               </div>
             </div>

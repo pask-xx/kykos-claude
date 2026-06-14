@@ -66,7 +66,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
       {
         question: 'KYKOS è gratuito?',
         answer:
-          'Sì, KYKOS è completamente gratuito per donatori e riceventi. Per preservare la dignità del beneficiario, è previsto un contributo simbolico di 1-2€ che va all\'ente intermediario per coprire i costi operativi, non a KYKOS.',
+          'Sì, KYKOS è completamente gratuito per donatori e riceventi. Non sono previsti costi per pubblicare oggetti né per richiederli. Eventuali aspetti economici legati al funzionamento della piattaforma saranno definiti nelle prossime fasi del progetto.',
       },
       {
         question: 'In quali città è attivo KYKOS?',
@@ -128,7 +128,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
       {
         question: 'Quanto costa ricevere un oggetto?',
         answer:
-          'Niente per l\'oggetto stesso. È previsto un contributo simbolico di 1-2€ che va all\'ente intermediario per coprire i costi operativi di gestione della donazione. Questo contributo preserva la dignità del ricevente: non è una barriera, ma un segno di rispetto reciproco.',
+          'Niente per l\'oggetto stesso. Ricevere un oggetto tramite KYKOS è gratuito. Eventuali aspetti economici legati alla gestione della donazione sono ancora in fase di definizione e saranno comunicati in seguito.',
       },
       {
         question: 'L\'ente saprà chi sono io?',
