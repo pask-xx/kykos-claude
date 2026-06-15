@@ -4,14 +4,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Package, ClipboardList, QrCode } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
-import { Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
+import { Accordion, Badge, Button, EmptyState, Spinner } from '@/components/ui';
 import {
   ExpandableObjectCard,
   type ExpandableObjectCardObject,
 } from '@/components/recipient/ExpandableObjectCard';
 import { REQUEST_STATUS_LABELS, OBJECT_STATUS_LABELS } from '@/types';
-
-type DonorTab = 'objects' | 'goods';
 
 /**
  * Estensione locale per /donor/requests: gli oggetti in questa pagina
@@ -47,7 +45,6 @@ export default function DonorRequestsPage() {
   const [objects, setObjects] = useState<DonorObjectWithRequests[]>([]);
   const [goodsOffers, setGoodsOffers] = useState<GoodsOffer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<DonorTab>('objects');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -112,20 +109,15 @@ export default function DonorRequestsPage() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Le mie donazioni</h1>
 
-        <Tabs<DonorTab>
-          value={tab}
-          onChange={setTab}
-          items={[
-            { value: 'objects', label: 'Disponibilità', count: objects.length },
-            { value: 'goods', label: 'Richieste', count: goodsOffers.length },
-          ]}
-          variant="default"
-          ariaLabel="Filtra donazioni per tipo"
-        />
-
-        <div className="mt-4">
-          {tab === 'objects' && (
-            objects.length === 0 ? (
+        <div className="space-y-8">
+          {/* Sezione "Disponibilità" - collassabile, info */}
+          <Accordion
+            label="Disponibilità"
+            count={objects.length}
+            color="info"
+            defaultOpen
+          >
+            {objects.length === 0 ? (
               <EmptyState
                 icon={Package}
                 title="Nessuna donazione di oggetti"
@@ -184,11 +176,17 @@ export default function DonorRequestsPage() {
                   );
                 })}
               </div>
-            )
-          )}
+            )}
+          </Accordion>
 
-          {tab === 'goods' && (
-            goodsOffers.length === 0 ? (
+          {/* Sezione "Richieste" - collassabile, primary */}
+          <Accordion
+            label="Richieste"
+            count={goodsOffers.length}
+            color="primary"
+            defaultOpen
+          >
+            {goodsOffers.length === 0 ? (
               <EmptyState
                 icon={ClipboardList}
                 title="Nessuna donazione di beni"
@@ -263,8 +261,8 @@ export default function DonorRequestsPage() {
                   );
                 })}
               </div>
-            )
-          )}
+            )}
+          </Accordion>
         </div>
       </main>
     </div>
