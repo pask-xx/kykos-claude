@@ -195,17 +195,12 @@ export function BeneficiaryCard({
             />
           </div>
 
-          {/* Mobile: riga meta (data 50% + progress bar score 50%) */}
+          {/* Mobile: riga meta (score 50% sx SEMPRE, data 50% dx se presente) */}
           {showMetaRow && (
             <div className="mt-3 flex items-center gap-3 md:hidden">
-              {hasAuthorizedAt && (
-                <span className="text-xs text-gray-500 w-1/2 truncate">
-                  {formatDate(authorizedAt!)}
-                </span>
-              )}
               {hasScore && scoreLevel && (
                 <div
-                  className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden"
+                  className="w-1/2 h-2 bg-gray-200 rounded-full overflow-hidden"
                   role="progressbar"
                   aria-valuenow={scoreClamped}
                   aria-valuemin={0}
@@ -217,6 +212,11 @@ export function BeneficiaryCard({
                     style={{ width: `${scoreClamped}%` }}
                   />
                 </div>
+              )}
+              {hasAuthorizedAt && (
+                <span className="text-xs text-gray-500 w-1/2 truncate text-right">
+                  {formatDate(authorizedAt!)}
+                </span>
               )}
             </div>
           )}
