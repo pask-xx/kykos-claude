@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { AlertOctagon, AlertTriangle, Info, Check, BarChart3, Package, Send, X } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
-import { Switch } from '@/components/ui';
+import { Avatar, Switch } from '@/components/ui';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
-import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 
 interface RecipientStats {
   totalRequests: number;
@@ -230,16 +229,23 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
   const displayName = recipient.nickname || recipient.name;
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Link href="/operator/recipients" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Torna alla lista
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
-          {fullName && <p className="text-gray-500">{fullName}</p>}
-          <p className="text-gray-500">{recipient.email}</p>
+    <div className="space-y-6 p-4 sm:p-6">
+      {/* Header: Avatar a sx, nickname + nome + email a dx */}
+      <div>
+        <Link href="/operator/recipients" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
+          ← Torna alla lista
+        </Link>
+        <div className="flex items-center gap-4">
+          <Avatar
+            src={recipient.profileImageUrl}
+            name={displayName || '?'}
+            size="lg"
+          />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{displayName}</h1>
+            {fullName && <p className="text-gray-500 truncate">{fullName}</p>}
+            <p className="text-gray-500 truncate">{recipient.email}</p>
+          </div>
         </div>
       </div>
 
@@ -257,17 +263,6 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       }`}>
         <span className={`w-2 h-2 rounded-full ${recipient.authorized ? 'bg-success-500' : 'bg-gray-400'}`} />
         {recipient.authorized ? 'Attivo' : 'Disattivato'}
-      </div>
-
-      {/* Profile Photo */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Foto profilo</h2>
-        <ProfilePhotoUploader
-          currentUrl={recipient.profileImageUrl}
-          onUploadComplete={(url) => {
-            setRecipient(prev => prev ? { ...prev, profileImageUrl: url } : null);
-          }}
-        />
       </div>
 
       {/* Score di Bisogno */}
