@@ -73,13 +73,46 @@ export const GET = withErrorHandler(async () => {
       profileImageUrl: true,
       donorProfile: {
         select: {
-          totalDonations: true,
           level: true,
+        },
+      },
+      donatedObjects: {
+        where: { intermediaryId: session.organizationId },
+        select: {
+          donation: { select: { id: true } },
         },
       },
     },
     orderBy: { createdAt: 'desc' },
   });
 
-  return NextResponse.json({ donors });
+  // Shape: deriva totalDonations per donatore contando le Donation
+  // reali verso questo ente (transazioni effettive, non cached).
+  // NB: `donorProfile.totalDonations` è una colonna cached che NON viene
+  // mai aggiornata (vedi Fase 36.5 bug report) — leggiamo il dato vero
+  // dalle relazioni Donation. Scope: solo oggetti donati a questo ente.
+  // Ogni Object ha 0 o 1 Donation (relazione 1-a-1 via objectId @unique).
+  const donorsWithCount = donors.map((d) => ({
+    id: d.id,
+    nickname: d.nickname,
+    name: d.name,
+    email: d.email,
+    firstName: d.firstName,
+    lastName: d.lastName,
+    canProvideServices: d.canProvideServices,
+    canProvideServicesAt: d.canProvideServicesAt,
+    createdAt: d.createdAt,
+    profileImageUrl: d.profileImageUrl,
+    donorProfile: d.donorProfile
+      ? {
+          totalDonations: d.donatedObjects.reduce<number>(
+            (sum, obj) => sum + (obj.donation ? 1 : 0),
+            0,
+          ),
+          level: d.donorProfile.level,
+        }
+      : null,
+  }));
+
+  return NextResponse.json({ donors: donorsWithCount });
 }, 'GET /api/operator/donors');
