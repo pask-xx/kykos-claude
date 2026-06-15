@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/Toast';
-import { EmptyState, Spinner, Tabs } from '@/components/ui';
+import { EmptyState, Spinner } from '@/components/ui';
 import { BeneficiaryCard, type BeneficiaryCardData } from '@/components/operator/BeneficiaryCard';
 
 interface Recipient extends BeneficiaryCardData {
@@ -15,12 +15,37 @@ interface Recipient extends BeneficiaryCardData {
   isStreetManaged: boolean;
 }
 
-type RecipientTab = 'pending' | 'authorized';
+/**
+ * Divisorio di sezione con label + linea colorata. Pattern usato per
+ * separare visivamente "In attesa" (warning) e "Autorizzati" (success)
+ * nella lista beneficiari. La label è sempre a sx, la linea si estende
+ * a dx con `flex-1` per riempire lo spazio disponibile.
+ */
+function SectionDivider({
+  label,
+  count,
+  color,
+}: {
+  label: string;
+  count: number;
+  color: 'warning' | 'success';
+}) {
+  const colorClass = color === 'warning' ? 'bg-warning-300' : 'bg-success-300';
+  const textClass = color === 'warning' ? 'text-warning-700' : 'text-success-700';
+
+  return (
+    <div className="flex items-center gap-3">
+      <h2 className={`text-sm font-bold uppercase tracking-wide ${textClass}`}>
+        {label} <span className="font-normal">({count})</span>
+      </h2>
+      <div className={`flex-1 h-px ${colorClass}`} aria-hidden="true" />
+    </div>
+  );
+}
 
 export default function OperatorRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<RecipientTab>('pending');
 
   useEffect(() => {
     fetchRecipients();
@@ -68,63 +93,54 @@ export default function OperatorRecipientsPage() {
           description="Non ci sono beneficiari associati a questo ente."
         />
       ) : (
-        <>
-          <Tabs<RecipientTab>
-            value={tab}
-            onChange={setTab}
-            items={[
-              { value: 'pending', label: 'In attesa', count: pendingRecipients.length },
-              { value: 'authorized', label: 'Autorizzati', count: authorizedRecipients.length },
-            ]}
-            variant="default"
-            ariaLabel="Filtra beneficiari per stato autorizzazione"
-          />
-
-          {tab === 'pending' && (
-            <div className="space-y-3">
-              {pendingRecipients.length === 0 ? (
-                <EmptyState
-                  title="Nessuna richiesta in attesa"
-                  description="Tutte le richieste sono state elaborate."
+        <div className="space-y-8">
+          {/* Sezione "In attesa" - nascosta se vuota */}
+          {pendingRecipients.length > 0 && (
+            <section className="space-y-3" aria-labelledby="section-pending">
+              <div id="section-pending">
+                <SectionDivider
+                  label="In attesa"
+                  count={pendingRecipients.length}
+                  color="warning"
                 />
-              ) : (
-                pendingRecipients.map((recipient) => (
-                  <BeneficiaryCard
-                    key={recipient.id}
-                    beneficiary={recipient}
-                    href={`/operator/recipients/${recipient.id}`}
-                    isStreetManaged={recipient.isStreetManaged}
-                    email={recipient.email}
-                    score={recipient.needScore}
-                  />
-                ))
-              )}
-            </div>
+              </div>
+              {pendingRecipients.map((recipient) => (
+                <BeneficiaryCard
+                  key={recipient.id}
+                  beneficiary={recipient}
+                  href={`/operator/recipients/${recipient.id}`}
+                  isStreetManaged={recipient.isStreetManaged}
+                  email={recipient.email}
+                  score={recipient.needScore}
+                />
+              ))}
+            </section>
           )}
 
-          {tab === 'authorized' && (
-            <div className="space-y-3">
-              {authorizedRecipients.length === 0 ? (
-                <EmptyState
-                  title="Nessun beneficiario autorizzato"
-                  description="I beneficiari autorizzati appariranno qui."
+          {/* Sezione "Autorizzati" - nascosta se vuota */}
+          {authorizedRecipients.length > 0 && (
+            <section className="space-y-3" aria-labelledby="section-authorized">
+              <div id="section-authorized">
+                <SectionDivider
+                  label="Autorizzati"
+                  count={authorizedRecipients.length}
+                  color="success"
                 />
-              ) : (
-                authorizedRecipients.map((recipient) => (
-                  <BeneficiaryCard
-                    key={recipient.id}
-                    beneficiary={recipient}
-                    href={`/operator/recipients/${recipient.id}`}
-                    isStreetManaged={recipient.isStreetManaged}
-                    email={recipient.email}
-                    score={recipient.needScore}
-                    authorizedAt={recipient.authorizedAt}
-                  />
-                ))
-              )}
-            </div>
+              </div>
+              {authorizedRecipients.map((recipient) => (
+                <BeneficiaryCard
+                  key={recipient.id}
+                  beneficiary={recipient}
+                  href={`/operator/recipients/${recipient.id}`}
+                  isStreetManaged={recipient.isStreetManaged}
+                  email={recipient.email}
+                  score={recipient.needScore}
+                  authorizedAt={recipient.authorizedAt}
+                />
+              ))}
+            </section>
           )}
-        </>
+        </div>
       )}
     </div>
   );
