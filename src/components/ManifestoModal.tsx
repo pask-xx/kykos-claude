@@ -122,7 +122,7 @@ export default function ManifestoModal({ isOpen, onClose }: ManifestoModalProps)
           <h3 className="font-bold text-gray-900 mb-4 text-center">Come Funziona</h3>
           <div className="grid md:grid-cols-3 gap-4 text-center">
             <StepCard bg="bg-primary-100" emoji="🎁" title="Offri" desc="Dona beni che non usi" />
-            <StepCard bg="bg-secondary-100" emoji="📝" title="Richiedi" desc="Se autorizzato, con contributo 1-2€" />
+            <StepCard bg="bg-secondary-100" emoji="📝" title="Richiedi" desc="Se autorizzato, gratuitamente" />
             <StepCard bg="bg-amber-100" emoji="🏢" title="L'Ente Gestisce" desc="Mediano lo scambio" />
           </div>
         </div>

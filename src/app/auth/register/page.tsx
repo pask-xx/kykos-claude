@@ -1142,7 +1142,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Richiedi ciò di cui hai bisogno</h3>
-              <p className="text-secondary-100 text-sm">Con un piccolo contributo simbolico</p>
+              <p className="text-secondary-100 text-sm">In modo semplice e gratuito</p>
             </div>
           </div>
           <div className="flex items-center gap-4">

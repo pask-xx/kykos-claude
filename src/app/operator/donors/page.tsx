@@ -1,35 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import type { LucideIcon } from 'lucide-react';
-import { Gift, Medal, Trophy, Gem } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { Gift } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
+import { EmptyState, Spinner } from '@/components/ui';
+import { DonorCard, type DonorCardData } from '@/components/operator/DonorCard';
 
-interface Donor {
-  id: string;
-  nickname: string | null;
-  name: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  canProvideServices: boolean;
-  canProvideServicesAt: string | null;
-  createdAt: string;
-  profileImageUrl: string | null;
-  donorProfile: {
-    totalDonations: number;
-    level: string;
-  } | null;
-}
+type Donor = DonorCardData;
 
 export default function DonorsListPage() {
   const [donors, setDonors] = useState<Donor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDonors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDonors = async () => {
@@ -40,10 +25,10 @@ export default function DonorsListPage() {
         setDonors(data.donors);
       } else {
         const err = await res.json();
-        setError(err.error || 'Errore');
+        toast.error(err.error || 'Errore');
       }
-    } catch (err) {
-      setError('Errore di rete');
+    } catch {
+      toast.error('Errore di rete');
     } finally {
       setLoading(false);
     }
@@ -51,40 +36,11 @@ export default function DonorsListPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Caricamento...</p>
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-error-600 mb-4">{error}</p>
-          <button onClick={fetchDonors} className="text-primary-600 hover:underline">
-            Riprova
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const LEVEL_COLORS: Record<string, string> = {
-    BRONZE: 'bg-warning-700',
-    SILVER: 'bg-gray-400',
-    GOLD: 'bg-yellow-500',
-    PLATINUM: 'bg-gray-600',
-    DIAMOND: 'bg-info-400',
-  };
-
-  const LEVEL_ICON: Record<string, LucideIcon> = {
-    BRONZE: Medal,
-    SILVER: Medal,
-    GOLD: Medal,
-    PLATINUM: Trophy,
-    DIAMOND: Gem,
-  };
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -94,72 +50,16 @@ export default function DonorsListPage() {
       </div>
 
       {donors.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
-          <Gift className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
-          <p className="text-gray-500">Nessun donatore presente</p>
-        </div>
+        <EmptyState
+          icon={Gift}
+          title="Nessun donatore presente"
+          description="Non ci sono donatori associati a questo ente."
+        />
       ) : (
         <div className="space-y-4">
-          {donors.map((donor) => {
-            const displayName = donor.nickname || donor.name;
-
-            return (
-              <div
-                key={donor.id}
-                className="bg-white p-4 rounded-xl shadow-sm border"
-              >
-                <div className="flex gap-4">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {donor.profileImageUrl ? (
-                      <img src={donor.profileImageUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Gift className="w-6 h-6 text-primary-700" aria-hidden="true" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{displayName}</h3>
-                        <p className="text-sm text-gray-500 truncate">{donor.email}</p>
-                      </div>
-                      <Link
-                        href={`/operator/donors/${donor.id}`}
-                        className="shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
-                      >
-                        Dettagli
-                      </Link>
-                    </div>
-
-                    {/* Stats row */}
-                    <div className="flex flex-wrap items-center gap-3 mt-3">
-                      {(() => {
-                        const LevelIcon = LEVEL_ICON[donor.donorProfile?.level || 'BRONZE'] || Medal;
-                        return (
-                          <span className={`px-2 py-0.5 text-xs font-medium text-white rounded inline-flex items-center gap-1 ${LEVEL_COLORS[donor.donorProfile?.level || 'BRONZE']}`}>
-                            <LevelIcon className="w-3 h-3" aria-hidden="true" />
-                            {donor.donorProfile?.level || 'BRONZE'}
-                          </span>
-                        );
-                      })()}
-                      <span className="text-sm text-gray-500">
-                        {donor.donorProfile?.totalDonations || 0} donazioni
-                      </span>
-                      <span className={`px-2 py-0.5 text-xs rounded ${donor.canProvideServices ? 'bg-success-100 text-success-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {donor.canProvideServices ? 'Servizi' : 'Solo beni'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-gray-400 mt-2">
-                      Registrato il {formatDate(donor.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {donors.map((donor) => (
+            <DonorCard key={donor.id} donor={donor} />
+          ))}
         </div>
       )}
     </div>

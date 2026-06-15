@@ -60,9 +60,14 @@ export const GET = withErrorHandler(async () => {
         select: { id: true, nickname: true, name: true },
       },
       offers: {
-        include: {
+        select: {
+          id: true,
+          message: true,
+          status: true,
+          createdAt: true,
+          imageUrls: true,
           offeredBy: {
-            select: { id: true, nickname: true, name: true },
+            select: { id: true, nickname: true, name: true, email: true },
           },
         },
       },

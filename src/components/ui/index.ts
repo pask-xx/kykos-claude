@@ -45,3 +45,8 @@ export {
   useForm,
   useFormContext,
 } from './Form';
+
+export { SectionDivider } from './SectionDivider';
+export type { SectionDividerProps } from './SectionDivider';
+export { Accordion } from './Accordion';
+export type { AccordionProps } from './Accordion';
