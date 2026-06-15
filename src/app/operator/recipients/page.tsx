@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/Toast';
-import { EmptyState, Spinner } from '@/components/ui';
+import { Accordion, EmptyState, Spinner } from '@/components/ui';
 import { BeneficiaryCard, type BeneficiaryCardData } from '@/components/operator/BeneficiaryCard';
 
 interface Recipient extends BeneficiaryCardData {
@@ -13,34 +13,6 @@ interface Recipient extends BeneficiaryCardData {
   isee: string | null;
   needScore: number;
   isStreetManaged: boolean;
-}
-
-/**
- * Divisorio di sezione con label + linea colorata. Pattern usato per
- * separare visivamente "In attesa" (warning) e "Autorizzati" (success)
- * nella lista beneficiari. La label è sempre a sx, la linea si estende
- * a dx con `flex-1` per riempire lo spazio disponibile.
- */
-function SectionDivider({
-  label,
-  count,
-  color,
-}: {
-  label: string;
-  count: number;
-  color: 'warning' | 'success';
-}) {
-  const colorClass = color === 'warning' ? 'bg-warning-300' : 'bg-success-300';
-  const textClass = color === 'warning' ? 'text-warning-700' : 'text-success-700';
-
-  return (
-    <div className="flex items-center gap-3">
-      <h2 className={`text-sm font-bold uppercase tracking-wide ${textClass}`}>
-        {label} <span className="font-normal">({count})</span>
-      </h2>
-      <div className={`flex-1 h-px ${colorClass}`} aria-hidden="true" />
-    </div>
-  );
 }
 
 export default function OperatorRecipientsPage() {
@@ -94,16 +66,14 @@ export default function OperatorRecipientsPage() {
         />
       ) : (
         <div className="space-y-8">
-          {/* Sezione "In attesa" - nascosta se vuota */}
+          {/* Sezione "In attesa" - nascosta se vuota, collassabile */}
           {pendingRecipients.length > 0 && (
-            <section className="space-y-3" aria-labelledby="section-pending">
-              <div id="section-pending">
-                <SectionDivider
-                  label="In attesa"
-                  count={pendingRecipients.length}
-                  color="warning"
-                />
-              </div>
+            <Accordion
+              label="In attesa"
+              count={pendingRecipients.length}
+              color="warning"
+              defaultOpen
+            >
               {pendingRecipients.map((recipient) => (
                 <BeneficiaryCard
                   key={recipient.id}
@@ -114,19 +84,17 @@ export default function OperatorRecipientsPage() {
                   score={recipient.needScore}
                 />
               ))}
-            </section>
+            </Accordion>
           )}
 
-          {/* Sezione "Autorizzati" - nascosta se vuota */}
+          {/* Sezione "Autorizzati" - nascosta se vuota, collassabile */}
           {authorizedRecipients.length > 0 && (
-            <section className="space-y-3" aria-labelledby="section-authorized">
-              <div id="section-authorized">
-                <SectionDivider
-                  label="Autorizzati"
-                  count={authorizedRecipients.length}
-                  color="success"
-                />
-              </div>
+            <Accordion
+              label="Autorizzati"
+              count={authorizedRecipients.length}
+              color="success"
+              defaultOpen
+            >
               {authorizedRecipients.map((recipient) => (
                 <BeneficiaryCard
                   key={recipient.id}
@@ -138,7 +106,7 @@ export default function OperatorRecipientsPage() {
                   authorizedAt={recipient.authorizedAt}
                 />
               ))}
-            </section>
+            </Accordion>
           )}
         </div>
       )}
