@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { AlertOctagon, AlertTriangle, Info, Check, BarChart3, Package, Send, X } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
-import { Switch } from '@/components/ui';
+import { Avatar, Switch } from '@/components/ui';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
-import ProfilePhotoUploader from '@/components/ProfilePhotoUploader';
 
 interface RecipientStats {
   totalRequests: number;
@@ -230,16 +229,23 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
   const displayName = recipient.nickname || recipient.name;
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Link href="/operator/recipients" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
-            ← Torna alla lista
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
-          {fullName && <p className="text-gray-500">{fullName}</p>}
-          <p className="text-gray-500">{recipient.email}</p>
+    <div className="space-y-6 p-4 sm:p-6 overflow-x-hidden">
+      {/* Header: Avatar a sx, nickname + nome + email a dx */}
+      <div>
+        <Link href="/operator/recipients" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
+          ← Torna alla lista
+        </Link>
+        <div className="flex items-center gap-4">
+          <Avatar
+            src={recipient.profileImageUrl}
+            name={displayName || '?'}
+            size="lg"
+          />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{displayName}</h1>
+            {fullName && <p className="text-gray-500 truncate">{fullName}</p>}
+            <p className="text-gray-500 truncate">{recipient.email}</p>
+          </div>
         </div>
       </div>
 
@@ -259,19 +265,8 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         {recipient.authorized ? 'Attivo' : 'Disattivato'}
       </div>
 
-      {/* Profile Photo */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Foto profilo</h2>
-        <ProfilePhotoUploader
-          currentUrl={recipient.profileImageUrl}
-          onUploadComplete={(url) => {
-            setRecipient(prev => prev ? { ...prev, profileImageUrl: url } : null);
-          }}
-        />
-      </div>
-
       {/* Score di Bisogno */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-2 border-gray-100">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-2 border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <BarChart3 className="w-5 h-5" aria-hidden="true" />
@@ -330,9 +325,9 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           </div>
 
           {/* Info */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {editingScore ? (
-              <div className="space-y-3">
+              <div className="space-y-3 min-w-0">
                 <div className="flex items-center gap-3">
                   <input
                     type="range"
@@ -340,7 +335,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
                     max="100"
                     value={scoreValue}
                     onChange={(e) => setScoreValue(Number(e.target.value))}
-                    className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                    className="flex-1 min-w-0 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
                   />
                   <span className="font-bold text-xl w-14 text-center">{scoreValue}</span>
                 </div>
@@ -395,7 +390,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Permissions */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Permessi richieste</h2>
         <div className="space-y-3">
           <div className="p-3 bg-gray-50 rounded-lg">
@@ -420,13 +415,13 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Info Card */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Informazioni</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {recipient.fiscalCode && (
             <div>
               <p className="text-xs text-gray-500 uppercase">Codice Fiscale</p>
-              <p className="font-medium text-gray-900">{recipient.fiscalCode}</p>
+              <p className="font-medium text-gray-900 break-all">{recipient.fiscalCode}</p>
             </div>
           )}
           {recipient.birthDate && (
@@ -444,7 +439,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           {recipient.address && (
             <div className="md:col-span-2">
               <p className="text-xs text-gray-500 uppercase">Indirizzo</p>
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-gray-900 break-words">
                 {recipient.address}{recipient.houseNumber ? `, ${recipient.houseNumber}` : ''}
                 {recipient.cap ? ` - ${recipient.cap}` : ''}
                 {recipient.city ? ` ${recipient.city}` : ''}
@@ -503,7 +498,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       {/* Charts Row */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Category Breakdown */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorie ricevute</h2>
           {stats && stats.totalDonations > 0 ? (
             <div className="space-y-3">
@@ -530,7 +525,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
         </div>
 
         {/* Condition Breakdown */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Condizione oggetti ricevuti</h2>
           {stats && stats.totalDonations > 0 ? (
             <div className="space-y-3">
@@ -558,7 +553,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Categorie richieste */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Cosa ha richiesto</h2>
         {stats && Object.keys(stats.requestedCategories).length > 0 ? (
           <div className="flex flex-wrap gap-2">
@@ -579,28 +574,28 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Recent Donations */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Donazioni recenti</h2>
         {stats && stats.recentDonations.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {stats.recentDonations.map((donation) => (
-              <div key={donation.id} className="flex gap-3 p-3 border border-gray-100 rounded-lg">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+              <div key={donation.id} className="flex gap-3 p-2.5 border border-gray-100 rounded-lg">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                   {donation.imageUrl ? (
                     <img src={donation.imageUrl} alt={donation.objectTitle} className="w-full h-full object-cover" />
                   ) : (
-                    <Package className="w-8 h-8 text-gray-400" aria-hidden="true" />
+                    <Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" aria-hidden="true" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{donation.objectTitle}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="font-medium text-gray-900 text-sm leading-snug line-clamp-2">{donation.objectTitle}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
                     {CATEGORY_LABELS[donation.category as Category] || donation.category}
                   </p>
                   <p className="text-xs text-gray-400">
                     {CONDITION_LABELS[donation.condition as Condition] || donation.condition}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 mt-0.5">
                     {formatDate(donation.receivedAt)}
                   </p>
                 </div>
@@ -613,7 +608,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Notifications from Entity */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Notifiche inviate</h2>
           <SendMessageDialog userId={recipient.id} userType="USER" userName={displayName} onSent={fetchNotifications}>
@@ -647,7 +642,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Actions */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Azioni</h2>
         <div className="flex gap-3">
           <ConfirmDialog

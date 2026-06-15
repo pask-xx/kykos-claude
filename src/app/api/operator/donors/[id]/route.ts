@@ -133,12 +133,85 @@ export const GET = withErrorHandler(async (
     },
   });
 
+  // Get all donations made by this donor (for category/condition breakdown + recent)
+  const donations = await prisma.donation.findMany({
+    where: {
+      donorId: id,
+      object: {
+        intermediaryId: session.organizationId,
+      },
+    },
+    include: {
+      object: {
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          condition: true,
+          imageUrls: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // Category breakdown for donations
+  const categoryBreakdown: Record<string, { count: number; percentage: number }> = {};
+  donations.forEach(d => {
+    const cat = d.object.category;
+    if (!categoryBreakdown[cat]) {
+      categoryBreakdown[cat] = { count: 0, percentage: 0 };
+    }
+    categoryBreakdown[cat].count++;
+  });
+  Object.keys(categoryBreakdown).forEach(cat => {
+    categoryBreakdown[cat].percentage = totalDonations > 0
+      ? Math.round((categoryBreakdown[cat].count / totalDonations) * 100)
+      : 0;
+  });
+
+  // Condition breakdown for donations
+  const conditionBreakdown: Record<string, { count: number; percentage: number }> = {};
+  donations.forEach(d => {
+    const cond = d.object.condition;
+    if (!conditionBreakdown[cond]) {
+      conditionBreakdown[cond] = { count: 0, percentage: 0 };
+    }
+    conditionBreakdown[cond].count++;
+  });
+  Object.keys(conditionBreakdown).forEach(cond => {
+    conditionBreakdown[cond].percentage = totalDonations > 0
+      ? Math.round((conditionBreakdown[cond].count / totalDonations) * 100)
+      : 0;
+  });
+
+  // Donated categories (with count, for chip display)
+  const donatedCategories: Record<string, number> = {};
+  donations.forEach(d => {
+    const cat = d.object.category;
+    donatedCategories[cat] = (donatedCategories[cat] || 0) + 1;
+  });
+
+  // Recent donations (last 6)
+  const recentDonations = donations.slice(0, 6).map(d => ({
+    id: d.id,
+    objectTitle: d.object.title,
+    category: d.object.category,
+    condition: d.object.condition,
+    imageUrl: d.object.imageUrls?.[0] || null,
+    receivedAt: d.createdAt,
+  }));
+
   return NextResponse.json({
     donor,
     stats: {
       totalDonations,
       totalObjects,
       totalServiceOffers,
+      categoryBreakdown,
+      conditionBreakdown,
+      donatedCategories,
+      recentDonations,
     },
   });
 
