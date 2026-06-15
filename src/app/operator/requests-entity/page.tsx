@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box,
-  Wrench, ClipboardList, type LucideIcon,
-} from 'lucide-react';
+import { Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box, Wrench, ClipboardList, type LucideIcon } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { CATEGORY_LABELS, Category } from '@/types';
+import { Badge, EmptyState, Input, Select, Spinner } from '@/components/ui';
 
 interface EntityRequest {
   id: string;
@@ -43,11 +42,44 @@ interface EntityRequest {
   }>;
 }
 
+/**
+ * Mappa EntityRequest.status → Badge variant KYKOS.
+ * 6 stati totali (PENDING, APPROVED, FULFILLED, DELIVERED, COMPLETED, CANCELLED).
+ * vedi: src/types/GoodsRequestStatus.
+ */
+function requestStatusBadge(status: string) {
+  switch (status) {
+    case 'PENDING': return { variant: 'warning' as const, label: 'In attesa' };
+    case 'APPROVED': return { variant: 'success' as const, label: 'Approvata' };
+    case 'FULFILLED': return { variant: 'info' as const, label: 'Soddisfatta' };
+    case 'DELIVERED': return { variant: 'primary' as const, label: 'Consegnata' };
+    case 'COMPLETED': return { variant: 'success' as const, label: 'Completata' };
+    case 'CANCELLED': return { variant: 'default' as const, label: 'Cancellata' };
+    default: return { variant: 'default' as const, label: status };
+  }
+}
+
+function getCategoryIcon(category: string): LucideIcon {
+  const icons: Record<string, LucideIcon> = {
+    FURNITURE: Armchair,
+    ELECTRONICS: Smartphone,
+    CLOTHING: Shirt,
+    BOOKS: Book,
+    KITCHEN: CookingPot,
+    SPORTS: Trophy,
+    TOYS: Baby,
+    OTHER: Box,
+  };
+  return icons[category] || Box;
+}
+
 export default function OperatorEntityRequestsPage() {
   const [requests, setRequests] = useState<EntityRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('pending');
-  const [typeFilter, setTypeFilter] = useState<string>('ALL');
+  const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
     fetchRequests();
@@ -66,175 +98,140 @@ export default function OperatorEntityRequestsPage() {
   };
 
   const filteredRequests = requests.filter(r => {
-    if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
-    if (filter === 'pending') return r.status === 'PENDING';
-    if (filter === 'approved') return r.status === 'APPROVED';
-    if (filter === 'fulfilled') return r.status === 'FULFILLED';
-    return true;
+    const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
+      (r.description?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      (r.beneficiary.nickname?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      r.beneficiary.name.toLowerCase().includes(search.toLowerCase());
+    const matchesType = !filterType || r.type === filterType;
+    const matchesCategory = !filterCategory || r.category === filterCategory;
+    const matchesStatus = !filterStatus || r.status === filterStatus;
+    return matchesSearch && matchesType && matchesCategory && matchesStatus;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <span className="px-2 py-1 bg-warning-100 text-warning-700 text-xs rounded">In attesa</span>;
-      case 'APPROVED':
-        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Approvata</span>;
-      case 'FULFILLED':
-        return <span className="px-2 py-1 bg-info-100 text-info-700 text-xs rounded">Soddisfatta</span>;
-      case 'DELIVERED':
-        return <span className="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs rounded">Consegnata</span>;
-      case 'COMPLETED':
-        return <span className="px-2 py-1 bg-success-100 text-success-700 text-xs rounded">Completata</span>;
-      case 'CANCELLED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Cancellata</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">{status}</span>;
-    }
-  };
+  const statuses = [...new Set(requests.map(r => r.status))];
 
-  const getCategoryIcon = (category: string): LucideIcon => {
-    const icons: Record<string, LucideIcon> = {
-      FURNITURE: Armchair,
-      ELECTRONICS: Smartphone,
-      CLOTHING: Shirt,
-      BOOKS: Book,
-      KITCHEN: CookingPot,
-      SPORTS: Trophy,
-      TOYS: Baby,
-      OTHER: Box,
-    };
-    return icons[category] || Box;
-  };
+  const typeOptions = [
+    { value: '', label: 'Tutti i tipi' },
+    { value: 'GOODS', label: 'Beni' },
+    { value: 'SERVICES', label: 'Servizi' },
+  ];
+
+  // Categorie fisse (8 di Category enum) per permettere all'operatore
+  // di filtrare anche se NESSUNA richiesta della categoria è ancora presente.
+  // Coerente con la categoria del tipo "beni" (SERVICES non ha categoria
+  // merceologica, ma il campo è valorizzato per retro-compat).
+  const categoryOptions = [
+    { value: '', label: 'Tutte le categorie' },
+    ...(Object.keys(CATEGORY_LABELS) as Category[]).map(cat => ({
+      value: cat,
+      label: CATEGORY_LABELS[cat],
+    })),
+  ];
+
+  const statusOptions = [
+    { value: '', label: 'Tutti gli stati' },
+    ...statuses.map(status => {
+      const badge = requestStatusBadge(status);
+      return { value: status, label: badge.label };
+    }),
+  ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-medium text-gray-900">Richieste</h1>
-        <p className="text-gray-500">Gestisci le richieste di beni e servizi</p>
+        <h1 className="text-2xl font-bold text-gray-900">Richieste</h1>
+        <p className="text-gray-500">{filteredRequests.length} richieste</p>
       </div>
 
-      {/* Type Filter */}
-      <div className="flex gap-2 border-b border-gray-200 pb-4">
-        <button
-          onClick={() => setTypeFilter('ALL')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            typeFilter === 'ALL' ? 'bg-primary-100 text-primary-700 border border-primary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Tutti
-        </button>
-        <button
-          onClick={() => setTypeFilter('GOODS')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2 ${
-            typeFilter === 'GOODS' ? 'bg-info-100 text-info-700 border border-info-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          <Armchair className="w-4 h-4" aria-hidden="true" />
-          Beni
-        </button>
-        <button
-          onClick={() => setTypeFilter('SERVICES')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2 ${
-            typeFilter === 'SERVICES' ? 'bg-secondary-100 text-secondary-700 border border-secondary-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          <Wrench className="w-4 h-4" aria-hidden="true" />
-          Servizi
-        </button>
-      </div>
-
-      {/* Status Filter */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'pending' ? 'bg-warning-100 text-warning-700 border border-warning-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          In attesa ({requests.filter(r => r.status === 'PENDING').length})
-        </button>
-        <button
-          onClick={() => setFilter('approved')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'approved' ? 'bg-success-100 text-success-700 border border-success-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Approvate ({requests.filter(r => r.status === 'APPROVED').length})
-        </button>
-        <button
-          onClick={() => setFilter('fulfilled')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'fulfilled' ? 'bg-info-100 text-info-700 border border-info-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Soddisfatte ({requests.filter(r => r.status === 'FULFILLED').length})
-        </button>
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-            filter === 'all' ? 'bg-gray-200 text-gray-800 border border-gray-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Tutte ({requests.length})
-        </button>
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4">
+        <Input
+          type="text"
+          placeholder="Cerca per titolo, descrizione o richiedente..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            options={typeOptions}
+            className="flex-1 min-w-[140px]"
+          />
+          <Select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            options={categoryOptions}
+            className="flex-1 min-w-[140px]"
+          />
+          <Select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            options={statusOptions}
+            className="flex-1 min-w-[140px]"
+          />
+        </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-gray-500">Caricamento...</p>
+          <Spinner size="lg" />
         </div>
       ) : filteredRequests.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-          <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-400" aria-hidden="true" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Nessuna richiesta</h2>
-          <p className="text-gray-500">
-            {filter === 'pending' ? 'Non ci sono richieste da gestire.' : 'Non ci sono richieste.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="Nessuna richiesta"
+          description="Non ci sono richieste che corrispondono ai filtri."
+        />
       ) : (
         <div className="space-y-4">
-          {filteredRequests.map((request) => (
-            <Link
-              key={request.id}
-              href={`/operator/requests-entity/${request.id}`}
-              className="bg-white p-4 rounded-xl shadow-sm border-2 border-gray-200 hover:border-primary-300 transition block"
-            >
-              <div className="flex gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  {(() => {
-                    const Icon = getCategoryIcon(request.category);
-                    return <Icon className="w-8 h-8 text-gray-700" aria-hidden="true" />;
-                  })()}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">{request.title}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded ${request.type === 'GOODS' ? 'bg-info-100 text-info-700' : 'bg-secondary-100 text-secondary-700'}`}>
-                          {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Richiesta da {request.beneficiary.nickname || request.beneficiary.name} • {formatDate(request.createdAt)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(request.status)}
-                      {request.offers.length > 0 && (
-                        <span className="px-2 py-0.5 bg-info-50 text-info-700 text-xs rounded">
-                          {request.offers.length} offerte
-                        </span>
-                      )}
-                    </div>
+          {filteredRequests.map((request) => {
+            const statusBadge = requestStatusBadge(request.status);
+            const CategoryIcon = getCategoryIcon(request.category);
+            return (
+              <Link
+                key={request.id}
+                href={`/operator/requests-entity/${request.id}`}
+                className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition block"
+              >
+                <div className="flex gap-4">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    {request.type === 'SERVICES' ? (
+                      <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-secondary-700" aria-hidden="true" />
+                    ) : (
+                      <CategoryIcon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />
+                    )}
                   </div>
-                  {request.description && (
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{request.description}</p>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-gray-900 truncate">{request.title}</h3>
+                          <Badge variant={request.type === 'GOODS' ? 'info' : 'primary'} size="sm">
+                            {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Richiesta da {request.beneficiary.nickname || request.beneficiary.name} • {formatDate(request.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                        {request.offers.length > 0 && (
+                          <Badge variant="info" size="sm">
+                            {request.offers.length} {request.offers.length === 1 ? 'offerta' : 'offerte'}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    {request.description && (
+                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">{request.description}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
