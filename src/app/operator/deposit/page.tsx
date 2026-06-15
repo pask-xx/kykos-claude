@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Package, Gift, Printer } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
+import { Button } from '@/components/ui';
 import QRCode from 'qrcode';
 
 const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
@@ -33,6 +34,7 @@ interface DepositedGood {
   depositLocation: string | null;
   beneficiary: { id: string; nickname: string | null; name: string };
   fulfilledBy: { id: string; nickname: string | null; name: string };
+  offers: { imageUrls: string[]; offeredById: string }[];
 }
 
 type DepositedItem = (DepositedObject | DepositedGood) & { type: 'object' | 'good' };
@@ -128,6 +130,10 @@ export default function DepositPage() {
           depositLocation: r.depositLocation || null,
           beneficiary: r.beneficiary || { id: '', name: 'Beneficiario' },
           fulfilledBy: r.fulfilledBy || { id: '', name: 'Donatore' },
+          offers: (r.offers || []).map((o: any) => ({
+            imageUrls: o.imageUrls || [],
+            offeredById: o.offeredBy?.id || '',
+          })),
         }));
 
       // Combine and sort by createdAt desc
@@ -163,11 +169,25 @@ export default function DepositPage() {
     return `/operator/goods/${item.id}`;
   };
 
-  const getImage = (item: DepositedItem) => {
+  const getImage = (item: DepositedItem): string | null => {
     if (item.type === 'object') {
       const obj = item as DepositedObject;
       if (obj.imageUrls && obj.imageUrls.length > 0) {
         return obj.imageUrls[0];
+      }
+    } else {
+      const good = item as DepositedGood;
+      // Priorità 1: offerta di fulfilledBy (chi ha soddisfatto la richiesta)
+      if (good.fulfilledBy?.id) {
+        const fulfilledOffer = good.offers.find(o => o.offeredById === good.fulfilledBy.id);
+        if (fulfilledOffer && fulfilledOffer.imageUrls.length > 0) {
+          return fulfilledOffer.imageUrls[0];
+        }
+      }
+      // Priorità 2: prima offerta con foto
+      const offerWithImage = good.offers.find(o => o.imageUrls && o.imageUrls.length > 0);
+      if (offerWithImage && offerWithImage.imageUrls.length > 0) {
+        return offerWithImage.imageUrls[0];
       }
     }
     return null;
@@ -350,28 +370,18 @@ export default function DepositPage() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
+                        <div className="min-w-0">
                           <h3 className="font-medium text-gray-900 truncate">{item.title}</h3>
                           <p className="text-sm text-gray-500">
                             {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-xs text-gray-400">
-                            {formatDate(item.createdAt)}
-                          </span>
-                          <button
-                            type="button"
-                            aria-label="Stampa etichetta"
-                            title="Stampa etichetta"
-                            className="px-2 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 flex items-center gap-1"
-                          >
-                            <Printer className="w-3 h-3" aria-hidden="true" />
-                          </button>
-                        </div>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {formatDate(item.createdAt)}
+                        </span>
                       </div>
 
-                      <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                         <div className="flex items-center gap-1 text-gray-600">
                           <span className="text-gray-400">Donatore:</span>
                           <span className="font-medium">{getDonorName(item)}</span>
@@ -388,6 +398,19 @@ export default function DepositPage() {
                         )}
                       </div>
                     </div>
+                  </div>
+
+                  {/* Bottone stampa: full-width su mobile, inline a destra su desktop */}
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => handlePrintLabel(item, e)}
+                      className="w-full md:w-auto"
+                      leftIcon={<Printer className="w-4 h-4" aria-hidden="true" />}
+                    >
+                      Stampa etichetta
+                    </Button>
                   </div>
                 </div>
               );
