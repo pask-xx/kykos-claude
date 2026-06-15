@@ -229,7 +229,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
   const displayName = recipient.nickname || recipient.name;
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6 p-4 sm:p-6 overflow-x-hidden">
       {/* Header: Avatar a sx, nickname + nome + email a dx */}
       <div>
         <Link href="/operator/recipients" className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1">
@@ -325,9 +325,9 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           </div>
 
           {/* Info */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {editingScore ? (
-              <div className="space-y-3">
+              <div className="space-y-3 min-w-0">
                 <div className="flex items-center gap-3">
                   <input
                     type="range"
@@ -335,7 +335,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
                     max="100"
                     value={scoreValue}
                     onChange={(e) => setScoreValue(Number(e.target.value))}
-                    className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                    className="flex-1 min-w-0 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
                   />
                   <span className="font-bold text-xl w-14 text-center">{scoreValue}</span>
                 </div>
@@ -421,7 +421,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           {recipient.fiscalCode && (
             <div>
               <p className="text-xs text-gray-500 uppercase">Codice Fiscale</p>
-              <p className="font-medium text-gray-900">{recipient.fiscalCode}</p>
+              <p className="font-medium text-gray-900 break-all">{recipient.fiscalCode}</p>
             </div>
           )}
           {recipient.birthDate && (
@@ -439,7 +439,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
           {recipient.address && (
             <div className="md:col-span-2">
               <p className="text-xs text-gray-500 uppercase">Indirizzo</p>
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-gray-900 break-words">
                 {recipient.address}{recipient.houseNumber ? `, ${recipient.houseNumber}` : ''}
                 {recipient.cap ? ` - ${recipient.cap}` : ''}
                 {recipient.city ? ` ${recipient.city}` : ''}
