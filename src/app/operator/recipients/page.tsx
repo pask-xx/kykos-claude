@@ -1,22 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import { toast } from '@/components/ui/Toast';
-import { Avatar, Badge, Button, EmptyState, Spinner, Tabs } from '@/components/ui';
+import { Badge, EmptyState, Spinner, Tabs } from '@/components/ui';
+import { BeneficiaryCard, type BeneficiaryCardData } from '@/components/operator/BeneficiaryCard';
 
-interface Recipient {
-  id: string;
-  nickname: string | null;
-  name: string;
+interface Recipient extends BeneficiaryCardData {
   email: string;
   authorized: boolean;
   authorizedAt: string | null;
   createdAt: string;
   isee: string | null;
   needScore: number;
-  profileImageUrl: string | null;
+  isStreetManaged: boolean;
 }
 
 type RecipientTab = 'pending' | 'authorized';
@@ -36,7 +33,6 @@ function needScoreBadge(score: number) {
 export default function OperatorRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<string | null>(null);
   const [tab, setTab] = useState<RecipientTab>('pending');
 
   useEffect(() => {
@@ -60,28 +56,6 @@ export default function OperatorRecipientsPage() {
     }
   };
 
-  const handleAuthorize = async (recipientId: string, authorize: boolean) => {
-    setProcessing(recipientId);
-    try {
-      const res = await fetch('/api/operator/recipients', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientId, authorize }),
-      });
-
-      if (res.ok) {
-        fetchRecipients();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        toast.error(data?.error || 'Errore');
-      }
-    } catch {
-      toast.error('Errore di connessione');
-    } finally {
-      setProcessing(null);
-    }
-  };
-
   const pendingRecipients = recipients.filter((r) => !r.authorized);
   const authorizedRecipients = recipients.filter((r) => r.authorized);
 
@@ -97,7 +71,7 @@ export default function OperatorRecipientsPage() {
     <div className="space-y-6 p-4 sm:p-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Gestione beneficiari</h1>
-        <p className="text-gray-500">Autorizza o revoca l&apos;accesso ai beneficiari</p>
+        <p className="text-gray-500">Clicca su un beneficiario per gestirlo</p>
       </div>
 
       {recipients.length === 0 ? (
@@ -120,7 +94,7 @@ export default function OperatorRecipientsPage() {
           />
 
           {tab === 'pending' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {pendingRecipients.length === 0 ? (
                 <EmptyState
                   title="Nessuna richiesta in attesa"
@@ -128,53 +102,20 @@ export default function OperatorRecipientsPage() {
                 />
               ) : (
                 pendingRecipients.map((recipient) => (
-                  <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border-2 border-warning-200">
-                    <div className="flex gap-3">
-                      <Avatar
-                        src={recipient.profileImageUrl}
-                        alt={recipient.name}
-                        name={recipient.name}
-                        fallbackName={recipient.nickname?.charAt(0)}
-                        size="md"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <Link
-                              href={`/operator/recipients/${recipient.id}`}
-                              className="font-semibold text-gray-900 hover:text-primary-600"
-                            >
-                              {recipient.nickname || recipient.name}
-                            </Link>
-                            <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
-                          </div>
-                        </div>
-                        {recipient.isee && (
-                          <p className="text-sm text-gray-500 mt-1">ISEE: €{recipient.isee}</p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-2">
-                          Registrato il {formatDate(recipient.createdAt)}
-                        </p>
-                        <div className="mt-3">
-                          <Button
-                            onClick={() => handleAuthorize(recipient.id, true)}
-                            disabled={processing === recipient.id}
-                            variant="primary"
-                            className="w-full"
-                          >
-                            {processing === recipient.id ? 'Elaborazione...' : 'Autorizza'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <BeneficiaryCard
+                    key={recipient.id}
+                    beneficiary={recipient}
+                    href={`/operator/recipients/${recipient.id}`}
+                    isStreetManaged={recipient.isStreetManaged}
+                    email={recipient.email}
+                  />
                 ))
               )}
             </div>
           )}
 
           {tab === 'authorized' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {authorizedRecipients.length === 0 ? (
                 <EmptyState
                   title="Nessun beneficiario autorizzato"
@@ -184,45 +125,22 @@ export default function OperatorRecipientsPage() {
                 authorizedRecipients.map((recipient) => {
                   const score = needScoreBadge(recipient.needScore);
                   return (
-                    <div key={recipient.id} className="bg-white p-4 rounded-xl shadow-sm border">
-                      <div className="flex gap-3">
-                        <Avatar
-                          src={recipient.profileImageUrl}
-                          alt={recipient.name}
-                          name={recipient.name}
-                          fallbackName={recipient.nickname?.charAt(0)}
-                          size="md"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <Link
-                                href={`/operator/recipients/${recipient.id}`}
-                                className="font-semibold text-gray-900 hover:text-primary-600"
-                              >
-                                {recipient.nickname || recipient.name}
-                              </Link>
-                              <p className="text-sm text-gray-500 truncate">{recipient.email}</p>
-                            </div>
-                            <Link href={`/operator/recipients/${recipient.id}`}>
-                              <Button variant="ghost" size="sm">
-                                Gestisci
-                              </Button>
-                            </Link>
-                          </div>
-
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant={score.variant}>
-                              Score: {recipient.needScore} — {score.label}
-                            </Badge>
-                          </div>
-
-                          <p className="text-xs text-gray-400 mt-2">
-                            {recipient.authorizedAt && recipient.authorizedAt !== 'null'
-                              ? `Autorizzato il ${formatDate(recipient.authorizedAt)}`
-                              : 'Autorizzato (data non disponibile)'}
-                          </p>
-                        </div>
+                    <div key={recipient.id} className="space-y-2">
+                      <BeneficiaryCard
+                        beneficiary={recipient}
+                        href={`/operator/recipients/${recipient.id}`}
+                        isStreetManaged={recipient.isStreetManaged}
+                        email={recipient.email}
+                      />
+                      <div className="flex items-center gap-2 px-4 text-xs text-gray-500">
+                        <Badge variant={score.variant} size="sm">
+                          Score: {recipient.needScore} — {score.label}
+                        </Badge>
+                        <span>
+                          {recipient.authorizedAt
+                            ? `Autorizzato il ${formatDate(recipient.authorizedAt)}`
+                            : 'Autorizzato (data non disponibile)'}
+                        </span>
                       </div>
                     </div>
                   );
