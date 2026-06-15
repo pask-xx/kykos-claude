@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { formatDate } from '@/lib/utils';
 import { toast } from '@/components/ui/Toast';
-import { Badge, EmptyState, Spinner, Tabs } from '@/components/ui';
+import { EmptyState, Spinner, Tabs } from '@/components/ui';
 import { BeneficiaryCard, type BeneficiaryCardData } from '@/components/operator/BeneficiaryCard';
 
 interface Recipient extends BeneficiaryCardData {
@@ -17,18 +16,6 @@ interface Recipient extends BeneficiaryCardData {
 }
 
 type RecipientTab = 'pending' | 'authorized';
-
-/**
- * Traduzione NeedScore (0-100) → Badge variant KYKOS. Le soglie sono
- * codificate in `RecipientNeedScore` memory: 80+ = alto (danger), 50+ = medio
- * (warning), 20+ = basso (info), <20 = minimo (default).
- */
-function needScoreBadge(score: number) {
-  if (score >= 80) return { variant: 'danger' as const, label: 'Alto' };
-  if (score >= 50) return { variant: 'warning' as const, label: 'Medio' };
-  if (score >= 20) return { variant: 'info' as const, label: 'Basso' };
-  return { variant: 'default' as const, label: 'Minimo' };
-}
 
 export default function OperatorRecipientsPage() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
@@ -108,6 +95,7 @@ export default function OperatorRecipientsPage() {
                     href={`/operator/recipients/${recipient.id}`}
                     isStreetManaged={recipient.isStreetManaged}
                     email={recipient.email}
+                    score={recipient.needScore}
                   />
                 ))
               )}
@@ -122,29 +110,17 @@ export default function OperatorRecipientsPage() {
                   description="I beneficiari autorizzati appariranno qui."
                 />
               ) : (
-                authorizedRecipients.map((recipient) => {
-                  const score = needScoreBadge(recipient.needScore);
-                  return (
-                    <div key={recipient.id} className="space-y-2">
-                      <BeneficiaryCard
-                        beneficiary={recipient}
-                        href={`/operator/recipients/${recipient.id}`}
-                        isStreetManaged={recipient.isStreetManaged}
-                        email={recipient.email}
-                      />
-                      <div className="flex items-center gap-2 px-4 text-xs text-gray-500">
-                        <Badge variant={score.variant} size="sm">
-                          Score: {recipient.needScore} — {score.label}
-                        </Badge>
-                        <span>
-                          {recipient.authorizedAt
-                            ? `Autorizzato il ${formatDate(recipient.authorizedAt)}`
-                            : 'Autorizzato (data non disponibile)'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
+                authorizedRecipients.map((recipient) => (
+                  <BeneficiaryCard
+                    key={recipient.id}
+                    beneficiary={recipient}
+                    href={`/operator/recipients/${recipient.id}`}
+                    isStreetManaged={recipient.isStreetManaged}
+                    email={recipient.email}
+                    score={recipient.needScore}
+                    authorizedAt={recipient.authorizedAt}
+                  />
+                ))
               )}
             </div>
           )}
