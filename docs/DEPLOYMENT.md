@@ -229,6 +229,75 @@ vercel --prod --force
 
 ---
 
+## Database Migrations
+
+### Workflow KYKOS: migrations SOLO manuali
+
+Le migrations Prisma in KYKOS **NON vengono applicate automaticamente** al DB Vercel. Vanno applicate **manualmente** dall'utente via Supabase SQL Editor prima del prossimo deploy.
+
+**Perché workflow manuale**:
+- Le migrations 001-009 storiche sono state applicate via script SQL custom (es. `scripts/goods-request-migration.sql`), mai tramite `prisma migrate deploy`. Il DB Supabase NON ha la tabella `_prisma_migrations`.
+- Le migrations 010+ seguono lo stesso pattern: file in `prisma/migrations/`, applicazione manuale via SQL.
+- Prendere il comando di applicazione automatico (es. `prebuild: prisma migrate deploy`) su un DB senza `_prisma_migrations` rischia di rompere il deploy (Prisma tenta di applicare TUTTE le migrations 001-009 e fallisce su tabelle già esistenti).
+
+### Quando serve applicare manualmente una migration
+
+Quando una route in produzione fallisce con errore tipo:
+
+```
+POST /api/operator/login error: Error [PrismaClientKnownRequestError]:
+Invalid `prisma.operator.findFirst()` invocation:
+The column `organizations.hours_info` does not exist in the current database.
+```
+
+significa che la migration NON è ancora stata applicata al DB. Serve applicarla **manualmente** sul DB Supabase PRIMA del prossimo deploy.
+
+### Procedura standard via Supabase SQL Editor
+
+1. Apri Supabase Dashboard → progetto KYKOS → SQL Editor
+2. Apri il file della migration in `prisma/migrations/NNN_*/migration.sql`
+3. Copia il contenuto (le migrations KYKOS sono idempotenti con blocchi `DO $$ ... $$`)
+4. Esegui nel SQL Editor
+5. Verifica: nel SQL Editor esegui
+   ```sql
+   SELECT column_name FROM information_schema.columns
+   WHERE table_schema='public' AND table_name='organizations' AND column_name='hours_info';
+   ```
+   Deve ritornare 1 riga.
+
+### Procedura standard via psql
+
+```bash
+# Con DATABASE_URL da .env.staging o .env.production
+psql "$DATABASE_URL" -f prisma/migrations/010_add_org_hours_info/migration.sql
+psql "$DATABASE_URL" -f prisma/migrations/011_add_deposit_columns/migration.sql
+```
+
+### Script di emergenza pre-generati in `scripts/sql/`
+
+Per interventi comuni, ci sono script SQL pronti all'uso in `scripts/sql/`:
+
+| Script | Quando usarlo |
+|--------|---------------|
+| `scripts/sql/012_baseline_existing_db.sql` | Se decidi di iniziare a usare `prisma migrate deploy`, marchia le migrations 001-011 come già applicate nella tabella `_prisma_migrations`. Vedi commento header dello script. |
+
+### Verifica migrations applicate
+
+```sql
+-- Mostra tutte le migrations applicate (gestite da Prisma)
+SELECT migration_name, finished_at, applied_steps_count
+FROM _prisma_migrations
+ORDER BY started_at DESC;
+```
+
+### Lezione operativa (16 giu 2026)
+
+Prima di questo fix, ogni nuova colonna aggiunta a `schema.prisma` senza creare una migration dedicata causava 500 a runtime in produzione. Le migrations sono IDEMPOTENTI e SICURE: applicarle è SEMPRE meglio che non applicarle.
+
+Regola ferrea KYKOS: **OGNI campo nuovo aggiunto a `schema.prisma` DEVE avere una migration dedicata** committata in `prisma/migrations/`. Vedi [[05-known-issues]] in `memory/` per la lista completa delle colonne aggiunte retroattivamente.
+
+---
+
 ## Contatti e riferimenti
 
 - Vercel Dashboard: https://vercel.com/dashboard
