@@ -168,7 +168,7 @@ in `src/types/index.ts` (`STATUS_LABELS`, `CATEGORY_LABELS`,
 Tutti importabili da un unico barrel:
 
 ```tsx
-import { Button, Input, Card, Badge, Alert, Modal, ModalFooter, Spinner, LoadingOverlay, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs, TabPanel, EmptyState, Pagination, Avatar, AvatarGroup, Skeleton, SkeletonText, SkeletonCard, SkeletonAvatar, ToastProvider, toast, Form, Field, TextAreaField, SelectField, useZodForm } from '@/components/ui';
+import { Button, Input, Card, Badge, Alert, Modal, ModalFooter, Spinner, LoadingOverlay, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs, TabPanel, EmptyState, Pagination, Avatar, AvatarGroup, Skeleton, SkeletonText, SkeletonCard, SkeletonAvatar, ToastProvider, toast, Form, Field, TextAreaField, SelectField, useZodForm, EntityListCard } from '@/components/ui';
 ```
 
 ### 5.1 Button
@@ -477,6 +477,48 @@ import { Switch } from '@/components/ui';
 
 **Anti-pattern vietato**: scrivere un toggle custom con `<button role="switch">`. Usare sempre `<Switch>`. La primitive esiste dal 2026-06-08 (Fase 23) e sostituisce ~13 occorrenze del pattern custom introdotto temporaneamente in Fase 22.2.
 
+### 5.17 EntityListCard
+
+Card orizzontale cliccabile per liste generiche con icona + titolo + slot
+opzionali (`badgesTop`, `meta`, `description`, `footer`). Risolve il bug
+mobile "titolo troncato dai badge" (header `flex-col` su mobile, `flex-row
+justify-between` su desktop, `flex-wrap` interno ai badge).
+
+```tsx
+import { EntityListCard } from '@/components/ui';
+
+<EntityListCard
+  icon={<Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />}
+  title={obj.title}
+  badgesTop={
+    <>
+      <Badge variant="info" size="sm">Bene</Badge>
+      <Badge variant="success">Approvata</Badge>
+    </>
+  }
+  meta="Richiesta da mario • 1g"
+  description={obj.description}
+  href={`/operator/requests-entity/${obj.id}`}
+  onNavigate={() => sessionStorage.setItem('backUrl', '/operator/requests-entity')}
+  footer={<Button variant="primary" size="sm">Stampa etichetta</Button>}
+/>
+```
+
+**Comportamento wrapper** (gestito dalla primitive):
+
+| Slot passati | Wrapper | Note |
+|---|---|---|
+| `href` (senza `footer`) | `<Link>` con hover border | Caso standard |
+| `href` + `footer` | `<article>` + `<Link>` interno header + footer esterno | Bottone footer FUORI dal link (no `stopPropagation`) |
+| Solo `footer` (no `href`) | `<article>` | Card statica con azione inline |
+| Nessuno | `<div>` | Card statica |
+
+**Anti-pattern vietato**: scrivere una card lista orizzontale con `<Link
+className="flex gap-4">` custom o `<div onClick>` (vietato da §11). Usare
+sempre `<EntityListCard>`. La primitive esiste dal 2026-06-23 (Fase XYZ)
+e sostituisce il pattern custom presente in 3 pagine operator
+(`requests-entity`, `deposit`, `diocese-objects`).
+
 ---
 
 ## 6. Pattern ricorrenti
@@ -731,7 +773,7 @@ esistente, sostituiscili se stai toccando il file.
 
 | Anti-pattern | Sostituzione |
 |---|---|
-| `<div onClick={...}>` per azione (tab trigger, card cliccabile) | `<button onClick={...}>` o `<Button>` + `aria-label` + `focus-visible:ring` |
+| `<div onClick={...}>` per azione (tab trigger, card cliccabile) | `<button onClick={...}>` o `<Button>` + `aria-label` + `focus-visible:ring`. Per card lista orizzontali: `<EntityListCard href=...>` (vedi §5.17). |
 | `<div className="absolute inset-0 bg-black/50" onClick={close}>` | **NON è anti-pattern**: pattern React standard per click-outside su backdrop modal. Solo fix richiesto: ESC key (P1) |
 | `window.alert('...')` | `toast.success/error/info/warning(...)` |
 | `<button className="bg-primary-600 ...">` inline | `<Button variant="primary">` |

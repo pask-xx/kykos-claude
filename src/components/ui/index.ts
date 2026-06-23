@@ -50,3 +50,5 @@ export { SectionDivider } from './SectionDivider';
 export type { SectionDividerProps } from './SectionDivider';
 export { Accordion } from './Accordion';
 export type { AccordionProps } from './Accordion';
+export { EntityListCard } from './EntityListCard';
+export type { EntityListCardProps } from './EntityListCard';
