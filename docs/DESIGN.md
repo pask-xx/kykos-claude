@@ -744,6 +744,72 @@ raggruppa contatori dello stesso dominio con un'intestazione visiva.
   "Da fare" con dettaglio (es. top 5 richieste), usare `EntityListCard`
   con `nickname` del beneficiario (mai `name`/`firstName`).
 
+#### 6.6.1 Sezione "Da fare" con `<EntityListCard>`
+
+Per i top-N item più vecchi in attesa, ogni dashboard può includere una
+**doppia card** (richieste + multi-availability) che mostra i primi 5 con
+`EntityListCard`. Pattern:
+
+```tsx
+<Card variant="bordered" padding="md">
+  <CardHeader>
+    <div className="flex items-center justify-between">
+      <CardTitle>Richieste in attesa da più tempo</CardTitle>
+      <Link href="/operator/requests-entity?status=PENDING" className="text-sm text-primary-600 hover:underline">
+        Vedi tutte →
+      </Link>
+    </div>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-3">
+      {top5Requests.map(req => (
+        <EntityListCard
+          key={req.id}
+          icon={<Box className="w-6 h-6 text-primary-600" aria-hidden="true" />}
+          title={req.object?.title ?? '(oggetto rimosso)'}
+          badgesTop={<Badge variant="warning" size="sm">{statusLabel(req.status)}</Badge>}
+          meta={`${req.recipient.nickname || req.recipient.name} • ${formatDate(req.createdAt)}`}
+          href={`/operator/requests/${req.id}`}
+          ariaLabel={`Richiesta ${req.object?.title ?? 'rimossa'} da ${req.recipient.nickname}`}
+        />
+      ))}
+    </div>
+  </CardContent>
+</Card>
+```
+
+**Regole sezione "Da fare"**:
+- `take: 5` su query (top 5 più vecchie in PENDING).
+- `nickname || name` per il beneficiario (anonimato KYKOS).
+- Mai esporre email/telefono/PII nel meta.
+- Status SEMPRE tradotto (`REQUEST_STATUS_LABELS.PENDING`, ecc.).
+- Se la lista è vuota, NON renderizzare la card (no EmptyState dentro).
+
+#### 6.6.2 Filtraggio per ruolo (office vs street)
+
+L'operatore ha due flag Prisma (`isOfficeOperator`, `isStreetOperator`)
+e una lista di `permissions`. La dashboard è **adattiva**:
+
+```tsx
+const isOffice = operator.isOfficeOperator;
+const isStreet = operator.isStreetOperator;
+
+if (isStreet && !isOffice) {
+  // Layout ridotto: solo contatori street (consegne, beneficiari street-managed,
+  // diocese objects, scansione QR). Niente sezione "Da fare" (gestita dalla
+  // campanella QR).
+  return <StreetDashboard />;
+}
+
+// Altrimenti: cockpit office completo con 5 sezioni
+const can = (perm: OperatorPermission) => hasPermission(role, permissions, perm);
+// Contatore visibile SOLO se l'operatore ha il permesso
+{can('RECIPIENT_AUTHORIZE') && <StatCard ... />}
+```
+
+**Caso limite**: operatore senza nessun permesso → mostra `<EmptyState>`
+"Nessuna sezione disponibile per il tuo ruolo".
+
 ---
 
 ## 7. Iconografia
