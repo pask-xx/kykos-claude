@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box, Wrench, ClipboardList, type LucideIcon } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { useState, useEffect, useId } from 'react';
+import { Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box, Wrench, ClipboardList, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import { cn, formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
 import { Badge, EmptyState, Input, Select, Spinner, EntityListCard } from '@/components/ui';
 
@@ -79,6 +79,16 @@ export default function OperatorEntityRequestsPage() {
   const [filterType, setFilterType] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeFiltersCount =
+    (search ? 1 : 0) +
+    (filterType ? 1 : 0) +
+    (filterCategory ? 1 : 0) +
+    (filterStatus ? 1 : 0);
+
+  const filtersButtonId = useId();
+  const filtersPanelId = useId();
 
   useEffect(() => {
     fetchRequests();
@@ -137,40 +147,90 @@ export default function OperatorEntityRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Richieste</h1>
-        <p className="text-gray-500">{filteredRequests.length} richieste</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Richieste</h1>
+          <p className="text-gray-500">{filteredRequests.length} richieste</p>
+        </div>
+
+        {/* Bottone toggle pannello filtri */}
+        <button
+          id={filtersButtonId}
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          aria-expanded={filtersOpen}
+          aria-controls={filtersPanelId}
+          aria-label={
+            filtersOpen
+              ? 'Chiudi filtri'
+              : activeFiltersCount > 0
+                ? `Apri filtri (${activeFiltersCount} attiv${activeFiltersCount === 1 ? 'o' : 'i'})`
+                : 'Apri filtri'
+          }
+          className={cn(
+            'relative inline-flex items-center justify-center self-start sm:self-auto',
+            'min-h-[44px] min-w-[44px] -m-2 p-2',
+            'rounded-lg text-gray-600 hover:text-primary-600 hover:bg-gray-100',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+            'transition-colors',
+          )}
+        >
+          <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+          {activeFiltersCount > 0 && (
+            <>
+              <span
+                className={cn(
+                  'absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1',
+                  'bg-error-500 text-white text-[10px] font-bold',
+                  'rounded-full inline-flex items-center justify-center',
+                  'ring-2 ring-white',
+                )}
+                aria-hidden="true"
+              >
+                {activeFiltersCount}
+              </span>
+              <span className="sr-only">{activeFiltersCount} filtri attivi</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4">
-        <Input
-          type="text"
-          placeholder="Cerca per titolo, descrizione o richiedente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="flex flex-wrap gap-2">
-          <Select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            options={typeOptions}
-            className="flex-1 min-w-[140px]"
+      {/* Pannello filtri collassabile */}
+      {filtersOpen && (
+        <div
+          id={filtersPanelId}
+          role="region"
+          aria-labelledby={filtersButtonId}
+          className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4"
+        >
+          <Input
+            type="text"
+            placeholder="Cerca per titolo, descrizione o richiedente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
-          <Select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            options={categoryOptions}
-            className="flex-1 min-w-[140px]"
-          />
-          <Select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            options={statusOptions}
-            className="flex-1 min-w-[140px]"
-          />
+          <div className="flex flex-wrap gap-2">
+            <Select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              options={typeOptions}
+              className="flex-1 min-w-[140px]"
+            />
+            <Select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              options={categoryOptions}
+              className="flex-1 min-w-[140px]"
+            />
+            <Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              options={statusOptions}
+              className="flex-1 min-w-[140px]"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
