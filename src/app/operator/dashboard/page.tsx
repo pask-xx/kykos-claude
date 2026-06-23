@@ -178,7 +178,7 @@ export default async function OperatorDashboard() {
         <SectionDivider label="Attività di strada" count={streetDeliverCount + streetBeneficiaryCount + dioceseObjectCount} color="info" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            icon={Truck}
+            icon={<Truck className="w-6 h-6 text-warning-600" aria-hidden="true" />}
             label="Consegne da effettuare"
             value={streetDeliverCount}
             tone="warning"
@@ -186,21 +186,21 @@ export default async function OperatorDashboard() {
             sublabel={streetDeliverCount > 0 ? 'Beneficiari street-managed' : undefined}
           />
           <StatCard
-            icon={HandHeart}
+            icon={<HandHeart className="w-6 h-6 text-primary-600" aria-hidden="true" />}
             label="Beneficiari seguiti"
             value={streetBeneficiaryCount}
             tone="primary"
             href="/operator/recipients?streetManaged=true"
           />
           <StatCard
-            icon={Package}
+            icon={<Package className="w-6 h-6 text-info-600" aria-hidden="true" />}
             label="Oggetti diocesi"
             value={dioceseObjectCount}
             tone="info"
             href="/operator/diocese-objects"
           />
           <StatCard
-            icon={ScanLine}
+            icon={<ScanLine className="w-6 h-6 text-success-600" aria-hidden="true" />}
             label="Scansiona QR"
             value="→"
             tone="success"
@@ -413,7 +413,7 @@ export default async function OperatorDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {can('RECIPIENT_AUTHORIZE') && (
           <StatCard
-            icon={Inbox}
+            icon={<Inbox className="w-6 h-6 text-warning-600" aria-hidden="true" />}
             label="Richieste oggetto"
             value={pendingRequestCount}
             tone="warning"
@@ -423,7 +423,7 @@ export default async function OperatorDashboard() {
         )}
         {can('RECIPIENT_AUTHORIZE') && (
           <StatCard
-            icon={HandHeart}
+            icon={<HandHeart className="w-6 h-6 text-primary-600" aria-hidden="true" />}
             label="Offerte beni"
             value={pendingOfferCount}
             tone="primary"
@@ -433,7 +433,7 @@ export default async function OperatorDashboard() {
         )}
         {can('ORGANIZATION_ADMIN') && (
           <StatCard
-            icon={ListChecks}
+            icon={<ListChecks className="w-6 h-6 text-info-600" aria-hidden="true" />}
             label="Multi-availability"
             value={pendingMultiAvailCount}
             tone="info"
@@ -443,7 +443,7 @@ export default async function OperatorDashboard() {
         )}
         {can('RECIPIENT_AUTHORIZE') && (
           <StatCard
-            icon={AlertTriangle}
+            icon={<AlertTriangle className="w-6 h-6 text-error-600" aria-hidden="true" />}
             label="Segnalazioni"
             value={pendingReportCount}
             tone="danger"
@@ -453,7 +453,7 @@ export default async function OperatorDashboard() {
         )}
         {can('VOLUNTEER_MANAGE') && (
           <StatCard
-            icon={Bell}
+            icon={<Bell className="w-6 h-6 text-secondary-600" aria-hidden="true" />}
             label="Volontari"
             value={pendingVolunteerCount}
             tone="secondary"
@@ -469,21 +469,21 @@ export default async function OperatorDashboard() {
           <SectionDivider label="Stato logistico" count={sezione2Totale} color="info" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
-              icon={Archive}
+              icon={<Archive className="w-6 h-6 text-primary-600" aria-hidden="true" />}
               label="Depositati"
               value={depositedObjectCount}
               tone="primary"
               href="/operator/objects?status=DEPOSITED"
             />
             <StatCard
-              icon={Package}
+              icon={<Package className="w-6 h-6 text-warning-600" aria-hidden="true" />}
               label="Prenotati"
               value={reservedObjectCount}
               tone="warning"
               href="/operator/objects?status=RESERVED"
             />
             <StatCard
-              icon={Gift}
+              icon={<Gift className="w-6 h-6 text-success-600" aria-hidden="true" />}
               label="Disponibili"
               value={availableObjectCount}
               tone="success"
@@ -491,7 +491,7 @@ export default async function OperatorDashboard() {
             />
             {can('ORGANIZATION_ADMIN') && (
               <StatCard
-                icon={Truck}
+                icon={<Truck className="w-6 h-6 text-info-600" aria-hidden="true" />}
                 label="Distribuzioni aperte"
                 value={openDistributionCount}
                 tone="info"
@@ -500,7 +500,7 @@ export default async function OperatorDashboard() {
             )}
             {blockedObjectCount > 0 && (
               <StatCard
-                icon={AlertTriangle}
+                icon={<AlertTriangle className="w-6 h-6 text-error-600" aria-hidden="true" />}
                 label="Bloccati"
                 value={blockedObjectCount}
                 tone="danger"
@@ -517,7 +517,7 @@ export default async function OperatorDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {can('RECIPIENT_AUTHORIZE') && (
           <StatCard
-            icon={UserCheck}
+            icon={<UserCheck className="w-6 h-6 text-success-600" aria-hidden="true" />}
             label="Beneficiari autorizzati"
             value={authorizedRecipientCount}
             tone="success"
@@ -526,7 +526,7 @@ export default async function OperatorDashboard() {
         )}
         {can('RECIPIENT_AUTHORIZE') && (
           <StatCard
-            icon={Clock}
+            icon={<Clock className="w-6 h-6 text-warning-600" aria-hidden="true" />}
             label="Da sollecitare"
             value={unconfirmedRecipientCount}
             tone="warning"
@@ -536,7 +536,7 @@ export default async function OperatorDashboard() {
         )}
         {can('RECIPIENT_AUTHORIZE') && (
           <StatCard
-            icon={Heart}
+            icon={<Heart className="w-6 h-6 text-primary-600" aria-hidden="true" />}
             label="Donatori totali"
             value={donorCount}
             tone="primary"
@@ -544,7 +544,7 @@ export default async function OperatorDashboard() {
           />
         )}
         <StatCard
-          icon={Users}
+          icon={<Users className="w-6 h-6 text-secondary-600" aria-hidden="true" />}
           label="Operatori ente"
           value={operatorCount}
           tone="secondary"
@@ -558,14 +558,14 @@ export default async function OperatorDashboard() {
           <SectionDivider label="Cause attive" count={activeCauseCount} color="primary" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <StatCard
-              icon={Calendar}
+              icon={<Calendar className="w-6 h-6 text-info-600" aria-hidden="true" />}
               label="Cause attive"
               value={activeCauseCount}
               tone="info"
               href="/operator/causes"
             />
             <StatCard
-              icon={HandCoins}
+              icon={<HandCoins className="w-6 h-6 text-success-600" aria-hidden="true" />}
               label="Raccolta fondi"
               value={activeCauseCount > 0 ? 'Vai →' : '—'}
               tone="success"
@@ -671,7 +671,7 @@ export default async function OperatorDashboard() {
         !can('ORGANIZATION_ADMIN') && (
           <Card variant="bordered" padding="lg">
             <EmptyState
-              icon={Inbox}
+              icon={<Inbox className="mx-auto h-12 w-12 text-primary-300 mb-4" aria-hidden="true" />}
               title="Nessuna sezione disponibile per il tuo ruolo"
               description="Contatta l'amministratore del tuo ente se pensi che manchino dei permessi."
             />

@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, MouseEvent, ReactNode } from 'react';
+import { forwardRef, isValidElement, MouseEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
 import { Card } from './Card';
@@ -28,11 +28,18 @@ const toneClasses: Record<StatCardTone, { wrapper: string; icon: string }> = {
 
 export interface StatCardProps {
   /**
-   * Icona lucide-react. Renderizzata in un wrapper 48x48 con sfondo
-   * del `tone` scelto. L'icona è SEMPRE `aria-hidden="true"` (regola
-   * Fase 21: icona decorativa in card stat).
+   * Icona. Renderizzata in un wrapper 48x48 con sfondo del `tone` scelto.
+   * Accetta un componente lucide-react (es. `icon={Clock}`) OPPURE un
+   * elemento React già istanziato (es. `icon={<Clock className="w-6 h-6 text-warning-600" />}`).
+   *
+   * **Regola boundary**: passando un componente, il componente è una
+   * funzione e NON è serializzabile server→client. Da un Server Component
+   * (`page.tsx` senza `'use client'`), passare SEMPRE l'elemento istanziato
+   * (`<Clock ... />`). Da un Client Component, `icon={Clock}` va bene.
+   *
+   * L'icona è sempre `aria-hidden="true"` (regola Fase 21).
    */
-  icon: LucideIcon;
+  icon: LucideIcon | ReactNode;
   /** Label breve sopra al valore (1-3 parole), es. "Richieste in attesa". */
   label: string;
   /** Valore numerico o stringa (es. 12, "0", "3/10"). Renderizzato in `text-2xl font-bold`. */
@@ -130,6 +137,19 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
     const toneStyle = toneClasses[tone];
     const computedAriaLabel = ariaLabel ?? `${label}: ${value}`;
 
+    // Helper interno: renderizza l'icona in modo uniforme.
+    // - Se `icon` è un React element (es. <Clock ... />) → wrappalo in <span aria-hidden>
+    //   per supportare il passaggio server→client boundary (le funzioni non sono
+    //   serializzabili, gli elementi sì).
+    // - Se `icon` è un componente (LucideIcon) → istanzialo con classi default.
+    let renderedIcon: ReactNode;
+    if (isValidElement(Icon)) {
+      renderedIcon = <span aria-hidden="true">{Icon}</span>;
+    } else {
+      const IconCmp = Icon as LucideIcon;
+      renderedIcon = <IconCmp className={cn('w-6 h-6', toneStyle.icon)} aria-hidden="true" />;
+    }
+
     // Contenuto interno riusato in tutte le varianti wrapper
     const inner = (
       <div className="flex items-center gap-4">
@@ -140,7 +160,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
             toneStyle.wrapper,
           )}
         >
-          <Icon className={cn('w-6 h-6', toneStyle.icon)} aria-hidden="true" />
+          {renderedIcon}
         </div>
 
         {/* Colonna testo: label sopra, valore sotto, sublabel opzionale */}

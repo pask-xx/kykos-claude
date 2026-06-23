@@ -151,10 +151,30 @@ export default async function IntermediaryDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={Package} label="Disponibilità" value={org?._count.objects || 0} tone="primary" />
-          <StatCard icon={Users} label="Beneficiari" value={org?._count.requests || 0} tone="secondary" />
-          <StatCard icon={Clock} label="In attesa" value={pendingRequests} tone="warning" />
-          <StatCard icon={HandCoins} label="Fondi raccolti" value={`€${totalFunds.toFixed(2)}`} tone="success" />
+          <StatCard
+            icon={<Package className="w-6 h-6 text-primary-600" aria-hidden="true" />}
+            label="Disponibilità"
+            value={org?._count.objects || 0}
+            tone="primary"
+          />
+          <StatCard
+            icon={<Users className="w-6 h-6 text-secondary-600" aria-hidden="true" />}
+            label="Beneficiari"
+            value={org?._count.requests || 0}
+            tone="secondary"
+          />
+          <StatCard
+            icon={<Clock className="w-6 h-6 text-warning-600" aria-hidden="true" />}
+            label="In attesa"
+            value={pendingRequests}
+            tone="warning"
+          />
+          <StatCard
+            icon={<HandCoins className="w-6 h-6 text-success-600" aria-hidden="true" />}
+            label="Fondi raccolti"
+            value={`€${totalFunds.toFixed(2)}`}
+            tone="success"
+          />
         </div>
 
         {/* Quick Actions */}
