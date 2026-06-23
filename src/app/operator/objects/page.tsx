@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
-import { Package, Inbox } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { Package, Inbox, SlidersHorizontal } from 'lucide-react';
+import { formatDate, cn } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
 import { Badge, Button, Checkbox, EmptyState, EntityListCard, Input, Select, Spinner } from '@/components/ui';
@@ -50,6 +50,19 @@ export default function OperatorObjectsPage() {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('AVAILABLE');
   const [showDonated, setShowDonated] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // filterStatus ha default 'AVAILABLE' (non ''): non deve contare come
+  // "filtro attivo" nel badge. Coerente con la definizione utente:
+  // "filtro attivo" = qualsiasi controllo che altera la lista dal default.
+  const activeFiltersCount =
+    (search ? 1 : 0) +
+    (filterCategory ? 1 : 0) +
+    (filterStatus && filterStatus !== 'AVAILABLE' ? 1 : 0) +
+    (showDonated ? 1 : 0);
+
+  const filtersButtonId = useId();
+  const filtersPanelId = useId();
 
   useEffect(() => {
     fetchObjects();
@@ -98,11 +111,56 @@ export default function OperatorObjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestione disponibilità</h1>
           <p className="text-gray-500">{filteredObjects.length} oggetti</p>
         </div>
+
+        {/* Bottone toggle pannello filtri */}
+        <button
+          id={filtersButtonId}
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          aria-expanded={filtersOpen}
+          aria-controls={filtersPanelId}
+          aria-label={
+            filtersOpen
+              ? 'Chiudi filtri'
+              : activeFiltersCount > 0
+                ? `Apri filtri (${activeFiltersCount} attiv${activeFiltersCount === 1 ? 'o' : 'i'})`
+                : 'Apri filtri'
+          }
+          className={cn(
+            'relative inline-flex items-center justify-center self-start sm:self-auto',
+            'min-h-[44px] min-w-[44px] -m-2 p-2',
+            'rounded-lg text-gray-600 hover:text-primary-600 hover:bg-gray-100',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+            'transition-colors',
+          )}
+        >
+          <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+          {activeFiltersCount > 0 && (
+            <>
+              <span
+                className={cn(
+                  'absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1',
+                  'bg-error-500 text-white text-[10px] font-bold',
+                  'rounded-full inline-flex items-center justify-center',
+                  'ring-2 ring-white',
+                )}
+                aria-hidden="true"
+              >
+                {activeFiltersCount}
+              </span>
+              <span className="sr-only">{activeFiltersCount} filtri attivi</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Checkbox "Mostra donati" sempre visibile (toggle frequente, non spostato nel pannello) */}
+      <div>
         <Checkbox
           label="Mostra donati"
           checked={showDonated}
@@ -110,29 +168,36 @@ export default function OperatorObjectsPage() {
         />
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4">
-        <Input
-          type="text"
-          placeholder="Cerca per titolo o descrizione..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="flex flex-wrap gap-2">
-          <Select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            options={categoryOptions}
-            className="flex-1 min-w-[140px]"
+      {/* Pannello filtri collassabile */}
+      {filtersOpen && (
+        <div
+          id={filtersPanelId}
+          role="region"
+          aria-labelledby={filtersButtonId}
+          className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4"
+        >
+          <Input
+            type="text"
+            placeholder="Cerca per titolo o descrizione..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
-          <Select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            options={statusOptions}
-            className="flex-1 min-w-[140px]"
-          />
+          <div className="flex flex-wrap gap-2">
+            <Select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              options={categoryOptions}
+              className="flex-1 min-w-[140px]"
+            />
+            <Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              options={statusOptions}
+              className="flex-1 min-w-[140px]"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
