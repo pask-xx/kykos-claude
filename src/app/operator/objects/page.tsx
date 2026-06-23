@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Package, Inbox } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
-import { Badge, Button, Checkbox, EmptyState, Input, Select, Spinner } from '@/components/ui';
+import { Badge, Button, Checkbox, EmptyState, EntityListCard, Input, Select, Spinner } from '@/components/ui';
 
 interface Object {
   id: string;
@@ -45,7 +44,6 @@ function objectStatusBadge(status: string) {
 }
 
 export default function OperatorObjectsPage() {
-  const router = useRouter();
   const [objects, setObjects] = useState<Object[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -56,11 +54,6 @@ export default function OperatorObjectsPage() {
   useEffect(() => {
     fetchObjects();
   }, []);
-
-  const navigateToDetail = (objId: string) => {
-    sessionStorage.setItem('operatorListBackUrl', '/operator/objects');
-    router.push(`/operator/objects/${objId}`);
-  };
 
   const fetchObjects = async () => {
     try {
@@ -156,52 +149,41 @@ export default function OperatorObjectsPage() {
           {filteredObjects.map((obj) => {
             const statusBadge = objectStatusBadge(obj.status);
             return (
-              <div
+              <EntityListCard
                 key={obj.id}
-                className="bg-white p-4 rounded-xl shadow-sm border cursor-pointer hover:shadow-md transition"
-                onClick={() => navigateToDetail(obj.id)}
-              >
-                <div className="flex gap-3">
-                  {/* Image */}
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                    {obj.imageUrls && obj.imageUrls.length > 0 ? (
-                      <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <Package className="h-8 w-8 text-gray-400" aria-hidden="true" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-gray-900 truncate">{obj.title}</h3>
-                      <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
-                      <span className="text-gray-400 ml-1">
-                        ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">{formatDate(obj.createdAt)}</p>
-                  </div>
-                </div>
-
-                {/* Action for DEPOSITED */}
-                {obj.status === 'DEPOSITED' && (
-                  <div
-                    className="mt-3 pt-3 border-t border-gray-100"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                href={`/operator/objects/${obj.id}`}
+                onNavigate={() => sessionStorage.setItem('operatorListBackUrl', '/operator/objects')}
+                icon={
+                  obj.imageUrls && obj.imageUrls.length > 0 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={obj.imageUrls[0]} alt={obj.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" aria-hidden="true" />
+                  )
+                }
+                title={obj.title}
+                badgesTop={<Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>}
+                meta={
+                  <>
+                    {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}
+                    <span className="text-gray-400 ml-1">
+                      ({CONDITION_LABELS[obj.condition as keyof typeof CONDITION_LABELS] || obj.condition})
+                    </span>
+                    <span className="mx-2 text-gray-300">•</span>
+                    {formatDate(obj.createdAt)}
+                  </>
+                }
+                footer={
+                  obj.status === 'DEPOSITED' ? (
                     <Link href={`/operator/objects/${obj.id}/deliver`}>
-                      <Button variant="success" size="sm">
-                        <Package className="h-4 w-4 mr-1" aria-hidden="true" />
+                      <Button variant="success" size="sm" leftIcon={<Package className="h-4 w-4" aria-hidden="true" />}>
                         Conferma consegna
                       </Button>
                     </Link>
-                  </div>
-                )}
-              </div>
+                  ) : undefined
+                }
+                ariaLabel={`Apri oggetto ${obj.title}`}
+              />
             );
           })}
         </div>
