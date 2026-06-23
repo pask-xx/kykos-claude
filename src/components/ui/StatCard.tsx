@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, ReactNode } from 'react';
+import { forwardRef, MouseEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
 import { Card } from './Card';
@@ -48,6 +48,14 @@ export interface StatCardProps {
    * Path tipico: pagina lista filtrata (es. `/operator/requests-entity?status=PENDING`).
    */
   href?: string;
+  /**
+   * Callback alternativa a `href` per azioni che NON navigano (es. cambiare
+   * tab in una dashboard, aprire un modal). Se passato, il wrapper diventa
+   * `<button>` con `type="button"` + `aria-label` calcolato. NON usare
+   * `onClick` se la card deve navigare: usare `href` + `<Link>` semantico
+   * (Fase 14: niente `<div onClick>`).
+   */
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   /** Sub-label sotto al valore (es. "3 scadono oggi"). Opzionale. */
   sublabel?: string;
   /** Classi extra sul wrapper. */
@@ -73,8 +81,12 @@ export interface StatCardProps {
  * **Comportamento wrapper**:
  * - Con `href`: wrapper `<Link>` (Next.js) con `hover:border-primary-300
  *   transition-colors` + `focus-visible:ring-2 focus-visible:ring-primary-500`.
- *   aria-label dinamico: `${label}: ${value}`.
- * - Senza `href`: wrapper `<div>` statico (display only).
+ *   aria-label dinamico: `${label}: ${value}`. Caso d'uso: navigazione a
+ *   pagina lista filtrata.
+ * - Con `onClick` (senza `href`): wrapper `<button>` con focus ring
+ *   primary-500. Caso d'uso: azioni che NON navigano (cambiare tab,
+ *   aprire modal). Per navigazione usare SEMPRE `href` + `<Link>`.
+ * - Senza `href` né `onClick`: wrapper `<div>` statico (display only).
  *
  * **Tone mapping** (palette semantica KYKOS):
  * - `warning` → `bg-warning-100` + `text-warning-600`
@@ -108,6 +120,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       value,
       tone = 'primary',
       href,
+      onClick,
       sublabel,
       className,
       ariaLabel,
@@ -139,7 +152,7 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
       </div>
     );
 
-    // Variante 1: cliccabile (href presente) → wrapper <Link>
+    // Variante 1: cliccabile con navigazione (href presente) → wrapper <Link>
     if (href) {
       return (
         <Card
@@ -160,6 +173,37 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
           >
             {inner}
           </Link>
+        </Card>
+      );
+    }
+
+    // Variante 1b: cliccabile con azione custom (onClick presente, no href)
+    // → wrapper <button> con focus ring primary-500. Caso d'uso: cambiare
+    // tab in dashboard, aprire modal, ecc. NON usare per navigazione
+    // (quella passa per href + <Link>).
+    if (onClick) {
+      return (
+        <Card
+          ref={ref}
+          variant="bordered"
+          padding="md"
+          className={cn(
+            'transition-colors hover:border-primary-300',
+            className,
+          )}
+        >
+          <button
+            type="button"
+            onClick={onClick}
+            aria-label={computedAriaLabel}
+            className={cn(
+              'w-full text-left rounded-lg p-0',
+              'focus-visible:outline-none focus-visible:ring-2',
+              'focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+            )}
+          >
+            {inner}
+          </button>
         </Card>
       );
     }

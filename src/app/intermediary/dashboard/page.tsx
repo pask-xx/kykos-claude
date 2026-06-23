@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { coordsMatchCity } from '@/lib/geo';
-import { Building2, AlertTriangle, Package, Users, HandCoins, Printer } from 'lucide-react';
+import { Building2, AlertTriangle, Package, Users, HandCoins, Printer, Clock } from 'lucide-react';
+import { StatCard } from '@/components/ui';
 
 export default async function IntermediaryDashboard() {
   const session = await getSession();
@@ -149,51 +150,11 @@ export default async function IntermediaryDashboard() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-primary-600" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Disponibilità</p>
-                <p className="text-2xl font-bold text-gray-900">{org?._count.objects || 0}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-secondary-600" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Beneficiari</p>
-                <p className="text-2xl font-bold text-gray-900">{org?._count.requests || 0}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">⏳</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">In attesa</p>
-                <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
-                <HandCoins className="w-6 h-6 text-success-600" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Fondi raccolti</p>
-                <p className="text-2xl font-bold text-gray-900">€{totalFunds.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard icon={Package} label="Disponibilità" value={org?._count.objects || 0} tone="primary" />
+          <StatCard icon={Users} label="Beneficiari" value={org?._count.requests || 0} tone="secondary" />
+          <StatCard icon={Clock} label="In attesa" value={pendingRequests} tone="warning" />
+          <StatCard icon={HandCoins} label="Fondi raccolti" value={`€${totalFunds.toFixed(2)}`} tone="success" />
         </div>
 
         {/* Quick Actions */}

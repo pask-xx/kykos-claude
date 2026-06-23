@@ -22,6 +22,7 @@ import {
   Modal,
   ModalFooter,
   Spinner,
+  StatCard,
   Tabs,
 } from '@/components/ui';
 
@@ -161,56 +162,17 @@ function AdminDashboardContent() {
   return (
     <>
       {/* Stat Cards */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
-              <CheckCheck className="h-6 w-6 text-success-600" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Enti verificati</p>
-              <p className="text-2xl font-bold text-gray-900">{verifiedCount}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
-              <Clock className="h-6 w-6 text-warning-600" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Enti da verificare</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard icon={CheckCheck} label="Enti verificati" value={verifiedCount} tone="success" />
+        <StatCard icon={Clock} label="Enti da verificare" value={pendingCount} tone="warning" />
+        <StatCard
+          icon={ClipboardList}
+          label="Richieste adesione"
+          value={pendingAdesioni}
+          tone="info"
           onClick={() => setActiveTab('adesioni')}
-          className="bg-white p-6 rounded-xl shadow-sm border cursor-pointer hover:bg-gray-50 text-left transition focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
-          aria-label="Vai al tab Richieste adesione"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center">
-              <ClipboardList className="h-6 w-6 text-info-600" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Richieste adesione</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingAdesioni}</p>
-            </div>
-          </div>
-        </button>
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-primary-600" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Totale enti</p>
-              <p className="text-2xl font-bold text-gray-900">{intermediaries.length}</p>
-            </div>
-          </div>
-        </div>
+        />
+        <StatCard icon={Building2} label="Totale enti" value={intermediaries.length} tone="primary" />
       </div>
 
       <Tabs<TabKey>
