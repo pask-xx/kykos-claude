@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box, Wrench, ClipboardList, type LucideIcon } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
-import { Badge, EmptyState, Input, Select, Spinner } from '@/components/ui';
+import { Badge, EmptyState, Input, Select, Spinner, EntityListCard } from '@/components/ui';
 
 interface EntityRequest {
   id: string;
@@ -189,47 +188,34 @@ export default function OperatorEntityRequestsPage() {
             const statusBadge = requestStatusBadge(request.status);
             const CategoryIcon = getCategoryIcon(request.category);
             return (
-              <Link
+              <EntityListCard
                 key={request.id}
                 href={`/operator/requests-entity/${request.id}`}
-                className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition block"
-              >
-                <div className="flex gap-4">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    {request.type === 'SERVICES' ? (
-                      <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-secondary-700" aria-hidden="true" />
-                    ) : (
-                      <CategoryIcon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />
+                icon={
+                  request.type === 'SERVICES' ? (
+                    <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-secondary-700" aria-hidden="true" />
+                  ) : (
+                    <CategoryIcon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />
+                  )
+                }
+                title={request.title}
+                badgesTop={
+                  <>
+                    <Badge variant={request.type === 'GOODS' ? 'info' : 'primary'} size="sm">
+                      {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
+                    </Badge>
+                    <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                    {request.offers.length > 0 && (
+                      <Badge variant="info" size="sm">
+                        {request.offers.length} {request.offers.length === 1 ? 'offerta' : 'offerte'}
+                      </Badge>
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-gray-900 truncate">{request.title}</h3>
-                          <Badge variant={request.type === 'GOODS' ? 'info' : 'primary'} size="sm">
-                            {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Richiesta da {request.beneficiary.nickname || request.beneficiary.name} • {formatDate(request.createdAt)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
-                        {request.offers.length > 0 && (
-                          <Badge variant="info" size="sm">
-                            {request.offers.length} {request.offers.length === 1 ? 'offerta' : 'offerte'}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    {request.description && (
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">{request.description}</p>
-                    )}
-                  </div>
-                </div>
-              </Link>
+                  </>
+                }
+                meta={`Richiesta da ${request.beneficiary.nickname || request.beneficiary.name} • ${formatDate(request.createdAt)}`}
+                description={request.description}
+                ariaLabel={`Apri richiesta ${request.title}`}
+              />
             );
           })}
         </div>
