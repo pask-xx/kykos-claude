@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box, Wrench, ClipboardList, type LucideIcon } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { useState, useEffect, useId } from 'react';
+import { Armchair, Smartphone, Shirt, Book, CookingPot, Trophy, Baby, Box, Wrench, ClipboardList, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import { cn, formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
-import { Badge, EmptyState, Input, Select, Spinner } from '@/components/ui';
+import { Badge, EmptyState, Input, Select, Spinner, EntityListCard } from '@/components/ui';
 
 interface EntityRequest {
   id: string;
@@ -80,6 +79,16 @@ export default function OperatorEntityRequestsPage() {
   const [filterType, setFilterType] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeFiltersCount =
+    (search ? 1 : 0) +
+    (filterType ? 1 : 0) +
+    (filterCategory ? 1 : 0) +
+    (filterStatus ? 1 : 0);
+
+  const filtersButtonId = useId();
+  const filtersPanelId = useId();
 
   useEffect(() => {
     fetchRequests();
@@ -138,40 +147,90 @@ export default function OperatorEntityRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Richieste</h1>
-        <p className="text-gray-500">{filteredRequests.length} richieste</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Richieste</h1>
+          <p className="text-gray-500">{filteredRequests.length} richieste</p>
+        </div>
+
+        {/* Bottone toggle pannello filtri */}
+        <button
+          id={filtersButtonId}
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          aria-expanded={filtersOpen}
+          aria-controls={filtersPanelId}
+          aria-label={
+            filtersOpen
+              ? 'Chiudi filtri'
+              : activeFiltersCount > 0
+                ? `Apri filtri (${activeFiltersCount} attiv${activeFiltersCount === 1 ? 'o' : 'i'})`
+                : 'Apri filtri'
+          }
+          className={cn(
+            'relative inline-flex items-center justify-center self-start sm:self-auto',
+            'min-h-[44px] min-w-[44px] -m-2 p-2',
+            'rounded-lg text-gray-600 hover:text-primary-600 hover:bg-gray-100',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+            'transition-colors',
+          )}
+        >
+          <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+          {activeFiltersCount > 0 && (
+            <>
+              <span
+                className={cn(
+                  'absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1',
+                  'bg-error-500 text-white text-[10px] font-bold',
+                  'rounded-full inline-flex items-center justify-center',
+                  'ring-2 ring-white',
+                )}
+                aria-hidden="true"
+              >
+                {activeFiltersCount}
+              </span>
+              <span className="sr-only">{activeFiltersCount} filtri attivi</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4">
-        <Input
-          type="text"
-          placeholder="Cerca per titolo, descrizione o richiedente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="flex flex-wrap gap-2">
-          <Select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            options={typeOptions}
-            className="flex-1 min-w-[140px]"
+      {/* Pannello filtri collassabile */}
+      {filtersOpen && (
+        <div
+          id={filtersPanelId}
+          role="region"
+          aria-labelledby={filtersButtonId}
+          className="bg-white p-4 rounded-xl shadow-sm border flex flex-col gap-4"
+        >
+          <Input
+            type="text"
+            placeholder="Cerca per titolo, descrizione o richiedente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
-          <Select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            options={categoryOptions}
-            className="flex-1 min-w-[140px]"
-          />
-          <Select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            options={statusOptions}
-            className="flex-1 min-w-[140px]"
-          />
+          <div className="flex flex-wrap gap-2">
+            <Select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              options={typeOptions}
+              className="flex-1 min-w-[140px]"
+            />
+            <Select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              options={categoryOptions}
+              className="flex-1 min-w-[140px]"
+            />
+            <Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              options={statusOptions}
+              className="flex-1 min-w-[140px]"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -189,47 +248,34 @@ export default function OperatorEntityRequestsPage() {
             const statusBadge = requestStatusBadge(request.status);
             const CategoryIcon = getCategoryIcon(request.category);
             return (
-              <Link
+              <EntityListCard
                 key={request.id}
                 href={`/operator/requests-entity/${request.id}`}
-                className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition block"
-              >
-                <div className="flex gap-4">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    {request.type === 'SERVICES' ? (
-                      <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-secondary-700" aria-hidden="true" />
-                    ) : (
-                      <CategoryIcon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />
+                icon={
+                  request.type === 'SERVICES' ? (
+                    <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-secondary-700" aria-hidden="true" />
+                  ) : (
+                    <CategoryIcon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />
+                  )
+                }
+                title={request.title}
+                badgesTop={
+                  <>
+                    <Badge variant={request.type === 'GOODS' ? 'info' : 'primary'} size="sm">
+                      {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
+                    </Badge>
+                    <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                    {request.offers.length > 0 && (
+                      <Badge variant="info" size="sm">
+                        {request.offers.length} {request.offers.length === 1 ? 'offerta' : 'offerte'}
+                      </Badge>
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-gray-900 truncate">{request.title}</h3>
-                          <Badge variant={request.type === 'GOODS' ? 'info' : 'primary'} size="sm">
-                            {request.type === 'GOODS' ? 'Bene' : 'Servizio'}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Richiesta da {request.beneficiary.nickname || request.beneficiary.name} • {formatDate(request.createdAt)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
-                        {request.offers.length > 0 && (
-                          <Badge variant="info" size="sm">
-                            {request.offers.length} {request.offers.length === 1 ? 'offerta' : 'offerte'}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    {request.description && (
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">{request.description}</p>
-                    )}
-                  </div>
-                </div>
-              </Link>
+                  </>
+                }
+                meta={`Richiesta da ${request.beneficiary.nickname || request.beneficiary.name} • ${formatDate(request.createdAt)}`}
+                description={request.description}
+                ariaLabel={`Apri richiesta ${request.title}`}
+              />
             );
           })}
         </div>

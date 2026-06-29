@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useId } from 'react';
-import Link from 'next/link';
+import { Package } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, Category } from '@/types';
 import { toast } from '@/components/ui/Toast';
-import { Badge, Button, EmptyState, Input, Modal, Spinner, Textarea } from '@/components/ui';
+import { Badge, Button, EmptyState, EntityListCard, Input, Modal, Spinner, Textarea } from '@/components/ui';
 import ImageUploader from '@/components/ImageUploader';
 
 interface MultiAvailability {
@@ -149,44 +149,54 @@ export default function MultiAvailabilityPage() {
           {availabilities.map((avail) => {
             const statusBadge = availabilityStatusBadge(avail.status);
             return (
-              <Link
+              <EntityListCard
                 key={avail.id}
                 href={`/operator/availability/${avail.id}`}
-                className="bg-white p-4 rounded-xl shadow-sm border hover:border-primary-300 transition"
-              >
-                <div className="flex gap-4">
-                  {avail.imageUrls && avail.imageUrls.length > 0 && (
-                    <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                      <img
-                        src={avail.imageUrls[0]}
-                        alt={avail.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">{avail.title}</h3>
-                      <Badge variant={statusBadge.variant} pill>
-                        {statusBadge.label}
-                      </Badge>
-                    </div>
-                    {avail.description && (
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{avail.description}</p>
-                    )}
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span>{CATEGORY_LABELS[avail.category]}</span>
-                      <span className="font-medium">{avail.assignedQty}/{avail.availableQty} assegnati</span>
-                      {avail._count?.requests ? (
-                        <span>{avail._count.requests} richieste pendenti</span>
-                      ) : null}
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-400">
-                    {formatDate(avail.createdAt)}
-                  </span>
-                </div>
-              </Link>
+                icon={
+                  avail.imageUrls && avail.imageUrls.length > 0 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avail.imageUrls[0]}
+                      alt={avail.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" aria-hidden="true" />
+                  )
+                }
+                title={avail.title}
+                badgesTop={
+                  <>
+                    <Badge variant={statusBadge.variant} pill>
+                      {statusBadge.label}
+                    </Badge>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {formatDate(avail.createdAt)}
+                    </span>
+                  </>
+                }
+                description={avail.description ?? undefined}
+                meta={
+                  <>
+                    <span className="text-gray-500">
+                      {CATEGORY_LABELS[avail.category]}
+                    </span>
+                    <span className="mx-2 text-gray-300">•</span>
+                    <span className="font-medium text-gray-700">
+                      {avail.assignedQty}/{avail.availableQty} assegnati
+                    </span>
+                    {avail._count?.requests ? (
+                      <>
+                        <span className="mx-2 text-gray-300">•</span>
+                        <span className="text-gray-500">
+                          {avail._count.requests} {avail._count.requests === 1 ? 'richiesta pendente' : 'richieste pendenti'}
+                        </span>
+                      </>
+                    ) : null}
+                  </>
+                }
+                ariaLabel={`Apri distribuzione ${avail.title}`}
+              />
             );
           })}
         </div>

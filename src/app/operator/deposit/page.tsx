@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Package, Gift, Printer } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS } from '@/types';
-import { Button } from '@/components/ui';
+import { Button, EntityListCard } from '@/components/ui';
 import QRCode from 'qrcode';
 
 const LOGO_ALBERO_BASE64 = '/alberoBase64.txt';
@@ -49,7 +47,6 @@ const GOODS_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function DepositPage() {
-  const router = useRouter();
   const [items, setItems] = useState<DepositedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -82,11 +79,6 @@ export default function DepositPage() {
   useEffect(() => {
     fetchDepositedItems();
   }, []);
-
-  const navigateToDetail = (item: DepositedItem) => {
-    sessionStorage.setItem('operatorListBackUrl', '/operator/deposit');
-    router.push(getItemLink(item));
-  };
 
   const fetchDepositedItems = async () => {
     try {
@@ -207,9 +199,7 @@ export default function DepositPage() {
     return (item as DepositedGood).beneficiary.nickname || (item as DepositedGood).beneficiary.name;
   };
 
-  const handlePrintLabel = async (item: DepositedItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const handlePrintLabel = async (item: DepositedItem) => {
     // Determine QR id and donor ID based on item type
     let qrId: string;
     let donorId: string;
@@ -345,77 +335,64 @@ export default function DepositPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <div className="divide-y divide-gray-100">
-            {filteredItems.map((item) => {
-              const image = getImage(item);
-              return (
-                <div
-                  key={`${item.type}-${item.id}`}
-                  onClick={() => navigateToDetail(item)}
-                  className="block p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  <div className="flex gap-4">
-                    {/* Image or placeholder */}
-                    <div className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                      {image ? (
-                        <img src={image} alt={item.title} className="w-full h-full object-cover" />
-                      ) : item.type === 'object' ? (
-                        <Package className="w-8 h-8 text-gray-400" aria-hidden="true" />
-                      ) : (
-                        <Gift className="w-8 h-8 text-gray-400" aria-hidden="true" />
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="font-medium text-gray-900 truncate">{item.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category}
-                          </p>
-                        </div>
-                        <span className="text-xs text-gray-400 flex-shrink-0">
-                          {formatDate(item.createdAt)}
-                        </span>
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <span className="text-gray-400">Donatore:</span>
-                          <span className="font-medium">{getDonorName(item)}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <span className="text-gray-400">Beneficiario:</span>
-                          <span className="font-medium">{getBeneficiaryName(item)}</span>
-                        </div>
-                        {item.depositLocation && (
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <span className="text-gray-400">Posizione:</span>
-                            <span className="font-medium">{item.depositLocation}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bottone stampa: full-width su mobile, inline a destra su desktop */}
-                  <div className="mt-3 flex justify-end">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={(e) => handlePrintLabel(item, e)}
-                      className="w-full md:w-auto"
-                      leftIcon={<Printer className="w-4 h-4" aria-hidden="true" />}
-                    >
-                      Stampa etichetta
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="space-y-4">
+          {filteredItems.map((item) => {
+            const image = getImage(item);
+            return (
+              <EntityListCard
+                key={`${item.type}-${item.id}`}
+                href={getItemLink(item)}
+                onNavigate={() => sessionStorage.setItem('operatorListBackUrl', '/operator/deposit')}
+                icon={
+                  image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={image} alt={item.title} className="w-full h-full object-cover" />
+                  ) : item.type === 'object' ? (
+                    <Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" aria-hidden="true" />
+                  ) : (
+                    <Gift className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" aria-hidden="true" />
+                  )
+                }
+                title={item.title}
+                badgesTop={
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                    {formatDate(item.createdAt)}
+                  </span>
+                }
+                meta={
+                  <>
+                    <span className="text-gray-500">
+                      {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] || item.category}
+                    </span>
+                    <span className="mx-2 text-gray-300">•</span>
+                    <span className="text-gray-400">Donatore:</span>{' '}
+                    <span className="font-medium text-gray-700">{getDonorName(item)}</span>
+                    <span className="mx-2 text-gray-300">•</span>
+                    <span className="text-gray-400">Beneficiario:</span>{' '}
+                    <span className="font-medium text-gray-700">{getBeneficiaryName(item)}</span>
+                    {item.depositLocation && (
+                      <>
+                        <span className="mx-2 text-gray-300">•</span>
+                        <span className="text-gray-400">Pos:</span>{' '}
+                        <span className="font-medium text-gray-700">{item.depositLocation}</span>
+                      </>
+                    )}
+                  </>
+                }
+                footer={
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handlePrintLabel(item)}
+                    leftIcon={<Printer className="w-4 h-4" aria-hidden="true" />}
+                  >
+                    Stampa etichetta
+                  </Button>
+                }
+                ariaLabel={`Apri elemento ${item.title}`}
+              />
+            );
+          })}
         </div>
       )}
     </div>

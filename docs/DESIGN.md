@@ -168,7 +168,7 @@ in `src/types/index.ts` (`STATUS_LABELS`, `CATEGORY_LABELS`,
 Tutti importabili da un unico barrel:
 
 ```tsx
-import { Button, Input, Card, Badge, Alert, Modal, ModalFooter, Spinner, LoadingOverlay, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs, TabPanel, EmptyState, Pagination, Avatar, AvatarGroup, Skeleton, SkeletonText, SkeletonCard, SkeletonAvatar, ToastProvider, toast, Form, Field, TextAreaField, SelectField, useZodForm } from '@/components/ui';
+import { Button, Input, Card, Badge, Alert, Modal, ModalFooter, Spinner, LoadingOverlay, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs, TabPanel, EmptyState, Pagination, Avatar, AvatarGroup, Skeleton, SkeletonText, SkeletonCard, SkeletonAvatar, ToastProvider, toast, Form, Field, TextAreaField, SelectField, useZodForm, EntityListCard } from '@/components/ui';
 ```
 
 ### 5.1 Button
@@ -477,6 +477,132 @@ import { Switch } from '@/components/ui';
 
 **Anti-pattern vietato**: scrivere un toggle custom con `<button role="switch">`. Usare sempre `<Switch>`. La primitive esiste dal 2026-06-08 (Fase 23) e sostituisce ~13 occorrenze del pattern custom introdotto temporaneamente in Fase 22.2.
 
+### 5.17 EntityListCard
+
+Card orizzontale cliccabile per liste generiche con icona + titolo + slot
+opzionali (`badgesTop`, `meta`, `description`, `footer`). Risolve il bug
+mobile "titolo troncato dai badge" (header `flex-col` su mobile, `flex-row
+justify-between` su desktop, `flex-wrap` interno ai badge).
+
+```tsx
+import { EntityListCard } from '@/components/ui';
+
+<EntityListCard
+  icon={<Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700" aria-hidden="true" />}
+  title={obj.title}
+  badgesTop={
+    <>
+      <Badge variant="info" size="sm">Bene</Badge>
+      <Badge variant="success">Approvata</Badge>
+    </>
+  }
+  meta="Richiesta da mario • 1g"
+  description={obj.description}
+  href={`/operator/requests-entity/${obj.id}`}
+  onNavigate={() => sessionStorage.setItem('backUrl', '/operator/requests-entity')}
+  footer={<Button variant="primary" size="sm">Stampa etichetta</Button>}
+/>
+```
+
+**Comportamento wrapper** (gestito dalla primitive):
+
+| Slot passati | Wrapper | Note |
+|---|---|---|
+| `href` (senza `footer`) | `<Link>` con hover border | Caso standard |
+| `href` + `footer` | `<article>` + `<Link>` interno header + footer esterno | Bottone footer FUORI dal link (no `stopPropagation`) |
+| Solo `footer` (no `href`) | `<article>` | Card statica con azione inline |
+| Nessuno | `<div>` | Card statica |
+
+**Anti-pattern vietato**: scrivere una card lista orizzontale con `<Link
+className="flex gap-4">` custom o `<div onClick>` (vietato da §11). Usare
+sempre `<EntityListCard>`. La primitive esiste dal 2026-06-23 (Fase XYZ)
+e sostituisce il pattern custom presente in 3 pagine operator
+(`requests-entity`, `deposit`, `diocese-objects`).
+
+### 5.18 StatCard
+
+Contatore visuale per dashboard: icona 48×48 colorata in wrapper
+semantico + label sopra + valore numerico in `text-2xl font-bold`.
+Opzionalmente cliccabile (`href`) o con `sublabel` sotto al valore.
+
+```tsx
+import { StatCard } from '@/components/ui';
+import { Clock, UserCheck, Package, AlertTriangle } from 'lucide-react';
+
+<div className="grid md:grid-cols-4 gap-6">
+  <StatCard
+    icon={Clock}
+    label="Richieste in attesa"
+    value={12}
+    tone="warning"
+    href="/operator/requests-entity?status=PENDING"
+  />
+  <StatCard
+    icon={UserCheck}
+    label="Beneficiari autorizzati"
+    value={45}
+    tone="success"
+    href="/operator/recipients"
+  />
+  <StatCard
+    icon={Package}
+    label="Disponibilità"
+    value={3}
+    tone="primary"
+  />
+  <StatCard
+    icon={AlertTriangle}
+    label="Oggetti bloccati"
+    value={2}
+    tone="danger"
+    sublabel="Da verificare"
+    href="/operator/objects?status=BLOCKED"
+  />
+</div>
+```
+
+**API**:
+
+| Prop | Tipo | Note |
+|---|---|---|
+| `icon` | `LucideIcon` | Icona lucide-react, SEMPRE `aria-hidden="true"` |
+| `label` | `string` | 1-3 parole sopra al valore |
+| `value` | `ReactNode` | Numero o stringa (es. `12`, `"0"`, `"3/10"`) |
+| `tone` | `'warning' \| 'success' \| 'primary' \| 'secondary' \| 'danger' \| 'info' \| 'default'` | Default `'primary'` |
+| `href` | `string?` | Se presente, wrapper `<Link>` con focus ring primary-500 |
+| `sublabel` | `string?` | Sotto al valore (es. "3 scadono oggi") |
+| `className` | `string?` | Extra classi sul wrapper |
+| `ariaLabel` | `string?` | Default `${label}: ${value}` |
+
+**Tone → palette** (riusa i token semantici KYKOS):
+
+| `tone` | Wrapper icona | Testo icona |
+|---|---|---|
+| `warning` | `bg-warning-100` | `text-warning-600` |
+| `success` | `bg-success-100` | `text-success-600` |
+| `primary` | `bg-primary-100` | `text-primary-600` (default) |
+| `secondary` | `bg-secondary-100` | `text-secondary-600` |
+| `danger` | `bg-error-100` | `text-error-600` (alias di `error`) |
+| `info` | `bg-info-100` | `text-info-600` |
+| `default` | `bg-gray-100` | `text-gray-600` |
+
+**Comportamento wrapper**:
+- Con `href`: wrapper `<Card variant="bordered">` + `<Link>` interno con
+  `hover:border-primary-300 transition-colors` + `focus-visible:ring-2
+  focus-visible:ring-primary-500 focus-visible:ring-offset-2`.
+- Senza `href`: wrapper `<Card variant="bordered">` statico (display only).
+
+**Accessibilità**:
+- Icona `aria-hidden="true"` (regola Fase 21).
+- Link con `aria-label` calcolato (default `${label}: ${value}`) o esplicito.
+- Focus ring primary-500 con offset 2 (coerente con `EntityListCard`).
+- MAI `<div onClick>` (Fase 14): con `href` usa sempre `<Link>` semantico.
+
+**Anti-pattern vietato**: scrivere una stat card con `<div className="bg-white
+p-6 rounded-xl shadow-sm border">` custom + icona + label + valore. Usare
+sempre `<StatCard>`. La primitive esiste dal 2026-06-23 e sostituisce il
+pattern inline presente in 3 dashboard (`operator`, `admin`, `intermediary`).
+
 ---
 
 ## 6. Pattern ricorrenti
@@ -556,6 +682,133 @@ setSuccess(true);
 setTimeout(() => setSuccess(false), 3000);
 window.alert('Email già registrata');
 ```
+
+### 6.6 Dashboard "cockpit" pattern
+
+Le pagine dashboard (operator/admin/intermediary) seguono un pattern a
+**4 livelli gerarchici** con `<StatCard>` come mattone base. Ogni livello
+raggruppa contatori dello stesso dominio con un'intestazione visiva.
+
+```tsx
+<div className="space-y-8">
+  {/* Header con saluto/ruolo (opzionale) */}
+  <PageHeader title="Ciao, Mario" subtitle="Ente: Caritas Roma" />
+
+  {/* LIVELLO 1: azioni prioritarie */}
+  <section>
+    <h2 className="text-lg font-semibold text-gray-900 mb-3">Da fare oggi</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard icon={Clock} label="Richieste in attesa" value={12} tone="warning" href="..." />
+      <StatCard icon={Inbox} label="Offerte pendenti" value={3} tone="info" href="..." />
+      <StatCard icon={Package} label="Distribuzioni PENDING" value={2} tone="primary" href="..." />
+      <StatCard icon={AlertTriangle} label="Segnalazioni" value={1} tone="danger" href="..." />
+    </div>
+  </section>
+
+  {/* LIVELLO 2: stato logistico */}
+  <section>
+    <h2 className="text-lg font-semibold text-gray-900 mb-3">Stato logistico</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard icon={Archive} label="In deposito" value={8} tone="info" />
+      <StatCard icon={Truck} label="In attesa consegna" value={3} tone="warning" />
+      <StatCard icon={Package} label="Disponibili" value={15} tone="success" />
+    </div>
+  </section>
+
+  {/* LIVELLO 3: anagrafica */}
+  <section>
+    <h2 className="text-lg font-semibold text-gray-900 mb-3">Anagrafica & sistema</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard icon={UserCheck} label="Beneficiari autorizzati" value={45} tone="success" />
+      <StatCard icon={Mail} label="Da sollecitare" value={7} tone="warning" />
+      <StatCard icon={Heart} label="Donatori totali" value={23} tone="primary" />
+      <StatCard icon={Users} label="Operatori" value={4} tone="secondary" />
+    </div>
+  </section>
+</div>
+```
+
+**Regole pattern**:
+- **Ogni sezione ha un `<h2>` visibile** sopra la griglia (non div muti).
+- **Grid responsive**: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4`.
+- **Server component** con `Promise.all` di `prisma.count` (no SWR, no
+  polling): refresh solo al cambio pagina.
+- **Filtraggio per permesso**: contatore invisibile se l'operatore non ha
+  il permesso richiesto. Pattern `can(perm)` da `src/lib/permissions.ts`.
+- **Tono semantico coerente con lo stato**: `warning` per PENDING/da fare,
+  `success` per AVAILABLE/autenticato, `danger` per BLOCKED/alert,
+  `info` per generici/informativi.
+- **Link "Vedi tutti"**: facoltativo sotto ogni sezione, punta alla
+  pagina lista filtrata (es. `?status=PENDING`).
+- **Anonimato**: SOLO conteggi. Mai nomi reali nelle card. Nelle sezioni
+  "Da fare" con dettaglio (es. top 5 richieste), usare `EntityListCard`
+  con `nickname` del beneficiario (mai `name`/`firstName`).
+
+#### 6.6.1 Sezione "Da fare" con `<EntityListCard>`
+
+Per i top-N item più vecchi in attesa, ogni dashboard può includere una
+**doppia card** (richieste + multi-availability) che mostra i primi 5 con
+`EntityListCard`. Pattern:
+
+```tsx
+<Card variant="bordered" padding="md">
+  <CardHeader>
+    <div className="flex items-center justify-between">
+      <CardTitle>Richieste in attesa da più tempo</CardTitle>
+      <Link href="/operator/requests-entity?status=PENDING" className="text-sm text-primary-600 hover:underline">
+        Vedi tutte →
+      </Link>
+    </div>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-3">
+      {top5Requests.map(req => (
+        <EntityListCard
+          key={req.id}
+          icon={<Box className="w-6 h-6 text-primary-600" aria-hidden="true" />}
+          title={req.object?.title ?? '(oggetto rimosso)'}
+          badgesTop={<Badge variant="warning" size="sm">{statusLabel(req.status)}</Badge>}
+          meta={`${req.recipient.nickname || req.recipient.name} • ${formatDate(req.createdAt)}`}
+          href={`/operator/requests/${req.id}`}
+          ariaLabel={`Richiesta ${req.object?.title ?? 'rimossa'} da ${req.recipient.nickname}`}
+        />
+      ))}
+    </div>
+  </CardContent>
+</Card>
+```
+
+**Regole sezione "Da fare"**:
+- `take: 5` su query (top 5 più vecchie in PENDING).
+- `nickname || name` per il beneficiario (anonimato KYKOS).
+- Mai esporre email/telefono/PII nel meta.
+- Status SEMPRE tradotto (`REQUEST_STATUS_LABELS.PENDING`, ecc.).
+- Se la lista è vuota, NON renderizzare la card (no EmptyState dentro).
+
+#### 6.6.2 Filtraggio per ruolo (office vs street)
+
+L'operatore ha due flag Prisma (`isOfficeOperator`, `isStreetOperator`)
+e una lista di `permissions`. La dashboard è **adattiva**:
+
+```tsx
+const isOffice = operator.isOfficeOperator;
+const isStreet = operator.isStreetOperator;
+
+if (isStreet && !isOffice) {
+  // Layout ridotto: solo contatori street (consegne, beneficiari street-managed,
+  // diocese objects, scansione QR). Niente sezione "Da fare" (gestita dalla
+  // campanella QR).
+  return <StreetDashboard />;
+}
+
+// Altrimenti: cockpit office completo con 5 sezioni
+const can = (perm: OperatorPermission) => hasPermission(role, permissions, perm);
+// Contatore visibile SOLO se l'operatore ha il permesso
+{can('RECIPIENT_AUTHORIZE') && <StatCard ... />}
+```
+
+**Caso limite**: operatore senza nessun permesso → mostra `<EmptyState>`
+"Nessuna sezione disponibile per il tuo ruolo".
 
 ---
 
@@ -731,7 +984,7 @@ esistente, sostituiscili se stai toccando il file.
 
 | Anti-pattern | Sostituzione |
 |---|---|
-| `<div onClick={...}>` per azione (tab trigger, card cliccabile) | `<button onClick={...}>` o `<Button>` + `aria-label` + `focus-visible:ring` |
+| `<div onClick={...}>` per azione (tab trigger, card cliccabile) | `<button onClick={...}>` o `<Button>` + `aria-label` + `focus-visible:ring`. Per card lista orizzontali: `<EntityListCard href=...>` (vedi §5.17). |
 | `<div className="absolute inset-0 bg-black/50" onClick={close}>` | **NON è anti-pattern**: pattern React standard per click-outside su backdrop modal. Solo fix richiesto: ESC key (P1) |
 | `window.alert('...')` | `toast.success/error/info/warning(...)` |
 | `<button className="bg-primary-600 ...">` inline | `<Button variant="primary">` |
@@ -1245,6 +1498,7 @@ import {
   ToastProvider, toast,
   Form, Field, TextAreaField, SelectField, useZodForm, useForm, useFormContext,
   Switch,
+  SectionDivider, Accordion, EntityListCard, StatCard,
 } from '@/components/ui';
 
 // Icone (sempre named import)
