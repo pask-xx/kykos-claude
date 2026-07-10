@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { AlertOctagon, AlertTriangle, Info, Check, BarChart3, Package, Send, X } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, Info, Check, BarChart3, Package, Send, X, ExternalLink } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS, Category, Condition } from '@/types';
 import { Avatar, Switch } from '@/components/ui';
@@ -644,7 +644,16 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
       {/* Actions */}
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Azioni</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <a
+            href="https://ospoweb.caritas.it/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 rounded-lg font-medium text-sm bg-primary-100 text-primary-700 hover:bg-primary-200 inline-flex items-center gap-1.5"
+          >
+            <ExternalLink className="w-4 h-4" aria-hidden="true" />
+            Apri OsPo Web
+          </a>
           <ConfirmDialog
             title={recipient.authorized ? 'Revoca autorizzazione' : 'Attiva beneficiario'}
             message={recipient.authorized
