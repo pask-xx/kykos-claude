@@ -4,9 +4,9 @@ import { useState, useEffect, useId } from 'react';
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Pencil, Power, MapPin, Building2 } from 'lucide-react';
+import { Plus, Pencil, Power, MapPin, Building2, Crosshair, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalFooter } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Form, Field } from '@/components/ui/Form';
 import { Spinner } from '@/components/ui/Spinner';
@@ -62,6 +62,10 @@ export default function IntermediaryLocationsPage() {
   const [editing, setEditing] = useState<Location | null>(null);
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodingError, setGeocodingError] = useState('');
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   const methods = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -132,6 +136,8 @@ export default function IntermediaryLocationsPage() {
   const closeModal = () => {
     setCreating(false);
     setEditing(null);
+    setGeocodingError('');
+    setLocationError('');
     methods.reset();
   };
 
@@ -200,6 +206,81 @@ export default function IntermediaryLocationsPage() {
     } catch {
       toast.error('Errore di rete');
     }
+  };
+
+  const geocodeFromAddress = async () => {
+    setGeocodingError('');
+    setLocationError('');
+    const address = methods.getValues('address');
+    const city = methods.getValues('city');
+    const postalCode = methods.getValues('postalCode');
+    const province = methods.getValues('province');
+
+    if (!address || !city) {
+      setGeocodingError('Inserisci almeno indirizzo e città');
+      return;
+    }
+
+    setGeocoding(true);
+    try {
+      const res = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, city, cap: postalCode, province }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setGeocodingError(err?.error || 'Geocoding non disponibile');
+        return;
+      }
+      const data = await res.json();
+      if (typeof data.latitude !== 'number' || typeof data.longitude !== 'number') {
+        setGeocodingError('Indirizzo non trovato');
+        return;
+      }
+      methods.setValue('latitude', data.latitude, { shouldValidate: true, shouldDirty: true });
+      methods.setValue('longitude', data.longitude, { shouldValidate: true, shouldDirty: true });
+    } catch {
+      setGeocodingError('Errore di rete durante il geocoding');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const useCurrentLocation = () => {
+    setLocationError('');
+    setGeocodingError('');
+
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationError('Geolocalizzazione non supportata dal browser');
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        methods.setValue('latitude', position.coords.latitude, { shouldValidate: true, shouldDirty: true });
+        methods.setValue('longitude', position.coords.longitude, { shouldValidate: true, shouldDirty: true });
+        setLocating(false);
+      },
+      (error) => {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError('Permesso di geolocalizzazione negato');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError('Posizione non disponibile');
+            break;
+          case error.TIMEOUT:
+            setLocationError('Timeout nella richiesta di posizione');
+            break;
+          default:
+            setLocationError('Errore di geolocalizzazione');
+        }
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
   };
 
   if (loading) {
@@ -318,7 +399,7 @@ export default function IntermediaryLocationsPage() {
       >
         <FormProvider {...methods}>
           <Form methods={methods} onSubmit={methods.handleSubmit(onSubmit)}>
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <Field name="address" label="Indirizzo" required placeholder="Via Roma 1" />
                 <Field name="city" label="Città" required placeholder="Milano" />
@@ -346,6 +427,63 @@ export default function IntermediaryLocationsPage() {
                 />
               </div>
 
+              {/* Bottoni auto-fill coordinate */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={geocodeFromAddress}
+                  disabled={geocoding || locating}
+                  leftIcon={
+                    geocoding ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                    )
+                  }
+                >
+                  {geocoding ? 'Calcolo...' : 'Calcola da indirizzo'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={useCurrentLocation}
+                  disabled={geocoding || locating}
+                  leftIcon={
+                    locating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Crosshair className="h-3.5 w-3.5" aria-hidden="true" />
+                    )
+                  }
+                >
+                  {locating ? 'Rilevamento...' : 'Usa posizione attuale'}
+                </Button>
+              </div>
+
+              {/* Errori auto-fill */}
+              {(geocodingError || locationError) && (
+                <p className="text-sm text-red-600" role="alert">
+                  {geocodingError || locationError}
+                </p>
+              )}
+
+              {/* Coordinate correnti */}
+              {(() => {
+                const lat = methods.watch('latitude');
+                const lng = methods.watch('longitude');
+                if (typeof lat === 'number' && typeof lng === 'number') {
+                  return (
+                    <p className="text-xs text-gray-500">
+                      Coordinate correnti: {lat.toFixed(4)}, {lng.toFixed(4)}
+                    </p>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="rounded-lg overflow-hidden border">
                 <LocationMap
                   latitude={methods.watch('latitude') || 41.9028}
@@ -359,7 +497,7 @@ export default function IntermediaryLocationsPage() {
                 />
               </div>
               <p className="text-xs text-gray-500 -mt-2">
-                Trascina il marker per impostare le coordinate esatte. Le coordinate vengono compilate automaticamente.
+                Clicca sulla mappa per impostare le coordinate esatte. Le coordinate vengono compilate automaticamente.
               </p>
 
               {/* Orari */}
@@ -375,13 +513,12 @@ export default function IntermediaryLocationsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t">
+              <ModalFooter>
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={closeModal}
                   disabled={submitting}
-                  className="flex-1"
                 >
                   Annulla
                 </Button>
@@ -389,11 +526,10 @@ export default function IntermediaryLocationsPage() {
                   type="submit"
                   variant="primary"
                   loading={submitting}
-                  className="flex-1"
                 >
                   {editing ? 'Salva modifiche' : 'Crea sede'}
                 </Button>
-              </div>
+              </ModalFooter>
             </div>
           </Form>
         </FormProvider>
