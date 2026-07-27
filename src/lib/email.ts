@@ -1,6 +1,36 @@
 import { Resend } from 'resend';
 import { prisma } from '@/lib/prisma';
 import { NotificationType, RecipientType } from '@prisma/client';
+import { formatLocationHoursCompact, formatLocationNotesHtml } from '@/lib/location-format';
+import type { LocationHours } from '@/types';
+
+/**
+ * Helper riusato da tutte le email: produce il blocco HTML "Orari e informazioni"
+ * con fallback chain `hours` (v2 multi-slot) → `hoursInfo` (legacy TipTap) → niente.
+ * Le `notes` vengono mostrate come paragrafo italicato sotto gli orari.
+ *
+ * Coesiste con il pattern di "locationSuggestionBlock" (sedi aggiuntive): la sede
+ * principale ha gli orari qui, le sedi aggiuntive mostrano i loro orari separatamente
+ * dentro al locationSuggestionBlock (via formatLocationHtml).
+ *
+ * Restituisce stringa vuota se NESSUN orario né nota è disponibile.
+ */
+function formatHoursAndNotesBlock(
+  hours: LocationHours | null,
+  hoursInfo: string | null | undefined,
+  notes: string | null | undefined
+): string {
+  const hoursCompact = formatLocationHoursCompact(hours);
+  const notesHtml = formatLocationNotesHtml(notes);
+  const hasContent = !!(hoursCompact || hoursInfo || notesHtml);
+  if (!hasContent) return '';
+  return `<div style="margin: 24px 0; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #2563eb;">
+    <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
+    ${hoursCompact ? `<p style="font-size: 14px; color: #374151; margin: 0 0 4px;"><strong>Orari:</strong> ${hoursCompact}</p>` : ''}
+    ${hoursInfo && !hoursCompact ? `<div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>` : ''}
+    ${notesHtml ? `<p style="color: #4b5563; font-size: 13px; font-style: italic; margin: 8px 0 0;">${notesHtml}</p>` : ''}
+  </div>`;
+}
 
 const FROM_EMAIL = 'KYKOS <noreply@kykos.it>';
 const APP_NAME = 'KYKOS';
@@ -271,6 +301,15 @@ export async function sendDeliveryQrNotification(
   organizationEmail: string | null,
   hoursInfo?: string | null,
   /**
+   * v2: orari strutturati multi-slot (Organization.hours). Coesiste con hoursInfo
+   * (legacy TipTap). Se passato, ha priorità nel rendering via fallback chain.
+   */
+  hours?: LocationHours | null,
+  /**
+   * v2: note libere sede principale (Organization.notes). Plain text, escape HTML.
+   */
+  notes?: string | null,
+  /**
    * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
    * `suggestLocationForTransaction`. Se omesso/vuoto, mostra solo la
    * sede principale (retrocompatibilità con i caller pre-Fase C).
@@ -307,10 +346,7 @@ export async function sendDeliveryQrNotification(
             ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
             ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
           </div>` : ''}
-          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #2563eb;">
-            <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
-            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
-          </div>` : ''}
+          ${formatHoursAndNotesBlock(hours ?? null, hoursInfo ?? null, notes ?? null)}
           ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/dashboard" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
@@ -348,7 +384,11 @@ export async function sendPickupQrNotification(
   organizationProvince: string | null,
   organizationPhone: string | null,
   organizationEmail: string | null,
-  hoursInfo?: string | null
+  hoursInfo?: string | null,
+  /** v2: orari strutturati multi-slot (Organization.hours). */
+  hours?: LocationHours | null,
+  /** v2: note libere sede principale (Organization.notes). */
+  notes?: string | null
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per il ritiro`;
   const html = `
@@ -380,10 +420,7 @@ export async function sendPickupQrNotification(
             ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
             ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
           </div>` : ''}
-          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #faf5ff; border-radius: 8px; border-left: 4px solid #7c3aed;">
-            <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
-            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
-          </div>` : ''}
+          ${formatHoursAndNotesBlock(hours ?? null, hoursInfo ?? null, notes ?? null)}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/recipient/dashboard" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vai alla dashboard
@@ -782,6 +819,10 @@ export async function sendGoodsDeliveryQrNotification(
   organizationPhone: string | null,
   organizationEmail: string | null,
   hoursInfo?: string | null,
+  /** v2: orari strutturati multi-slot (Organization.hours). */
+  hours?: LocationHours | null,
+  /** v2: note libere sede principale (Organization.notes). */
+  notes?: string | null,
   /**
    * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
    * `suggestLocationForTransaction`. Se omesso/vuoto, nessuna sezione
@@ -819,10 +860,7 @@ export async function sendGoodsDeliveryQrNotification(
             ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
             ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
           </div>` : ''}
-          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #2563eb;">
-            <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
-            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
-          </div>` : ''}
+          ${formatHoursAndNotesBlock(hours ?? null, hoursInfo ?? null, notes ?? null)}
           ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/qr-goods/${requestId}" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
@@ -861,6 +899,10 @@ export async function sendGoodsPickupQrNotification(
   organizationPhone: string | null,
   organizationEmail: string | null,
   hoursInfo?: string | null,
+  /** v2: orari strutturati multi-slot (Organization.hours). */
+  hours?: LocationHours | null,
+  /** v2: note libere sede principale (Organization.notes). */
+  notes?: string | null,
   /**
    * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
    * `suggestLocationForTransaction`. Se omesso/vuoto, nessuna sezione
@@ -898,10 +940,7 @@ export async function sendGoodsPickupQrNotification(
             ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
             ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
           </div>` : ''}
-          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #faf5ff; border-radius: 8px; border-left: 4px solid #7c3aed;">
-            <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
-            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
-          </div>` : ''}
+          ${formatHoursAndNotesBlock(hours ?? null, hoursInfo ?? null, notes ?? null)}
           ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/recipient/qr-goods/${requestId}" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
@@ -939,7 +978,11 @@ export async function sendMultiAvailabilityQrNotification(
   organizationProvince: string | null,
   organizationPhone: string | null,
   organizationEmail: string | null,
-  hoursInfo?: string | null
+  hoursInfo?: string | null,
+  /** v2: orari strutturati multi-slot (Organization.hours). */
+  hours?: LocationHours | null,
+  /** v2: note libere sede principale (Organization.notes). */
+  notes?: string | null
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per il ritiro: ${availabilityTitle}`;
   const html = `
@@ -971,10 +1014,7 @@ export async function sendMultiAvailabilityQrNotification(
             ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">📞 ${organizationPhone}</p>` : ''}
             ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">✉️ ${organizationEmail}</p>` : ''}
           </div>` : ''}
-          ${hoursInfo ? `<div style="margin: 24px 0; padding: 16px; background: #faf5ff; border-radius: 8px; border-left: 4px solid #7c3aed;">
-            <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
-            <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
-          </div>` : ''}
+          ${formatHoursAndNotesBlock(hours ?? null, hoursInfo ?? null, notes ?? null)}
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
           <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
             © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>

@@ -107,6 +107,7 @@ export const POST = withErrorHandler(async (req: Request) => {
       // Se hours non è stato passato, Prisma salta il campo in update.
       // In create passiamo sempre un valore (anche {}).
       hours: parsed.data.hours ?? {},
+      notes: parsed.data.notes ?? null,
       isActive: true,
       createdAt: now,
       updatedAt: now,

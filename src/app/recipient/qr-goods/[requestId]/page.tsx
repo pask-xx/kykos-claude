@@ -2,6 +2,7 @@
 
 import { use } from 'react';
 import { QrPage, type QrPayload } from '@/components/qr/QrPage';
+import type { LocationHours } from '@/types';
 import type { LocationSuggestion } from '@/lib/location-suggest';
 
 interface GoodsRequestQrResponse {
@@ -13,6 +14,8 @@ interface GoodsRequestQrResponse {
   userType: 'fulfiller' | 'beneficiary';
   entityName: string;
   entityHoursInfo: string | null;
+  entityHours?: LocationHours | null;
+  entityNotes?: string | null;
   entityAddress: string | null;
   entityHouseNumber: string | null;
   entityCap: string | null;
@@ -53,6 +56,8 @@ export default function RecipientQrGoodsPage({
           label: r.qrCodes.pickup.label,
           entityName: r.entityName,
           entityHoursInfo: r.entityHoursInfo,
+          entityHours: r.entityHours,
+          entityNotes: r.entityNotes,
           locationSuggestion: r.locationSuggestion,
         };
       }}

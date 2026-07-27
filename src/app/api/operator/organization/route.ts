@@ -70,6 +70,8 @@ export const GET = withErrorHandler(async () => {
       autoApproveGoodsRequests: true,
       autoApproveServicesRequests: true,
       hoursInfo: true,
+      hours: true, // v2 multi-slot orari strutturati
+      notes: true, // note libere sede principale
       printLabel: true,
       labelSize: true,
     },
@@ -101,12 +103,22 @@ export const PATCH = withErrorHandler(async (request: Request) => {
   }
 
   const body = await request.json();
-  const { hoursInfo, autoApproveRequests, autoApproveGoodsRequests, autoApproveServicesRequests, printLabel, labelSize } = body;
+  const { hoursInfo, hours, notes, autoApproveRequests, autoApproveGoodsRequests, autoApproveServicesRequests, printLabel, labelSize } = body;
 
   const updateData: Record<string, unknown> = {};
 
   if (hoursInfo !== undefined) {
     updateData.hoursInfo = hoursInfo;
+  }
+
+  // v2: orari strutturati multi-slot (affianca hoursInfo legacy)
+  if (hours !== undefined) {
+    updateData.hours = hours;
+  }
+
+  // v2: note libere sede principale
+  if (notes !== undefined) {
+    updateData.notes = notes || null;
   }
 
   if (autoApproveRequests !== undefined) {

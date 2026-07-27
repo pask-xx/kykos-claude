@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
-import { Building2, Clock, MapPin, Loader2, SatelliteDish, House } from 'lucide-react';
+import { Building2, Clock, MapPin, Loader2, SatelliteDish, House, ChevronDown, ChevronUp } from 'lucide-react';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import dynamic from 'next/dynamic';
 import { toast } from '@/components/ui/Toast';
+import { MultiDayHoursEditor } from '@/components/location/MultiDayHoursEditor';
+import { normalizeLocationHours } from '@/lib/location-validation';
+import type { LocationHours } from '@/types';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
@@ -38,6 +41,8 @@ interface Organization {
   longitude: number | null;
   autoApproveRequests: boolean;
   hoursInfo: string | null;
+  hours: unknown; // JSON raw da Prisma, normalizzato via normalizeLocationHours
+  notes: string | null;
   dioceseId: string | null;
   diocese?: {
     id: string;
@@ -59,7 +64,9 @@ interface FormData {
   latitude: string;
   longitude: string;
   autoApproveRequests: boolean;
-  hoursInfo: string;
+  hoursInfo: string | null;
+  hours: LocationHours | null;
+  notes: string;
   dioceseId: string;
 }
 
@@ -215,6 +222,7 @@ export default function IntermediaryProfilePage() {
   const [locating, setLocating] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [legacyOpen, setLegacyOpen] = useState(false);
   const [dioceses, setDioceses] = useState<{id: string; name: string; seat: string; distance?: number}[]>([]);
   const [cityCoords, setCityCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [form, setForm] = useState<FormData>({
@@ -231,6 +239,8 @@ export default function IntermediaryProfilePage() {
     longitude: '',
     autoApproveRequests: false,
     hoursInfo: '',
+    hours: null,
+    notes: '',
     dioceseId: '',
   });
 
@@ -245,6 +255,7 @@ export default function IntermediaryProfilePage() {
   const telefonoId = useId();
   const diocesiId = useId();
   const autoApproveId = useId();
+  const notesId = useId();
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -267,6 +278,8 @@ export default function IntermediaryProfilePage() {
             longitude: o.longitude?.toString() || '',
             autoApproveRequests: o.autoApproveRequests || false,
             hoursInfo: o.hoursInfo || '',
+            hours: normalizeLocationHours(o.hours),
+            notes: o.notes || '',
             dioceseId: o.dioceseId || '',
           });
           // Set city coords for diocese lookup
@@ -313,6 +326,14 @@ export default function IntermediaryProfilePage() {
     setForm(prev => ({ ...prev, hoursInfo: html }));
   };
 
+  const handleHoursChange = (next: LocationHours | null) => {
+    setForm(prev => ({ ...prev, hours: next }));
+  };
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setForm(prev => ({ ...prev, notes: e.target.value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -336,6 +357,8 @@ export default function IntermediaryProfilePage() {
           longitude: form.longitude || null,
           autoApproveRequests: form.autoApproveRequests,
           hoursInfo: form.hoursInfo || null,
+          hours: form.hours === null ? null : form.hours,
+          notes: form.notes || null,
           dioceseId: form.dioceseId || null,
         }),
       });
@@ -628,27 +651,68 @@ export default function IntermediaryProfilePage() {
         </div>
       </form>
 
-      {/* Hours Info */}
+      {/* Hours & Notes (v2 multi-slot orari strutturati + note libere) */}
       <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-2">
           <Clock className="w-5 h-5 text-gray-500" aria-hidden="true" /> Orari e informazioni
         </h2>
         <p className="text-sm text-gray-500 mb-4">
-          Inserisci gli orari di apertura/chiusura dell&apos;ente e altre informazioni utili per chi deve consegnare o ritirare oggetti.
-          Queste informazioni verranno incluse nelle email di consegna e ritiro QR code.
+          Inserisci le fasce orarie di apertura per ciascun giorno della settimana (es. mattina + pomeriggio)
+          e note utili per chi deve consegnare o ritirare oggetti. Queste informazioni verranno incluse
+          nelle email di consegna e ritiro QR code.
         </p>
-        <RichTextEditor
-          value={form.hoursInfo}
-          onChange={handleHoursInfoChange}
+
+        <MultiDayHoursEditor
+          value={form.hours}
+          onChange={handleHoursChange}
         />
+
+        <div className="mt-6">
+          <label htmlFor={notesId} className="block text-sm font-medium text-gray-700 mb-1">
+            Note sede
+          </label>
+          <textarea
+            id={notesId}
+            name="notes"
+            value={form.notes}
+            onChange={handleNotesChange}
+            maxLength={2000}
+            rows={3}
+            placeholder="Es. Suonare il campanello, ingresso secondario, citofonare al custode..."
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm resize-none"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Informazioni utili per chi deve raggiungere la sede. Max 2000 caratteri.
+          </p>
+        </div>
+
         <button
           type="button"
           onClick={handleSubmit}
           disabled={saving}
           className="mt-4 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
         >
-          {saving ? 'Salvataggio...' : 'Salva orari'}
+          {saving ? 'Salvataggio...' : 'Salva orari e note'}
         </button>
+
+        {/* Sezione legacy hoursInfo (TipTap): deprecata, mantenuta per retrocompat */}
+        <details
+          className="mt-6 border-t pt-4"
+          onToggle={(e) => setLegacyOpen((e.target as HTMLDetailsElement).open)}
+        >
+          <summary className="cursor-pointer text-sm font-medium text-gray-700 flex items-center gap-2 select-none">
+            {legacyOpen ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
+            Campo legacy (deprecato)
+          </summary>
+          <p className="text-xs text-gray-500 mt-2 mb-3">
+            Questo campo in formato Rich Text è mantenuto per retrocompatibilità con le email già inviate.
+            Per i nuovi orari usa la sezione strutturata sopra.
+          </p>
+          <RichTextEditor
+            value={form.hoursInfo || ''}
+            onChange={handleHoursInfoChange}
+          />
+        </details>
       </div>
 
       {/* Geolocation */}

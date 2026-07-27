@@ -9,6 +9,7 @@ import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 import { getJwtSecret } from '@/lib/auth';
 import { suggestLocationForTransaction } from '@/lib/location-suggest';
 import { formatLocationSuggestionBlock } from '@/lib/location-format';
+import type { LocationHours } from '@/types';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -65,7 +66,7 @@ export async function GET(request: Request) {
           select: { id: true, name: true, firstName: true, lastName: true, email: true },
         },
         intermediary: {
-          select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
+          select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true, hours: true, notes: true },
         },
         fulfilledBy: {
           select: { id: true, name: true, email: true },
@@ -271,7 +272,7 @@ export async function PATCH(request: Request) {
           intermediary: {
             select: {
               name: true, address: true, houseNumber: true, cap: true,
-              city: true, province: true, phone: true, email: true, hoursInfo: true
+              city: true, province: true, phone: true, email: true, hoursInfo: true, hours: true, notes: true
             },
           },
         },
@@ -357,6 +358,8 @@ export async function PATCH(request: Request) {
           goodsRequest.intermediary.phone,
           goodsRequest.intermediary.email,
           goodsRequest.intermediary.hoursInfo,
+          goodsRequest.intermediary.hours as unknown as LocationHours | null,
+          goodsRequest.intermediary.notes,
           locationSuggestionBlock
         );
       } catch (emailError) {

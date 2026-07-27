@@ -2,6 +2,7 @@
 
 import { use } from 'react';
 import { QrPage, type QrPayload } from '@/components/qr/QrPage';
+import type { LocationHours } from '@/types';
 import type { LocationSuggestion } from '@/lib/location-suggest';
 
 interface DonationQrResponse {
@@ -13,6 +14,8 @@ interface DonationQrResponse {
   userType: 'donor' | 'recipient';
   entityName: string;
   entityHoursInfo: string | null;
+  entityHours?: LocationHours | null;
+  entityNotes?: string | null;
   locationSuggestion: {
     suggested: LocationSuggestion | null;
     allLocations: LocationSuggestion[];
@@ -46,6 +49,8 @@ export default function DonorQrPage({
           label: r.qrCodes.pickup.label,
           entityName: r.entityName,
           entityHoursInfo: r.entityHoursInfo,
+          entityHours: r.entityHours,
+          entityNotes: r.entityNotes,
           locationSuggestion: r.locationSuggestion,
         };
       }}

@@ -8,6 +8,7 @@ import { hasPermission } from '@/lib/permissions';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import { suggestLocationForTransaction } from '@/lib/location-suggest';
+import type { LocationHours } from '@/types';
 import { formatLocationSuggestionBlock } from '@/lib/location-format';
 
 const JWT_SECRET = getJwtSecret();
@@ -106,6 +107,8 @@ export const POST = withErrorHandler(async (request: Request) => {
           phone: true,
           email: true,
           hoursInfo: true,
+          hours: true,
+          notes: true,
         },
       },
     },
@@ -190,6 +193,8 @@ export const POST = withErrorHandler(async (request: Request) => {
     goodsRequest.intermediary.phone,
     goodsRequest.intermediary.email,
     goodsRequest.intermediary.hoursInfo,
+    goodsRequest.intermediary.hours as unknown as LocationHours | null,
+    goodsRequest.intermediary.notes,
     locationSuggestionBlockPickup
   );
 

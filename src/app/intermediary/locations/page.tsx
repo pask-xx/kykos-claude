@@ -1,18 +1,21 @@
 'use client';
 
 import { useState, useEffect, useId } from 'react';
-import { useForm, FormProvider, useFormContext } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Pencil, Power, MapPin, Building2, Crosshair, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 import { Modal, ModalFooter } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { Form, Field } from '@/components/ui/Form';
+import { Form, Field, TextAreaField } from '@/components/ui/Form';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
+import { MultiDayHoursEditor } from '@/components/location/MultiDayHoursEditor';
+import { normalizeLocationHours } from '@/lib/location-validation';
 import LocationMap from '@/components/map/LocationMap';
+import type { LocationHours } from '@/types';
 import { LOCATION_DAY_KEYS, LOCATION_DAY_LABELS } from '@/types';
 
 interface Location {
@@ -26,14 +29,17 @@ interface Location {
   country: string;
   latitude: number;
   longitude: number;
-  hours: Record<string, { open: string; close: string } | null> | null;
+  hours: LocationHours | null;
+  notes: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   _count?: { operatorLocations: number };
 }
 
-// Form schema (zod, client-side, mirror di location-validation.ts)
+// Form schema (zod, client-side, mirror di location-validation.ts).
+// `hours` NON è incluso: gestito in state locale separato via MultiDayHoursEditor (controlled).
+// `notes` è stringa opzionale, max 2000 caratteri.
 const formSchema = z.object({
   address: z.string().min(1, 'Indirizzo richiesto'),
   city: z.string().min(1, 'Città richiesta'),
@@ -41,17 +47,7 @@ const formSchema = z.object({
   province: z.string().regex(/^$|^[A-Za-z]{2}$/, '2 lettere o vuoto').optional().or(z.literal('')),
   latitude: z.number({ error: 'Latitudine non valida' }).min(-90).max(90),
   longitude: z.number({ error: 'Longitudine non valida' }).min(-180).max(180),
-  // Orari per giorno: null = chiuso, undefined = "non specificato" (=chiuso).
-  // Usiamo stringhe raw "HH:MM" o vuote per semplicità UI.
-  hours: z.record(
-    z.string(),
-    z
-      .object({
-        open: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'HH:MM').or(z.literal('')),
-        close: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'HH:MM').or(z.literal('')),
-      })
-      .nullable()
-  ),
+  notes: z.string().max(2000, 'Note troppo lunghe (max 2000 caratteri)').optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -66,6 +62,8 @@ export default function IntermediaryLocationsPage() {
   const [geocodingError, setGeocodingError] = useState('');
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
+  /** Orari di apertura, gestiti fuori da RHF (controlled via MultiDayHoursEditor). */
+  const [hours, setHours] = useState<LocationHours | null>(null);
 
   const methods = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -76,7 +74,7 @@ export default function IntermediaryLocationsPage() {
       province: '',
       latitude: 41.9028, // default Roma
       longitude: 12.4964,
-      hours: {},
+      notes: '',
     },
   });
 
@@ -113,8 +111,9 @@ export default function IntermediaryLocationsPage() {
       province: '',
       latitude: 41.9028,
       longitude: 12.4964,
-      hours: {},
+      notes: '',
     });
+    setHours(null);
     setEditing(null);
     setCreating(true);
   };
@@ -127,8 +126,9 @@ export default function IntermediaryLocationsPage() {
       province: loc.province || '',
       latitude: loc.latitude,
       longitude: loc.longitude,
-      hours: (loc.hours as FormData['hours']) || {},
+      notes: loc.notes || '',
     });
+    setHours(normalizeLocationHours(loc.hours));
     setEditing(loc);
     setCreating(true);
   };
@@ -138,20 +138,21 @@ export default function IntermediaryLocationsPage() {
     setEditing(null);
     setGeocodingError('');
     setLocationError('');
+    setHours(null);
     methods.reset();
   };
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
     try {
-      // Normalizza hours: rimuovi entry vuote, mantieni solo {open, close} validi
-      const cleanedHours: Record<string, { open: string; close: string } | null> = {};
+      // Normalizza hours per il payload server: converti in shape v2 (array per giorno)
+      const cleanedHours: LocationHours = {};
       for (const day of LOCATION_DAY_KEYS) {
-        const slot = data.hours?.[day];
-        if (slot && slot.open && slot.close) {
-          cleanedHours[day] = { open: slot.open, close: slot.close };
+        const slots = hours?.[day];
+        if (slots && slots.length > 0) {
+          cleanedHours[day] = slots;
         } else {
-          cleanedHours[day] = null; // esplicitamente chiuso
+          cleanedHours[day] = null; // chiuso
         }
       }
 
@@ -163,7 +164,8 @@ export default function IntermediaryLocationsPage() {
         country: 'IT',
         latitude: data.latitude,
         longitude: data.longitude,
-        hours: cleanedHours,
+        hours: hours === null ? {} : cleanedHours,
+        notes: data.notes || undefined,
       };
 
       const url = editing ? `/api/intermediary/locations/${editing.id}` : '/api/intermediary/locations';
@@ -349,19 +351,25 @@ export default function IntermediaryLocationsPage() {
               </div>
 
               {loc.hours && Object.keys(loc.hours).length > 0 && (
-                <div className="text-xs space-y-1 mb-4">
+                <div className="text-xs space-y-1 mb-3">
                   {LOCATION_DAY_KEYS.map((day) => {
-                    const slot = loc.hours?.[day];
+                    const slots = loc.hours?.[day];
                     return (
-                      <div key={day} className="flex items-center justify-between">
-                        <span className="text-gray-600">{LOCATION_DAY_LABELS[day]}</span>
-                        <span className="text-gray-900">
-                          {slot ? `${slot.open}–${slot.close}` : <span className="text-gray-400">chiuso</span>}
+                      <div key={day} className="flex items-center justify-between gap-2">
+                        <span className="text-gray-600 shrink-0">{LOCATION_DAY_LABELS[day]}</span>
+                        <span className="text-gray-900 text-right">
+                          {slots && slots.length > 0
+                            ? slots.map((s) => `${s.open}–${s.close}`).join(', ')
+                            : <span className="text-gray-400">chiuso</span>}
                         </span>
                       </div>
                     );
                   })}
                 </div>
+              )}
+
+              {loc.notes && (
+                <p className="text-xs italic text-gray-600 mb-3 border-t pt-2">{loc.notes}</p>
               )}
 
               <div className="flex gap-2 pt-3 border-t">
@@ -502,15 +510,20 @@ export default function IntermediaryLocationsPage() {
 
               {/* Orari */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Orari di apertura</h3>
-                <p className="text-xs text-gray-500 mb-3">
-                  Lascia vuoto per indicare &quot;chiuso&quot; in un giorno. Formato 24h HH:MM.
-                </p>
-                <div className="space-y-2">
-                  {LOCATION_DAY_KEYS.map((day) => (
-                    <DayHoursRow key={day} day={day} />
-                  ))}
-                </div>
+                <MultiDayHoursEditor
+                  value={hours}
+                  onChange={setHours}
+                />
+              </div>
+
+              {/* Note libere sede */}
+              <div>
+                <TextAreaField
+                  name="notes"
+                  label="Note sede"
+                  placeholder="Es. Suonare il campanello, ingresso dal cortile..."
+                  hint="Informazioni utili per chi deve raggiungere la sede."
+                />
               </div>
 
               <ModalFooter>
@@ -534,69 +547,6 @@ export default function IntermediaryLocationsPage() {
           </Form>
         </FormProvider>
       </Modal>
-    </div>
-  );
-}
-
-// Sub-component per una riga giorno-orari
-function DayHoursRow({ day }: { day: string }) {
-  const openId = useId();
-  const closeId = useId();
-  const { register, watch, setValue } = useFormContext<FormData>();
-
-  const slot = watch(`hours.${day}` as const);
-  const isOpen = !!(slot?.open && slot?.close);
-
-  return (
-    <div className="flex items-center gap-3">
-      <label className="flex items-center gap-2 w-32 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={isOpen}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setValue(`hours.${day}` as const, { open: '09:00', close: '18:00' } as any, {
-                shouldValidate: false,
-              });
-            } else {
-              setValue(`hours.${day}` as const, { open: '', close: '' } as any, {
-                shouldValidate: false,
-              });
-            }
-          }}
-          className="rounded border-gray-300 text-primary-600"
-        />
-        <span className="text-sm text-gray-700">{LOCATION_DAY_LABELS[day as keyof typeof LOCATION_DAY_LABELS]}</span>
-      </label>
-      {isOpen ? (
-        <>
-          <div className="flex items-center gap-1">
-            <label htmlFor={openId} className="sr-only">
-              Orario apertura {LOCATION_DAY_LABELS[day as keyof typeof LOCATION_DAY_LABELS]}
-            </label>
-            <input
-              id={openId}
-              type="time"
-              {...register(`hours.${day}.open` as const)}
-              className="px-2 py-1.5 border border-gray-300 rounded text-sm"
-            />
-          </div>
-          <span className="text-gray-500">–</span>
-          <div className="flex items-center gap-1">
-            <label htmlFor={closeId} className="sr-only">
-              Orario chiusura {LOCATION_DAY_LABELS[day as keyof typeof LOCATION_DAY_LABELS]}
-            </label>
-            <input
-              id={closeId}
-              type="time"
-              {...register(`hours.${day}.close` as const)}
-              className="px-2 py-1.5 border border-gray-300 rounded text-sm"
-            />
-          </div>
-        </>
-      ) : (
-        <span className="text-sm text-gray-400 italic">chiuso</span>
-      )}
     </div>
   );
 }

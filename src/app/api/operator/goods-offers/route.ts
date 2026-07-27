@@ -6,6 +6,7 @@ import { hasAnyPermission } from '@/lib/permissions';
 import { generateDeliverQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 import { NotificationType, RecipientType } from '@prisma/client';
+import type { LocationHours } from '@/types';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import { suggestLocationForTransaction } from '@/lib/location-suggest';
@@ -135,7 +136,7 @@ export const PATCH = withErrorHandler(async (request: Request) => {
         intermediary: {
           select: {
             name: true, address: true, houseNumber: true, cap: true,
-            city: true, province: true, phone: true, email: true, hoursInfo: true
+            city: true, province: true, phone: true, email: true, hoursInfo: true, hours: true, notes: true
           },
         },
       },
@@ -202,6 +203,8 @@ export const PATCH = withErrorHandler(async (request: Request) => {
         goodsRequest?.intermediary.phone ?? null,
         goodsRequest?.intermediary.email ?? null,
         goodsRequest?.intermediary.hoursInfo ?? null,
+        (goodsRequest?.intermediary.hours ?? null) as unknown as LocationHours | null,
+        goodsRequest?.intermediary.notes ?? null,
         locationSuggestionBlock
       );
     } catch (emailError) {

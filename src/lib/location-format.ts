@@ -3,14 +3,14 @@
  *
  * Usato da:
  *  - src/lib/email.ts (template email donatore/beneficiario con sedi)
- *  - (futuro) UI QR pages che mostrano la sede suggerita + lista completa
+ *  - src/components/qr/QrPage.tsx e QrDialog.tsx (sede suggerita + lista completa)
  *
- * Fase C: il format è HTML inline (stile email-table) per coerenza con
+ * Fase C+multi-slot: il format è HTML inline (stile email-table) per coerenza con
  * gli altri template email KYKOS. Le UI React possono usare la stessa
  * logica testuale (displayName, hoursString) senza dover parsare HTML.
  */
-import type { LocationHours, LocationDayKey } from '@/types';
-import { LOCATION_DAY_LABELS_SHORT, LOCATION_KIND_LABELS } from '@/types';
+import type { LocationHours, OrganizationHours, LocationDayKey } from '@/types';
+import { LOCATION_DAY_KEYS, LOCATION_DAY_LABELS_SHORT, LOCATION_KIND_LABELS } from '@/types';
 import type { LocationSuggestion } from '@/lib/location-suggest';
 
 /**
@@ -18,30 +18,47 @@ import type { LocationSuggestion } from '@/lib/location-suggest';
  * Utile sia per le email (HTML semplice) sia per le UI (testo).
  *
  * Se hours è null o tutti i giorni sono null/vuoti, ritorna null.
+ *
+ * Multi-slot (v2): se un giorno ha più fasce (es. mattina + pomeriggio), vengono
+ * concatenate separate da virgola.
  */
-export function formatLocationHoursCompact(hours: LocationHours | null): string | null {
+export function formatLocationHoursCompact(
+  hours: LocationHours | OrganizationHours | null
+): string | null {
   if (!hours) return null;
   const parts: string[] = [];
-  const dayKeys: LocationDayKey[] = [
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-    'sunday',
-  ];
-  for (const day of dayKeys) {
-    const slot = hours[day];
+  for (const day of LOCATION_DAY_KEYS as LocationDayKey[]) {
+    const slots = hours[day];
     const dayLabel = LOCATION_DAY_LABELS_SHORT[day];
-    if (!slot) {
+    if (!slots || slots.length === 0) {
       parts.push(`${dayLabel} chiuso`);
       continue;
     }
-    parts.push(`${dayLabel} ${slot.open}-${slot.close}`);
+    const ranges = slots.map((s) => `${s.open}-${s.close}`).join(', ');
+    parts.push(`${dayLabel} ${ranges}`);
   }
   const out = parts.join(' / ');
   return out.length > 0 ? out : null;
+}
+
+/**
+ * Renderizza le note libere di una sede come HTML sicuro (escape &, <, >, ").
+ * Coerente con il pattern "Suonare il campanello" (no markup).
+ *
+ * Coesiste con `formatLocationHoursCompact`: le note vanno sotto gli orari
+ * come paragrafo italicato, separate visivamente.
+ *
+ * Ritorna SEMPRE una stringa (stringa vuota se note assenti/vuote) per
+ * ergonomia con `dangerouslySetInnerHTML` di React, che accetta solo stringa.
+ */
+export function formatLocationNotesHtml(notes: string | null | undefined): string {
+  if (!notes || !notes.trim()) return '';
+  const escaped = notes
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  return escaped.replace(/\n/g, '<br>');
 }
 
 /**
@@ -69,11 +86,14 @@ export function formatLocationHtml(
           ? `~${loc.distanceFromBeneficiaryKm.toFixed(1)} km dal beneficiario`
           : '';
 
+  const notesHtml = formatLocationNotesHtml(loc.notes);
+
   return `
     <div style="margin: 12px 0; padding: 12px 16px; background: ${bg}; border-left: 4px solid ${borderColor}; border-radius: 6px;">
       <p style="font-size: 12px; color: #6b7280; margin: 0 0 4px;">${kindLabel}${distanceNote ? ` · ${distanceNote}` : ''}</p>
       <p style="font-size: 14px; color: #1f2937; font-weight: 600; margin: 0 0 4px;">${loc.displayName}</p>
       ${hoursCompact ? `<p style="font-size: 12px; color: #4b5563; margin: 0;">${hoursCompact}</p>` : ''}
+      ${notesHtml ? `<p style="font-size: 11px; color: #6b7280; font-style: italic; margin: 4px 0 0;">${notesHtml}</p>` : ''}
     </div>
   `;
 }

@@ -214,15 +214,34 @@ export const LOCATION_DAY_LABELS_SHORT: Record<LocationDayKey, string> = {
 };
 
 /// Fascia oraria di un giorno. Formato 24h "HH:MM".
-/// Validato lato form con zod in Fase B (Fase A: solo struttura tipi).
+/// Validato lato form con zod (Fase B + multi-slot v2).
 export interface LocationHoursSlot {
   open: string;  // "09:00"
   close: string; // "18:00"
 }
 
-/// Mappa giorno → fascia oraria (o null se chiuso).
-/// Serializzata in DB come JSON nel campo `hours` di Location.
-export type LocationHours = Partial<Record<LocationDayKey, LocationHoursSlot | null>>;
+/// Orari di una sede (Location O Organization): mappa giorno → fasce orarie.
+///
+/// Semantica per giorno:
+/// - `null`   = giorno **chiuso** esplicitamente (es. domenica)
+/// - `[]`     = giorno **non specificato** (stato neutro, mostrato come "—")
+/// - `[s1,...]` = 1+ fasce orarie (no overlap, no slot a cavallo mezzanotte)
+///
+/// Esempio multi-slot (mattina + pomeriggio):
+/// ```ts
+/// { monday:    [{ open: '09:00', close: '12:00' }, { open: '15:00', close: '18:00' }],
+///   tuesday:   [{ open: '09:00', close: '18:00' }],
+///   wednesday: null,
+///   ... }
+/// ```
+///
+/// Serializzato in DB come JSON nel campo `hours` di Location e Organization.
+/// Per retrocompat con record pre-migration single-slot, usare
+/// `normalizeLocationHours()` da `@/lib/location-validation`.
+export type LocationHours = Partial<Record<LocationDayKey, LocationHoursSlot[] | null>>;
+
+/// Alias riusato da Organization: la shape JSON è identica a Location.
+export type OrganizationHours = LocationHours;
 
 export const LOCATION_KIND_LABELS: Record<LocationKind, string> = {
   COLLECTION_POINT: 'Punto di raccolta',
@@ -243,6 +262,7 @@ export interface Location {
   latitude: number;
   longitude: number;
   hours?: LocationHours;
+  notes?: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

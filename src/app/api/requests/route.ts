@@ -6,6 +6,7 @@ import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qr
 import { withErrorHandler } from '@/lib/api';
 import { suggestLocationForTransaction } from '@/lib/location-suggest';
 import { formatLocationSuggestionBlock } from '@/lib/location-format';
+import type { LocationHours } from '@/types';
 
 export const POST = withErrorHandler(async (request: Request) => {
   const session = await getSession();
@@ -185,6 +186,8 @@ export const POST = withErrorHandler(async (request: Request) => {
         object.intermediary.phone,
         object.intermediary.email,
         object.intermediary.hoursInfo,
+        object.intermediary.hours as unknown as LocationHours | null,
+        object.intermediary.notes,
         locationSuggestionBlock
       );
     } catch (qrError) {

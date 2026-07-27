@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geo';
 import type { LocationHours } from '@/types';
+import { normalizeLocationHours } from '@/lib/location-validation';
 
 /**
  * Fase C: suggerimento sede "ottimale" per una transazione.
@@ -42,6 +43,8 @@ export interface LocationSuggestion {
   longitude: number;
   /** Orari di apertura (null = sede principale, che usa hoursInfo testuale) */
   hours: LocationHours | null;
+  /** Note libere sulla sede (es. "Suonare il campanello"). Null se assenti. */
+  notes: string | null;
   /** Distanza dal donatore in km */
   distanceFromDonorKm: number;
   /** Distanza dal beneficiario in km */
@@ -90,7 +93,9 @@ export async function suggestLocationForTransaction(
         city: true,
         latitude: true,
         longitude: true,
-        hoursInfo: true,
+        hoursInfo: true, // legacy TipTap (mantenuto per fallback)
+        hours: true, // v2 multi-slot orari strutturati
+        notes: true, // v2 note libere sulla sede principale
       },
     }),
     prisma.location.findMany({
@@ -120,7 +125,8 @@ export async function suggestLocationForTransaction(
       city: organization.city,
       latitude: organization.latitude,
       longitude: organization.longitude,
-      hours: null, // Sede principale usa hoursInfo testuale (no JSON)
+      hours: normalizeLocationHours(organization.hours), // v2 multi-slot (retro-compat)
+      notes: organization.notes ?? null, // v2 note libere
       distanceFromDonorKm: 0,
       distanceFromBeneficiaryKm: 0,
       totalScoreKm: 0,
@@ -136,7 +142,8 @@ export async function suggestLocationForTransaction(
       city: loc.city,
       latitude: loc.latitude,
       longitude: loc.longitude,
-      hours: (loc.hours as LocationHours | null) ?? null,
+      hours: normalizeLocationHours(loc.hours), // v2 multi-slot (retro-compat single-slot legacy)
+      notes: loc.notes ?? null, // v2 note libere
       distanceFromDonorKm: 0,
       distanceFromBeneficiaryKm: 0,
       totalScoreKm: 0,

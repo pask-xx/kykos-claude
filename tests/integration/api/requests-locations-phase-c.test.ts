@@ -158,10 +158,12 @@ describe('POST /api/requests — Fase C: location suggestion', () => {
     expect(body.locationSuggestion.allLocations).toHaveLength(1);
 
     // Anche la chiamata email QR deve includere il blocco HTML delle sedi
-    // (locationSuggestionBlock è l'ultimo parametro opzionale, indice 15)
+    // (locationSuggestionBlock è l'ultimo parametro opzionale, indice 17 dopo
+    // l'aggiunta di `hours` e `notes` come parametri 15 e 16 — vedi
+    // sendDeliveryQrNotification signature in src/lib/email.ts)
     expect(mockSendDeliveryQr).toHaveBeenCalledTimes(1);
     const emailArgs = mockSendDeliveryQr.mock.calls[0];
-    const block = emailArgs[15] as string;
+    const block = emailArgs[17] as string;
     expect(block).toContain('Sede consigliata');
     // Display name della sede principale (Via Roma, Roma)
     expect(block).toContain('Via Roma, Roma');
@@ -236,7 +238,7 @@ describe('POST /api/requests — Fase C: location suggestion', () => {
 
     // Email QR: blocco vuoto (stringa vuota), nessuna sezione "Sede consigliata"
     expect(mockSendDeliveryQr).toHaveBeenCalledTimes(1);
-    const block = mockSendDeliveryQr.mock.calls[0][15] as string;
+    const block = mockSendDeliveryQr.mock.calls[0][17] as string;
     expect(block).toBe('');
   });
 
@@ -309,7 +311,7 @@ describe('POST /api/requests — Fase C: location suggestion', () => {
     }
 
     // Email QR: blocco include sede suggerita + altre sedi
-    const block = mockSendDeliveryQr.mock.calls[0][15] as string;
+    const block = mockSendDeliveryQr.mock.calls[0][17] as string;
     expect(block).toContain('Sede consigliata');
     expect(block).toContain('Via Roma Nord');
     expect(block).toContain('Altre sedi disponibili');

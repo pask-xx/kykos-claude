@@ -78,6 +78,9 @@ export const PUT = withErrorHandler(async (req: Request, ctx: { params: Promise<
       ...(parsed.data.hours !== undefined
         ? { hours: parsed.data.hours as unknown as object }
         : {}),
+      ...(parsed.data.notes !== undefined
+        ? { notes: parsed.data.notes ?? null }
+        : {}),
     } as any,
   });
 

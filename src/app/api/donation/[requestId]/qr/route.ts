@@ -27,7 +27,7 @@ export async function GET(
             status: true,
             donorId: true,
             intermediaryId: true, // Fase C: per suggestLocationForTransaction
-            intermediary: { select: { name: true, hoursInfo: true } },
+            intermediary: { select: { name: true, hoursInfo: true, hours: true, notes: true } },
           },
         },
         donor: {
@@ -104,6 +104,8 @@ export async function GET(
       userType: isDonor ? 'donor' : 'recipient',
       entityName: donation.object.intermediary.name,
       entityHoursInfo: donation.object.intermediary.hoursInfo,
+      entityHours: donation.object.intermediary.hours,
+      entityNotes: donation.object.intermediary.notes,
       // Fase C: locationSuggestion per la UI QR
       locationSuggestion: {
         suggested: locationSuggestion.suggested,

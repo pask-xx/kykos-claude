@@ -26,6 +26,8 @@ export const POST = withErrorHandler(async (request: Request) => {
     longitude,
     autoApproveRequests,
     hoursInfo,
+    hours,
+    notes,
     dioceseId,
   } = await request.json();
 
@@ -54,6 +56,8 @@ export const POST = withErrorHandler(async (request: Request) => {
       longitude: longitude ? parseFloat(longitude) : null,
       autoApproveRequests: Boolean(autoApproveRequests),
       hoursInfo: hoursInfo || null,
+      hours: hours !== undefined ? hours : undefined, // v2 multi-slot orari strutturati (null per reset)
+      notes: notes !== undefined ? (notes || null) : undefined, // note libere sede principale
       dioceseId: dioceseId || null,
     },
   });

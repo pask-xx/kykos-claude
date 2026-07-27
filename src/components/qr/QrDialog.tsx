@@ -5,6 +5,11 @@ import {
 } from 'lucide-react';
 import { Modal, ModalFooter, Button } from '@/components/ui';
 import { useQrActions } from './useQrActions';
+import {
+  formatLocationHoursCompact,
+  formatLocationNotesHtml,
+} from '@/lib/location-format';
+import type { LocationHours } from '@/types';
 
 /** Shape minima di un item street-to-deliver (object o goods request). */
 export interface QrDialogItem {
@@ -21,6 +26,10 @@ export interface QrDialogItem {
     cap?: string | null;
     city?: string | null;
     hoursInfo?: string | null;
+    /** Orari strutturati multi-slot (v2). Ha priorità su hoursInfo se presente. */
+    hours?: LocationHours | null;
+    /** Note libere sulla sede (escape HTML lato server). */
+    notes?: string | null;
   };
   depositLocation?: string | null;
   qrData: string;
@@ -68,7 +77,10 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
   if (!item) return null;
 
   const entityAddress = buildEntityAddress(item.entity);
-  const hasEntityHours = Boolean(item.entity.hoursInfo);
+  const hoursCompact = item.entity.hours
+    ? formatLocationHoursCompact(item.entity.hours)
+    : null;
+  const hasEntityHours = Boolean(hoursCompact || item.entity.hoursInfo);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={item.statusLabel} size="md">
@@ -92,10 +104,23 @@ export function QrDialog({ isOpen, onClose, item }: QrDialogProps) {
           {hasEntityHours && (
             <div className="flex items-start gap-1 text-xs text-gray-500">
               <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
-              <div
-                className="prose prose-xs max-w-none"
-                dangerouslySetInnerHTML={{ __html: item.entity.hoursInfo ?? '' }}
-              />
+              <div className="space-y-1">
+                {hoursCompact ? (
+                  <p className="font-medium text-gray-700">{hoursCompact}</p>
+                ) : null}
+                {!hoursCompact && item.entity.hoursInfo && (
+                  <div
+                    className="prose prose-xs max-w-none"
+                    dangerouslySetInnerHTML={{ __html: item.entity.hoursInfo ?? '' }}
+                  />
+                )}
+                {item.entity.notes && (
+                  <p
+                    className="italic text-gray-500"
+                    dangerouslySetInnerHTML={{ __html: formatLocationNotesHtml(item.entity.notes) }}
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -14,7 +14,11 @@ import {
 import { useQrActions } from './useQrActions';
 import { cn } from '@/lib/utils';
 import { LOCATION_KIND_LABELS } from '@/types';
-import { formatLocationHoursCompact } from '@/lib/location-format';
+import {
+  formatLocationHoursCompact,
+  formatLocationNotesHtml,
+} from '@/lib/location-format';
+import type { LocationHours } from '@/types';
 import type { LocationSuggestion } from '@/lib/location-suggest';
 
 /**
@@ -28,7 +32,23 @@ export interface QrPayload {
   description?: string;
   label?: string;
   entityName?: string;
+  /**
+   * Orari ente legacy (TipTap free text). Ancora supportato per retrocompat
+   * con record creati prima della migration 015. Se popolato, viene mostrato
+   * nel modale "Orari Ente" come fallback quando `entityHours` è assente.
+   */
   entityHoursInfo?: string | null;
+  /**
+   * Orari strutturati multi-slot (v2). Forma:
+   *   { lunedi: [{open:'09:00', close:'12:00'}, {open:'15:00', close:'18:00'}], ... }
+   * Ha priorità su `entityHoursInfo` nel modale "Orari Ente" se presente.
+   */
+  entityHours?: LocationHours | null;
+  /**
+   * Note libere sulla sede principale (escape HTML fatto lato server).
+   * Mostrate sotto gli orari nel modale "Orari Ente".
+   */
+  entityNotes?: string | null;
   /**
    * Fase C: sede suggerita + lista completa. Se assente o vuota, la UI
    * non mostra la sezione "Sedi disponibili" (retrocompatibilità).
@@ -306,7 +326,10 @@ export function QrPage({
                 Stampa QR
               </Button>
 
-              {showEntityHours && payload.entityHoursInfo && (
+              {showEntityHours &&
+                (payload.entityHours ||
+                  payload.entityNotes ||
+                  payload.entityHoursInfo) && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -329,11 +352,28 @@ export function QrPage({
         title={payload.entityName ? `Orari ${payload.entityName}` : 'Orari Ente'}
         size="md"
       >
-        <div className="p-6">
-          <div
-            className="prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: payload.entityHoursInfo ?? '' }}
-          />
+        <div className="p-6 space-y-3">
+          {/* Priorità: orari strutturati v2 (multi-slot) → legacy TipTap */}
+          {payload.entityHours ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-900">
+                {formatLocationHoursCompact(payload.entityHours)}
+              </p>
+              {payload.entityNotes && (
+                <p
+                  className="text-xs text-gray-600 italic"
+                  dangerouslySetInnerHTML={{
+                    __html: formatLocationNotesHtml(payload.entityNotes),
+                  }}
+                />
+              )}
+            </div>
+          ) : payload.entityHoursInfo ? (
+            <div
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: payload.entityHoursInfo ?? '' }}
+            />
+          ) : null}
         </div>
         <ModalFooter>
           <Button
@@ -428,6 +468,12 @@ function LocationsSection({
             {formatLocationHoursCompact(suggested.hours)}
           </p>
         )}
+        {suggested.notes && (
+          <p
+            className="text-xs text-gray-500 italic"
+            dangerouslySetInnerHTML={{ __html: formatLocationNotesHtml(suggested.notes) }}
+          />
+        )}
         {suggested.distanceFromDonorKm < 1e8 && (
           <p className="text-xs text-gray-600">
             ~{suggested.distanceFromDonorKm.toFixed(1)} km da te
@@ -456,6 +502,12 @@ function LocationsSection({
                 <p className="text-xs text-gray-600">
                   {formatLocationHoursCompact(loc.hours)}
                 </p>
+              )}
+              {loc.notes && (
+                <p
+                  className="text-xs text-gray-500 italic"
+                  dangerouslySetInnerHTML={{ __html: formatLocationNotesHtml(loc.notes) }}
+                />
               )}
             </div>
           ))}

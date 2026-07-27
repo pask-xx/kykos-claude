@@ -76,8 +76,8 @@ const VALID_LOCATION_PAYLOAD = {
   latitude: 45.4642,
   longitude: 9.19,
   hours: {
-    monday: { open: '09:00', close: '18:00' },
-    tuesday: { open: '09:00', close: '18:00' },
+    monday: [{ open: '09:00', close: '18:00' }],
+    tuesday: [{ open: '09:00', close: '18:00' }],
     sunday: null,
   },
 };
@@ -179,7 +179,7 @@ describe('API /api/intermediary/locations (Fase B)', () => {
       const res = await createLocation(
         buildRequest({
           ...VALID_LOCATION_PAYLOAD,
-          hours: { monday: { open: '18:00', close: '09:00' } },
+          hours: { monday: [{ open: '18:00', close: '09:00' }] },
         }),
         undefined as any
       );
