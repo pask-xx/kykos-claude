@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   QrCode, Share2, Mail, MessageCircle, Download, Printer,
-  Clock, ChevronLeft, AlertCircle,
+  Clock, ChevronLeft, AlertCircle, MapPin,
 } from 'lucide-react';
 import {
   Card, CardContent, Button, Modal, ModalFooter, Alert,
@@ -13,6 +13,9 @@ import {
 } from '@/components/ui';
 import { useQrActions } from './useQrActions';
 import { cn } from '@/lib/utils';
+import { LOCATION_KIND_LABELS } from '@/types';
+import { formatLocationHoursCompact } from '@/lib/location-format';
+import type { LocationSuggestion } from '@/lib/location-suggest';
 
 /**
  * Payload normalizzato che il `transform` di QrPage deve produrre.
@@ -26,6 +29,14 @@ export interface QrPayload {
   label?: string;
   entityName?: string;
   entityHoursInfo?: string | null;
+  /**
+   * Fase C: sede suggerita + lista completa. Se assente o vuota, la UI
+   * non mostra la sezione "Sedi disponibili" (retrocompatibilità).
+   */
+  locationSuggestion?: {
+    suggested: LocationSuggestion | null;
+    allLocations: LocationSuggestion[];
+  };
 }
 
 export interface QrPageProps {
@@ -230,6 +241,16 @@ export function QrPage({
               {payload.qrData}
             </p>
 
+            {/* Fase C: sezione sedi (sede suggerita + lista completa) */}
+            {payload.locationSuggestion &&
+              payload.locationSuggestion.suggested !== null &&
+              payload.locationSuggestion.allLocations.length > 0 && (
+                <LocationsSection
+                  suggested={payload.locationSuggestion.suggested}
+                  allLocations={payload.locationSuggestion.allLocations}
+                />
+              )}
+
             {/* 5 azioni standard */}
             <div className="space-y-2 pt-2">
               <Button
@@ -366,4 +387,84 @@ function BackButton({
 function extractRequestId(apiUrl: string): string {
   const parts = apiUrl.split('/').filter(Boolean);
   return parts[parts.length - 1] ?? '';
+}
+
+/**
+ * LocationsSection — Fase C: sezione "Sede consigliata + altre sedi"
+ * mostrata sotto il QR. Il QR è valido per TUTTE le sedi dell'ente
+ * (il donatore sceglie implicitamente recandosi fisicamente in una sede).
+ *
+ * Design: sede suggerita evidenziata in alto (suffisso "consigliata"),
+ * altre sedi in lista compatta sotto. Mobile-first: tutto si impila
+ * verticalmente, niente tabelle.
+ */
+function LocationsSection({
+  suggested,
+  allLocations,
+}: {
+  suggested: LocationSuggestion;
+  allLocations: LocationSuggestion[];
+}) {
+  const otherLocations = allLocations.filter((l) => l.id !== suggested.id);
+
+  return (
+    <div
+      className="rounded-lg border border-info-200 bg-info-50 p-4 space-y-3"
+      data-testid="locations-section"
+    >
+      <div className="flex items-center gap-2">
+        <MapPin className="h-4 w-4 text-info-700" aria-hidden="true" />
+        <h3 className="text-sm font-semibold text-info-700">Dove consegnare</h3>
+      </div>
+
+      {/* Sede consigliata: card evidenziata */}
+      <div className="rounded-md border-l-4 border-info-500 bg-white p-3 space-y-1">
+        <p className="text-xs font-medium text-info-700">Sede consigliata</p>
+        <p className="text-sm font-semibold text-gray-900">
+          {suggested.displayName}
+        </p>
+        {suggested.hours && (
+          <p className="text-xs text-gray-600">
+            {formatLocationHoursCompact(suggested.hours)}
+          </p>
+        )}
+        {suggested.distanceFromDonorKm < 1e8 && (
+          <p className="text-xs text-gray-600">
+            ~{suggested.distanceFromDonorKm.toFixed(1)} km da te
+          </p>
+        )}
+      </div>
+
+      {/* Altre sedi: lista compatta */}
+      {otherLocations.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-gray-600">
+            Altre sedi disponibili
+          </p>
+          {otherLocations.map((loc) => (
+            <div
+              key={loc.id}
+              className="rounded-md border border-gray-200 bg-white p-2.5 space-y-0.5"
+            >
+              <p className="text-xs font-medium text-gray-500">
+                {loc.kind === 'MAIN'
+                  ? 'Sede principale'
+                  : LOCATION_KIND_LABELS[loc.kind] ?? loc.kind}
+              </p>
+              <p className="text-sm text-gray-900">{loc.displayName}</p>
+              {loc.hours && (
+                <p className="text-xs text-gray-600">
+                  {formatLocationHoursCompact(loc.hours)}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p className="text-xs text-gray-600">
+        Il QR è valido per <strong>tutte le sedi</strong>: recati fisicamente in quella più comoda per te.
+      </p>
+    </div>
+  );
 }

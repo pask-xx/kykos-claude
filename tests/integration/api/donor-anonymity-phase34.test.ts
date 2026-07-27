@@ -39,7 +39,7 @@ describe('GET /api/donor/goods-offers — anonymity + authorization (Fase 34.1)'
 
   it('returns 401 when no session is present', async () => {
     mockCookies.mockResolvedValue({ get: () => undefined } as any);
-    const response = await GETGoodsOffers();
+    const response = await GETGoodsOffers(undefined as any, undefined as any);
     expect(response.status).toBe(401);
   });
 
@@ -48,20 +48,20 @@ describe('GET /api/donor/goods-offers — anonymity + authorization (Fase 34.1)'
     // le goods-offers altrui perché la route controllava solo la
     // sessione, non il ruolo.
     await authedAs('RECIPIENT');
-    const response = await GETGoodsOffers();
+    const response = await GETGoodsOffers(undefined as any, undefined as any);
     expect(response.status).toBe(403);
   });
 
   it('returns 403 when the caller is an INTERMEDIARY', async () => {
     await authedAs('INTERMEDIARY');
-    const response = await GETGoodsOffers();
+    const response = await GETGoodsOffers(undefined as any, undefined as any);
     expect(response.status).toBe(403);
   });
 
   it('returns 200 when the caller is a DONOR', async () => {
     await authedAs('DONOR');
     mockPrisma.goodsOffer.findMany.mockResolvedValue([]);
-    const response = await GETGoodsOffers();
+    const response = await GETGoodsOffers(undefined as any, undefined as any);
     expect(response.status).toBe(200);
   });
 
@@ -96,7 +96,7 @@ describe('GET /api/donor/goods-offers — anonymity + authorization (Fase 34.1)'
     };
     mockPrisma.goodsOffer.findMany.mockResolvedValue([offerFromDb] as any);
 
-    const response = await GETGoodsOffers();
+    const response = await GETGoodsOffers(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     const body = await response.json();
@@ -143,7 +143,7 @@ describe('GET /api/donor/goods-offers — anonymity + authorization (Fase 34.1)'
       },
     ] as any);
 
-    const response = await GETGoodsOffers();
+    const response = await GETGoodsOffers(undefined as any, undefined as any);
     const body = await response.json();
     const offer = body.offers[0];
 
@@ -163,7 +163,7 @@ describe('GET /api/donor/goods-offers — anonymity + authorization (Fase 34.1)'
     await authedAs('DONOR');
     mockPrisma.goodsOffer.findMany.mockResolvedValue([] as any);
 
-    await GETGoodsOffers();
+    await GETGoodsOffers(undefined as any, undefined as any);
 
     expect(mockPrisma.goodsOffer.findMany).toHaveBeenCalledTimes(1);
     const callArgs = mockPrisma.goodsOffer.findMany.mock.calls[0][0];

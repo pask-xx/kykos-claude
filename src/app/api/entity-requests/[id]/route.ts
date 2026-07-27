@@ -7,6 +7,8 @@ import { hasPermission, hasAnyPermission } from '@/lib/permissions';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 import { getJwtSecret } from '@/lib/auth';
+import { suggestLocationForTransaction } from '@/lib/location-suggest';
+import { formatLocationSuggestionBlock } from '@/lib/location-format';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -312,6 +314,32 @@ export async function PATCH(request: Request) {
         const deliverQrData = generateDeliverQrCode(requestId, offerData.offeredById);
         const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `goods-deliver-${requestId}.png`);
 
+        // Fase C: calcola la sede suggerita per il donatore (sede che
+        // minimizza distanza donatore↔sede + beneficiario↔sede). Lettura
+        // best-effort delle coordinate — se mancanti, la funzione usa
+        // Infinity e ritorna la sede "più equa" possibile.
+        const [donorCoords, beneficiaryCoords] = await Promise.all([
+          prisma.user.findUnique({
+            where: { id: offerData.offeredById },
+            select: { latitude: true, longitude: true },
+          }),
+          prisma.user.findUnique({
+            where: { id: goodsRequest.beneficiaryId },
+            select: { latitude: true, longitude: true },
+          }),
+        ]);
+        const locationSuggestion = await suggestLocationForTransaction({
+          organizationId: goodsRequest.intermediaryId,
+          donorLat: donorCoords?.latitude ?? null,
+          donorLng: donorCoords?.longitude ?? null,
+          beneficiaryLat: beneficiaryCoords?.latitude ?? null,
+          beneficiaryLng: beneficiaryCoords?.longitude ?? null,
+        });
+        const locationSuggestionBlock = formatLocationSuggestionBlock(
+          locationSuggestion.suggested,
+          locationSuggestion.allLocations
+        );
+
         await sendGoodsDeliveryQrNotification(
           offerData.offeredBy.email,
           offerData.offeredById,
@@ -328,7 +356,8 @@ export async function PATCH(request: Request) {
           goodsRequest.intermediary.province,
           goodsRequest.intermediary.phone,
           goodsRequest.intermediary.email,
-          goodsRequest.intermediary.hoursInfo
+          goodsRequest.intermediary.hoursInfo,
+          locationSuggestionBlock
         );
       } catch (emailError) {
         console.error('Error sending delivery QR email:', emailError);

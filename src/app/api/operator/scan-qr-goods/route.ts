@@ -7,6 +7,8 @@ import { sendGoodsPickupQrNotification } from '@/lib/email';
 import { hasPermission } from '@/lib/permissions';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
+import { suggestLocationForTransaction } from '@/lib/location-suggest';
+import { formatLocationSuggestionBlock } from '@/lib/location-format';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -145,6 +147,32 @@ export const POST = withErrorHandler(async (request: Request) => {
   const pickupQrData = generatePickupQrCode(requestId, goodsRequest.beneficiaryId, 'goods');
   const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `goods-pickup-${requestId}.png`);
 
+  // Fase C: calcola sede suggerita per il beneficiario (sede che minimizza
+  // distanza donatore↔sede + beneficiario↔sede). Lettura best-effort delle
+  // coordinate — se mancanti, la funzione usa Infinity e ritorna la sede
+  // "più equa" possibile.
+  const [donorCoordsPickup, beneficiaryCoordsPickup] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: goodsRequest.fulfilledById ?? '' },
+      select: { latitude: true, longitude: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: goodsRequest.beneficiaryId },
+      select: { latitude: true, longitude: true },
+    }),
+  ]);
+  const locationSuggestionPickup = await suggestLocationForTransaction({
+    organizationId: goodsRequest.intermediaryId,
+    donorLat: donorCoordsPickup?.latitude ?? null,
+    donorLng: donorCoordsPickup?.longitude ?? null,
+    beneficiaryLat: beneficiaryCoordsPickup?.latitude ?? null,
+    beneficiaryLng: beneficiaryCoordsPickup?.longitude ?? null,
+  });
+  const locationSuggestionBlockPickup = formatLocationSuggestionBlock(
+    locationSuggestionPickup.suggested,
+    locationSuggestionPickup.allLocations
+  );
+
   await sendGoodsPickupQrNotification(
     goodsRequest.beneficiary.email,
     goodsRequest.beneficiaryId,
@@ -161,7 +189,8 @@ export const POST = withErrorHandler(async (request: Request) => {
     goodsRequest.intermediary.province,
     goodsRequest.intermediary.phone,
     goodsRequest.intermediary.email,
-    goodsRequest.intermediary.hoursInfo
+    goodsRequest.intermediary.hoursInfo,
+    locationSuggestionBlockPickup
   );
 
   // Notify beneficiary in-app

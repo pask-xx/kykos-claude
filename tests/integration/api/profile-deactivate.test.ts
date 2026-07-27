@@ -59,7 +59,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
 
     mockSupabaseDelete.mockImplementation(async () => ({ data: null, error: null }));
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     const body = await response.json();
@@ -92,7 +92,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
       error: { message: 'Internal Server Error' },
     }));
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(500);
 
     const body = await response.json();
@@ -123,7 +123,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
       error: { message: 'User not found' },
     }));
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     const body = await response.json();
@@ -151,7 +151,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
       return { data: null, error: null };
     });
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     const body = await response.json();
@@ -165,7 +165,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
       delete: () => undefined,
     }) as any);
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(401);
     // No Supabase call
     expect(mockSupabaseDelete).not.toHaveBeenCalled();
@@ -176,7 +176,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
     await authAsUser('u-1', 'legacy@test.it', null as any);
     setupEmptyUser();
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     // Supabase never called
@@ -207,7 +207,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
     });
     mockPrisma.user.update.mockImplementation(async (args: any) => ({ id: args.where.id, ...args.data }) as any);
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     // Object was set to CANCELLED
@@ -247,7 +247,7 @@ describe('POST /api/profile/deactivate — B2 (soft-delete + Supabase retry)', (
     });
     mockPrisma.user.update.mockImplementation(async (args: any) => ({ id: args.where.id, ...args.data }) as any);
 
-    const response = await POST();
+    const response = await POST(undefined as any, undefined as any);
     expect(response.status).toBe(200);
 
     // Request was cancelled

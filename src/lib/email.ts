@@ -116,7 +116,13 @@ export async function sendRequestNotification(
   donorId: string,
   recipientName: string,
   objectTitle: string,
-  objectId: string
+  objectId: string,
+  /**
+   * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
+   * `suggestLocationForTransaction`. Se omesso/vuoto, nessun blocco
+   * aggiunto (retrocompatibilità con i caller pre-Fase C).
+   */
+  locationSuggestionBlock?: string
 ): Promise<boolean> {
   const subject = `${APP_NAME} - Qualcuno ha richiesto un tuo oggetto`;
   const html = `
@@ -134,6 +140,7 @@ export async function sendRequestNotification(
             Un beneficiario ha fatto richiesta per la tua disponibilità.</p>
           <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
             <strong>Disponibilità:</strong> ${objectTitle}</p>
+          ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/objects" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vedi la richiesta
@@ -262,7 +269,13 @@ export async function sendDeliveryQrNotification(
   organizationProvince: string | null,
   organizationPhone: string | null,
   organizationEmail: string | null,
-  hoursInfo?: string | null
+  hoursInfo?: string | null,
+  /**
+   * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
+   * `suggestLocationForTransaction`. Se omesso/vuoto, mostra solo la
+   * sede principale (retrocompatibilità con i caller pre-Fase C).
+   */
+  locationSuggestionBlock?: string
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per la consegna`;
   const html = `
@@ -298,6 +311,7 @@ export async function sendDeliveryQrNotification(
             <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
             <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
           </div>` : ''}
+          ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/dashboard" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vai alla dashboard
@@ -767,7 +781,13 @@ export async function sendGoodsDeliveryQrNotification(
   organizationProvince: string | null,
   organizationPhone: string | null,
   organizationEmail: string | null,
-  hoursInfo?: string | null
+  hoursInfo?: string | null,
+  /**
+   * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
+   * `suggestLocationForTransaction`. Se omesso/vuoto, nessuna sezione
+   * aggiunta (retrocompatibilità con i caller pre-Fase C).
+   */
+  locationSuggestionBlock?: string
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per la consegna`;
   const html = `
@@ -803,6 +823,7 @@ export async function sendGoodsDeliveryQrNotification(
             <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
             <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
           </div>` : ''}
+          ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/donor/qr-goods/${requestId}" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Vai alla dashboard
@@ -839,7 +860,13 @@ export async function sendGoodsPickupQrNotification(
   organizationProvince: string | null,
   organizationPhone: string | null,
   organizationEmail: string | null,
-  hoursInfo?: string | null
+  hoursInfo?: string | null,
+  /**
+   * Fase C: blocco HTML "sede consigliata + altre sedi" calcolato da
+   * `suggestLocationForTransaction`. Se omesso/vuoto, nessuna sezione
+   * aggiunta (retrocompatibilità con i caller pre-Fase C).
+   */
+  locationSuggestionBlock?: string
 ): Promise<boolean> {
   const subject = `${APP_NAME} - QR Code per il ritiro`;
   const html = `
@@ -875,6 +902,7 @@ export async function sendGoodsPickupQrNotification(
             <p style="font-size: 14px; color: #6d28d9; font-weight: 600; margin: 0 0 8px;">🕐 Orari e informazioni</p>
             <div style="color: #374151; font-size: 14px; line-height: 1.6;">${hoursInfo}</div>
           </div>` : ''}
+          ${locationSuggestionBlock || ''}
           <div style="text-align: center; margin: 32px 0;">
             <a href="${APP_URL}/recipient/qr-goods/${requestId}" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               vai alla dashboard

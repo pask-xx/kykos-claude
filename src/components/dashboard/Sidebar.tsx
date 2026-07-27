@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, Package, Gift, ClipboardList, ScrollText, User, Users,
-  Handshake, FileText, BarChart3, Building2, Plus, type LucideIcon,
+  Handshake, FileText, BarChart3, Building2, Plus, MapPin, type LucideIcon,
 } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import ManifestoModal from '@/components/ManifestoModal';
@@ -42,6 +42,7 @@ const intermediaryNav: NavItem[] = [
   { href: '/intermediary/objects', label: 'Disponibilità', icon: Package },
   { href: '/intermediary/recipients', label: 'Beneficiari', icon: Users },
   { href: '/intermediary/operators', label: 'Operatori', icon: User },
+  { href: '/intermediary/locations', label: 'Sedi', icon: MapPin },
   { href: '/manifesto', label: 'Manifesto', icon: ScrollText, isManifesto: true },
   { href: '/intermediary/profile', label: 'Il mio profilo', icon: User },
 ];

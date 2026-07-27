@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { suggestLocationForTransaction } from '@/lib/location-suggest';
 
 export async function GET(
   request: Request,
@@ -24,6 +25,9 @@ export async function GET(
             id: true,
             name: true,
             email: true,
+            // Fase C: per distance scoring
+            latitude: true,
+            longitude: true,
           },
         },
         fulfilledBy: {
@@ -31,6 +35,9 @@ export async function GET(
             id: true,
             name: true,
             email: true,
+            // Fase C: per distance scoring
+            latitude: true,
+            longitude: true,
           },
         },
         intermediary: {
@@ -67,6 +74,16 @@ export async function GET(
     const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `goods-deliver-${requestId}.png`);
     const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `goods-pickup-${requestId}.png`);
 
+    // Fase C: calcola sede suggerita per QR page UI.
+    // Best-effort: coordinate mancanti → fallback ragionevole.
+    const locationSuggestion = await suggestLocationForTransaction({
+      organizationId: goodsRequest.intermediaryId,
+      donorLat: goodsRequest.fulfilledBy?.latitude ?? null,
+      donorLng: goodsRequest.fulfilledBy?.longitude ?? null,
+      beneficiaryLat: goodsRequest.beneficiary?.latitude ?? null,
+      beneficiaryLng: goodsRequest.beneficiary?.longitude ?? null,
+    });
+
     return NextResponse.json({
       goodsRequest: {
         id: goodsRequest.id,
@@ -99,6 +116,11 @@ export async function GET(
       entityProvince: goodsRequest.intermediary.province,
       entityPhone: goodsRequest.intermediary.phone,
       entityEmail: goodsRequest.intermediary.email,
+      // Fase C: locationSuggestion per la UI QR
+      locationSuggestion: {
+        suggested: locationSuggestion.suggested,
+        allLocations: locationSuggestion.allLocations,
+      },
     });
   } catch (error) {
     console.error('QR code API error:', error);

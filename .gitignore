@@ -29,6 +29,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Scarti di sessione Claude (log temporanei dalla cartella home utente)
+tmp-*.log
+tmp-*.txt
+
 # Prisma
 *.db
 *.db-journal

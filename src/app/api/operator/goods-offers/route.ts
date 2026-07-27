@@ -8,6 +8,8 @@ import { sendGoodsDeliveryQrNotification } from '@/lib/email';
 import { NotificationType, RecipientType } from '@prisma/client';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
+import { suggestLocationForTransaction } from '@/lib/location-suggest';
+import { formatLocationSuggestionBlock } from '@/lib/location-format';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -160,6 +162,29 @@ export const PATCH = withErrorHandler(async (request: Request) => {
       const deliverQrData = generateDeliverQrCode(offer.requestId, offer.offeredById, 'goods');
       const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `goods-deliver-${offer.requestId}.png`);
 
+      // Fase C: calcola sede suggerita (best-effort coordinate mancanti)
+      const [donorCoords, beneficiaryCoords] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: offer.offeredById },
+          select: { latitude: true, longitude: true },
+        }),
+        prisma.user.findUnique({
+          where: { id: offer.request.beneficiaryId },
+          select: { latitude: true, longitude: true },
+        }),
+      ]);
+      const locationSuggestion = await suggestLocationForTransaction({
+        organizationId: offer.request.intermediaryId,
+        donorLat: donorCoords?.latitude ?? null,
+        donorLng: donorCoords?.longitude ?? null,
+        beneficiaryLat: beneficiaryCoords?.latitude ?? null,
+        beneficiaryLng: beneficiaryCoords?.longitude ?? null,
+      });
+      const locationSuggestionBlock = formatLocationSuggestionBlock(
+        locationSuggestion.suggested,
+        locationSuggestion.allLocations
+      );
+
       await sendGoodsDeliveryQrNotification(
         offer.offeredBy.email,
         offer.offeredById,
@@ -176,7 +201,8 @@ export const PATCH = withErrorHandler(async (request: Request) => {
         goodsRequest?.intermediary.province ?? null,
         goodsRequest?.intermediary.phone ?? null,
         goodsRequest?.intermediary.email ?? null,
-        goodsRequest?.intermediary.hoursInfo ?? null
+        goodsRequest?.intermediary.hoursInfo ?? null,
+        locationSuggestionBlock
       );
     } catch (emailError) {
       console.error('Error sending delivery QR email:', emailError);

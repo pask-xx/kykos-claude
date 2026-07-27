@@ -10,6 +10,7 @@ export type GoodsOfferStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED'
 export type GoodsRequestStatus = 'PENDING' | 'APPROVED' | 'FULFILLED' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 export type DonorLevel = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND';
+export type LocationKind = 'COLLECTION_POINT';
 
 export interface User {
   id: string;
@@ -168,3 +169,106 @@ export const NEED_SCORE_LABELS = (score: number): string => {
   if (score >= 20) return 'Basso bisogno';
   return 'Minimo bisogno';
 };
+
+// ================== LOCATIONS (Fase A: schema, Fase B: UI) ==================
+
+/// Orari di apertura di una Location per giorno della settimana.
+/// null = chiuso. Le chiavi sono 7 giorni (lun–dom) in italiano.
+export type LocationDayKey =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
+
+export const LOCATION_DAY_KEYS: LocationDayKey[] = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+];
+
+export const LOCATION_DAY_LABELS: Record<LocationDayKey, string> = {
+  monday: 'Lunedì',
+  tuesday: 'Martedì',
+  wednesday: 'Mercoledì',
+  thursday: 'Giovedì',
+  friday: 'Venerdì',
+  saturday: 'Sabato',
+  sunday: 'Domenica',
+};
+
+export const LOCATION_DAY_LABELS_SHORT: Record<LocationDayKey, string> = {
+  monday: 'Lun',
+  tuesday: 'Mar',
+  wednesday: 'Mer',
+  thursday: 'Gio',
+  friday: 'Ven',
+  saturday: 'Sab',
+  sunday: 'Dom',
+};
+
+/// Fascia oraria di un giorno. Formato 24h "HH:MM".
+/// Validato lato form con zod in Fase B (Fase A: solo struttura tipi).
+export interface LocationHoursSlot {
+  open: string;  // "09:00"
+  close: string; // "18:00"
+}
+
+/// Mappa giorno → fascia oraria (o null se chiuso).
+/// Serializzata in DB come JSON nel campo `hours` di Location.
+export type LocationHours = Partial<Record<LocationDayKey, LocationHoursSlot | null>>;
+
+export const LOCATION_KIND_LABELS: Record<LocationKind, string> = {
+  COLLECTION_POINT: 'Punto di raccolta',
+};
+
+/// Sede aggiuntiva (punto di raccolta) di un ente.
+/// La sede principale resta sui campi address/coordinates/hoursInfo
+/// di Organization. Questa interfaccia modella SOLO sedi extra.
+export interface Location {
+  id: string;
+  organizationId: string;
+  kind: LocationKind;
+  address: string;
+  city: string;
+  postalCode: string;
+  province?: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  hours?: LocationHours;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/// Relazione N-N: quali sedi (Location) l'operatore può gestire.
+/// Determina su quali sedi l'operatore vede/transazioni gestisce.
+export interface OperatorLocation {
+  id: string;
+  operatorId: string;
+  locationId: string;
+  createdAt: Date;
+}
+
+/// Helper: data JS Date → LocationDayKey corrispondente
+/// (usato per mostrare "Oggi: 09:00–18:00" in dashboard/donazioni).
+export function locationDayKeyForDate(date: Date): LocationDayKey {
+  // getDay(): 0=Sun, 1=Mon, ..., 6=Sat → mappato a LocationDayKey
+  const map: LocationDayKey[] = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ];
+  return map[date.getDay()];
+}

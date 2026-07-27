@@ -185,6 +185,14 @@ enum MultiAvailabilityRequestStatus {
   CANCELLED
 }
 
+enum LocationKind {
+  // Sedi aggiuntive dell'ente. La sede principale resta su Organization
+  // (retrocompatibilità: i campi address/coordinates/hoursInfo dell'ente
+  // continuano a esistere e funzionare come prima). Le LocationKind sono
+  // solo per sedi EXTRA — niente MAIN qui.
+  COLLECTION_POINT
+}
+
 // ================== MODELS ==================
 
 model User {
@@ -410,7 +418,78 @@ model Organization {
   // Causes
   causes Cause[]
 
+  // Sedi aggiuntive (punti di raccolta). La sede principale resta sui campi
+  // address/coordinates/hoursInfo di Organization (retrocompatibilità).
+  locations Location[]
+
   @@map("organizations")
+}
+
+/// Sede aggiuntiva (punto di raccolta) di un ente. La sede principale
+/// resta su Organization (campi address/coordinates/hoursInfo). Una Location
+/// ha orari propri (separati da quelli della sede principale) ed è associata
+/// a operatori abilitati via OperatorLocation.
+///
+/// Caso d'uso: quando un ente ha più punti di raccolta, le donazioni
+/// suggeriscono al donatore la sede più vicina (min dist(donatore,sede) +
+/// dist(beneficiario,sede)) e gli mostrano TUTTE le altre sedi con orari.
+/// Il donatore sceglie implicitamente la sede recandosi fisicamente — il
+/// QR code è unico e valido per tutte le sedi dell'ente.
+model Location {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  kind           LocationKind @default(COLLECTION_POINT)
+
+  // Indirizzo (separato da Organization per flessibilità)
+  address    String
+  city       String
+  postalCode String
+  province   String?
+  country    String  @default("IT")
+
+  // Geolocalizzazione
+  latitude  Float
+  longitude Float
+
+  // Orari di apertura, separati per sede. JSON: { "monday": { "open": "09:00", "close": "18:00" }, "tuesday": null, ... }
+  // null per giorno = chiuso. Validato a runtime con zod (vedi src/types/index.ts LocationHoursSchema).
+  hours Json?
+
+  // Stato
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relazioni
+  operatorLocations OperatorLocation[]
+
+  // Fase C: tracciamento sede effettiva delle donazioni
+  donationsPickedUpHere  Donation[] @relation("DonationPickedUpAt")
+  donationsDeliveredHere Donation[] @relation("DonationDeliveredAt")
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+  // Per query geografiche future (raggio di ricerca, vicini)
+  @@index([latitude, longitude])
+  @@map("locations")
+}
+
+/// Relazione N-N tra Operator e Location: quali sedi l'operatore può
+/// gestire (governare consegne/ritiri). L'operatore d'ufficio vede solo
+/// le transazioni relative alle proprie sedi abilitate.
+model OperatorLocation {
+  id         String   @id @default(cuid())
+  operatorId String
+  operator   Operator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([operatorId, locationId]) // un operatore non può essere abilitato 2 volte alla stessa sede
+  @@index([operatorId])
+  @@index([locationId])
+  @@map("operator_locations")
 }
 
 // ================== GEOGRAPHY ==================
@@ -510,7 +589,24 @@ model Donation {
   paymentId String?  @unique
   payment   Payment? @relation(fields: [paymentId], references: [id])
 
+  // === Fase C: tracciamento sede effettiva (nullable per retrocompat) ===
+  // Sede dove il donatore ha CONSEGNATO fisicamente l'oggetto
+  // (= sede dell'operatore che ha scansionato il QR all'arrivo).
+  // NULL = non ancora scansionato, o donation creata prima di Fase C.
+  pickedUpAt           DateTime?
+  pickedUpAtLocationId String?
+  pickedUpAtLocation   Location? @relation("DonationPickedUpAt", fields: [pickedUpAtLocationId], references: [id], onDelete: SetNull)
+
+  // Sede dove il beneficiario ha RITIRATO fisicamente l'oggetto.
+  // Stesso pattern. Caso B (=donatore e beneficiario usano stessa sede)
+  // sarà il caso reale nella maggior parte dei casi.
+  deliveredAt           DateTime?
+  deliveredAtLocationId String?
+  deliveredAtLocation   Location? @relation("DonationDeliveredAt", fields: [deliveredAtLocationId], references: [id], onDelete: SetNull)
+
   @@index([recipientId])
+  @@index([pickedUpAtLocationId])
+  @@index([deliveredAtLocationId])
   @@map("donations")
 }
 
@@ -571,6 +667,10 @@ model Operator {
 
   // Street operator: beneficiari gestiti
   managedBeneficiaries StreetOperatorBeneficiary[]
+
+  // Sedi (Location) cui l'operatore è abilitato. Determina su quali sedi
+  // l'operatore può gestire consegne/ritiri.
+  operatorLocations OperatorLocation[]
 
   @@unique([username])
   @@map("operators")

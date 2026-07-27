@@ -35,10 +35,20 @@ async function authAsAuthorizedRecipient() {
   mockJwtVerify.mockImplementation(async () => ({
     payload: { user: { id: RECIPIENT_ID, email: 'r@test.it', name: 'Recipient', role: 'RECIPIENT' } },
   }) as any);
-  // user.findUnique for authorization check (id + authorized)
+  // user.findUnique is called for:
+  // 1) authorization check (id + authorized)
+  // 2) Fase C: donor + recipient coordinates for suggestLocationForTransaction
   mockPrisma.user.findUnique.mockImplementation(async (args: any) => {
     if (args?.where?.id === RECIPIENT_ID) {
-      return { authorized: true };
+      // Distinguish auth-check ({authorized: true}) from coords lookup
+      // (select: { latitude, longitude }) by inspecting the select shape.
+      if (args?.select?.authorized !== undefined) {
+        return { authorized: true };
+      }
+      return { latitude: 41.9, longitude: 12.5 }; // Roma (beneficiario)
+    }
+    if (args?.where?.id === DONOR_ID) {
+      return { latitude: 41.9, longitude: 12.5 }; // Roma (donatore)
     }
     return null;
   });
@@ -82,6 +92,20 @@ beforeEach(() => {
 
   // Default: no existing request
   mockPrisma.request.findFirst.mockImplementation(async () => null);
+
+  // Fase C: default mock per suggestLocationForTransaction
+  // - organization.findUnique: l'ente ha sede principale con coordinate
+  // - location.findMany: nessuna sede aggiuntiva
+  mockPrisma.organization.findUnique.mockImplementation(async () => ({
+    id: INTERMEDIARY_ID,
+    name: 'Caritas',
+    address: 'Via Roma',
+    city: 'Roma',
+    latitude: 41.9,
+    longitude: 12.5,
+    hoursInfo: '9-12',
+  }));
+  mockPrisma.location.findMany.mockImplementation(async () => []);
 });
 
 describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
@@ -108,7 +132,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
     }));
     mockPrisma.donation.create.mockImplementation(async (args: any) => ({ id: 'don-1', ...args.data }));
 
-    const response = await POST(buildRequest(OBJECT_ID, 'Per favore'));
+    const response = await POST(buildRequest(OBJECT_ID, 'Per favore'), undefined as any);
 
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -151,7 +175,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       },
     }));
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
 
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -177,7 +201,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
     // another recipient reserved the object. updateMany sees status=RESERVED, count=0.
     mockPrisma.object.updateMany.mockImplementation(async () => ({ count: 0 }));
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
 
     expect(response.status).toBe(409);
     const body = await response.json();
@@ -198,7 +222,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       delete: () => undefined,
     }) as any);
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
     expect(response.status).toBe(401);
 
     // No DB calls at all
@@ -215,7 +239,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       payload: { user: { id: 'd-1', email: 'd@test.it', name: 'Donor', role: 'DONOR' } },
     }) as any);
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
     expect(response.status).toBe(403);
 
     expect(mockPrisma.object.findUnique).not.toHaveBeenCalled();
@@ -231,7 +255,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       return null;
     });
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
     expect(response.status).toBe(403);
 
     expect(mockPrisma.object.findUnique).not.toHaveBeenCalled();
@@ -245,7 +269,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       body: JSON.stringify({ message: 'no id' }),
       headers: { 'Content-Type': 'application/json' },
     });
-    const response = await POST(req);
+    const response = await POST(req, undefined as any);
     expect(response.status).toBe(400);
     expect(mockPrisma.object.findUnique).not.toHaveBeenCalled();
   });
@@ -254,7 +278,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
     await authAsAuthorizedRecipient();
     mockPrisma.object.findUnique.mockImplementation(async () => null);
 
-    const response = await POST(buildRequest('nonexistent'));
+    const response = await POST(buildRequest('nonexistent'), undefined as any);
     expect(response.status).toBe(404);
   });
 
@@ -269,7 +293,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       intermediary: { id: INTERMEDIARY_ID, name: 'Caritas', autoApproveRequests: true },
     }) as any);
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
     expect(response.status).toBe(400);
 
     // No updateMany / no create — fails before tx
@@ -289,7 +313,7 @@ describe('POST /api/requests — B3 (TOCTOU race fix)', () => {
       status: 'PENDING',
     }));
 
-    const response = await POST(buildRequest(OBJECT_ID));
+    const response = await POST(buildRequest(OBJECT_ID), undefined as any);
     expect(response.status).toBe(400);
 
     // No new request, no reservation

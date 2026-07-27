@@ -35,7 +35,7 @@ describe('GET /api/donor/requests — anonymity (Regola #1)', () => {
 
   it('returns 401 when no session is present', async () => {
     mockCookies.mockResolvedValue({ get: () => undefined } as any);
-    const response = await GET(new Request('http://test.local/api/donor/requests'));
+    const response = await GET(new Request('http://test.local/api/donor/requests'), undefined as any);
     expect(response.status).toBe(401);
   });
 
@@ -45,7 +45,7 @@ describe('GET /api/donor/requests — anonymity (Regola #1)', () => {
     mockJwtVerify.mockResolvedValue({
       payload: { user: { id: 'r-1', email: 'r@t.it', name: 'R', role: 'RECIPIENT' } },
     } as any);
-    const response = await GET(new Request('http://test.local/api/donor/requests'));
+    const response = await GET(new Request('http://test.local/api/donor/requests'), undefined as any);
     expect(response.status).toBe(403);
   });
 
@@ -71,7 +71,7 @@ describe('GET /api/donor/requests — anonymity (Regola #1)', () => {
     };
     mockPrisma.goodsRequest.findMany.mockResolvedValue([requestFromDb] as any);
 
-    const response = await GET(new Request('http://test.local/api/donor/requests'));
+    const response = await GET(new Request('http://test.local/api/donor/requests'), undefined as any);
     expect(response.status).toBe(200);
 
     const body = await response.json();
@@ -115,7 +115,7 @@ describe('GET /api/donor/requests — anonymity (Regola #1)', () => {
       },
     ] as any);
 
-    const response = await GET(new Request('http://test.local/api/donor/requests'));
+    const response = await GET(new Request('http://test.local/api/donor/requests'), undefined as any);
     const body = await response.json();
     // Intermediary name IS allowed: the donor will physically deliver to the intermediary.
     expect(body.requests[0].intermediary.name).toBe('Caritas Roma');
@@ -140,7 +140,7 @@ describe('GET /api/donor/requests — anonymity (Regola #1)', () => {
       },
     ] as any);
 
-    const response = await GET(new Request('http://test.local/api/donor/requests'));
+    const response = await GET(new Request('http://test.local/api/donor/requests'), undefined as any);
     const body = await response.json();
     expect(body.requests[0].alreadyOffered).toBe(true);
   });

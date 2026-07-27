@@ -154,7 +154,7 @@ describe('A7 — magic bytes validation on /api/profile-photo (images)', () => {
     mockFileTypeFromBuffer.mockResolvedValueOnce({ ext: 'jpg', mime: 'image/jpeg' });
 
     const req = buildUploadRequest('me.jpg', 'image/jpeg', JPEG_BUFFER);
-    const response = await profilePhotoPOST(req);
+    const response = await profilePhotoPOST(req, undefined as any);
 
     expect(response.status).toBe(200);
 
@@ -169,7 +169,7 @@ describe('A7 — magic bytes validation on /api/profile-photo (images)', () => {
     mockFileTypeFromBuffer.mockResolvedValueOnce({ ext: 'png', mime: 'image/png' });
 
     const req = buildUploadRequest('me.jpg', 'image/jpeg', PNG_BUFFER);
-    const response = await profilePhotoPOST(req);
+    const response = await profilePhotoPOST(req, undefined as any);
 
     expect(response.status).toBe(200);
 
@@ -181,7 +181,7 @@ describe('A7 — magic bytes validation on /api/profile-photo (images)', () => {
     mockFileTypeFromBuffer.mockResolvedValueOnce({ ext: 'exe', mime: 'application/x-msdownload' });
 
     const req = buildUploadRequest('malware.png', 'image/png', EXE_BUFFER);
-    const response = await profilePhotoPOST(req);
+    const response = await profilePhotoPOST(req, undefined as any);
 
     expect(response.status).toBe(400);
     expect(mockFetch).not.toHaveBeenCalled();

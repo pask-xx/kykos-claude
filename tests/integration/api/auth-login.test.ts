@@ -28,7 +28,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
   });
 
   it('returns 400 when email or password is missing', async () => {
-    const response = await POST(buildRequest({ email: 'a@b.it' }));
+    const response = await POST(buildRequest({ email: 'a@b.it' }), undefined as any);
     expect(response.status).toBe(400);
   });
 
@@ -44,7 +44,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
     await POST(buildRequest({
       email: 'Mario@Esempio.IT',
       password: 'secret',
-    }));
+    }), undefined as any);
 
     expect(mockSupabaseSignIn).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'mario@esempio.it' })
@@ -66,7 +66,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
     const response = await POST(buildRequest({
       email: '  mario@esempio.it  ',
       password: 'secret',
-    }));
+    }), undefined as any);
 
     // Document the current (buggy) behavior: 200 means trim is working
     // 401 means trim is NOT working. This test asserts the desired behavior.
@@ -82,7 +82,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
     const response = await POST(buildRequest({
       email: 'wrong@test.it',
       password: 'bad',
-    }));
+    }), undefined as any);
     expect(response.status).toBe(401);
   });
 
@@ -91,7 +91,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
     const response = await POST(buildRequest({
       email: 'mario@esempio.it',
       password: 'secret',
-    }));
+    }), undefined as any);
     expect(response.status).toBe(401);
   });
 
@@ -106,7 +106,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
     const response = await POST(buildRequest({
       email: 'mario@esempio.it',
       password: 'secret',
-    }));
+    }), undefined as any);
     expect(response.status).toBe(403);
     const body = await response.json();
     expect(body.error).toMatch(/confermare/i);
@@ -124,7 +124,7 @@ describe('POST /api/auth/login - Email Normalization (Regola #1)', () => {
     const response = await POST(buildRequest({
       email: 'mario@esempio.it',
       password: 'secret',
-    }));
+    }), undefined as any);
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.user).toMatchObject({

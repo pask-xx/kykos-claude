@@ -4,6 +4,8 @@ import { getSession } from '@/lib/auth';
 import { sendRequestNotification, sendDeliveryQrNotification } from '@/lib/email';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
 import { withErrorHandler } from '@/lib/api';
+import { suggestLocationForTransaction } from '@/lib/location-suggest';
+import { formatLocationSuggestionBlock } from '@/lib/location-format';
 
 export const POST = withErrorHandler(async (request: Request) => {
   const session = await getSession();
@@ -130,6 +132,37 @@ export const POST = withErrorHandler(async (request: Request) => {
   }
 
   // Side effects OUTSIDE the transaction (best-effort, never rolls back DB state)
+
+  // Fase C: carica coordinate donatore/beneficiario per calcolare la sede
+  // suggerita (sede che minimizza la somma delle distanze). Lettura best-effort
+  // — se l'utente non ha le coordinate salvate, la funzione usa Infinity e
+  // ritorna la sede "più equa" possibile.
+  const [donorCoords, recipientCoords] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: object.donorId },
+      select: { latitude: true, longitude: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.id },
+      select: { latitude: true, longitude: true },
+    }),
+  ]);
+
+  const locationSuggestion = await suggestLocationForTransaction({
+    organizationId: object.intermediaryId,
+    donorLat: donorCoords?.latitude ?? null,
+    donorLng: donorCoords?.longitude ?? null,
+    beneficiaryLat: recipientCoords?.latitude ?? null,
+    beneficiaryLng: recipientCoords?.longitude ?? null,
+  });
+
+  // Blocco HTML riusato sia nell'email sia (eventualmente) in UI future.
+  // Se l'ente non ha sedi, è una stringa vuota (nessuna sezione mostrata).
+  const locationSuggestionBlock = formatLocationSuggestionBlock(
+    locationSuggestion.suggested,
+    locationSuggestion.allLocations
+  );
+
   if (shouldAutoApprove) {
     // Generate and send delivery QR code to donor
     try {
@@ -151,7 +184,8 @@ export const POST = withErrorHandler(async (request: Request) => {
         object.intermediary.province,
         object.intermediary.phone,
         object.intermediary.email,
-        object.intermediary.hoursInfo
+        object.intermediary.hoursInfo,
+        locationSuggestionBlock
       );
     } catch (qrError) {
       console.error('Error generating/sending delivery QR:', qrError);
@@ -163,11 +197,19 @@ export const POST = withErrorHandler(async (request: Request) => {
       req.object.donorId,
       req.object.donor.name,
       object.title,
-      object.id
+      object.id,
+      locationSuggestionBlock
     );
   }
 
-  return NextResponse.json({ request: req, autoApproved: shouldAutoApprove });
+  return NextResponse.json({
+    request: req,
+    autoApproved: shouldAutoApprove,
+    locationSuggestion: {
+      suggested: locationSuggestion.suggested,
+      allLocations: locationSuggestion.allLocations,
+    },
+  });
 }, 'POST /api/requests');
 
 export const DELETE = withErrorHandler(async (request: Request) => {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { suggestLocationForTransaction } from '@/lib/location-suggest';
 
 export async function GET(
   request: Request,
@@ -25,6 +26,7 @@ export async function GET(
             title: true,
             status: true,
             donorId: true,
+            intermediaryId: true, // Fase C: per suggestLocationForTransaction
             intermediary: { select: { name: true, hoursInfo: true } },
           },
         },
@@ -32,12 +34,18 @@ export async function GET(
           select: {
             id: true,
             name: true,
+            // Fase C: per distance scoring
+            latitude: true,
+            longitude: true,
           },
         },
         recipient: {
           select: {
             id: true,
             name: true,
+            // Fase C: per distance scoring
+            latitude: true,
+            longitude: true,
           },
         },
       },
@@ -60,6 +68,16 @@ export async function GET(
     const pickupQrData = generatePickupQrCode(requestId, donation.recipientId, 'object');
     const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`);
     const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+
+    // Fase C: calcola sede suggerita per QR page UI.
+    // Best-effort: coordinate mancanti → fallback ragionevole.
+    const locationSuggestion = await suggestLocationForTransaction({
+      organizationId: donation.object.intermediaryId ?? '',
+      donorLat: donation.donor.latitude ?? null,
+      donorLng: donation.donor.longitude ?? null,
+      beneficiaryLat: donation.recipient.latitude ?? null,
+      beneficiaryLng: donation.recipient.longitude ?? null,
+    });
 
     return NextResponse.json({
       donation: {
@@ -86,6 +104,11 @@ export async function GET(
       userType: isDonor ? 'donor' : 'recipient',
       entityName: donation.object.intermediary.name,
       entityHoursInfo: donation.object.intermediary.hoursInfo,
+      // Fase C: locationSuggestion per la UI QR
+      locationSuggestion: {
+        suggested: locationSuggestion.suggested,
+        allLocations: locationSuggestion.allLocations,
+      },
     });
   } catch (error) {
     console.error('QR code API error:', error);

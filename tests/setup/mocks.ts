@@ -48,6 +48,7 @@ export const mockPrisma = {
   },
   operator: {
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -74,8 +75,11 @@ export const mockPrisma = {
   },
   donation: {
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
   },
   multiAvailability: {
     findUnique: vi.fn(),
@@ -89,6 +93,26 @@ export const mockPrisma = {
     create: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
+  },
+  location: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    count: vi.fn(),
+  },
+  operatorLocation: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    createMany: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
+    count: vi.fn(),
   },
   legalConsent: {
     findUnique: vi.fn(),

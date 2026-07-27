@@ -56,22 +56,22 @@ describe('POST /api/legal/consent', () => {
 
   it('returns 401 when no session', async () => {
     setSession(null);
-    const res = await consentPOST(buildRequest({ documentType: 'PRIVACY' }));
+    const res = await consentPOST(buildRequest({ documentType: 'PRIVACY' }), undefined as any);
     expect(res.status).toBe(401);
   });
 
   it('returns 400 for missing or invalid documentType', async () => {
     setSession('user-1');
-    const res1 = await consentPOST(buildRequest({}));
+    const res1 = await consentPOST(buildRequest({}), undefined as any);
     expect(res1.status).toBe(400);
 
-    const res2 = await consentPOST(buildRequest({ documentType: 'BOGUS' }));
+    const res2 = await consentPOST(buildRequest({ documentType: 'BOGUS' }), undefined as any);
     expect(res2.status).toBe(400);
   });
 
   it('upserts a LegalConsent with IP+UA from request headers', async () => {
     setSession('user-1');
-    await consentPOST(buildRequest({ documentType: 'PRIVACY' }));
+    await consentPOST(buildRequest({ documentType: 'PRIVACY' }), undefined as any);
 
     expect(mockPrisma.legalConsent.upsert).toHaveBeenCalledTimes(1);
     const call = mockPrisma.legalConsent.upsert.mock.calls[0][0] as any;
@@ -93,7 +93,7 @@ describe('POST /api/legal/consent', () => {
       { documentType: 'TERMS' },
       { 'x-forwarded-for': '198.51.100.7, 10.0.0.1, 10.0.0.2' }
     );
-    await consentPOST(req);
+    await consentPOST(req, undefined as any);
 
     const call = mockPrisma.legalConsent.upsert.mock.calls[0][0] as any;
     expect(call.create.ipAddress).toBe('198.51.100.7');
@@ -101,7 +101,7 @@ describe('POST /api/legal/consent', () => {
 
   it('returns 200 with the recorded version', async () => {
     setSession('user-1');
-    const res = await consentPOST(buildRequest({ documentType: 'TERMS' }));
+    const res = await consentPOST(buildRequest({ documentType: 'TERMS' }), undefined as any);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.documentType).toBe('TERMS');
@@ -117,7 +117,7 @@ describe('GET /api/legal/status', () => {
 
   it('returns 401 when no session', async () => {
     setSession(null);
-    const res = await statusGET();
+    const res = await statusGET(undefined as any, undefined as any);
     expect(res.status).toBe(401);
   });
 
@@ -125,7 +125,7 @@ describe('GET /api/legal/status', () => {
     setSession('user-1');
     mockPrisma.legalConsent.findFirst.mockResolvedValue(null);
 
-    const res = await statusGET();
+    const res = await statusGET(undefined as any, undefined as any);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.requiresReconsent).toBe(true);
@@ -138,7 +138,7 @@ describe('GET /api/legal/status', () => {
     setSession('user-1');
     mockPrisma.legalConsent.findFirst.mockResolvedValue({ version: '1.0' } as any);
 
-    const res = await statusGET();
+    const res = await statusGET(undefined as any, undefined as any);
     const data = await res.json();
     expect(data.requiresReconsent).toBe(false);
     expect(data.documents.PRIVACY.outdated).toBe(false);
@@ -150,7 +150,7 @@ describe('GET /api/legal/status', () => {
     // Simulate user accepted 0.9 in the past; current is 1.0
     mockPrisma.legalConsent.findFirst.mockResolvedValue({ version: '0.9' } as any);
 
-    const res = await statusGET();
+    const res = await statusGET(undefined as any, undefined as any);
     const data = await res.json();
     expect(data.requiresReconsent).toBe(true);
     expect(data.documents.PRIVACY.accepted).toBe('0.9');
@@ -165,14 +165,14 @@ describe('GET /api/legal/check', () => {
 
   it('returns 401 when no session', async () => {
     setSession(null);
-    const res = await checkGET();
+    const res = await checkGET(undefined as any, undefined as any);
     expect(res.status).toBe(401);
   });
 
   it('returns requiresReconsent=true when either doc is missing', async () => {
     setSession('user-1');
     mockPrisma.legalConsent.findUnique.mockResolvedValue(null);
-    const res = await checkGET();
+    const res = await checkGET(undefined as any, undefined as any);
     const data = await res.json();
     expect(data.requiresReconsent).toBe(true);
   });
@@ -180,7 +180,7 @@ describe('GET /api/legal/check', () => {
   it('returns requiresReconsent=false when both docs are at current version', async () => {
     setSession('user-1');
     mockPrisma.legalConsent.findUnique.mockResolvedValue({ id: 'lc-1' } as any);
-    const res = await checkGET();
+    const res = await checkGET(undefined as any, undefined as any);
     const data = await res.json();
     expect(data.requiresReconsent).toBe(false);
   });
@@ -201,12 +201,12 @@ describe('GET /api/legal/current', () => {
   it('returns 200 without auth (public route)', async () => {
     // NB: setSession(null) non viene chiamato — la rotta non controlla
     // la sessione. Non serve nessun mock di cookies.
-    const res = await currentGET();
+    const res = await currentGET(undefined as any, undefined as any);
     expect(res.status).toBe(200);
   });
 
   it('returns documents metadata for both PRIVACY and TERMS', async () => {
-    const res = await currentGET();
+    const res = await currentGET(undefined as any, undefined as any);
     const data = await res.json();
     expect(data.documents).toBeDefined();
     expect(data.documents.PRIVACY).toBeDefined();
@@ -235,7 +235,7 @@ describe('GET /api/legal/current', () => {
       { type: 'TERMS', version: '1.0' },
       { type: 'PRIVACY', version: '1.1' },
     ]);
-    const res = await currentGET();
+    const res = await currentGET(undefined as any, undefined as any);
     const data = await res.json();
     expect(data.documents.PRIVACY.version).toBe('1.1');
     // TERMS resta v1.0
@@ -243,7 +243,7 @@ describe('GET /api/legal/current', () => {
   });
 
   it('sets Cache-Control: no-store header', async () => {
-    const res = await currentGET();
+    const res = await currentGET(undefined as any, undefined as any);
     expect(res.headers.get('Cache-Control')).toContain('no-store');
   });
 });

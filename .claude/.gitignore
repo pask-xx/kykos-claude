@@ -1,0 +1,15 @@
+# Worktree attivi (NON toccare — vedi memoria git-workflow-staging)
+worktrees/
+
+# Lock file locali (scheduled tasks, lock applicativi)
+*.lock
+
+# Scarti di sessione Claude (draft commit message, log tmp, ecc.)
+commit-msg-*.txt
+tmp-*.log
+tmp-*.txt
+
+# File temporanei
+*.swp
+*.swo
+.DS_Store

@@ -43,26 +43,48 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
     resetAllMocks();
     mockCookies.mockReset();
     mockJwtVerify.mockReset();
+
+    // Fase C: default mocks per suggestLocationForTransaction
+    // Vengono chiamati per il QR di consegna → email pickup al beneficiario.
+    // Default: ente con sede principale, nessuna sede aggiuntiva,
+    // donatore/beneficiario senza coordinate (suggest = main per tie-break).
+    mockPrisma.organization.findUnique.mockImplementation(async () => ({
+      id: 'org-1',
+      name: 'Caritas Roma',
+      address: 'Via Roma',
+      city: 'Roma',
+      latitude: 41.9,
+      longitude: 12.5,
+      hoursInfo: '9-17',
+    }));
+    mockPrisma.location.findMany.mockImplementation(async () => []);
+    mockPrisma.user.findUnique.mockImplementation(async (args: any) => {
+      // Distingui auth-check da coords-lookup (in scan-qr-goods non c'è auth-check)
+      if (args?.select?.latitude !== undefined) {
+        return { latitude: null, longitude: null };
+      }
+      return null;
+    });
   });
 
   describe('authentication', () => {
     it('returns 401 when no operator session cookie', async () => {
       mockCookies.mockResolvedValue({ get: () => undefined } as any);
-      const response = await POST(buildRequest({ qrData: 'kykos:goods:deliver:req-1:user-1' }));
+      const response = await POST(buildRequest({ qrData: 'kykos:goods:deliver:req-1:user-1' }), undefined as any);
       expect(response.status).toBe(401);
     });
 
     it('returns 404 when operator does not exist or is inactive', async () => {
       await authedAsOperator();
       mockPrisma.operator.findUnique.mockResolvedValue(null);
-      const response = await POST(buildRequest({ qrData: 'kykos:goods:deliver:req-1:user-1' }));
+      const response = await POST(buildRequest({ qrData: 'kykos:goods:deliver:req-1:user-1' }), undefined as any);
       expect(response.status).toBe(404);
     });
 
     it('returns 403 when operator lacks OBJECT_DELIVER permission', async () => {
       await authedAsOperator();
       mockPrisma.operator.findUnique.mockResolvedValue(operatorFixtures.withoutPermission as any);
-      const response = await POST(buildRequest({ qrData: 'kykos:goods:deliver:req-1:user-1' }));
+      const response = await POST(buildRequest({ qrData: 'kykos:goods:deliver:req-1:user-1' }), undefined as any);
       expect(response.status).toBe(403);
     });
   });
@@ -74,26 +96,26 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
     });
 
     it('rejects non-string qrData with 400', async () => {
-      const response = await POST(buildRequest({ qrData: 12345 }));
+      const response = await POST(buildRequest({ qrData: 12345 }), undefined as any);
       expect(response.status).toBe(400);
     });
 
     it('rejects QR with invalid format (not kykos:...) with 400', async () => {
-      const response = await POST(buildRequest({ qrData: 'random-string' }));
+      const response = await POST(buildRequest({ qrData: 'random-string' }), undefined as any);
       expect(response.status).toBe(400);
     });
 
     it('rejects QR with wrong type (pickup instead of deliver) with 400', async () => {
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:pickup:req-1:user-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
 
     it('rejects QR with wrong subType (object instead of goods) with 400', async () => {
       const response = await POST(buildRequest({
         qrData: 'kykos:object:deliver:obj-req-1:user-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
   });
@@ -114,7 +136,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       } as any);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-pending-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
 
@@ -128,7 +150,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       } as any);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-approved-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
 
@@ -142,7 +164,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       } as any);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-cancelled-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
 
@@ -156,7 +178,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       } as any);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-completed-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
 
@@ -170,7 +192,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       } as any);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-delivered-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
       const body = await response.json();
       expect(body.error).toMatch(/già utilizzato/i);
@@ -194,7 +216,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       // The QR claims donor-2, but the request was fulfilled by donor-1
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-fulfilled-1:user-donor-2',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(400);
     });
 
@@ -220,7 +242,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       } as any);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-fulfilled-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(403);
     });
 
@@ -228,7 +250,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
       mockPrisma.goodsRequest.findUnique.mockResolvedValue(null);
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:nonexistent:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(404);
     });
   });
@@ -267,7 +289,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
         qrData: 'kykos:goods:deliver:req-fulfilled-1:user-donor-1',
         depositLocation: 'Scaffale A',
         notes: 'Contattare il lunedì',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(200);
       const body = await response.json();
       expect(body.success).toBe(true);
@@ -286,7 +308,7 @@ describe('POST /api/operator/scan-qr-goods - QR Scan State Machine', () => {
     it('creates a notification for the beneficiary after delivery', async () => {
       const response = await POST(buildRequest({
         qrData: 'kykos:goods:deliver:req-fulfilled-1:user-donor-1',
-      }));
+      }), undefined as any);
       expect(response.status).toBe(200);
       expect(mockPrisma.notification.create).toHaveBeenCalledWith(
         expect.objectContaining({

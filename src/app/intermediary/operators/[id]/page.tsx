@@ -3,6 +3,8 @@
 import { useState, useEffect, use, useId } from 'react';
 import Link from 'next/link';
 import { toast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { OPERATOR_ROLE_LABELS, OPERATOR_PERMISSION_LABELS, OperatorRole, OperatorPermission } from '@/types';
 
 interface Operator {
@@ -37,6 +39,11 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
   const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+  // Sedi abilitate (Fase B: gestione Location)
+  const [locationRows, setLocationRows] = useState<{ id: string; address: string; city: string; isActive: boolean; enabled: boolean }[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [locationsSaving, setLocationsSaving] = useState(false);
+  const [locationsDirty, setLocationsDirty] = useState(false);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -59,7 +66,56 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
 
   useEffect(() => {
     fetchOperator();
+    fetchOperatorLocations();
   }, [id]);
+
+  const fetchOperatorLocations = async () => {
+    setLocationsLoading(true);
+    try {
+      const res = await fetch(`/api/intermediary/operators/${id}/locations`);
+      if (res.ok) {
+        const data = await res.json();
+        setLocationRows(data.locations || []);
+      } else {
+        // Non blocchiamo la pagina: la sezione mostra empty state
+        setLocationRows([]);
+      }
+    } catch {
+      setLocationRows([]);
+    } finally {
+      setLocationsLoading(false);
+    }
+  };
+
+  const toggleLocationEnabled = (locId: string) => {
+    setLocationRows((prev) =>
+      prev.map((l) => (l.id === locId ? { ...l, enabled: !l.enabled } : l))
+    );
+    setLocationsDirty(true);
+  };
+
+  const saveLocations = async () => {
+    setLocationsSaving(true);
+    try {
+      const enabledIds = locationRows.filter((l) => l.enabled).map((l) => l.id);
+      const res = await fetch(`/api/intermediary/operators/${id}/locations`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(enabledIds),
+      });
+      if (res.ok) {
+        toast.success('Sedi abilitate aggiornate');
+        setLocationsDirty(false);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err?.error || 'Errore durante il salvataggio');
+      }
+    } catch {
+      toast.error('Errore di rete');
+    } finally {
+      setLocationsSaving(false);
+    }
+  };
 
   const fetchOperator = async () => {
     try {
@@ -346,6 +402,65 @@ export default function IntermediaryOperatorDetailPage({ params }: { params: Pro
         </div>
         )}
       </form>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Sedi abilitate</h2>
+          {locationsDirty && (
+            <Button variant="primary" size="sm" onClick={saveLocations} loading={locationsSaving}>
+              Salva modifiche
+            </Button>
+          )}
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Seleziona le sedi (punti di raccolta) cui questo operatore è abilitato. Potrà gestire
+          consegne e ritiri solo per le sedi selezionate. La sede principale dell&apos;ente è sempre
+          gestibile dall&apos;ente stesso.
+        </p>
+        {locationsLoading ? (
+          <div className="flex items-center justify-center py-6">
+            <Spinner size="md" />
+          </div>
+        ) : locationRows.length === 0 ? (
+          <p className="text-sm text-gray-500 italic">
+            Nessuna sede aggiuntiva configurata. Vai alla pagina{' '}
+            <Link href="/intermediary/locations" className="text-primary-600 hover:underline">
+              Sedi
+            </Link>{' '}
+            per crearne.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {locationRows.map((loc) => {
+              const checkboxId = `loc-${loc.id}`;
+              return (
+                <label
+                  key={loc.id}
+                  htmlFor={checkboxId}
+                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer ${
+                    loc.isActive ? 'border-gray-200 hover:bg-gray-50' : 'border-gray-100 bg-gray-50 opacity-60'
+                  }`}
+                >
+                  <input
+                    id={checkboxId}
+                    type="checkbox"
+                    checked={loc.enabled}
+                    onChange={() => toggleLocationEnabled(loc.id)}
+                    className="w-4 h-4 rounded border-gray-300 text-primary-600"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{loc.address}</p>
+                    <p className="text-xs text-gray-500">{loc.city}</p>
+                  </div>
+                  {!loc.isActive && (
+                    <span className="text-xs text-gray-500 italic">disattivata</span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Reset Password</h2>
