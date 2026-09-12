@@ -18,6 +18,7 @@ import {
   HandCoins,
   ListChecks,
   Bell,
+  Apple,
 } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireOperator } from '@/lib/operator-session';
@@ -232,6 +233,7 @@ export default async function OperatorDashboard() {
     donorCount,
     operatorCount,
     activeCauseCount,
+    activeFreshTemplateCount,
     top5Requests,
     top5MultiAvail,
   ] = await Promise.all([
@@ -332,6 +334,13 @@ export default async function OperatorDashboard() {
             organizationId: orgId,
             OR: [{ deadline: null }, { deadline: { gt: new Date() } }],
           },
+        })
+      : 0,
+
+    // Fresh event templates attivi dell'ente
+    can('ORGANIZATION_ADMIN')
+      ? prisma.freshEventTemplate.count({
+          where: { organizationId: orgId, status: 'ACTIVE' },
         })
       : 0,
 
@@ -439,6 +448,16 @@ export default async function OperatorDashboard() {
             tone="info"
             href="/operator/availability?status=PENDING"
             sublabel={pendingMultiAvailCount > 0 ? 'Richieste pendenti' : undefined}
+          />
+        )}
+        {can('ORGANIZATION_ADMIN') && (
+          <StatCard
+            icon={<Apple className="w-6 h-6 text-success-600" aria-hidden="true" />}
+            label="Prodotti freschi"
+            value={activeFreshTemplateCount}
+            tone="success"
+            href="/operator/fresh-events"
+            sublabel={activeFreshTemplateCount > 0 ? 'Template attivi' : 'Nessun template'}
           />
         )}
         {can('RECIPIENT_AUTHORIZE') && (

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, Package, Gift, ClipboardList, ScrollText, User, Users,
-  Handshake, FileText, BarChart3, Building2, Plus, MapPin, type LucideIcon,
+  Handshake, FileText, BarChart3, Building2, Plus, MapPin, Apple, type LucideIcon,
 } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import ManifestoModal from '@/components/ManifestoModal';
@@ -23,6 +23,7 @@ const recipientNavBase: NavItem[] = [
   { href: '/recipient/objects', label: 'Cerca disponibilità', icon: Package },
   { href: '/recipient/my-objects', label: 'Le mie disponibilità', icon: Gift },
   { href: '/recipient/requests-entity/requests', label: 'Richieste', icon: ClipboardList },
+  { href: '/recipient/fresh-events', label: 'Prodotti freschi', icon: Apple },
   { href: '/manifesto', label: 'Manifesto', icon: ScrollText, isManifesto: true },
   { href: '/recipient/profile', label: 'Il mio profilo', icon: User },
 ];
