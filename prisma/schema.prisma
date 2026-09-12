@@ -118,6 +118,12 @@ enum NotificationType {
   CAUSE_MESSAGE
   // Street operator notifications
   STREET_OBJECT_DEPOSITED
+  // Fresh products distribution notifications
+  FRESH_EVENT_PUBLISHED
+  FRESH_RESERVATION_CONFIRMED
+  FRESH_WAITING_LIST_ADMITTED
+  FRESH_NO_SHOW_WARNING
+  FRESH_SUSPENDED
 }
 
 enum RequestType {
@@ -233,7 +239,7 @@ model User {
   canRequestGoods      Boolean       @default(true)
   canRequestServices   Boolean       @default(false)
   isStreetManaged      Boolean       @default(false) // true = senza account, gestito da street operators
-  profileImageUrl      String?       // URL pubblica della foto profilo
+  profileImageUrl      String? // URL pubblica della foto profilo
 
   // Diocese (for DONOR and RECIPIENT, organization diocese is stored on Organization model)
   dioceseId String?
@@ -244,8 +250,12 @@ model User {
   donorProfile   DonorProfile?
 
   // Deactivation (B2: soft-delete invece di user.delete, per preservare lo storico)
-  deactivatedAt     DateTime?
+  deactivatedAt      DateTime?
   deactivatedActions String[]  @default([]) // log delle azioni di cascade per audit
+
+  // Fresh products distribution: warning + sospensione automatica per no-show
+  freshWarnings       Int       @default(0)
+  freshSuspendedUntil DateTime?
 
   // Recipient relations
   requests          Request[]  @relation("RecipientRequests")
@@ -274,6 +284,10 @@ model User {
   // Multi availability requests
   multiAvailabilityRequests MultiAvailabilityRequest[]
 
+  // Fresh products distribution: subscriptions + reservations
+  freshEventSubscriptions FreshEventSubscription[]
+  freshEventReservations  FreshEventReservation[]
+
   // Cause participation
   causeParticipations CauseParticipant[]
 
@@ -288,21 +302,21 @@ model User {
   // Admin ha caricato versioni di documenti legali
   uploadedLegalDocs LegalDocumentVersion[] @relation("LegalDocUploader")
   // Audit log delle azioni admin
-  adminActions AdminAction[] @relation("AdminActions")
+  adminActions      AdminAction[]          @relation("AdminActions")
 
   @@map("users")
 }
 
 model LegalConsent {
-  id            String            @id @default(cuid())
-  userId        String
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documentType  LegalDocumentType
-  version       String            // es. "1.0"
-  documentHash  String            // SHA-256 del PDF al momento dell'accettazione
-  acceptedAt    DateTime          @default(now())
-  ipAddress     String?           // opzionale, prova legale
-  userAgent     String?           // opzionale, prova legale
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType LegalDocumentType
+  version      String // es. "1.0"
+  documentHash String // SHA-256 del PDF al momento dell'accettazione
+  acceptedAt   DateTime          @default(now())
+  ipAddress    String? // opzionale, prova legale
+  userAgent    String? // opzionale, prova legale
 
   @@unique([userId, documentType, version]) // idempotente: stesso user+doc+version
   @@index([userId])
@@ -319,20 +333,20 @@ model LegalConsent {
 model LegalDocumentVersion {
   id           String              @id @default(cuid())
   type         LegalDocumentType
-  version      String              // semver-like: "1.0", "1.1", "2.0", ...
-  hash         String              // SHA-256 del PDF, calcolato server-side al upload
-  storagePath  String              // path nel bucket Supabase Storage
-  fileSize     Int                 // bytes
+  version      String // semver-like: "1.0", "1.1", "2.0", ...
+  hash         String // SHA-256 del PDF, calcolato server-side al upload
+  storagePath  String // path nel bucket Supabase Storage
+  fileSize     Int // bytes
   status       LegalDocumentStatus @default(scheduled)
   uploadedById String
   uploadedBy   User                @relation("LegalDocUploader", fields: [uploadedById], references: [id])
   uploadedAt   DateTime            @default(now())
-  publishedAt  DateTime?           // null finché status = scheduled
-  archivedAt   DateTime?           // null finché status = active
-  notes        String?             // changelog opzionale (es. "Riformulazione art. 5")
+  publishedAt  DateTime? // null finché status = scheduled
+  archivedAt   DateTime? // null finché status = active
+  notes        String? // changelog opzionale (es. "Riformulazione art. 5")
 
-  @@unique([type, version])        // un solo PDF per type+version
-  @@index([type, status])          // query "versione attiva per type"
+  @@unique([type, version]) // un solo PDF per type+version
+  @@index([type, status]) // query "versione attiva per type"
   @@index([uploadedById])
   @@map("legal_document_versions")
 }
@@ -344,10 +358,10 @@ model AdminAction {
   id         String   @id @default(cuid())
   adminId    String
   admin      User     @relation("AdminActions", fields: [adminId], references: [id])
-  action     String   // "legal_doc.upload", "legal_doc.publish", "legal_doc.restore", "legal_doc.delete"
-  targetType String?  // es. "LegalDocumentVersion"
+  action     String // "legal_doc.upload", "legal_doc.publish", "legal_doc.restore", "legal_doc.delete"
+  targetType String? // es. "LegalDocumentVersion"
   targetId   String?
-  metadata   Json?    // dettagli: { fromVersion, toVersion, type, ... }
+  metadata   Json? // dettagli: { fromVersion, toVersion, type, ... }
   createdAt  DateTime @default(now())
 
   @@index([adminId])
@@ -370,8 +384,8 @@ model Diocese {
 }
 
 model Organization {
-  id                          String   @id @default(cuid())
-  code                        String   @unique
+  id                          String  @id @default(cuid())
+  code                        String  @unique
   name                        String
   type                        OrgType
   vatNumber                   String?
@@ -384,17 +398,21 @@ model Organization {
   province                    String?
   phone                       String?
   email                       String?
-  verified                    Boolean  @default(false)
-  autoApproveRequests         Boolean  @default(false) // Oggetti dal donatore
-  autoApproveGoodsRequests    Boolean  @default(true) // Richieste beni
-  autoApproveServicesRequests Boolean  @default(false) // Richieste servizi
-  hoursInfo                   String?  @map("hours_info") @db.Text // Rich text with opening hours and instructions (legacy TipTap)
+  verified                    Boolean @default(false)
+  autoApproveRequests         Boolean @default(false) // Oggetti dal donatore
+  autoApproveGoodsRequests    Boolean @default(true) // Richieste beni
+  autoApproveServicesRequests Boolean @default(false) // Richieste servizi
+  hoursInfo                   String? @map("hours_info") @db.Text // Rich text with opening hours and instructions (legacy TipTap)
   hours                       Json? // Orari strutturati multi-slot per giorno (v2, affianca hoursInfo per retrocompat). Forma: {day: [{open, close}, ...] | null}.
-  notes                       String?  @db.Text // Note libere sede principale (es. "Suonare il campanello"). Plain text, escape HTML in render.
-  printLabel                  Boolean  @default(false) @map("printlabel")
-  labelSize                   String   @default("50x30") @map("labelsize")
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
+  notes                       String? @db.Text // Note libere sede principale (es. "Suonare il campanello"). Plain text, escape HTML in render.
+
+  // Fresh products distribution: soglie warning no-show configurabili per ente
+  freshWarningThreshold Int      @default(2) // N warning prima della sospensione automatica
+  freshSuspensionDays   Int      @default(30) // durata sospensione in giorni
+  printLabel            Boolean  @default(false) @map("printlabel")
+  labelSize             String   @default("50x30") @map("labelsize")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -416,6 +434,9 @@ model Organization {
 
   // Multi availability
   multiAvailabilities MultiAvailability[]
+
+  // Fresh products distribution: template ricorrenti
+  freshEventTemplates FreshEventTemplate[]
 
   // Causes
   causes Cause[]
@@ -465,9 +486,9 @@ model Location {
   notes String? @db.Text
 
   // Stato
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relazioni
   operatorLocations OperatorLocation[]
@@ -475,6 +496,10 @@ model Location {
   // Fase C: tracciamento sede effettiva delle donazioni
   donationsPickedUpHere  Donation[] @relation("DonationPickedUpAt")
   donationsDeliveredHere Donation[] @relation("DonationDeliveredAt")
+
+  // Fresh products distribution
+  freshTemplatesAsDefault FreshEventTemplate[] @relation("FreshTemplateLocation")
+  freshEventsAsPickup     FreshEvent[]         @relation("FreshEventLocation")
 
   @@index([organizationId])
   @@index([organizationId, isActive])
@@ -663,7 +688,7 @@ model Operator {
   active           Boolean      @default(true)
   isOfficeOperator Boolean      @default(true) // operatore d'ufficio (comportamento attuale)
   isStreetOperator Boolean      @default(false) // operatore di strada
-  profileImageUrl  String?      // URL pubblica della foto profilo
+  profileImageUrl  String? // URL pubblica della foto profilo
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
@@ -940,4 +965,156 @@ model CauseParticipant {
   @@index([causeId])
   @@index([userId])
   @@map("cause_participants")
+}
+
+// ================== FRESH PRODUCTS DISTRIBUTION ==================
+// Pattern parallelo a MultiAvailability ma pensato per prodotti freschi:
+// - Template ricorrente (es. "ogni martedì pomeriggio")
+// - Slot singolo pubblicato con capacità specifica
+// - Beneficiari iscritti al template ricevono notifica alla pubblicazione slot
+// - Auto-prenotazione first-N con QR immediato, successivi in waiting list
+// - QR ritardato: generato quando operatore ammette da waiting list
+// - Warning + sospensione automatica per no-show (soglie configurabili per ente)
+
+enum FreshEventTemplateStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum FreshEventStatus {
+  PUBLISHED // slot aperto alle prenotazioni
+  FULL // capacity raggiunta, no nuove prenotazioni (waiting list ancora accettata)
+  CLOSED // slot chiuso manualmente dall'ente
+  COMPLETED // evento avvenuto (post data/ora fine)
+  CANCELLED // annullato dall'ente
+}
+
+enum FreshReservationStatus {
+  CONFIRMED // nei posti riservati, QR già generato
+  WAITING // in lista d'attesa
+  ADMITTED // ammesso da operatore, QR generato al momento ammissione
+  PICKED_UP // QR scansionato, ritiro effettuato
+  NO_SHOW // non si è presentato al ritiro
+  CANCELLED // cancellato dal beneficiario prima del ritiro
+  EXPIRED // slot completato senza che il beneficiario abbia ritirato/cancellato
+}
+
+/// Template ricorrente per distribuzione prodotti freschi.
+/// L'ente crea UN template per linea ricorrente (es. "Martedì pomeriggio
+/// 16-18", "Sabato mattina 9-12"). Da questo template pubblica N slot
+/// specifici, ognuno con data + capacità propria.
+model FreshEventTemplate {
+  id                        String                   @id @default(cuid())
+  title                     String
+  description               String?                  @db.Text
+  weekday                   Int // 0=dom, 1=lun, ..., 6=sab
+  startTime                 String // "HH:mm"
+  endTime                   String // "HH:mm"
+  capacity                  Int
+  defaultLocationId         String?
+  defaultPickupInstructions String?                  @db.Text
+  isActive                  Boolean                  @default(true)
+  status                    FreshEventTemplateStatus @default(ACTIVE)
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  defaultLocation Location?                @relation("FreshTemplateLocation", fields: [defaultLocationId], references: [id], onDelete: SetNull)
+  slots           FreshEvent[]
+  subscriptions   FreshEventSubscription[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([weekday])
+  @@map("fresh_event_templates")
+}
+
+/// Slot singolo pubblicato per un FreshEventTemplate.
+/// L'ente crea uno slot a partire dal template scegliendo la data specifica.
+/// I beneficiari iscritti al template ricevono notifica → possono prenotarsi.
+model FreshEvent {
+  id                 String           @id @default(cuid())
+  scheduledStart     DateTime
+  scheduledEnd       DateTime
+  capacity           Int
+  reservedCount      Int              @default(0) // posti occupati (CONFIRMED + ADMITTED)
+  waitingCount       Int              @default(0) // posti in lista d'attesa
+  pickupLocationId   String?
+  pickupInstructions String?          @db.Text
+  status             FreshEventStatus @default(PUBLISHED)
+  publishedAt        DateTime         @default(now())
+  closedAt           DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  templateId String
+  template   FreshEventTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  pickupLocation Location?               @relation("FreshEventLocation", fields: [pickupLocationId], references: [id], onDelete: SetNull)
+  reservations   FreshEventReservation[]
+
+  @@index([templateId])
+  @@index([status])
+  @@index([scheduledStart])
+  @@index([templateId, scheduledStart])
+  @@map("fresh_events")
+}
+
+/// Iscrizione del beneficiario a un FreshEventTemplate.
+/// Alla pubblicazione di ogni slot del template, il sistema notifica
+/// tutti gli iscritti (con un solo batch).
+model FreshEventSubscription {
+  id           String   @id @default(cuid())
+  subscribedAt DateTime @default(now())
+  active       Boolean  @default(true)
+
+  templateId String
+  template   FreshEventTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  beneficiaryId String
+  beneficiary   User   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, beneficiaryId])
+  @@index([templateId, active])
+  @@index([beneficiaryId])
+  @@map("fresh_event_subscriptions")
+}
+
+/// Prenotazione di un beneficiario a uno slot specifico.
+/// Status flow:
+///   CONFIRMED   → nei posti riservati, QR già generato (qrCode valorizzato)
+///   WAITING     → in lista d'attesa, QR non ancora generato
+///   ADMITTED    → ammesso da operatore, QR generato al momento dell'ammissione
+///   PICKED_UP   → QR scansionato dall'operatore, ritiro effettuato
+///   NO_SHOW     → non presentatosi al ritiro (contribuisce al conteggio warning)
+///   CANCELLED   → cancellato dal beneficiario prima del ritiro (no warning)
+///   EXPIRED     → slot completato senza che il beneficiario abbia ritirato/cancellato
+model FreshEventReservation {
+  id          String                 @id @default(cuid())
+  status      FreshReservationStatus @default(WAITING)
+  position    Int? // posizione in waiting list (null per CONFIRMED)
+  qrCode      String? // valorizzato solo per CONFIRMED/ADMITTED/PICKED_UP
+  reservedAt  DateTime               @default(now())
+  admittedAt  DateTime?
+  pickedUpAt  DateTime?
+  cancelledAt DateTime?
+  noShowAt    DateTime?
+  notifiedAt  DateTime?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  freshEventId String
+  freshEvent   FreshEvent @relation(fields: [freshEventId], references: [id], onDelete: Cascade)
+
+  beneficiaryId String
+  beneficiary   User   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@unique([freshEventId, beneficiaryId])
+  @@index([freshEventId, status])
+  @@index([freshEventId, position])
+  @@index([beneficiaryId])
+  @@map("fresh_event_reservations")
 }

@@ -139,7 +139,7 @@ export function generatePickupQrCode(requestId: string, userId: string, type: 'o
   return `kykos:${type}:pickup:${requestId}:${userId}`;
 }
 
-export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; subType: 'object' | 'goods'; requestId: string; userId: string } | null {
+export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; subType: 'object' | 'goods' | 'multiavailability' | 'fresh'; requestId: string; userId: string } | null {
   if (typeof data !== 'string') {
     console.log('parseQrCodeData: data is not a string, got:', typeof data);
     return null;
@@ -148,10 +148,10 @@ export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; sub
   console.log('parseQrCodeData: parsing', data);
 
   // New format: kykos:{subType}:deliver/pickup:requestId:userId
-  const newMatch = data.match(/^kykos:(object|goods|multiavailability):(deliver|pickup):(.+):(.+)$/);
+  const newMatch = data.match(/^kykos:(object|goods|multiavailability|fresh):(deliver|pickup):(.+):(.+)$/);
   if (newMatch) {
     console.log('parseQrCodeData: matched new format, subType=', newMatch[1], 'action=', newMatch[2], 'requestId=', newMatch[3], 'userId=', newMatch[4]);
-    return { type: newMatch[2] as 'deliver' | 'pickup', subType: newMatch[1] as 'object' | 'goods', requestId: newMatch[3], userId: newMatch[4] };
+    return { type: newMatch[2] as 'deliver' | 'pickup', subType: newMatch[1] as 'object' | 'goods' | 'fresh', requestId: newMatch[3], userId: newMatch[4] };
   }
 
   // Legacy format: kykos:deliver/pickup:requestId:userId (treated as object type for backward compatibility)
@@ -173,4 +173,11 @@ export function parseQrCodeData(data: string): { type: 'deliver' | 'pickup'; sub
 
 export function generateMultiAvailabilityQrCode(requestId: string, beneficiaryId: string): string {
   return `kykos:multiavailability:pickup:${requestId}:${beneficiaryId}`;
+}
+
+/// QR per ritiro prodotti freschi (FreshEventReservation).
+/// Formato: kykos:fresh:pickup:{reservationId}:{beneficiaryId}
+/// Generato subito per CONFIRMED, al momento dell'ammissione per ADMITTED.
+export function generateFreshPickupQrCode(reservationId: string, beneficiaryId: string): string {
+  return `kykos:fresh:pickup:${reservationId}:${beneficiaryId}`;
 }

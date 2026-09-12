@@ -1029,3 +1029,250 @@ export async function sendMultiAvailabilityQrNotification(
   await createNotificationForUser(beneficiaryId, 'Assegnazione confermata!', `Il tuo QR code per ritirare "${availabilityTitle}" è pronto`, NotificationType.REQUEST_APPROVED, '/recipient/dashboard');
   return true;
 }
+
+// =============================================================
+// FRESH PRODUCTS DISTRIBUTION - Email template
+// Aggiunti a settembre 2026 insieme alla feature /fresh-events.
+// Riusano formatHoursAndNotesBlock per il blocco "Orari e note".
+// =============================================================
+
+/**
+ * Notifica in-app + email per nuovo slot fresco pubblicato.
+ * Usato da POST /api/operator/fresh-events/templates/[id]/slots.
+ * La notifica in-app viene inviata separatamente (createMany) dall'endpoint.
+ */
+export async function sendFreshEventPublishedNotification(
+  toEmail: string,
+  beneficiaryId: string,
+  beneficiaryName: string,
+  templateTitle: string,
+  eventId: string,
+  scheduledStart: Date,
+): Promise<boolean> {
+  const subject = `${APP_NAME} - Nuovo slot disponibile: ${templateTitle}`;
+  const dateStr = scheduledStart.toLocaleString("it-IT", { dateStyle: "full", timeStyle: "short" });
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Prodotti freschi disponibili</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao ${beneficiaryName},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            È disponibile un nuovo slot per <strong>"${templateTitle}"</strong>!</p>
+          <div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="font-size: 14px; color: #059669; font-weight: 600; margin: 0 0 8px;">Quando</p>
+            <p style="font-size: 14px; color: #374151; margin: 0;">${dateStr}</p>
+          </div>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            I posti sono limitati. <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://kykos.it"}/recipient/fresh-events/${eventId}" style="color: #059669; font-weight: 600;">Prenota ora</a> per assicurarti il ritiro.</p>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
+            Se non riesci a venire, ricordati di cancellare la prenotazione per liberare il posto.</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({ to: toEmail, subject, html });
+  // La notifica in-app viene creata separatamente dall endpoint via createMany.
+  return true;
+}
+
+/**
+ * Email con QR code per ritiro prodotti freschi.
+ * Usato dopo prenotazione CONFIRMED o ammissione ADMITTED da waiting list.
+ */
+export async function sendFreshReservationQrNotification(
+  toEmail: string,
+  beneficiaryId: string,
+  beneficiaryName: string,
+  templateTitle: string,
+  scheduledStart: Date,
+  scheduledEnd: Date,
+  reservationId: string,
+  qrCodeData: string,
+  qrCodeImageUrl: string | null,
+  organizationName: string,
+  organizationAddress: string | null,
+  organizationHouseNumber: string | null,
+  organizationCap: string | null,
+  organizationCity: string | null,
+  organizationProvince: string | null,
+  organizationPhone: string | null,
+  organizationEmail: string | null,
+  hoursInfo?: string | null,
+): Promise<boolean> {
+  const subject = `${APP_NAME} - QR Code ritiro freschi: ${templateTitle}`;
+  const startStr = scheduledStart.toLocaleString("it-IT", { dateStyle: "full", timeStyle: "short" });
+  const endStr = scheduledEnd.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Prenotazione confermata</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao ${beneficiaryName},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            La tua prenotazione per <strong>"${templateTitle}"</strong> è confermata.</p>
+          <div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="font-size: 14px; color: #059669; font-weight: 600; margin: 0 0 8px;">Quando</p>
+            <p style="font-size: 14px; color: #374151; margin: 0;">${startStr} - ${endStr}</p>
+          </div>
+          ${qrCodeImageUrl ? `<div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
+            <p style="font-size: 12px; color: #666; margin: 0 0 12px;">QR Code - Ritiro prodotti freschi</p>
+            <img src="${qrCodeImageUrl}" alt="QR Code" style="width: 200px; height: 200px;" />
+            <p style="font-family: monospace; font-size: 10px; margin: 8px 0 0 0; word-break: break-all;">${qrCodeData}</p>
+          </div>` : ""}
+          ${(organizationName || organizationAddress) ? `<div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="font-size: 14px; color: #059669; font-weight: 600; margin: 0 0 8px;">Dove</p>
+            ${organizationName ? `<p style="font-size: 14px; color: #374151; font-weight: 600; margin: 0 0 4px;">${organizationName}</p>` : ""}
+            ${organizationAddress ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">${organizationAddress}${organizationHouseNumber ? `, ${organizationHouseNumber}` : ""}${organizationCap || organizationCity ? `<br>${[organizationCap, organizationCity].filter(Boolean).join(" ")}${organizationProvince ? ` (${organizationProvince})` : ""}` : ""}</p>` : ""}
+            ${organizationPhone ? `<p style="font-size: 14px; color: #6b7280; margin: 0 0 4px;">Tel: ${organizationPhone}</p>` : ""}
+            ${organizationEmail ? `<p style="font-size: 14px; color: #6b7280; margin: 0;">Email: ${organizationEmail}</p>` : ""}
+          </div>` : ""}
+          ${formatHoursAndNotesBlock(null, hoursInfo ?? null, null)}
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
+            Se non puoi venire, <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://kykos.it"}/recipient/fresh-events/my-reservations" style="color: #059669; font-weight: 600;">cancella la prenotazione</a> per liberare il posto. Mancare al ritiro senza cancellare comporta un warning.</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(
+    beneficiaryId,
+    "Prenotazione prodotti freschi confermata",
+    `Mostra il QR code al ritiro di "${templateTitle}"`,
+    NotificationType.FRESH_RESERVATION_CONFIRMED,
+    "/recipient/fresh-events/my-reservations",
+  );
+  return true;
+}
+
+/**
+ * Email warning no-show (senza sospensione).
+ * Usato quando warnings < soglia.
+ */
+export async function sendFreshNoShowWarningNotification(
+  toEmail: string,
+  beneficiaryId: string,
+  beneficiaryName: string,
+  warnings: number,
+  threshold: number,
+  suspensionDays: number,
+): Promise<boolean> {
+  const subject = `${APP_NAME} - Warning no-show (${warnings}/${threshold})`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Warning no-show</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao ${beneficiaryName},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Hai totalizzato <strong>${warnings} warning</strong> per no-show alla distribuzione di prodotti freschi.</p>
+          <div style="margin: 24px 0; padding: 16px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <p style="font-size: 14px; color: #92400e; font-weight: 600; margin: 0 0 8px;">Attenzione</p>
+            <p style="font-size: 14px; color: #374151; margin: 0;">
+              Al raggiungimento di <strong>${threshold} warning</strong> sarai sospeso per <strong>${suspensionDays} giorni</strong> dal diritto di prenotare prodotti freschi.</p>
+          </div>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
+            Se non puoi venire a un ritiro, <strong>cancella la prenotazione</strong> in anticipo: non verra conteggiato come warning.</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(
+    beneficiaryId,
+    `Warning no-show (${warnings}/${threshold})`,
+    `Hai totalizzato ${warnings} warning. Al raggiungimento di ${threshold} sarai sospeso.`,
+    NotificationType.FRESH_NO_SHOW_WARNING,
+    "/recipient/profile",
+  );
+  return true;
+}
+
+/**
+ * Email sospensione automatica (warnings >= soglia).
+ */
+export async function sendFreshSuspendedNotification(
+  toEmail: string,
+  beneficiaryId: string,
+  beneficiaryName: string,
+  warnings: number,
+  suspendedUntil: Date,
+  suspensionDays: number,
+): Promise<boolean> {
+  const subject = `${APP_NAME} - Sospensione dai prodotti freschi`;
+  const untilStr = suspendedUntil.toLocaleDateString("it-IT", { dateStyle: "long" });
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+      <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 32px; text-align: center;">
+          <img src="${LOGO_ALBERO_URL}" alt="KYKOS" style="height: 64px;">
+          <img src="${LOGO_TEXT_URL}" alt="KYKOS" style="height: 64px; margin-left: 2px;">
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Sospensione attivata</p>
+        </div>
+        <div style="padding: 32px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Ciao ${beneficiaryName},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+            Hai raggiunto <strong>${warnings} warning</strong> per no-show. Sei sospeso dal diritto di prenotare prodotti freschi fino al <strong>${untilStr}</strong>.</p>
+          <div style="margin: 24px 0; padding: 16px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #dc2626;">
+            <p style="font-size: 14px; color: #991b1b; font-weight: 600; margin: 0 0 8px;">Durata sospensione</p>
+            <p style="font-size: 14px; color: #374151; margin: 0;">
+              <strong>${suspensionDays} giorni</strong>, da oggi fino al ${untilStr}.<br>
+              Dopo questa data potrai di nuovo prenotare normalmente.
+            </p>
+          </div>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
+            Per evitare future sospensioni, ricordati di <strong>cancellare la prenotazione</strong> in anticipo se non puoi venire al ritiro.</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+            © ${new Date().getFullYear()} KYKOS. Dona con amore, ricevi con dignità.<br>
+            Non rispondere a questa email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({ to: toEmail, subject, html });
+  await createNotificationForUser(
+    beneficiaryId,
+    "Sospensione dai prodotti freschi",
+    `Sei sospeso fino al ${untilStr}. Riprenderai automaticamente.`,
+    NotificationType.FRESH_SUSPENDED,
+    "/recipient/profile",
+  );
+  return true;
+}
