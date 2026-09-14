@@ -33,7 +33,12 @@ function getNextDateForWeekday(weekday: number, fromDate = new Date()): string {
   d.setHours(0, 0, 0, 0);
   const diff = (weekday - d.getDay() + 7) % 7 || 7;
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  // FIX bug timezone: usare metodi LOCALI (YYYY-MM-DD nel timezone del client),
+  // NON toISOString() che ritorna UTC e slitta di -1 giorno per fusi +X (es. Europe/Rome UTC+2)
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 const newSlotSchema = z.object({
