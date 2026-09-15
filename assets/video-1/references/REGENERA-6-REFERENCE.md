@@ -4,6 +4,21 @@
 
 ---
 
+## 📊 Stato al 15/09 sera
+
+| # | File | Stato Round 1 | Azione |
+|---|------|---------------|--------|
+| 1 | `ref-B-anziana.jpg` | ✅ **PRONTA** | nessuna |
+| 2 | `ref-B-bici.jpg` | ❌ FALLITA (vecchia, 14/09) | Round 2 (prompt 2-bis) |
+| 3 | `ref-D-notebook.jpg` | ❌ iPhone con Apple logo | Round 2 (prompt 1-bis) |
+| 4 | `ref-D-coperta.jpg` | ❌ iPhone con Apple logo | Round 2 (prompt 4-bis) |
+| 5 | `ref-O-bancone.jpg` | ✅ **PRONTA** | nessuna |
+| 6 | `ref-S-con-B-anziana.jpg` | ✅ **PRONTA** | nessuna |
+
+➡️ Le 3 ancora da rifare sono nel **Round 2** in fondo a questo file.
+
+---
+
 ## 🚀 Mini-guida Leonardo AI (5 step)
 
 ### Step 1 — Apri Leonardo AI
@@ -226,6 +241,119 @@ slightly toward the young woman with a hopeful expression.
 ```
 
 **Salva come**: `assets/video-1/references/ref-S-con-B-anziana.jpg`
+
+---
+
+## ⚠️ Round 2 — Le 3 ANCORA problematiche (15/09 audit)
+
+Dopo audit del 15/09 sera, 3 delle 6 rigenerate hanno ancora problemi:
+
+| File | Problema residuo | Soluzione Round 2 |
+|------|------------------|---------------------|
+| `ref-D-notebook.jpg` | Cartoon OK, MA iPhone con **Apple logo visibile** + libreria realistica | Telefono descritto come "plain rectangle, no screen, no logo, no camera" |
+| `ref-D-coperta.jpg` | Stesso problema iPhone con Apple logo | Stessa soluzione |
+| `ref-B-bici.jpg` | **NON è stata rigenerata** (data file 14/09) — è ancora il render 3D vecchio | Prompt v2 + provare modello `GPT-Image-1` o `Seedream 4.5` invece di Phoenix |
+
+### Negative prompt RAFFORZATO v2 (per questi 3)
+
+```
+realistic, photorealistic, photographic, photograph, photo, hyperrealistic,
+ultra detailed skin, pore texture, blemish, real human face, real person,
+3d render, cgi, 3d model, octane render, unreal engine, ray tracing,
+cinematic, film still, movie still, DSLR, sharp focus photography,
+depth of field, bokeh, lens flare,
+Apple, iPhone, iPad, MacBook, smartphone, cellphone, mobile phone,
+mobile device, iOS device, brand logo, trademark,
+dark, gritty, violent, scary, horror, mature content,
+text, watermark, signature, blurry, low quality, deformed,
+extra limbs, extra fingers, mutated hands, bad anatomy
+```
+
+> **Differenza vs Round 1**: aggiunte le parole `smartphone, cellphone, mobile phone, mobile device, iOS device` per bloccare la categoria intera, non solo i marchi.
+
+### 1️⃣-bis ref-D-notebook.jpg — D CON LAPTOP (Round 2)
+
+**Modello**: prova **`GPT-Image-1`** (meno photorealistic di Phoenix)
+**Negative Prompt**: (vedi sopra, v2)
+
+**Prompt**:
+```
+flat 2D cartoon illustration, PIXAR STYLE 3D CHARACTER RENDER,
+studios disney pixar animation style, hand-drawn cel shading,
+clean lineart, bold simple shapes, soft watercolor textures,
+pastel warm color palette, soft natural lighting, isolated on
+PURE WHITE BACKGROUND (no office, no bookshelves, no furniture),
+soft rounded shapes, gentle and warm atmosphere, 2D art,
+animated movie style, NOT realistic, NOT photographic,
+illustrated not rendered.
+
+Italian man, age 40, kind face, short dark hair, wearing plain
+blue cotton t-shirt with a big bold white capital letter "D"
+centered on the chest (the D is the ONLY text visible anywhere).
+He is holding a STYLIZED FLAT WHITE LAPTOP (simplified geometric
+rectangle, completely BLANK SCREEN, no brand, no logo, no text).
+He's also holding a PLAIN BLACK RECTANGLE (NOT a smartphone, NOT
+a phone, NOT iOS — just a simple flat black rectangle with no
+camera, no screen, no buttons, no logo — pure abstract shape
+representing a phone). SIMPLE flat minimal background.
+```
+
+---
+
+### 4️⃣-bis ref-D-coperta.jpg — D CON COPERTA (Round 2)
+
+**Modello**: prova **`GPT-Image-1`**
+**Negative Prompt**: (vedi sopra, v2)
+
+**Prompt**:
+```
+flat 2D cartoon illustration, PIXAR STYLE 3D CHARACTER RENDER,
+studios disney pixar animation style, hand-drawn cel shading,
+clean lineart, bold simple shapes, soft watercolor textures,
+pastel warm color palette, soft natural lighting, isolated on
+PURE WHITE BACKGROUND (no bedroom, no wardrobe, no furniture),
+soft rounded shapes, gentle and warm atmosphere, 2D art,
+animated movie style, NOT realistic, NOT photographic,
+illustrated not rendered.
+
+Italian man, age 40, kind face, short dark hair, wearing plain
+blue cotton t-shirt with a big bold white capital letter "D"
+centered on the chest (the D is the ONLY text visible).
+Holding a folded thick wool blanket with colorful warm pattern
+(simplified flat illustration). He's positioning the blanket
+toward the camera and in his other hand a PLAIN BLACK RECTANGLE
+(NOT a smartphone, NOT a phone, NOT iOS — just a simple flat
+black rectangle with no camera, no screen, no buttons, no logo
+— pure abstract shape representing a phone).
+```
+
+---
+
+### 2️⃣-bis ref-B-bici.jpg — B SU BICI CON FIGLIA (Round 2)
+
+**Modello**: prova **`Seedream 4.5`** (più illustrativo, meno photorealistic)
+oppure **`GPT-Image-1`**
+**Negative Prompt**: (vedi sopra, v2)
+
+**Prompt**:
+```
+flat 2D cartoon illustration, illustrated in the style of a
+children's picture book, soft outlines, pastel colors,
+warm and joyful mood, isolated on PURE WHITE BACKGROUND
+(NO trees, NO park, NO buildings, NO detailed environment —
+just white empty space), simple flat composition.
+
+Italian woman, age 35, short brown hair, wearing plain green
+cotton t-shirt with a big bold white capital letter "B" centered
+on the chest (the B is the ONLY text visible). She is riding
+a small simple bicycle (flat 2D illustration style, NOT realistic
+bike, NOT photorealistic). A 5-year-old girl with brown pigtails
+sits behind her on a child seat, smiling. Both characters shown
+from waist up, simple clean cartoon style. Joyful motion implied
+through hair flowing.
+```
+
+> **Differenza vs Round 1**: niente descrizione di "park", "trees", "dirt path" → solo "PURE WHITE BACKGROUND". E la bici descritta come "flat 2D illustration" invece di "slightly used but well-maintained" (che aveva attivato il render realistico).
 
 ---
 
