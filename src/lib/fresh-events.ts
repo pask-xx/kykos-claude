@@ -158,6 +158,7 @@ export async function canReserveFreshSlot(
       where: { id: userId },
       select: {
         authorized: true,
+        canRequestFresh: true,
         deactivatedAt: true,
         freshSuspendedUntil: true,
       },
@@ -176,6 +177,13 @@ export async function canReserveFreshSlot(
   if (user.deactivatedAt) return { ok: false, reason: 'DEACTIVATED', message: 'Account disattivato' };
   if (!user.authorized) {
     return { ok: false, reason: 'NOT_AUTHORIZED', message: 'Devi essere autorizzato dall\'ente' };
+  }
+  if (!user.canRequestFresh) {
+    return {
+      ok: false,
+      reason: 'NOT_AUTHORIZED',
+      message: 'Non sei abilitato a richiedere prodotti freschi. Contatta il tuo ente per maggiori informazioni.',
+    };
   }
   if (user.freshSuspendedUntil && user.freshSuspendedUntil > new Date()) {
     return {

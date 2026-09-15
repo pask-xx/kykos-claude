@@ -77,6 +77,7 @@ export const GET = withErrorHandler(async (
       authorizedAt: true,
       canRequestGoods: true,
       canRequestServices: true,
+      canRequestFresh: true,
       createdAt: true,
       profileImageUrl: true,
     },
@@ -240,7 +241,7 @@ export const PATCH = withErrorHandler(async (
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
   }
 
-  const { authorized, canRequestGoods, canRequestServices, needScore } = await request.json();
+  const { authorized, canRequestGoods, canRequestServices, canRequestFresh, needScore } = await request.json();
 
   // needScore can only be updated by ORGANIZATION_ADMIN
   if (needScore !== undefined) {
@@ -264,6 +265,7 @@ export const PATCH = withErrorHandler(async (
       authorizedAt: authorized ? (recipient.authorizedAt || new Date()) : null,
       canRequestGoods: canRequestGoods !== undefined ? canRequestGoods : recipient.canRequestGoods,
       canRequestServices: canRequestServices !== undefined ? canRequestServices : recipient.canRequestServices,
+      canRequestFresh: canRequestFresh !== undefined ? canRequestFresh : recipient.canRequestFresh,
       needScore: needScore !== undefined ? needScore : recipient.needScore,
     },
   });

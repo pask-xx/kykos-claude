@@ -26,6 +26,7 @@ export const GET = withErrorHandler(async () => {
     select: {
       referenceEntityId: true,
       authorized: true,
+      canRequestFresh: true,
       freshSuspendedUntil: true,
       freshWarnings: true,
     },
@@ -41,6 +42,16 @@ export const GET = withErrorHandler(async () => {
       suspended: false,
       events: [],
       message: 'Devi essere associato a un ente per vedere i prodotti freschi',
+    });
+  }
+
+  // Verifica flag autorizzazione fresco (governance: opt-in ente)
+  if (!user.canRequestFresh) {
+    return NextResponse.json({
+      suspended: false,
+      events: [],
+      canRequestFresh: false,
+      message: 'Non sei abilitato a richiedere prodotti freschi. Contatta il tuo ente per maggiori informazioni.',
     });
   }
 

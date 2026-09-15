@@ -18,9 +18,10 @@ interface DashboardLayoutClientProps {
   user: User | null;
   hasApprovedVolunteer?: boolean;
   pendingDeliveryCount?: number;
+  canRequestFresh?: boolean;
 }
 
-export default function DashboardLayoutClient({ children, user, hasApprovedVolunteer = false, pendingDeliveryCount = 0 }: DashboardLayoutClientProps) {
+export default function DashboardLayoutClient({ children, user, hasApprovedVolunteer = false, pendingDeliveryCount = 0, canRequestFresh = false }: DashboardLayoutClientProps) {
   if (!user) return null;
 
   const showNotificationBell = ['RECIPIENT', 'DONOR', 'INTERMEDIARY'].includes(user.role);
@@ -36,6 +37,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
         userProfileImageUrl={user.profileImageUrl}
         hasApprovedVolunteer={hasApprovedVolunteer}
         pendingDeliveryCount={pendingDeliveryCount}
+        canRequestFresh={canRequestFresh}
       />
 
       {/* Mobile header */}

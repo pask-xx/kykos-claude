@@ -13,6 +13,13 @@ export default async function RecipientLayout({ children }: { children: React.Re
     select: { id: true },
   }));
 
+  // Flag autorizzazione prodotti freschi (governance: opt-in ente)
+  const freshAuth = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { canRequestFresh: true },
+  });
+  const canRequestFresh = freshAuth?.canRequestFresh ?? false;
+
   // Pending: deliveries (donations RESERVED) + pickups (requests DEPOSITED, goodsRequests DELIVERED)
   const [deliveriesCount, objectPickupsCount, goodsPickupsCount] = await Promise.all([
     prisma.donation.count({
@@ -33,6 +40,7 @@ export default async function RecipientLayout({ children }: { children: React.Re
       user={user}
       hasApprovedVolunteer={hasApprovedVolunteer}
       pendingDeliveryCount={pendingDeliveryCount}
+      canRequestFresh={canRequestFresh}
     >
       {children}
     </DashboardLayoutClient>

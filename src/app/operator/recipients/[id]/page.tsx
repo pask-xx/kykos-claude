@@ -49,6 +49,7 @@ interface Recipient {
   authorizedAt: string | null;
   canRequestGoods: boolean;
   canRequestServices: boolean;
+  canRequestFresh: boolean;
   createdAt: string;
   profileImageUrl: string | null;
 }
@@ -179,7 +180,7 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
     }
   };
 
-  const toggleRequestPermission = async (field: 'canRequestGoods' | 'canRequestServices') => {
+  const toggleRequestPermission = async (field: 'canRequestGoods' | 'canRequestServices' | 'canRequestFresh') => {
     if (!recipient) return;
     setUpdating(true);
     setError(null);
@@ -408,6 +409,15 @@ export default function RecipientDetailPage({ params }: { params: Promise<{ id: 
               onChange={() => toggleRequestPermission('canRequestServices')}
               label="Richiesta servizi"
               description="Può richiedere servizi"
+              loading={updating}
+            />
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <Switch
+              checked={recipient.canRequestFresh}
+              onChange={() => toggleRequestPermission('canRequestFresh')}
+              label="Richiesta prodotti freschi"
+              description="Può prenotare slot di distribuzione prodotti freschi"
               loading={updating}
             />
           </div>

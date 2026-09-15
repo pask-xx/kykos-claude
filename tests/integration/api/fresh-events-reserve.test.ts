@@ -49,6 +49,7 @@ const USER = {
   email: 'mario@test.it',
   role: 'RECIPIENT',
   authorized: true,
+  canRequestFresh: true,
   isActive: true,
   freshSuspendedUntil: null,
   freshWarnings: 0,
@@ -100,6 +101,7 @@ function setupEvent(opts: {
   status?: 'PUBLISHED' | 'FULL' | 'CLOSED' | 'COMPLETED' | 'CANCELLED';
   suspended?: Date | null;
   userAuthorized?: boolean;
+  userCanRequestFresh?: boolean;
   userActive?: boolean;
   existingReservation?: { id: string } | null;
 }) {
@@ -118,6 +120,7 @@ function setupEvent(opts: {
   mockPrisma.user.findUnique.mockImplementation(async () => ({
     ...USER,
     authorized: opts.userAuthorized ?? true,
+    canRequestFresh: opts.userCanRequestFresh ?? true,
     isActive: opts.userActive ?? true,
     deactivatedAt: null,
     freshSuspendedUntil: opts.suspended ?? null,
@@ -269,5 +272,20 @@ describe('POST /api/recipient/fresh-events/[id]/reserve', () => {
 
     const res = await POST(makeRequest('event-1'), paramsOf('event-1'));
     expect(res.status).toBe(400);
+  });
+
+  it('beneficiario con canRequestFresh=false → 403 (ente non ha abilitato al fresco)', async () => {
+    await authAsBeneficiary();
+    setupEvent({
+      capacity: 3,
+      reservedCount: 0,
+      userAuthorized: true,
+      userCanRequestFresh: false,
+    });
+
+    const res = await POST(makeRequest('event-1'), paramsOf('event-1'));
+    expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.error).toMatch(/non sei abilitato|fresco/i);
   });
 });

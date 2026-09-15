@@ -62,6 +62,7 @@ interface SidebarProps {
   userProfileImageUrl?: string | null;
   hasApprovedVolunteer?: boolean;
   pendingDeliveryCount?: number;
+  canRequestFresh?: boolean;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -75,7 +76,7 @@ function getDashboardHref(role: string): string {
   return `/${role.toLowerCase()}/dashboard`;
 }
 
-function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', hasApprovedVolunteer: boolean, pendingDeliveryCount: number = 0): NavItem[] {
+function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', hasApprovedVolunteer: boolean, pendingDeliveryCount: number = 0, canRequestFresh: boolean = false): NavItem[] {
   const volunteerItem: NavItem = hasApprovedVolunteer
     ? { href: '/volunteer', label: 'Volontariato', icon: Handshake }
     : { href: '/volunteer/apply', label: 'Diventa Volontario', icon: Handshake };
@@ -87,7 +88,11 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
       icon: Package,
       badge: pendingDeliveryCount,
     };
-    return [...recipientNavBase, toDeliverItem, volunteerItem];
+    // Filtra 'Prodotti freschi' se il beneficiario non ha il flag canRequestFresh
+    const filteredRecipientNav = recipientNavBase.filter(item =>
+      item.href !== '/recipient/fresh-events' || canRequestFresh
+    );
+    return [...filteredRecipientNav, toDeliverItem, volunteerItem];
   }
   if (role === 'DONOR') {
     const toDeliverItem: NavItem = {
@@ -102,14 +107,14 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
   return role === 'INTERMEDIARY' ? intermediaryNav : adminNav;
 }
 
-export default function Sidebar({ role, userName, userEmail, userProfileImageUrl, hasApprovedVolunteer = false, pendingDeliveryCount = 0 }: SidebarProps) {
+export default function Sidebar({ role, userName, userEmail, userProfileImageUrl, hasApprovedVolunteer = false, pendingDeliveryCount = 0, canRequestFresh = false }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showManifesto, setShowManifesto] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navItems = buildNavItems(role, hasApprovedVolunteer, pendingDeliveryCount);
+  const navItems = buildNavItems(role, hasApprovedVolunteer, pendingDeliveryCount, canRequestFresh);
 
   const handleMouseEnter = useCallback(() => {
     if (timeoutRef.current) {

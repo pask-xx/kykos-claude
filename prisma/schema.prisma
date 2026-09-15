@@ -238,6 +238,7 @@ model User {
   canProvideServicesAt DateTime?
   canRequestGoods      Boolean       @default(true)
   canRequestServices   Boolean       @default(false)
+  canRequestFresh      Boolean       @default(false) // abilitazione esplicita a richiedere prodotti freschi
   isStreetManaged      Boolean       @default(false) // true = senza account, gestito da street operators
   profileImageUrl      String? // URL pubblica della foto profilo
 
