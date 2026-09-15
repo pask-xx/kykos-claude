@@ -1,9 +1,11 @@
 # Script Voice-Over — KYKOS Video 1
 
-> **Estratto da** `docs/VIDEO-1-SCENEGGIATURA.md` (v1, 12 set 2026).
-> **Durata totale**: 1:34 (94 secondi) — 8s scena 0 + 28s×3 episodi + 2s card finale.
+> **Estratto da** `docs/VIDEO-1-SCENEGGIATURA.md` (v1.1, 16 set 2026).
+> **Durata totale**: ~2:30 (148s effettivi audio) — scene da 4-5s invece di 3s.
 > **Stile voce richiesto**: maschile calda, tono narrativo istituzionale ma empatico.
 > **Tool consigliato**: ElevenLabs (italiano eccellente, ~$5/mese starter).
+>
+> **Aggiornamento 16/09/2026**: 35 clip generate e verificate. Durata reale ~148s (vs 94s previsti). Scelta produttiva: video finale 2:30 con scene più rilassate, invece di tagliare il voice-over.
 
 ---
 
@@ -204,16 +206,24 @@
 
 ---
 
-## 📊 Totale clip voice-over
+## 📊 Totale clip voice-over (VERIFICATO 16/09/2026)
 
-| Blocco | Clip | Durata totale |
-|--------|------|---------------|
-| Scena 0 | 7 (D, B, O, S, V, E + claim) | ~8s |
-| Episodio 1 | 9 | ~28s |
-| Episodio 2 | 9 | ~28s |
-| Episodio 3 | 9 | ~28s |
-| Card finale | 1 | ~2s |
-| **TOTALE** | **35 clip** | **94s** |
+| Blocco | Clip | Durata prevista | Durata reale audio | Note |
+|--------|------|-----------------|---------------------|------|
+| Scena 0 | 7 (D, B, O, S, V, E + claim) | ~8s | ~21s | Frasi brevi ma pause naturali |
+| Episodio 1 | 9 | ~28s | ~40s | Frase lunga abbinamento = 6.4s |
+| Episodio 2 | 9 | ~28s | ~36s | Doppia offerta lunga |
+| Episodio 3 | 9 | ~28s | ~42s | Frase più lunga: pubblicata = 6.9s |
+| Card finale | 1 | ~2s | ~3s | Claim breve |
+| **TOTALE** | **35 clip** | **94s** | **~148s** | **+57% rispetto al previsto** |
+
+### ✅ Verifica 16/09/2026
+
+- 35/35 file MP3 presenti in questa cartella
+- Naming convention rispettata (`vo-NN-epX-soggetto.mp3`)
+- Tutti gli hash MD5 univoci (no duplicati)
+- Peso totale: ~2.4 MB
+- Formato: MP3 (presumibilmente 128kbps CBR, standard ElevenLabs free tier)
 
 ---
 
