@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { calculateDistance } from '@/lib/geo';
 import { withErrorHandler } from '@/lib/api';
+import { buildObjectWhereForRecipient } from '@/lib/object-filters';
 
 export const GET = withErrorHandler(async (request: Request) => {
   // Auth required - oggetti non visibili a pubblico
@@ -17,19 +18,29 @@ export const GET = withErrorHandler(async (request: Request) => {
   const lon = searchParams.get('longitude');
   const radius = searchParams.get('radius');
 
-  // Exclude own objects if logged in as recipient
-  const excludeDonorId = session?.role === 'RECIPIENT' ? session.id : null;
-
-  const where: Record<string, unknown> = {
+  // Filtri Prisma. Per i recipient, il `where` viene prodotto dall'helper
+  // `buildObjectWhereForRecipient` (vedi src/lib/object-filters.ts): include
+  // lo scope per ente di riferimento + esclusione oggetti già richiesti +
+  // esclusione oggetti propri. Per DONOR / altri ruoli resta il path base.
+  let where: Record<string, unknown> = {
     status: 'AVAILABLE',
   };
 
-  if (category && category !== 'ALL') {
-    where.category = category;
-  }
-
-  if (excludeDonorId) {
-    where.donorId = { not: excludeDonorId };
+  if (session.role === 'RECIPIENT') {
+    const { where: recipientWhere } = await buildObjectWhereForRecipient(
+      session.id,
+      { category: category && category !== 'ALL' ? category : undefined }
+    );
+    if (!recipientWhere) {
+      // Recipient senza referenceEntityId o non ancora autorizzato dall'ente:
+      // nessun oggetto da mostrare (coerente con /api/recipient/objects).
+      return NextResponse.json({ objects: [] });
+    }
+    where = recipientWhere as Record<string, unknown>;
+  } else {
+    if (category && category !== 'ALL') {
+      where.category = category;
+    }
   }
 
   const objects = await prisma.object.findMany({

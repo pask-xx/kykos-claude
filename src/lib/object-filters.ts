@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, Category } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -102,7 +102,7 @@ export async function getRecipientScope(recipientId: string): Promise<RecipientS
  */
 export async function buildObjectWhereForRecipient(
   recipientId: string,
-  extra?: { category?: string }
+  extra?: { category?: Category | string }
 ): Promise<{ where: Prisma.ObjectWhereInput | null; scope: RecipientScope }> {
   const scope = await getRecipientScope(recipientId);
 
@@ -128,7 +128,7 @@ export async function buildObjectWhereForRecipient(
   };
 
   if (extra?.category && extra.category !== 'ALL') {
-    where.category = extra.category;
+    where.category = extra.category as Category;
   }
 
   return { where, scope };
