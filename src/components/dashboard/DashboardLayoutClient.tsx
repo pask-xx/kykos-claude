@@ -54,7 +54,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
       </header>
 
       {/* Desktop top bar */}
-      <header className="hidden lg:flex fixed top-0 left-16 right-0 h-14 bg-white border-b border-gray-200 items-center justify-center px-6 z-40">
+      <header className="hidden lg:flex fixed top-0 left-64 right-0 h-14 bg-white border-b border-gray-200 items-center justify-center px-6 z-40">
         <Link href="/" className="flex items-center gap-3">
           <img src="/albero.svg" alt="KYKOS" className="h-14" />
           <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-14" />
@@ -67,7 +67,7 @@ export default function DashboardLayoutClient({ children, user, hasApprovedVolun
       </header>
 
       {/* Main content */}
-      <main className="min-h-[100svh] lg:pl-16 pt-14 lg:pt-14">
+      <main className="min-h-[100svh] lg:pl-64 pt-14 lg:pt-14">
         <div className="px-6 py-6">
           <div className="hidden lg:block">
             <InstallAppBanner />

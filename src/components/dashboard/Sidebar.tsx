@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -109,25 +109,10 @@ function buildNavItems(role: 'RECIPIENT' | 'DONOR' | 'INTERMEDIARY' | 'ADMIN', h
 
 export default function Sidebar({ role, userName, userEmail, userProfileImageUrl, hasApprovedVolunteer = false, pendingDeliveryCount = 0, canRequestFresh = false }: SidebarProps) {
   const pathname = usePathname();
-  const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showManifesto, setShowManifesto] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const navItems = buildNavItems(role, hasApprovedVolunteer, pendingDeliveryCount, canRequestFresh);
-
-  const handleMouseEnter = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    setExpanded(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    timeoutRef.current = setTimeout(() => {
-      setExpanded(false);
-    }, 150);
-  }, []);
 
   return (
     <>
@@ -245,20 +230,12 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
       </aside>
 
       {/* Desktop sidebar */}
-      <aside
-        className={`hidden lg:flex fixed left-0 top-0 h-full w-16 bg-white border-r border-gray-200 flex-col z-50 transition-all duration-200 ease-out ${
-          expanded ? 'w-64' : 'w-16'
-        }`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
+      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex-col z-50">
         {/* Logo */}
-        <div className={`p-3 border-b border-gray-200 flex items-center ${expanded ? 'justify-start' : 'justify-center'}`}>
+        <div className="p-4 border-b border-gray-200 flex items-center justify-start">
           <Link href={getDashboardHref(role)} className="flex items-center gap-2">
             <img src="/albero.svg" alt="KYKOS" className="w-8 h-8 flex-shrink-0" />
-            {expanded && (
-              <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
-            )}
+            <img src="/LogoKykosTesto.svg" alt="KYKOS" className="h-8" />
           </Link>
         </div>
 
@@ -272,8 +249,7 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                 <button
                   key={item.href}
                   onClick={() => setShowManifesto(true)}
-                  className={`w-full flex items-center gap-3 px-2 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 ${expanded ? 'justify-start' : 'justify-center'}`}
-                  title={!expanded ? item.label : undefined}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 justify-start"
                   aria-label={item.label}
                 >
                   {item.badge && item.badge > 0 && (
@@ -285,9 +261,7 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
                     const Icon = item.icon;
                     return <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />;
                   })()}
-                  {expanded && (
-                    <span className="font-medium truncate">{item.label}</span>
-                  )}
+                  <span className="font-medium truncate">{item.label}</span>
                 </button>
               );
             }
@@ -296,56 +270,40 @@ export default function Sidebar({ role, userName, userEmail, userProfileImageUrl
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative flex items-center gap-3 px-2 py-3 rounded-lg transition-colors ${
+                className={`relative flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-primary-50 text-primary-700'
                     : 'text-gray-600 hover:bg-gray-50'
-                } ${expanded ? 'justify-start' : 'justify-center'}`}
-                title={!expanded ? item.label : undefined}
+                } justify-start`}
                 aria-label={item.label}
               >
                 {(() => {
                   const Icon = item.icon;
                   return <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />;
                 })()}
-                {expanded && (
-                  <span className="font-medium truncate">{item.label}</span>
-                )}
+                <span className="font-medium truncate">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* User info */}
-        <div className={`p-3 border-t border-gray-200 flex-shrink-0 ${expanded ? 'justify-start' : 'justify-center'}`}>
-          {expanded ? (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                {userProfileImageUrl ? (
-                  <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-lg">👤</span>
-                )}
-              </div>
-              <div className="truncate min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-                <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
-                <p className="text-xs text-gray-400 truncate">{userEmail}</p>
-              </div>
-              <LogoutButton role="user" />
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {userProfileImageUrl ? (
+                <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-6 h-6 text-primary-700" aria-hidden="true" />
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden mb-2">
-                {userProfileImageUrl ? (
-                  <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-lg">👤</span>
-                )}
-              </div>
-              <LogoutButton role="user" />
+            <div className="truncate min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+              <p className="text-xs text-gray-500 truncate">{ROLE_LABELS[role]}</p>
+              <p className="text-xs text-gray-400 truncate">{userEmail}</p>
             </div>
-          )}
+            <LogoutButton role="user" />
+          </div>
         </div>
       </aside>
 
