@@ -10,6 +10,7 @@ import {
   type ExpandableObjectCardObject,
 } from '@/components/recipient/ExpandableObjectCard';
 import { REQUEST_STATUS_LABELS, OBJECT_STATUS_LABELS } from '@/types';
+import { isOfferDeliverable } from '@/lib/goods-offer-filters';
 
 /**
  * Estensione locale per /donor/requests: gli oggetti in questa pagina
@@ -247,7 +248,7 @@ export default function DonorRequestsPage() {
                           </div>
                         )}
                       </div>
-                      {offer.status === 'ACCEPTED' && (
+                      {isOfferDeliverable(offer) && (
                         <div className="bg-success-50 px-4 py-3 border-t border-success-100">
                           <Link href={`/donor/qr-goods/${offer.requestId}`}>
                             <Button variant="success" className="w-full">

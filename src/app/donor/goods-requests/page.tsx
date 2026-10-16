@@ -7,6 +7,7 @@ import {
   ClipboardList, QrCode,
   type LucideIcon,
 } from 'lucide-react';
+import { isOfferDeliverable } from '@/lib/goods-offer-filters';
 
 interface GoodsOffer {
   id: string;
@@ -54,7 +55,8 @@ export default function DonorGoodsRequestsPage() {
     return <Icon className="w-6 h-6 text-gray-600" aria-hidden="true" />;
   };
 
-  const acceptedOffers = offers.filter(o => o.status === 'ACCEPTED');
+  // Bug fix: filtra anche per request.status (no card per FULFILLED/DELIVERED/COMPLETED)
+  const acceptedOffers = offers.filter(isOfferDeliverable);
 
   return (
     <div className="p-6">
