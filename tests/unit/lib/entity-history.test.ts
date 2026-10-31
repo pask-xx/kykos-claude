@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ENTITY_REVOCABLE_STATUSES,
-  canRevokeEntityObject,
   entityHistoryPeriodRange,
   filterEntityHistory,
   groupEntityHistoryByDate,
@@ -29,43 +27,6 @@ function makeItem(overrides: Partial<EntityHistoryItem> = {}): EntityHistoryItem
     ...overrides,
   };
 }
-
-describe('canRevokeEntityObject', () => {
-  it('consente la revoca di un oggetto AVAILABLE senza richieste attive', () => {
-    expect(canRevokeEntityObject('AVAILABLE', 0)).toBe(true);
-  });
-
-  it('consente la revoca di un oggetto in giacenza (DEPOSITED) senza richieste attive', () => {
-    expect(canRevokeEntityObject('DEPOSITED', 0)).toBe(true);
-  });
-
-  it('non consente la revoca se c\'è almeno una richiesta attiva', () => {
-    expect(canRevokeEntityObject('AVAILABLE', 1)).toBe(false);
-    expect(canRevokeEntityObject('DEPOSITED', 3)).toBe(false);
-  });
-
-  it('non consente la revoca di un oggetto già consegnato', () => {
-    expect(canRevokeEntityObject('DONATED', 0)).toBe(false);
-  });
-
-  it('non consente la revoca di un oggetto già revocato', () => {
-    expect(canRevokeEntityObject('CANCELLED', 0)).toBe(false);
-  });
-
-  it('non consente la revoca in stato RESERVED o BLOCKED', () => {
-    expect(canRevokeEntityObject('RESERVED', 0)).toBe(false);
-    expect(canRevokeEntityObject('BLOCKED', 0)).toBe(false);
-  });
-
-  it('safe-by-default: conta richieste non numeriche come revoca negata', () => {
-    expect(canRevokeEntityObject('AVAILABLE', Number.NaN)).toBe(false);
-    expect(canRevokeEntityObject('AVAILABLE', Number.POSITIVE_INFINITY)).toBe(false);
-  });
-
-  it('espone solo gli stati revocabili previsti', () => {
-    expect([...ENTITY_REVOCABLE_STATUSES]).toEqual(['AVAILABLE', 'DEPOSITED']);
-  });
-});
 
 describe('resolveEntityDeliveredAt', () => {
   it('usa Donation.deliveredAt quando è valorizzata', () => {

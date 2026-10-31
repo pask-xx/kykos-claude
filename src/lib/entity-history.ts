@@ -1,7 +1,6 @@
-import type { ObjectStatus } from '@/types';
-
 /**
- * Storico delle disponibilità pubblicate dall'ente + regole di revoca.
+ * Storico delle disponibilità pubblicate dall'ente: calcolo data di
+ * consegna, filtri e raggruppamento per giorno.
  *
  * MODULO PURO: nessun import server-only (`@/lib/qrcode`, `@/lib/email`,
  * `@prisma/client` con side-effect). Viene usato sia dalle route API (Node)
@@ -11,40 +10,10 @@ import type { ObjectStatus } from '@/types';
  * Perché un file separato da `src/lib/entity-objects.ts`: quello contiene
  * gli helper che generano/inviano email e QR (import server-only), quindi
  * non può essere importato da una pagina client.
+ *
+ * Le regole di revoca/ripubblicazione/modifica stanno in
+ * `src/lib/entity-object-rules.ts`.
  */
-
-/**
- * Stati in cui una disponibilità dell'ente può ancora essere revocata.
- *
- * - `AVAILABLE`: appena pubblicata, nessun ritiro in corso.
- * - `DEPOSITED`: in giacenza in attesa di ritiro (per l'ente l'oggetto è
- *   già in sede: non esiste una gamba di consegna da fare).
- *
- * `DONATED` (consegnato) e `CANCELLED` (già revocato) sono esclusi: non
- * ha senso revocare un oggetto già consegnato o già revocato.
- */
-export const ENTITY_REVOCABLE_STATUSES = ['AVAILABLE', 'DEPOSITED'] as const;
-
-export type EntityRevocableStatus = (typeof ENTITY_REVOCABLE_STATUSES)[number];
-
-/**
- * `true` se la disponibilità può essere revocata adesso.
- *
- * Condizioni (entrambe necessarie):
- * - stato tra `ENTITY_REVOCABLE_STATUSES`;
- * - nessuna richiesta attiva (PENDING/APPROVED) sull'oggetto.
- *
- * Safe-by-default: se il numero di richieste non è un valore numerico
- * finito la revoca viene negata (non sappiamo, non agiamo).
- */
-export function canRevokeEntityObject(
-  status: ObjectStatus | string,
-  activeRequests: number
-): boolean {
-  const revocable = (ENTITY_REVOCABLE_STATUSES as readonly string[]).includes(status);
-  if (!revocable) return false;
-  return Number.isFinite(activeRequests) && activeRequests <= 0;
-}
 
 /** Riga dello storico (disponibilità consegnata). */
 export interface EntityHistoryItem {

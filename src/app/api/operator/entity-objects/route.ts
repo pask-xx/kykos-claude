@@ -7,11 +7,9 @@ import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import { hasAnyPermission } from '@/lib/permissions';
 import { parseLocalDateBoundary, resolveEntityDeliveredAt } from '@/lib/entity-history';
+import { validateEntityObjectInput } from '@/lib/entity-object-rules';
 
 const JWT_SECRET = getJwtSecret();
-
-/** Limite foto: allineato a `MAX_IMAGES` del form donatore. */
-const MAX_IMAGES = 5;
 
 /**
  * Tetto di oggetti restituibili in una pagina di elenco.
@@ -46,9 +44,10 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
  *
  * Query params:
  * - `status`: uno dei valori di `ObjectStatus`, oppure `ALL`.
- *   DEFAULT: tutto tranne `DONATED` — le disponibilità consegnate NON
- *   sono visibili nel magazzino, si consultano nello storico
- *   (`?status=DONATED`, pagina /operator/entity-history).
+ *   DEFAULT: tutto tranne `DONATED` e `CANCELLED` — le disponibilità
+ *   consegnate si consultano nello storico (`?status=DONATED`, pagina
+ *   /operator/entity-history), quelle revocate nella pagina dedicata
+ *   (`?status=CANCELLED`, pagina /operator/entity-revoked).
  * - `search`: testo libero su titolo, descrizione, posizione di deposito.
  * - `category`: categoria valida (filtro per lo storico).
  * - `from` / `to`: intervallo `YYYY-MM-DD` sulla data di consegna
@@ -92,8 +91,10 @@ export const GET = withErrorHandler(async (request: Request) => {
 
   const where: Prisma.ObjectWhereInput = {
     publishedByOrgId: session.organizationId,
-    // Default: le consegnate non compaiono nel magazzino.
-    status: statusFilter ?? { not: 'DONATED' },
+    // Default: nel magazzino ci sono solo le disponibilità ancora
+    // pubblicabili. Le consegnate stanno nello storico, le revocate
+    // nella pagina dedicata.
+    status: statusFilter ?? { notIn: ['DONATED', 'CANCELLED'] },
     ...(searchParam
       ? {
           OR: [
@@ -199,24 +200,11 @@ export const POST = withErrorHandler(async (request: Request) => {
   const body = await request.json();
   const { title, description, category, condition, imageUrls, depositLocation, depositNotes } = body;
 
-  if (!title || typeof title !== 'string' || !title.trim()) {
-    return NextResponse.json({ error: 'Il titolo è obbligatorio' }, { status: 400 });
-  }
+  // Validazione condivisa con la modifica (stessi messaggi, stessa regola).
+  const validationError = validateEntityObjectInput(body);
 
-  if (!category || !Object.values(Category).includes(category)) {
-    return NextResponse.json({ error: 'Categoria non valida' }, { status: 400 });
-  }
-
-  if (!condition || !Object.values(Condition).includes(condition)) {
-    return NextResponse.json({ error: 'Condizione non valida' }, { status: 400 });
-  }
-
-  if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
-    return NextResponse.json({ error: 'Almeno una foto è obbligatoria' }, { status: 400 });
-  }
-
-  if (imageUrls.length > MAX_IMAGES) {
-    return NextResponse.json({ error: `Massimo ${MAX_IMAGES} foto` }, { status: 400 });
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   const object = await prisma.object.create({

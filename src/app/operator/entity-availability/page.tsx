@@ -1,96 +1,49 @@
 'use client';
 
-import { useState, useEffect, useRef, useId, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Package, QrCode, Camera, History, Undo2 } from 'lucide-react';
-import QrScanner from 'qr-scanner';
+import { Package, History, Undo2, Ban, Eye } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import { formatShelfLocation } from '@/lib/shelf-label';
-import { canRevokeEntityObject } from '@/lib/entity-history';
-import {
-  CATEGORY_LABELS,
-  CONDITION_LABELS,
-  OBJECT_STATUS_LABELS,
-  type Category,
-  type Condition,
-  type ObjectStatus,
-} from '@/types';
+import { canRevokeEntityObject } from '@/lib/entity-object-rules';
+import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
-import { Alert, Badge, Button, EmptyState, EntityListCard, Input, Modal, Select, Spinner, Textarea } from '@/components/ui';
-import ImageUploader from '@/components/ImageUploader';
-
-interface EntityObject {
-  id: string;
-  title: string;
-  description: string | null;
-  category: Category;
-  condition: Condition;
-  imageUrls: string[];
-  status: ObjectStatus;
-  depositLocation: string | null;
-  depositNotes: string | null;
-  createdAt: string;
-  _count?: { requests: number };
-}
-
-const categoryOptions = (Object.entries(CATEGORY_LABELS) as [Category, string][]).map(
-  ([value, label]) => ({ value, label })
-);
-
-const conditionOptions = (Object.entries(CONDITION_LABELS) as [Condition, string][]).map(
-  ([value, label]) => ({ value, label })
-);
+import { Alert, Button, EmptyState, EntityListCard, Modal, Spinner } from '@/components/ui';
+import {
+  EMPTY_ENTITY_OBJECT_FORM,
+  EntityObjectForm,
+  type EntityObjectFormValues,
+} from '@/components/operator/EntityObjectForm';
+import {
+  EntityObjectDetailModal,
+  type EntityObjectDetail,
+} from '@/components/operator/EntityObjectDetailModal';
+import { EntityObjectStatusBadge } from '@/components/operator/EntityObjectStatusBadge';
+import { ShelfLabelScanner } from '@/components/operator/ShelfLabelScanner';
 
 /**
- * Mappa Object.status → Badge variant KYKOS.
- * Per le disponibilità dell'ente "DEPOSITED" significa "in giacenza in sede,
- * in attesa che il beneficiario ritiri" (non "depositato da un donatore").
+ * Magazzino dell'ente: le disponibilità pubblicate e ancora disponibili.
+ *
+ * Le consegnate stanno in /operator/entity-history, le revocate in
+ * /operator/entity-revoked: qui restano solo ciò che l'ente può ancora
+ * offrire ai beneficiari.
  */
-function objectStatusBadge(status: ObjectStatus) {
-  switch (status) {
-    case 'AVAILABLE':
-      return { variant: 'success' as const, label: OBJECT_STATUS_LABELS.AVAILABLE };
-    case 'RESERVED':
-      return { variant: 'info' as const, label: OBJECT_STATUS_LABELS.RESERVED };
-    case 'DEPOSITED':
-      return { variant: 'warning' as const, label: 'In giacenza' };
-    case 'DONATED':
-      return { variant: 'default' as const, label: 'Ritirato' };
-    case 'CANCELLED':
-      return { variant: 'danger' as const, label: 'Revocata' };
-    case 'BLOCKED':
-      return { variant: 'danger' as const, label: OBJECT_STATUS_LABELS.BLOCKED };
-    default:
-      return { variant: 'default' as const, label: status };
-  }
-}
-
 export default function EntityAvailabilityPage() {
   const router = useRouter();
-  const [objects, setObjects] = useState<EntityObject[]>([]);
+  const [objects, setObjects] = useState<EntityObjectDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  const photoId = useId();
+
+  // Dettagli / modifica della disponibilità
+  const [detailTarget, setDetailTarget] = useState<EntityObjectDetail | null>(null);
 
   // Revoca di una disponibilità pubblicata
-  const [revokeTarget, setRevokeTarget] = useState<EntityObject | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<EntityObjectDetail | null>(null);
   const [revoking, setRevoking] = useState(false);
 
-  // Form state
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Category>('OTHER');
-  const [condition, setCondition] = useState<Condition>('GOOD');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [depositLocation, setDepositLocation] = useState('');
-  const [depositNotes, setDepositNotes] = useState('');
-
-  // Scanner etichetta scaffale
-  const [showScanner, setShowScanner] = useState(false);
-  const [cameraId, setCameraId] = useState<string | undefined>(undefined);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const scannerRef = useRef<QrScanner | null>(null);
+  // Form state (creazione)
+  const [form, setForm] = useState<EntityObjectFormValues>(EMPTY_ENTITY_OBJECT_FORM);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     fetchObjects();
@@ -101,7 +54,13 @@ export default function EntityAvailabilityPage() {
       const res = await fetch('/api/operator/entity-objects');
       if (res.ok) {
         const data = await res.json();
-        setObjects(data.objects || []);
+        const next: EntityObjectDetail[] = data.objects || [];
+        setObjects(next);
+        // Se la modale è aperta, allinea l'oggetto mostrato alla lista
+        // appena ricaricata (dopo una modifica i dati devono aggiornarsi).
+        setDetailTarget((current) =>
+          current ? next.find((object) => object.id === current.id) ?? null : null
+        );
       } else {
         const data = await res.json().catch(() => ({}));
         toast.error(data?.error || 'Errore nel caricamento');
@@ -114,93 +73,18 @@ export default function EntityAvailabilityPage() {
     }
   };
 
-  // --- Scanner etichetta scaffale -------------------------------------------------
-
-  const isBackCamera = (label: string) => {
-    const l = label.toLowerCase();
-    return l.includes('back') || l.includes('rear') || l.includes('environment');
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        if (cancelled) return;
-        const videoDevices = devices
-          .filter((d) => d.kind === 'videoinput')
-          .map((d) => ({
-            id: d.deviceId,
-            label: d.label || `Camera ${d.deviceId.slice(0, 8)}`,
-          }));
-        if (videoDevices.length === 0) return;
-        const back = videoDevices.find((d) => isBackCamera(d.label));
-        setCameraId(back ? back.id : videoDevices[0].id);
-      } catch (err) {
-        console.error('Error getting cameras:', err);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const stopScanner = useCallback(async () => {
-    if (scannerRef.current) {
-      await scannerRef.current.stop();
-      scannerRef.current = null;
-    }
-    setShowScanner(false);
-  }, []);
-
-  useEffect(() => {
-    if (showScanner && videoRef.current && cameraId) {
-      const scanner = new QrScanner(
-        videoRef.current,
-        (scanResult) => {
-          const data = typeof scanResult === 'string' ? scanResult : scanResult.data;
-          scanner.stop();
-          setShowScanner(false);
-          setDepositLocation(formatShelfLocation(data));
-          toast.success('Posizione di deposito letta dall\'etichetta');
-        },
-        {
-          returnDetailedScanResult: true,
-          highlightScanRegion: true,
-          maxScansPerSecond: 5,
-        }
-      );
-      scannerRef.current = scanner;
-      scanner
-        .setCamera(cameraId)
-        .then(() => scanner.start())
-        .catch((err) => {
-          console.error('Scanner error:', err);
-          toast.error("Errore nell'avvio della fotocamera");
-        });
-    } else if (!showScanner && scannerRef.current) {
-      scannerRef.current.stop();
-      scannerRef.current = null;
-    }
-  }, [showScanner, cameraId]);
-
-  useEffect(() => {
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop();
-        scannerRef.current = null;
-      }
-    };
-  }, []);
-
   // --- Creazione -------------------------------------------------------------------
 
+  const handleFormChange = (patch: Partial<EntityObjectFormValues>) => {
+    setForm((current) => ({ ...current, ...patch }));
+  };
+
   const handleCreate = async () => {
-    if (!title.trim()) {
+    if (!form.title.trim()) {
       toast.error('Inserisci un titolo');
       return;
     }
-    if (imageUrls.length === 0) {
+    if (form.imageUrls.length === 0) {
       toast.error('Almeno una foto è obbligatoria');
       return;
     }
@@ -211,13 +95,10 @@ export default function EntityAvailabilityPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
-          description,
-          category,
-          condition,
-          imageUrls,
-          depositLocation,
-          depositNotes,
+          ...form,
+          description: form.description || null,
+          depositLocation: form.depositLocation || null,
+          depositNotes: form.depositNotes || null,
         }),
       });
 
@@ -239,17 +120,12 @@ export default function EntityAvailabilityPage() {
   };
 
   const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setCategory('OTHER');
-    setCondition('GOOD');
-    setImageUrls([]);
-    setDepositLocation('');
-    setDepositNotes('');
+    setForm(EMPTY_ENTITY_OBJECT_FORM);
+    // Forza il remount dell'uploader: tiene lo stato interno delle foto.
+    setFormKey((key) => key + 1);
   };
 
-  const handleCloseModal = async () => {
-    await stopScanner();
+  const handleCloseModal = () => {
     setShowModal(false);
   };
 
@@ -268,6 +144,7 @@ export default function EntityAvailabilityPage() {
 
       if (res.ok) {
         setRevokeTarget(null);
+        setDetailTarget(null);
         await fetchObjects();
         toast.success('Disponibilità revocata');
       } else {
@@ -294,6 +171,13 @@ export default function EntityAvailabilityPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="secondary"
+            onClick={() => router.push('/operator/entity-revoked')}
+            leftIcon={<Ban className="w-4 h-4" aria-hidden="true" />}
+          >
+            Revocate
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => router.push('/operator/entity-history')}
             leftIcon={<History className="w-4 h-4" aria-hidden="true" />}
           >
@@ -318,7 +202,6 @@ export default function EntityAvailabilityPage() {
       ) : (
         <div className="grid gap-4">
           {objects.map((obj) => {
-            const statusBadge = objectStatusBadge(obj.status);
             // La revoca è possibile solo se l'oggetto è ancora in giacenza
             // (non consegnato) e non ha richieste attive.
             const revocable = canRevokeEntityObject(obj.status, obj._count?.requests ?? 0);
@@ -340,9 +223,7 @@ export default function EntityAvailabilityPage() {
                 title={obj.title}
                 badgesTop={
                   <>
-                    <Badge variant={statusBadge.variant} pill>
-                      {statusBadge.label}
-                    </Badge>
+                    <EntityObjectStatusBadge status={obj.status} />
                     <span className="text-xs text-gray-400 whitespace-nowrap">
                       {formatDate(obj.createdAt)}
                     </span>
@@ -372,16 +253,28 @@ export default function EntityAvailabilityPage() {
                   </>
                 }
                 footer={
-                  revocable ? (
+                  <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3">
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => setRevokeTarget(obj)}
-                      leftIcon={<Undo2 className="w-4 h-4" aria-hidden="true" />}
+                      className="w-full sm:w-auto"
+                      onClick={() => setDetailTarget(obj)}
+                      leftIcon={<Eye className="w-4 h-4" aria-hidden="true" />}
                     >
-                      Revoca
+                      Dettagli
                     </Button>
-                  ) : undefined
+                    {revocable ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => setRevokeTarget(obj)}
+                        leftIcon={<Undo2 className="w-4 h-4" aria-hidden="true" />}
+                      >
+                        Revoca
+                      </Button>
+                    ) : null}
+                  </div>
                 }
                 ariaLabel={`Apri disponibilità ${obj.title}`}
               />
@@ -409,7 +302,7 @@ export default function EntityAvailabilityPage() {
               <Button
                 variant="primary"
                 onClick={handleCreate}
-                disabled={creating || !title.trim() || imageUrls.length === 0}
+                disabled={creating || !form.title.trim() || form.imageUrls.length === 0}
                 className="flex-1"
               >
                 {creating ? 'Pubblicazione...' : 'Pubblica'}
@@ -419,95 +312,34 @@ export default function EntityAvailabilityPage() {
         }
       >
         <div className="p-6 space-y-4">
-          <Input
-            type="text"
-            label="Titolo *"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Es. Sedia in legno"
-          />
-
-          <Textarea
-            label="Descrizione"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            placeholder="Dettagli dell'oggetto, misure, colore..."
-          />
-
-          <Select
-            label="Categoria *"
-            value={category}
-            onChange={(e) => setCategory(e.target.value as Category)}
-            options={categoryOptions}
-          />
-
-          <Select
-            label="Condizione *"
-            value={condition}
-            onChange={(e) => setCondition(e.target.value as Condition)}
-            options={conditionOptions}
-          />
-
-          <div>
-            <span id={photoId} className="block text-sm font-medium text-gray-700 mb-1">
-              Foto *
-            </span>
-            <div aria-labelledby={photoId}>
-              <ImageUploader
-                onImagesChange={setImageUrls}
-                maxFiles={5}
-                currentImages={imageUrls}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Input
-              type="text"
-              label="Posizione di deposito"
-              value={depositLocation}
-              onChange={(e) => setDepositLocation(e.target.value)}
-              placeholder="Es. (S): MAGAZZINO - (S): A-12 - (P): 1"
-            />
+          <EntityObjectForm
+            idPrefix="create"
+            imageKey={`create-${formKey}`}
+            values={form}
+            onChange={handleFormChange}
+          >
             <div className="mt-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowScanner(true)}
-                className="w-full sm:w-auto"
-              >
-                <QrCode className="w-4 h-4 mr-2" aria-hidden="true" />
-                Scansiona etichetta scaffale
-              </Button>
+              <ShelfLabelScanner
+                onScan={(location) =>
+                  setForm((current) => ({ ...current, depositLocation: location }))
+                }
+              />
             </div>
             <p className="text-xs text-gray-500 mt-2">
               Il bene è già in giacenza: la posizione va indicata alla pubblicazione,
               non al momento della consegna.
             </p>
-          </div>
-
-          {showScanner && (
-            <div className="rounded-lg overflow-hidden border border-gray-200">
-              <video ref={videoRef} className="w-full h-64 object-cover bg-black" />
-              <div className="p-2 text-center">
-                <Button type="button" variant="secondary" onClick={stopScanner}>
-                  <Camera className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Annulla scansione
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <Textarea
-            label="Note di deposito"
-            value={depositNotes}
-            onChange={(e) => setDepositNotes(e.target.value)}
-            rows={2}
-            placeholder="Es. aprire il magazzino su richiesta"
-          />
+          </EntityObjectForm>
         </div>
       </Modal>
+
+      {/* Dettagli + modifica disponibilità */}
+      <EntityObjectDetailModal
+        object={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        onSaved={fetchObjects}
+        onRevoke={(object) => setRevokeTarget(object)}
+      />
 
       {/* Revoca disponibilità */}
       <Modal
@@ -515,6 +347,7 @@ export default function EntityAvailabilityPage() {
         onClose={() => !revoking && setRevokeTarget(null)}
         title="Revoca disponibilità"
         size="sm"
+        zIndex={60}
         footer={
           <div className="p-6 bg-gray-50">
             <div className="flex gap-3">
@@ -550,6 +383,7 @@ export default function EntityAvailabilityPage() {
                 La revoca è possibile solo se non ci sono richieste attive e l&apos;oggetto
                 non è ancora stato consegnato.
               </li>
+              <li>Potrai ripubblicarla dalla pagina &quot;Revocate&quot;.</li>
             </ul>
           </Alert>
         </div>

@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { Category, Condition } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import { hasAnyPermission } from '@/lib/permissions';
 import {
+  ENTITY_EDITABLE_STATUSES,
+  ENTITY_REPUBLISHABLE_STATUSES,
   ENTITY_REVOCABLE_STATUSES,
+  canEditEntityObject,
+  canRepublishEntityObject,
   canRevokeEntityObject,
-} from '@/lib/entity-history';
+  validateEntityObjectInput,
+} from '@/lib/entity-object-rules';
 
 const JWT_SECRET = getJwtSecret();
+
+/** Stati di una richiesta che bloccano la revoca (stesso filtro del server). */
+const ACTIVE_REQUEST_STATUSES = ['PENDING', 'APPROVED'] as const;
 
 interface OperatorSession {
   operatorId: string;
@@ -32,17 +41,31 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
   }
 }
 
+/** Normalizza un campo di testo libero in stringa o null. */
+function optionalText(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 /**
  * PATCH /api/operator/entity-objects/[id]
  *
- * Revoca di una disponibilità pubblicata dall'ente.
+ * Azioni sulle disponibilità pubblicate dall'ente:
+ * - `revoke`    → revoca (AVAILABLE/DEPOSITED → CANCELLED)
+ * - `update`    → modifica titolo, descrizione, categoria, condizione,
+ *                 foto, posizione e note di deposito
+ * - `republish` → ripubblica una disponibilità revocata (CANCELLED → AVAILABLE)
  *
  * Body: `{ "action": "revoke" }`
+ *        `{ "action": "update", "data": { ... } }`
+ *        `{ "action": "republish" }`
  *
- * Regole (stesso predicato usato dalla UI, vedi `canRevokeEntityObject`):
+ * Regole (stessi predicati usati dalla UI, vedi `entity-object-rules.ts`):
  * - l'oggetto deve essere dell'ente della sessione (`publishedByOrgId`);
- * - nessuna richiesta attiva (PENDING/APPROVED) sull'oggetto;
- * - stato tra `AVAILABLE` e `DEPOSITED` (non ancora consegnato).
+ * - nessuna richiesta attiva (PENDING/APPROVED) sull'oggetto quando si
+ *   revoca o si ripubblica;
+ * - stati coerenti con l'azione (non ancora consegnato / già revocato).
  *
  * La revoca NON cancella l'oggetto: lo porta in `CANCELLED`, così la
  * disponibilità sparisce dal magazzino (non è più offerta ai beneficiari)
@@ -73,7 +96,9 @@ export const PATCH = withErrorHandler(async (
   const { id: objectId } = await params;
 
   const body = await request.json().catch(() => ({}));
-  if (body?.action !== 'revoke') {
+  const action = body?.action;
+
+  if (action !== 'revoke' && action !== 'update' && action !== 'republish') {
     return NextResponse.json({ error: 'Azione non supportata' }, { status: 400 });
   }
 
@@ -86,7 +111,7 @@ export const PATCH = withErrorHandler(async (
       status: true,
       _count: {
         select: {
-          requests: { where: { status: { in: ['PENDING', 'APPROVED'] } } },
+          requests: { where: { status: { in: [...ACTIVE_REQUEST_STATUSES] } } },
         },
       },
     },
@@ -95,6 +120,90 @@ export const PATCH = withErrorHandler(async (
   if (!object) {
     return NextResponse.json({ error: 'Disponibilità non trovata' }, { status: 404 });
   }
+
+  // --- Modifica ------------------------------------------------------------------
+
+  if (action === 'update') {
+    if (!canEditEntityObject(object.status)) {
+      return NextResponse.json(
+        { error: 'La disponibilità non è modificabile perché non è più in giacenza.' },
+        { status: 409 }
+      );
+    }
+
+    const data = body?.data ?? {};
+    const validationError = validateEntityObjectInput(data);
+
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    // Aggiornamento atomico: il filtro replica il guard precedente, così
+    // un cambio di stato concorrente impedisce la modifica.
+    const result = await prisma.object.updateMany({
+      where: {
+        id: objectId,
+        publishedByOrgId: session.organizationId,
+        status: { in: [...ENTITY_EDITABLE_STATUSES] },
+      },
+      data: {
+        title: String(data.title).trim(),
+        description: optionalText(data.description),
+        category: data.category as Category,
+        condition: data.condition as Condition,
+        imageUrls: data.imageUrls as string[],
+        depositLocation: optionalText(data.depositLocation),
+        depositNotes: optionalText(data.depositNotes),
+      },
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: 'La disponibilità è cambiata nel frattempo: ricarica la pagina.' },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      object: { id: object.id, title: String(data.title).trim(), status: object.status },
+    });
+  }
+
+  // --- Ripubblicazione -----------------------------------------------------------
+
+  if (action === 'republish') {
+    if (!canRepublishEntityObject(object.status)) {
+      return NextResponse.json(
+        { error: 'Solo una disponibilità revocata può essere ripubblicata.' },
+        { status: 409 }
+      );
+    }
+
+    const result = await prisma.object.updateMany({
+      where: {
+        id: objectId,
+        publishedByOrgId: session.organizationId,
+        status: { in: [...ENTITY_REPUBLISHABLE_STATUSES] },
+        requests: { none: { status: { in: [...ACTIVE_REQUEST_STATUSES] } } },
+      },
+      data: { status: 'AVAILABLE' },
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: 'La disponibilità è cambiata nel frattempo: ricarica la pagina.' },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      object: { id: object.id, title: object.title, status: 'AVAILABLE' },
+    });
+  }
+
+  // --- Revoca --------------------------------------------------------------------
 
   if (!canRevokeEntityObject(object.status, object._count.requests)) {
     if (object._count.requests > 0) {
@@ -121,7 +230,7 @@ export const PATCH = withErrorHandler(async (
       id: objectId,
       publishedByOrgId: session.organizationId,
       status: { in: [...ENTITY_REVOCABLE_STATUSES] },
-      requests: { none: { status: { in: ['PENDING', 'APPROVED'] } } },
+      requests: { none: { status: { in: [...ACTIVE_REQUEST_STATUSES] } } },
     },
     data: { status: 'CANCELLED' },
   });
