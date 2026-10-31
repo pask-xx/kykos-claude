@@ -336,27 +336,29 @@ export default function EntityAvailabilityPage() {
         onClose={handleCloseModal}
         title="Nuova disponibilità"
         footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={handleCloseModal}
-              className="flex-1"
-              disabled={creating}
-            >
-              Annulla
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleCreate}
-              disabled={creating || !title.trim() || imageUrls.length === 0}
-              className="flex-1"
-            >
-              {creating ? 'Pubblicazione...' : 'Pubblica'}
-            </Button>
-          </>
+          <div className="p-6 bg-gray-50">
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={handleCloseModal}
+                className="flex-1"
+                disabled={creating}
+              >
+                Annulla
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleCreate}
+                disabled={creating || !title.trim() || imageUrls.length === 0}
+                className="flex-1"
+              >
+                {creating ? 'Pubblicazione...' : 'Pubblica'}
+              </Button>
+            </div>
+          </div>
         }
       >
-        <div className="space-y-4">
+        <div className="p-6 space-y-4">
           <Input
             type="text"
             label="Titolo *"

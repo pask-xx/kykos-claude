@@ -208,27 +208,29 @@ export default function MultiAvailabilityPage() {
         onClose={() => setShowModal(false)}
         title="Nuova distribuzione"
         footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => setShowModal(false)}
-              className="flex-1"
-              disabled={creating}
-            >
-              Annulla
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleCreate}
-              disabled={creating || !title || availableQty < 1}
-              className="flex-1"
-            >
-              {creating ? 'Creazione...' : 'Crea'}
-            </Button>
-          </>
+          <div className="p-6 bg-gray-50">
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setShowModal(false)}
+                className="flex-1"
+                disabled={creating}
+              >
+                Annulla
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleCreate}
+                disabled={creating || !title || availableQty < 1}
+                className="flex-1"
+              >
+                {creating ? 'Creazione...' : 'Crea'}
+              </Button>
+            </div>
+          </div>
         }
       >
-        <div className="space-y-4">
+        <div className="p-6 space-y-4">
           <Input
             type="text"
             label="Titolo *"
