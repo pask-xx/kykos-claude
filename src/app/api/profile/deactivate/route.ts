@@ -55,9 +55,12 @@ export const GET = withErrorHandler(async () => {
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
 
-    // 1. Get all objects published by this user (as donor)
+    // 1. Get all objects published by this user (as donor).
+    // Le disponibilità pubblicate dall'ente (`publishedByOrgId` non NULL) NON
+    // sono oggetti donati dall'utente: disattivare il profilo del cap-ente
+    // non deve annullare il magazzino dell'ente.
     const objects = await prisma.object.findMany({
-      where: { donorId: session.id },
+      where: { donorId: session.id, publishedByOrgId: null },
       include: {
         requests: {
           where: { status: { in: ['PENDING', 'APPROVED'] } },
@@ -247,9 +250,11 @@ export const POST = withErrorHandler(async () => {
     const actions = await prisma.$transaction(async (tx) => {
       const out: string[] = [];
 
-      // 1. Get all objects published by this user (as donor)
+      // 1. Get all objects published by this user (as donor).
+      // Le disponibilità pubblicate dall'ente (`publishedByOrgId` non NULL) non
+      // sono oggetti donati dall'utente: restano di proprietà dell'ente.
       const objects = await tx.object.findMany({
-        where: { donorId: session.id },
+        where: { donorId: session.id, publishedByOrgId: null },
         include: {
           requests: {
             where: { status: { in: ['PENDING', 'APPROVED'] } },

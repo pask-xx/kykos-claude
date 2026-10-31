@@ -17,6 +17,8 @@ interface Object {
   status: string;
   imageUrls: string[];
   createdAt: string;
+  /** Disponibilità pubblicata dall'ente (l'ente è il donatore). */
+  publishedByOrgId?: string | null;
   donor: { name: string };
 }
 
@@ -227,7 +229,14 @@ export default function OperatorObjectsPage() {
                   )
                 }
                 title={obj.title}
-                badgesTop={<Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>}
+                badgesTop={
+                  <>
+                    <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                    {obj.publishedByOrgId ? (
+                      <Badge variant="info">Magazzino</Badge>
+                    ) : null}
+                  </>
+                }
                 meta={
                   <>
                     {CATEGORY_LABELS[obj.category as keyof typeof CATEGORY_LABELS] || obj.category}

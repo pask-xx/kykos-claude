@@ -19,6 +19,8 @@ interface RequestObject {
     imageUrls: string[];
     status: string;
     depositLocation: string | null;
+    /** Disponibilità pubblicata dall'ente (l'ente è il donatore). */
+    publishedByOrgId?: string | null;
   };
   donation: {
     id: string;
@@ -46,12 +48,19 @@ function requestStatusBadge(status: string) {
 /**
  * Mappa Object.status → Badge variant KYKOS.
  * vedi: src/types/ObjectStatus.
+ *
+ * `isEntity`: disponibilità pubblicata dall'ente (l'ente è il donatore).
+ * In questo caso l'oggetto è già in giacenza presso il deposito, quindi
+ * DEPOSITED significa "pronto per il ritiro" e non "il donatore l'ha consegnato".
  */
-function objectStatusBadge(status: string) {
+function objectStatusBadge(status: string, isEntity = false) {
   switch (status) {
     case 'AVAILABLE': return { variant: 'success' as const, label: 'Disponibile' };
     case 'RESERVED': return { variant: 'warning' as const, label: 'In attesa consegna' };
-    case 'DEPOSITED': return { variant: 'primary' as const, label: 'Depositata' };
+    case 'DEPOSITED':
+      return isEntity
+        ? { variant: 'primary' as const, label: 'Pronto per il ritiro' }
+        : { variant: 'primary' as const, label: 'Depositata' };
     case 'DONATED': return { variant: 'default' as const, label: 'Ritirato' };
     case 'CANCELLED': return { variant: 'danger' as const, label: 'Cancellato' };
     default: return { variant: 'default' as const, label: status };
@@ -177,7 +186,10 @@ export default function RecipientRequestsPage() {
         <div className="space-y-4">
           {filteredRequests.map((request) => {
             const requestStatus = requestStatusBadge(request.status);
-            const objStatus = objectStatusBadge(request.object.status);
+            const objStatus = objectStatusBadge(
+              request.object.status,
+              Boolean(request.object.publishedByOrgId)
+            );
 
             return (
               <div

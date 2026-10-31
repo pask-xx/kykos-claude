@@ -424,6 +424,8 @@ model Organization {
   operators Operator[]
 
   objects              Object[]
+  // Disponibilità pubblicate dall'ente stesso (l'ente è il donatore)
+  entityPublishedObjects Object[] @relation("EntityPublishedObjects")
   requests             Request[]
   payments             Payment[]
   authorizedRecipients User[]         @relation("RecipientReference")
@@ -570,12 +572,21 @@ model Object {
   intermediaryId String
   intermediary   Organization @relation(fields: [intermediaryId], references: [id])
 
+  // Disponibilità pubblicata dall'ente: l'ente è il donatore (non c'è un
+  // donatore utente). Nullable + additivo: sugli oggetti esistenti resta
+  // NULL (= disponibilità di un utente). `donorId` resta obbligatorio e
+  // punta all'account dell'ente (Organization.userId), così Donation e il
+  // resto della catena continuano a funzionare senza modifiche.
+  publishedByOrgId String?       @map("published_by_org_id")
+  publishedByOrg   Organization? @relation("EntityPublishedObjects", fields: [publishedByOrgId], references: [id], onDelete: SetNull)
+
   requests Request[]
   donation Donation?
   reports  Report[]
 
   @@index([donorId])
   @@index([status])
+  @@index([publishedByOrgId])
   @@map("objects")
 }
 

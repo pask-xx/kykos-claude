@@ -8,7 +8,8 @@ import type { LocationSuggestion } from '@/lib/location-suggest';
 interface DonationQrResponse {
   donation: { id: string; objectTitle: string; status: string };
   qrCodes: {
-    deliver: { type: 'deliver'; data: string; imageUrl: string; label: string; description: string };
+    /** `null` per le disponibilità dell'ente: non esiste una consegna. */
+    deliver: { type: 'deliver'; data: string; imageUrl: string; label: string; description: string } | null;
     pickup: { type: 'pickup'; data: string; imageUrl: string; label: string; description: string };
   };
   userType: 'donor' | 'recipient';

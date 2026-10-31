@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useId } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Check, Camera, Printer } from 'lucide-react';
 import QrScanner from 'qr-scanner';
+import { formatShelfLocation } from '@/lib/shelf-label';
 
 interface LabelData {
   requestId: string;
@@ -54,21 +55,9 @@ export default function GoodsDepositLocationPage() {
   };
 
   // Format QR data as (S): <stanza> - (S): <scaffale> - (P): <piano>
-  const formatLocationFromQr = (data: string): string => {
-    if (!data) return '';
-    // Assume data is in format stanza\scaffale\piano or similar
-    const parts = data.split(/[\s\n]+/).filter(p => p.trim());
-    if (parts.length >= 3) {
-      return `(S): ${parts[0]} - (S): ${parts[1]} - (P): ${parts[2]}`;
-    }
-    // If just one part, try splitting by common separators
-    const separatorMatch = data.match(/^([A-Z]+)\s*[-_]?\s*(\S+)\s*[-_]?\s*(\S+)\s*[-_]?\s*(\S+)$/i);
-    if (separatorMatch) {
-      return `(S): ${separatorMatch[1]} - (S): ${separatorMatch[2]} - (P): ${separatorMatch[3]}`;
-    }
-    // Return original if can't parse
-    return data;
-  };
+  // Helper condiviso con la form di pubblicazione delle disponibilità
+  // dell'ente (src/lib/shelf-label.ts).
+  const formatLocationFromQr = (data: string): string => formatShelfLocation(data);
 
   useEffect(() => {
     // Get cameras on mount

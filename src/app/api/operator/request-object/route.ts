@@ -4,8 +4,10 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { generateDeliverQrCode, generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 import { sendDeliveryQrNotification } from '@/lib/email';
+import { isEntityPublished, OBJECT_STATUS_ON_APPROVAL, sendEntityPickupQrNotification } from '@/lib/entity-objects';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
+import type { LocationHours } from '@/types';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -130,10 +132,17 @@ export const POST = withErrorHandler(async (request: Request) => {
     },
   });
 
-  // Update object status to RESERVED and create donation with QR codes
+  // Disponibilità pubblicata dall'ente (l'ente è il donatore): non esiste
+  // un donatore da avvisare e l'oggetto è già in giacenza in sede.
+  const isEntityObject = isEntityPublished(object);
+  const objectStatusOnApproval = isEntityObject
+    ? OBJECT_STATUS_ON_APPROVAL.ENTITY
+    : OBJECT_STATUS_ON_APPROVAL.DONOR;
+
+  // Update object status and create donation with QR codes
   await prisma.object.update({
     where: { id: objectId },
-    data: { status: 'RESERVED' },
+    data: { status: objectStatusOnApproval },
   });
 
   // Get full data for email and QR codes
@@ -152,14 +161,25 @@ export const POST = withErrorHandler(async (request: Request) => {
   // Get organization details
   const org = await prisma.organization.findUnique({
     where: { id: object.intermediaryId },
-    select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
+    select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true, hours: true, notes: true },
   });
 
-  // Generate QR codes
-  const deliverQrData = generateDeliverQrCode(newRequest.id, fullRequest!.object.donorId, 'object');
-  const pickupQrData = generatePickupQrCode(newRequest.id, fullRequest!.recipientId, 'object');
-  const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${newRequest.id}.png`);
-  const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${newRequest.id}.png`);
+  // Generate QR codes.
+  // - QR di consegna: solo per i donatori utente (l'ente non consegna).
+  // - QR di ritiro: nel flusso donatore viene inviato al beneficiario dopo la
+  //   consegna; nel flusso ente viene inviato subito.
+  const deliverQrData = isEntityObject
+    ? null
+    : generateDeliverQrCode(newRequest.id, fullRequest!.object.donorId, 'object');
+  const deliverQrImage = deliverQrData
+    ? await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${newRequest.id}.png`)
+    : null;
+  const pickupQrData = isEntityObject
+    ? null
+    : generatePickupQrCode(newRequest.id, fullRequest!.recipientId, 'object');
+  const pickupQrImage = pickupQrData
+    ? await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${newRequest.id}.png`)
+    : null;
 
   // Create donation record
   await prisma.donation.create({
@@ -173,24 +193,50 @@ export const POST = withErrorHandler(async (request: Request) => {
     },
   });
 
-  // Send email to donor with QR code
-  await sendDeliveryQrNotification(
-    fullRequest!.object.donor.email,
-    fullRequest!.object.donorId,
-    fullRequest!.object.donor.name,
-    fullRequest!.object.title,
-    deliverQrData,
-    deliverQrImage,
-    org?.name || '',
-    org?.address || null,
-    org?.houseNumber || null,
-    org?.cap || null,
-    org?.city || null,
-    org?.province || null,
-    org?.phone || null,
-    org?.email || null,
-    org?.hoursInfo || null
-  );
+  if (isEntityObject) {
+    // L'ente è il donatore: nessun QR di consegna, il beneficiario riceve
+    // direttamente il QR di ritiro (il bene è già in giacenza presso l'ente).
+    await sendEntityPickupQrNotification({
+      requestId: newRequest.id,
+      recipientId,
+      recipientEmail: fullRequest!.recipient.email,
+      recipientName: fullRequest!.recipient.name,
+      objectTitle: fullRequest!.object.title,
+      objectId,
+      org: {
+        name: org?.name || '',
+        address: org?.address ?? null,
+        houseNumber: org?.houseNumber ?? null,
+        cap: org?.cap ?? null,
+        city: org?.city ?? null,
+        province: org?.province ?? null,
+        phone: org?.phone ?? null,
+        email: org?.email ?? null,
+        hoursInfo: org?.hoursInfo ?? null,
+        hours: (org?.hours as unknown as LocationHours | null) ?? null,
+        notes: org?.notes ?? null,
+      },
+    });
+  } else if (deliverQrData && deliverQrImage) {
+    // Send email to donor with QR code
+    await sendDeliveryQrNotification(
+      fullRequest!.object.donor.email,
+      fullRequest!.object.donorId,
+      fullRequest!.object.donor.name,
+      fullRequest!.object.title,
+      deliverQrData,
+      deliverQrImage,
+      org?.name || '',
+      org?.address || null,
+      org?.houseNumber || null,
+      org?.cap || null,
+      org?.city || null,
+      org?.province || null,
+      org?.phone || null,
+      org?.email || null,
+      org?.hoursInfo || null
+    );
+  }
 
   return NextResponse.json({
     success: true,

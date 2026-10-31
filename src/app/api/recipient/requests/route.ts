@@ -25,6 +25,8 @@ export const GET = withErrorHandler(async () => {
           imageUrls: true,
           status: true,
           depositLocation: true,
+          // Disponibilità pubblicata dall'ente (l'ente è il donatore)
+          publishedByOrgId: true,
         },
       },
     },

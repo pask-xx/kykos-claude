@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { sendRequestNotification, sendDeliveryQrNotification } from '@/lib/email';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode } from '@/lib/qrcode';
+import { isEntityPublished, OBJECT_STATUS_ON_APPROVAL, sendEntityPickupQrNotification } from '@/lib/entity-objects';
 import { withErrorHandler } from '@/lib/api';
 import { suggestLocationForTransaction } from '@/lib/location-suggest';
 import { formatLocationSuggestionBlock } from '@/lib/location-format';
@@ -21,7 +22,7 @@ export const POST = withErrorHandler(async (request: Request) => {
   // Check if recipient is authorized
   const user = await prisma.user.findUnique({
     where: { id: session.id },
-    select: { authorized: true },
+    select: { authorized: true, name: true, email: true },
   });
 
   if (!user?.authorized) {
@@ -61,6 +62,13 @@ export const POST = withErrorHandler(async (request: Request) => {
   // Create request - check if intermediary auto-approves
   const shouldAutoApprove = object.intermediary.autoApproveRequests;
 
+  // Disponibilità pubblicata dall'ente (l'ente è il donatore): non esiste un
+  // donatore utente da avvisare, il bene è già in giacenza in sede.
+  const isEntityObject = isEntityPublished(object);
+  const objectStatusOnApproval = isEntityObject
+    ? OBJECT_STATUS_ON_APPROVAL.ENTITY
+    : OBJECT_STATUS_ON_APPROVAL.DONOR;
+
   // B3 — Race-safe reservation.
   // We move the entire mutation (request + donation + object -> RESERVED) inside a transaction.
   // The atomic primitive is `object.updateMany` with a conditional WHERE on `status: 'AVAILABLE'`.
@@ -70,10 +78,12 @@ export const POST = withErrorHandler(async (request: Request) => {
   try {
     req = await prisma.$transaction(async (tx) => {
       if (shouldAutoApprove) {
-        // Atomic reservation: succeed only if object is still AVAILABLE
+        // Atomic reservation: succeed only if object is still AVAILABLE.
+        // Per le disponibilità dell'ente l'oggetto passa direttamente a
+        // DEPOSITED (è già in giacenza, non c'è una gamba di consegna).
         const reserved = await tx.object.updateMany({
           where: { id: objectId, status: 'AVAILABLE' },
-          data: { status: 'RESERVED' },
+          data: { status: objectStatusOnApproval },
         });
 
         if (reserved.count === 0) {
@@ -165,36 +175,60 @@ export const POST = withErrorHandler(async (request: Request) => {
   );
 
   if (shouldAutoApprove) {
-    // Generate and send delivery QR code to donor
-    try {
-      const qrData = generateDeliverQrCode(req.id, req.object.donorId, 'object');
-      const qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, `object-deliver-${req.id}.png`);
+    if (isEntityObject) {
+      // L'ente è il donatore: non c'è nessun donatore da avvisare e nessun
+      // QR di consegna da generare. Il beneficiario riceve direttamente il
+      // QR di ritiro (il bene è già in giacenza presso l'ente).
+      try {
+        await sendEntityPickupQrNotification({
+          requestId: req.id,
+          recipientId: session.id,
+          recipientEmail: user.email,
+          recipientName: user.name,
+          objectTitle: object.title,
+          objectId: object.id,
+          org: {
+            ...object.intermediary,
+            hours: object.intermediary.hours as unknown as LocationHours | null,
+          },
+        });
+      } catch (qrError) {
+        console.error('Error generating/sending pickup QR (entity object):', qrError);
+      }
+    } else {
+      // Generate and send delivery QR code to donor
+      try {
+        const qrData = generateDeliverQrCode(req.id, req.object.donorId, 'object');
+        const qrImageUrl = await generateAndUploadQrCodeWithLogo(qrData, `object-deliver-${req.id}.png`);
 
-      await sendDeliveryQrNotification(
-        req.object.donor.email,
-        req.object.donorId,
-        req.object.donor.name,
-        object.title,
-        qrData,
-        qrImageUrl,
-        object.intermediary.name,
-        object.intermediary.address,
-        object.intermediary.houseNumber,
-        object.intermediary.cap,
-        object.intermediary.city,
-        object.intermediary.province,
-        object.intermediary.phone,
-        object.intermediary.email,
-        object.intermediary.hoursInfo,
-        object.intermediary.hours as unknown as LocationHours | null,
-        object.intermediary.notes,
-        locationSuggestionBlock
-      );
-    } catch (qrError) {
-      console.error('Error generating/sending delivery QR:', qrError);
+        await sendDeliveryQrNotification(
+          req.object.donor.email,
+          req.object.donorId,
+          req.object.donor.name,
+          object.title,
+          qrData,
+          qrImageUrl,
+          object.intermediary.name,
+          object.intermediary.address,
+          object.intermediary.houseNumber,
+          object.intermediary.cap,
+          object.intermediary.city,
+          object.intermediary.province,
+          object.intermediary.phone,
+          object.intermediary.email,
+          object.intermediary.hoursInfo,
+          object.intermediary.hours as unknown as LocationHours | null,
+          object.intermediary.notes,
+          locationSuggestionBlock
+        );
+      } catch (qrError) {
+        console.error('Error generating/sending delivery QR:', qrError);
+      }
     }
-  } else {
-    // Notify donor via email (PENDING path)
+  } else if (!isEntityObject) {
+    // Notify donor via email (PENDING path).
+    // Per le disponibilità dell'ente non c'è un donatore da avvisare: la
+    // richiesta resta visibile allo staff dell'ente in /operator/requests.
     await sendRequestNotification(
       req.object.donor.email,
       req.object.donorId,

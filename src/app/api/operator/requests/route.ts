@@ -5,8 +5,10 @@ import { prisma } from '@/lib/prisma';
 import { hasPermission, hasAnyPermission } from '@/lib/permissions';
 import { generateDeliverQrCode, generatePickupQrCode, generateAndUploadQrCodeWithLogo } from '@/lib/qrcode';
 import { sendDeliveryQrNotification } from '@/lib/email';
+import { isEntityPublished, OBJECT_STATUS_ON_APPROVAL, sendEntityPickupQrNotification } from '@/lib/entity-objects';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
+import type { LocationHours } from '@/types';
 
 const JWT_SECRET = getJwtSecret();
 
@@ -141,14 +143,33 @@ export const PATCH = withErrorHandler(async (request: Request) => {
     // Get organization details
     const org = await prisma.organization.findUnique({
       where: { id: session.organizationId },
-      select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
+      select: { name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true, hours: true, notes: true },
     });
 
-    // Generate QR codes
-    const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
-    const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-    const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`);
-    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+    // Disponibilità pubblicata dall'ente (l'ente è il donatore): non esiste
+    // un donatore da avvisare e l'oggetto è già in giacenza in sede.
+    const isEntityObject = isEntityPublished(req.object);
+    const objectStatusOnApproval = isEntityObject
+      ? OBJECT_STATUS_ON_APPROVAL.ENTITY
+      : OBJECT_STATUS_ON_APPROVAL.DONOR;
+
+    // Generate QR codes.
+    // - QR di consegna: solo per i donatori utente (l'ente non consegna).
+    // - QR di ritiro: generato nel flusso donatore (preparato qui, inviato al
+    //   beneficiario dopo la consegna). Nel flusso ente lo genera
+    //   sendEntityPickupQrNotification, che lo invia subito al beneficiario.
+    const deliverQrData = isEntityObject
+      ? null
+      : generateDeliverQrCode(requestId, req.object.donorId, 'object');
+    const deliverQrImage = deliverQrData
+      ? await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`)
+      : null;
+    const pickupQrData = isEntityObject
+      ? null
+      : generatePickupQrCode(requestId, req.recipientId, 'object');
+    const pickupQrImage = pickupQrData
+      ? await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`)
+      : null;
 
     // Update request, object and create donation in transaction
     await prisma.$transaction(async (tx) => {
@@ -159,7 +180,7 @@ export const PATCH = withErrorHandler(async (request: Request) => {
 
       await tx.object.update({
         where: { id: req.objectId },
-        data: { status: 'RESERVED' },
+        data: { status: objectStatusOnApproval },
       });
 
       await tx.donation.create({
@@ -174,24 +195,50 @@ export const PATCH = withErrorHandler(async (request: Request) => {
       });
     });
 
-    // Send Delivery QR to donor
-    await sendDeliveryQrNotification(
-      req.object.donor.email,
-      req.object.donorId,
-      req.object.donor.name,
-      req.object.title,
-      deliverQrData,
-      deliverQrImage,
-      org?.name || '',
-      org?.address || null,
-      org?.houseNumber || null,
-      org?.cap || null,
-      org?.city || null,
-      org?.province || null,
-      org?.phone || null,
-      org?.email || null,
-      org?.hoursInfo || null
-    );
+    if (isEntityObject) {
+      // L'ente è il donatore: nessun QR di consegna, il beneficiario riceve
+      // direttamente il QR di ritiro (il bene è già in giacenza presso l'ente).
+      await sendEntityPickupQrNotification({
+        requestId,
+        recipientId: req.recipientId,
+        recipientEmail: req.recipient.email,
+        recipientName: req.recipient.name,
+        objectTitle: req.object.title,
+        objectId: req.objectId,
+        org: {
+          name: org?.name || '',
+          address: org?.address ?? null,
+          houseNumber: org?.houseNumber ?? null,
+          cap: org?.cap ?? null,
+          city: org?.city ?? null,
+          province: org?.province ?? null,
+          phone: org?.phone ?? null,
+          email: org?.email ?? null,
+          hoursInfo: org?.hoursInfo ?? null,
+          hours: (org?.hours as unknown as LocationHours | null) ?? null,
+          notes: org?.notes ?? null,
+        },
+      });
+    } else if (deliverQrData && deliverQrImage) {
+      // Send Delivery QR to donor
+      await sendDeliveryQrNotification(
+        req.object.donor.email,
+        req.object.donorId,
+        req.object.donor.name,
+        req.object.title,
+        deliverQrData,
+        deliverQrImage,
+        org?.name || '',
+        org?.address || null,
+        org?.houseNumber || null,
+        org?.cap || null,
+        org?.city || null,
+        org?.province || null,
+        org?.phone || null,
+        org?.email || null,
+        org?.hoursInfo || null
+      );
+    }
   } else if (action === 'reject') {
     await prisma.request.update({
       where: { id: requestId },

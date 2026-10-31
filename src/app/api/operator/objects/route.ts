@@ -85,6 +85,8 @@ export const GET = withErrorHandler(async () => {
       imageUrls: true,
       createdAt: true,
       depositLocation: true,
+      // Disponibilità pubblicata dall'ente (l'ente è il donatore)
+      publishedByOrgId: true,
       donor: { select: { id: true, nickname: true, name: true } },
       requests: {
         where: { status: 'APPROVED' },

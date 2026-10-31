@@ -16,7 +16,8 @@ interface Object {
   condition: string;
   imageUrls: string[] | null;
   donor: {
-    donorProfile: { level: DonorLevel };
+    /** Null per le disponibilità pubblicate dall'ente (l'ente non ha livelli donatore). */
+    donorProfile: { level: DonorLevel } | null;
   };
   intermediary: { id: string; name: string };
   status: string;
@@ -268,7 +269,7 @@ export default function RecipientBrowsePage() {
                       createdAt: new Date().toISOString(),
                       _count: obj._count,
                     }}
-                    level={obj.donor.donorProfile.level}
+                    level={obj.donor.donorProfile?.level ?? null}
                     isExpanded={expandedId === obj.id}
                     onToggle={() =>
                       setExpandedId(expandedId === obj.id ? null : obj.id)

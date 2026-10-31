@@ -3,7 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { sendDeliveryQrNotification, sendDonationConfirmedNotification } from '@/lib/email';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
+import { isEntityPublished, OBJECT_STATUS_ON_APPROVAL, sendEntityPickupQrNotification } from '@/lib/entity-objects';
 import { withErrorHandler } from '@/lib/api';
+import type { LocationHours } from '@/types';
 
 export const GET = withErrorHandler(async () => {
   const session = await getSession();
@@ -59,7 +61,7 @@ export const PATCH = withErrorHandler(async (request: Request) => {
 
   const org = await prisma.organization.findUnique({
     where: { userId: session.id },
-    select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true },
+    select: { id: true, name: true, address: true, houseNumber: true, cap: true, city: true, province: true, phone: true, email: true, hoursInfo: true, hours: true, notes: true },
   });
 
   if (!org) {
@@ -88,11 +90,30 @@ export const PATCH = withErrorHandler(async (request: Request) => {
   }
 
   if (action === 'approve') {
-    // Generate both QR codes
-    const deliverQrData = generateDeliverQrCode(requestId, req.object.donorId, 'object');
-    const pickupQrData = generatePickupQrCode(requestId, req.recipientId, 'object');
-    const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`);
-    const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
+    // Disponibilità pubblicata dall'ente (l'ente è il donatore): non esiste
+    // un donatore da avvisare e l'oggetto è già in giacenza in sede.
+    const isEntityObject = isEntityPublished(req.object);
+    const objectStatusOnApproval = isEntityObject
+      ? OBJECT_STATUS_ON_APPROVAL.ENTITY
+      : OBJECT_STATUS_ON_APPROVAL.DONOR;
+
+    // Generate QR codes.
+    // - QR di consegna: solo per i donatori utente (l'ente non consegna).
+    // - QR di ritiro: nel flusso donatore viene inviato al beneficiario solo
+    //   dopo la consegna (scan del QR di consegna); nel flusso ente viene
+    //   inviato subito al beneficiario.
+    const deliverQrData = isEntityObject
+      ? null
+      : generateDeliverQrCode(requestId, req.object.donorId, 'object');
+    const deliverQrImage = deliverQrData
+      ? await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`)
+      : null;
+    const pickupQrData = isEntityObject
+      ? null
+      : generatePickupQrCode(requestId, req.recipientId, 'object');
+    const pickupQrImage = pickupQrData
+      ? await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`)
+      : null;
 
     // Approve and create donation
     await prisma.$transaction(async (tx) => {
@@ -105,7 +126,7 @@ export const PATCH = withErrorHandler(async (request: Request) => {
       // Update object status
       await tx.object.update({
         where: { id: req.objectId },
-        data: { status: 'RESERVED' },
+        data: { status: objectStatusOnApproval },
       });
 
       // Create donation record
@@ -121,35 +142,63 @@ export const PATCH = withErrorHandler(async (request: Request) => {
       });
     });
 
-    // Send Delivery QR to DONOR only (donor must deliver first)
-    await sendDeliveryQrNotification(
-      req.object.donor.email,
-      req.object.donorId,
-      req.object.donor.name,
-      req.object.title,
-      deliverQrData,
-      deliverQrImage,
-      org.name,
-      org.address || null,
-      org.houseNumber || null,
-      org.cap || null,
-      org.city || null,
-      org.province || null,
-      org.phone || null,
-      org.email || null,
-      org.hoursInfo || null
-    );
+    if (isEntityObject) {
+      // L'ente è il donatore: nessun QR di consegna, il beneficiario riceve
+      // direttamente il QR di ritiro (il bene è già in giacenza presso l'ente).
+      await sendEntityPickupQrNotification({
+        requestId,
+        recipientId: req.recipientId,
+        recipientEmail: req.recipient.email,
+        recipientName: req.recipient.name,
+        objectTitle: req.object.title,
+        objectId: req.objectId,
+        org: {
+          name: org.name,
+          address: org.address ?? null,
+          houseNumber: org.houseNumber ?? null,
+          cap: org.cap ?? null,
+          city: org.city ?? null,
+          province: org.province ?? null,
+          phone: org.phone ?? null,
+          email: org.email ?? null,
+          hoursInfo: org.hoursInfo ?? null,
+          hours: (org.hours as unknown as LocationHours | null) ?? null,
+          notes: org.notes ?? null,
+        },
+      });
+    } else {
+      // Send Delivery QR to DONOR only (donor must deliver first)
+      if (deliverQrData && deliverQrImage) {
+        await sendDeliveryQrNotification(
+          req.object.donor.email,
+          req.object.donorId,
+          req.object.donor.name,
+          req.object.title,
+          deliverQrData,
+          deliverQrImage,
+          org.name,
+          org.address || null,
+          org.houseNumber || null,
+          org.cap || null,
+          org.city || null,
+          org.province || null,
+          org.phone || null,
+          org.email || null,
+          org.hoursInfo || null
+        );
+      }
 
-    // NOTE: Pickup QR email to beneficiary will be sent AFTER donor delivers (when operator scans deliver QR)
-    // We no longer send pickup QR immediately - that happens in scan-qr endpoint
+      // NOTE: Pickup QR email to beneficiary will be sent AFTER donor delivers (when operator scans deliver QR)
+      // We no longer send pickup QR immediately - that happens in scan-qr endpoint
 
-    // Notify donor of completed donation
-    await sendDonationConfirmedNotification(
-      req.object.donor.email,
-      req.object.donorId,
-      req.object.donor.name,
-      req.object.title
-    );
+      // Notify donor of completed donation
+      await sendDonationConfirmedNotification(
+        req.object.donor.email,
+        req.object.donorId,
+        req.object.donor.name,
+        req.object.title
+      );
+    }
 
     return NextResponse.json({ success: true, message: 'Richiesta approvata' });
   } else if (action === 'reject') {

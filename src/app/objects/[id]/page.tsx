@@ -15,12 +15,14 @@ interface Object {
   imageUrls: string[];
   status: string;
   createdAt: string;
+  /** Disponibilità pubblicata dall'ente (l'ente è il donatore). */
+  publishedByOrgId: string | null;
   donor: {
     latitude: number | null;
     longitude: number | null;
-    donorProfile: { level: DonorLevel };
+    donorProfile: { level: DonorLevel } | null;
   };
-  donorProfile: { level: DonorLevel };
+  donorProfile: { level: DonorLevel } | null;
   intermediary: {
     name: string;
     latitude: number | null;
@@ -189,8 +191,16 @@ export default function ObjectDetailPage() {
 
             <div className="border-t pt-6 space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Livello Donatore</h3>
-                <p className="text-gray-900">{LEVEL_LABELS[object.donor.donorProfile.level]}</p>
+                <h3 className="text-sm font-medium text-gray-500">
+                  {object.publishedByOrgId ? 'Disponibilità' : 'Livello Donatore'}
+                </h3>
+                <p className="text-gray-900">
+                  {object.publishedByOrgId
+                    ? "Offerta dall'ente intermediario"
+                    : object.donor.donorProfile
+                      ? LEVEL_LABELS[object.donor.donorProfile.level]
+                      : '—'}
+                </p>
               </div>
 
               <div>

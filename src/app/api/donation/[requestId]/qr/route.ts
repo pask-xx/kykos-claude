@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { generateAndUploadQrCodeWithLogo, generateDeliverQrCode, generatePickupQrCode } from '@/lib/qrcode';
 import { suggestLocationForTransaction } from '@/lib/location-suggest';
+import { isEntityPublished } from '@/lib/entity-objects';
 
 export async function GET(
   request: Request,
@@ -26,6 +27,9 @@ export async function GET(
             title: true,
             status: true,
             donorId: true,
+            // Disponibilità pubblicata dall'ente: l'ente è il donatore e
+            // l'oggetto è già in giacenza → non esiste un QR di consegna.
+            publishedByOrgId: true,
             intermediaryId: true, // Fase C: per suggestLocationForTransaction
             intermediary: { select: { name: true, hoursInfo: true, hours: true, notes: true } },
           },
@@ -63,10 +67,18 @@ export async function GET(
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
     }
 
-    // Generate QR codes
-    const deliverQrData = generateDeliverQrCode(requestId, donation.donorId, 'object');
+    // Generate QR codes.
+    // Il QR di consegna esiste solo per i donatori utente: per le
+    // disponibilità pubblicate dall'ente il bene è già in giacenza in sede
+    // (l'ente è il donatore), quindi il beneficiario riceve solo il QR di ritiro.
+    const isEntityObject = isEntityPublished(donation.object);
+    const deliverQrData = isEntityObject
+      ? null
+      : generateDeliverQrCode(requestId, donation.donorId, 'object');
+    const deliverQrImage = deliverQrData
+      ? await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`)
+      : null;
     const pickupQrData = generatePickupQrCode(requestId, donation.recipientId, 'object');
-    const deliverQrImage = await generateAndUploadQrCodeWithLogo(deliverQrData, `deliver-${requestId}.png`);
     const pickupQrImage = await generateAndUploadQrCodeWithLogo(pickupQrData, `pickup-${requestId}.png`);
 
     // Fase C: calcola sede suggerita per QR page UI.
@@ -86,13 +98,14 @@ export async function GET(
         status: donation.object.status,
       },
       qrCodes: {
-        deliver: {
+        // `null` per le disponibilità dell'ente: non esiste una consegna.
+        deliver: deliverQrData && deliverQrImage ? {
           type: 'deliver',
           data: deliverQrData,
           imageUrl: deliverQrImage,
           label: 'Consegna',
           description: 'Mostra questo QR code quando consegni l\'oggetto all\'ente',
-        },
+        } : null,
         pickup: {
           type: 'pickup',
           data: pickupQrData,

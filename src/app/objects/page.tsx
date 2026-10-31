@@ -16,8 +16,10 @@ interface Object {
   imageUrls: string[] | null;
   createdAt: string;
   distance: number | null;
+  /** Disponibilità pubblicata dall'ente (l'ente è il donatore). */
+  publishedByOrgId?: string | null;
   donor: {
-    donorProfile: { level: DonorLevel };
+    donorProfile: { level: DonorLevel } | null;
   };
   intermediary: {
     name: string;
@@ -285,7 +287,10 @@ export default function BrowsePage() {
                     {obj.description || 'Nessuna descrizione'}
                   </p>
                   <div className="text-xs text-gray-400 mb-3">
-                    Livello donatore: {LEVEL_LABELS[obj.donor.donorProfile.level]} · Intermediario: {obj.intermediary.name}
+                    {obj.publishedByOrgId
+                      ? "Disponibilità dell'ente"
+                      : `Livello donatore: ${obj.donor.donorProfile ? LEVEL_LABELS[obj.donor.donorProfile.level] : '—'}`}{' '}
+                    · Intermediario: {obj.intermediary.name}
                   </div>
                   <Link
                     href={`/objects/${obj.id}`}
