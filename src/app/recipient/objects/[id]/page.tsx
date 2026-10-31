@@ -409,7 +409,7 @@ export default function ObjectDetailPage() {
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                      Messaggio opzionale (presentati brevemente)
+                      Messaggio opzionale
                     </label>
                     <textarea
                       id="message"

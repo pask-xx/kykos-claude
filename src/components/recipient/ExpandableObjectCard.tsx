@@ -297,7 +297,7 @@ export function ExpandableObjectCard({
                 htmlFor={messageId}
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Messaggio opzionale (presentati brevemente)
+                Messaggio opzionale
               </label>
               <textarea
                 id={messageId}
