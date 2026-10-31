@@ -78,6 +78,13 @@ export const POST = withErrorHandler(async (request: Request) => {
     data: { status: 'DONATED' },
   });
 
+  // Data di ritiro fisico: usata dallo storico del magazzino per ordinare
+  // le consegne (fallback: `Object.updatedAt`).
+  await prisma.donation.updateMany({
+    where: { objectId },
+    data: { deliveredAt: new Date() },
+  });
+
   return NextResponse.json({
     success: true,
     message: 'Consegna completata con successo',

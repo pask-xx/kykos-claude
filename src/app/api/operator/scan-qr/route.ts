@@ -183,6 +183,13 @@ export const POST = withErrorHandler(async (request: Request) => {
       data: { status: 'DONATED' },
     });
 
+    // Data di ritiro fisico: è il campo usato dallo storico del magazzino
+    // per ordinare le consegne. Il fallback è `Object.updatedAt`.
+    await prisma.donation.updateMany({
+      where: { objectId: req.objectId },
+      data: { deliveredAt: new Date() },
+    });
+
     return NextResponse.json({
       success: true,
       type: 'pickup',

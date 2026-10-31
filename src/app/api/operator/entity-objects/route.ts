@@ -1,16 +1,24 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
-import { Category, Condition } from '@prisma/client';
+import { Category, Condition, ObjectStatus, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getJwtSecret } from '@/lib/auth';
 import { withErrorHandler } from '@/lib/api';
 import { hasAnyPermission } from '@/lib/permissions';
+import { parseLocalDateBoundary, resolveEntityDeliveredAt } from '@/lib/entity-history';
 
 const JWT_SECRET = getJwtSecret();
 
 /** Limite foto: allineato a `MAX_IMAGES` del form donatore. */
 const MAX_IMAGES = 5;
+
+/**
+ * Tetto di oggetti restituibili in una pagina di elenco.
+ * Lo storico di un ente è bounded per natura (un magazzino), ma il tetto
+ * evita di caricare a memoria l'intero storico di un ente molto attivo.
+ */
+const MAX_OBJECTS_PER_PAGE = 1000;
 
 interface OperatorSession {
   operatorId: string;
@@ -35,6 +43,16 @@ async function getOperatorSession(): Promise<OperatorSession | null> {
 /**
  * GET /api/operator/entity-objects
  * Lista le disponibilità pubblicate dall'ente (l'ente è il donatore).
+ *
+ * Query params:
+ * - `status`: uno dei valori di `ObjectStatus`, oppure `ALL`.
+ *   DEFAULT: tutto tranne `DONATED` — le disponibilità consegnate NON
+ *   sono visibili nel magazzino, si consultano nello storico
+ *   (`?status=DONATED`, pagina /operator/entity-history).
+ * - `search`: testo libero su titolo, descrizione, posizione di deposito.
+ * - `category`: categoria valida (filtro per lo storico).
+ * - `from` / `to`: intervallo `YYYY-MM-DD` sulla data di consegna
+ *   (usato solo dallo storico).
  */
 export const GET = withErrorHandler(async (request: Request) => {
   const session = await getOperatorSession();
@@ -56,13 +74,40 @@ export const GET = withErrorHandler(async (request: Request) => {
   }
 
   const { searchParams } = new URL(request.url);
-  const statusFilter = searchParams.get('status');
+  const statusParam = searchParams.get('status');
+  const searchParam = searchParams.get('search')?.trim() || null;
+  const categoryParam = searchParams.get('category');
+
+  let statusFilter: ObjectStatus | undefined;
+  if (statusParam && statusParam !== 'ALL') {
+    if (!Object.values(ObjectStatus).includes(statusParam as ObjectStatus)) {
+      return NextResponse.json({ error: 'Stato non valido' }, { status: 400 });
+    }
+    statusFilter = statusParam as ObjectStatus;
+  }
+
+  if (categoryParam && !Object.values(Category).includes(categoryParam as Category)) {
+    return NextResponse.json({ error: 'Categoria non valida' }, { status: 400 });
+  }
+
+  const where: Prisma.ObjectWhereInput = {
+    publishedByOrgId: session.organizationId,
+    // Default: le consegnate non compaiono nel magazzino.
+    status: statusFilter ?? { not: 'DONATED' },
+    ...(searchParam
+      ? {
+          OR: [
+            { title: { contains: searchParam, mode: 'insensitive' } },
+            { description: { contains: searchParam, mode: 'insensitive' } },
+            { depositLocation: { contains: searchParam, mode: 'insensitive' } },
+          ],
+        }
+      : {}),
+    ...(categoryParam ? { category: categoryParam as Category } : {}),
+  };
 
   const objects = await prisma.object.findMany({
-    where: {
-      publishedByOrgId: session.organizationId,
-      ...(statusFilter && statusFilter !== 'ALL' ? { status: statusFilter as never } : {}),
-    },
+    where,
     select: {
       id: true,
       title: true,
@@ -74,16 +119,44 @@ export const GET = withErrorHandler(async (request: Request) => {
       depositLocation: true,
       depositNotes: true,
       createdAt: true,
+      updatedAt: true,
+      // Data di ritiro/consegna: `Donation.deliveredAt` se valorizzata,
+      // altrimenti `updatedAt` (ultimo cambio di stato → DONATED).
+      donation: { select: { deliveredAt: true } },
       _count: {
         select: {
           requests: { where: { status: { in: ['PENDING', 'APPROVED'] } } },
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: statusFilter === 'DONATED' ? { updatedAt: 'desc' } : { createdAt: 'desc' },
+    take: MAX_OBJECTS_PER_PAGE,
   });
 
-  return NextResponse.json({ objects });
+  // Filtro per intervallo di date: applicato sulla data di consegna
+  // calcolata (non filtrabile in SQL perché è un fallback COALESCE).
+  const from = parseLocalDateBoundary(searchParams.get('from'), false);
+  const to = parseLocalDateBoundary(searchParams.get('to'), true);
+
+  const items = objects
+    .map((object) => ({
+      ...object,
+      deliveredAt: resolveEntityDeliveredAt(object.donation?.deliveredAt, object.updatedAt),
+    }))
+    .filter((object) => {
+      if (!from && !to) return true;
+      const time = new Date(object.deliveredAt).getTime();
+      if (Number.isNaN(time)) return false;
+      if (from && time < from.getTime()) return false;
+      if (to && time > to.getTime()) return false;
+      return true;
+    });
+
+  return NextResponse.json({
+    objects: items,
+    total: items.length,
+    truncated: objects.length >= MAX_OBJECTS_PER_PAGE,
+  });
 }, 'GET /api/operator/entity-objects');
 
 /**

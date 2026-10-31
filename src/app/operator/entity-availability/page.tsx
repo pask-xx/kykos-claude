@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useId, useCallback } from 'react';
-import { Package, QrCode, Camera } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Package, QrCode, Camera, History, Undo2 } from 'lucide-react';
 import QrScanner from 'qr-scanner';
 import { formatDate } from '@/lib/utils';
 import { formatShelfLocation } from '@/lib/shelf-label';
+import { canRevokeEntityObject } from '@/lib/entity-history';
 import {
   CATEGORY_LABELS,
   CONDITION_LABELS,
@@ -14,7 +16,7 @@ import {
   type ObjectStatus,
 } from '@/types';
 import { toast } from '@/components/ui/Toast';
-import { Badge, Button, EmptyState, EntityListCard, Input, Modal, Select, Spinner, Textarea } from '@/components/ui';
+import { Alert, Badge, Button, EmptyState, EntityListCard, Input, Modal, Select, Spinner, Textarea } from '@/components/ui';
 import ImageUploader from '@/components/ImageUploader';
 
 interface EntityObject {
@@ -55,7 +57,7 @@ function objectStatusBadge(status: ObjectStatus) {
     case 'DONATED':
       return { variant: 'default' as const, label: 'Ritirato' };
     case 'CANCELLED':
-      return { variant: 'danger' as const, label: OBJECT_STATUS_LABELS.CANCELLED };
+      return { variant: 'danger' as const, label: 'Revocata' };
     case 'BLOCKED':
       return { variant: 'danger' as const, label: OBJECT_STATUS_LABELS.BLOCKED };
     default:
@@ -64,11 +66,16 @@ function objectStatusBadge(status: ObjectStatus) {
 }
 
 export default function EntityAvailabilityPage() {
+  const router = useRouter();
   const [objects, setObjects] = useState<EntityObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const photoId = useId();
+
+  // Revoca di una disponibilità pubblicata
+  const [revokeTarget, setRevokeTarget] = useState<EntityObject | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -246,18 +253,56 @@ export default function EntityAvailabilityPage() {
     setShowModal(false);
   };
 
+  // --- Revoca disponibilità --------------------------------------------------------
+
+  const handleRevoke = async () => {
+    if (!revokeTarget) return;
+
+    setRevoking(true);
+    try {
+      const res = await fetch(`/api/operator/entity-objects/${revokeTarget.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'revoke' }),
+      });
+
+      if (res.ok) {
+        setRevokeTarget(null);
+        await fetchObjects();
+        toast.success('Disponibilità revocata');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Errore durante la revoca');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('Errore di connessione');
+    } finally {
+      setRevoking(false);
+    }
+  };
+
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Magazzino</h1>
           <p className="text-gray-500">
             Oggetti giacenti nei tuoi depositi: l&apos;ente ne è il donatore
           </p>
         </div>
-        <Button variant="primary" onClick={() => setShowModal(true)}>
-          + Nuova disponibilità
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => router.push('/operator/entity-history')}
+            leftIcon={<History className="w-4 h-4" aria-hidden="true" />}
+          >
+            Storico consegne
+          </Button>
+          <Button variant="primary" onClick={() => setShowModal(true)}>
+            + Nuova disponibilità
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -274,6 +319,9 @@ export default function EntityAvailabilityPage() {
         <div className="grid gap-4">
           {objects.map((obj) => {
             const statusBadge = objectStatusBadge(obj.status);
+            // La revoca è possibile solo se l'oggetto è ancora in giacenza
+            // (non consegnato) e non ha richieste attive.
+            const revocable = canRevokeEntityObject(obj.status, obj._count?.requests ?? 0);
             return (
               <EntityListCard
                 key={obj.id}
@@ -322,6 +370,18 @@ export default function EntityAvailabilityPage() {
                       </>
                     ) : null}
                   </>
+                }
+                footer={
+                  revocable ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setRevokeTarget(obj)}
+                      leftIcon={<Undo2 className="w-4 h-4" aria-hidden="true" />}
+                    >
+                      Revoca
+                    </Button>
+                  ) : undefined
                 }
                 ariaLabel={`Apri disponibilità ${obj.title}`}
               />
@@ -446,6 +506,52 @@ export default function EntityAvailabilityPage() {
             rows={2}
             placeholder="Es. aprire il magazzino su richiesta"
           />
+        </div>
+      </Modal>
+
+      {/* Revoca disponibilità */}
+      <Modal
+        isOpen={revokeTarget !== null}
+        onClose={() => !revoking && setRevokeTarget(null)}
+        title="Revoca disponibilità"
+        size="sm"
+        footer={
+          <div className="p-6 bg-gray-50">
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setRevokeTarget(null)}
+                className="flex-1"
+                disabled={revoking}
+              >
+                Annulla
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleRevoke}
+                className="flex-1"
+                loading={revoking}
+              >
+                {revoking ? 'Revoca...' : 'Revoca'}
+              </Button>
+            </div>
+          </div>
+        }
+      >
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-700">
+            Vuoi revocare la disponibilità{' '}
+            <span className="font-semibold">{revokeTarget?.title}</span>?
+          </p>
+          <Alert type="warning" title="La disponibilità non sarà più visibile ai beneficiari.">
+            <ul className="mt-2 space-y-1 list-disc pl-4">
+              <li>L&apos;oggetto resta nel magazzino, ma non può più essere richiesto.</li>
+              <li>
+                La revoca è possibile solo se non ci sono richieste attive e l&apos;oggetto
+                non è ancora stato consegnato.
+              </li>
+            </ul>
+          </Alert>
         </div>
       </Modal>
     </div>
