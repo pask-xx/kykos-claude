@@ -32,6 +32,9 @@ yarn-error.log*
 # Scarti di sessione Claude (log temporanei dalla cartella home utente)
 tmp-*.log
 tmp-*.txt
+# Stessi scarti ma con path home corrotto (es. "C:Userspromb.claudetmp-build.log")
+*claudetmp*.log
+*claudetmp*.txt
 
 # Prisma
 *.db
@@ -50,3 +53,19 @@ npm-debug.log
 # I template sono committati (non contengono segreti):
 !.env.staging.template
 !.env.production.template
+
+# Asset binari pesanti per video/marketing (rigenerabili, non versionati)
+assets/**/*.mp4
+assets/**/*.mov
+assets/**/*.webm
+assets/**/*.wav
+assets/**/*.mp3
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.gif
+assets/**/*.psd
+assets/**/*.ai
+# MA mantieni i file di documentazione/struttura
+!assets/**/*.md
+!assets/**/.gitkeep
