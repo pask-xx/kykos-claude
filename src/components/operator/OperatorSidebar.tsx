@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   Home, ClipboardList, Package, Heart, FileText, PackageOpen,
   Users, Gift, Handshake, QrCode, AlertTriangle, User, Settings,
-  Map, Apple, Warehouse, History, Ban, type LucideIcon,
+  Map, Apple, Warehouse, type LucideIcon,
 } from 'lucide-react';
 import { OperatorPermission } from '@/types';
 import { hasPermission as checkPermission } from '@/lib/permissions';
@@ -28,8 +28,6 @@ const allNavItems: NavItem[] = [
   { href: '/operator/objects', label: 'Disponibilità', icon: Package, permission: 'OBJECT_RECEIVE' },
   { href: '/operator/availability', label: 'Distribuzione', icon: Package, permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/entity-availability', label: 'Magazzino', icon: Warehouse, permission: 'ORGANIZATION_ADMIN' },
-  { href: '/operator/entity-revoked', label: 'Revocate', icon: Ban, permission: 'ORGANIZATION_ADMIN' },
-  { href: '/operator/entity-history', label: 'Storico consegne', icon: History, permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/fresh-events', label: 'Prodotti freschi', icon: Apple, permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/cause', label: 'Cause', icon: Heart, permission: 'ORGANIZATION_ADMIN' },
   { href: '/operator/requests', label: 'Da approvare', icon: FileText, permission: 'RECIPIENT_AUTHORIZE' },

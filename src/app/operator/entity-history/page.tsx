@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { History, Package, Truck, Warehouse } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronLeft, History, Package, Truck } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CATEGORY_LABELS, CONDITION_LABELS } from '@/types';
 import { toast } from '@/components/ui/Toast';
@@ -38,7 +38,6 @@ import {
  * selezionato dall'API.
  */
 export default function EntityHistoryPage() {
-  const router = useRouter();
   const [items, setItems] = useState<EntityHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [truncated, setTruncated] = useState(false);
@@ -115,20 +114,18 @@ export default function EntityHistoryPage() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Storico consegne</h1>
-          <p className="text-gray-500">
-            Le disponibilità del magazzino già consegnate ai beneficiari
-          </p>
-        </div>
-        <Button
-          variant="secondary"
-          onClick={() => router.push('/operator/entity-availability')}
-          leftIcon={<Warehouse className="w-4 h-4" aria-hidden="true" />}
+      <div>
+        <Link
+          href="/operator/entity-availability"
+          className="text-sm text-gray-500 hover:text-primary-600 mb-2 inline-flex items-center gap-1"
         >
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           Torna al magazzino
-        </Button>
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900">Storico consegne</h1>
+        <p className="text-gray-500">
+          Le disponibilità del magazzino già consegnate ai beneficiari
+        </p>
       </div>
 
       {!loading && items.length > 0 && (
